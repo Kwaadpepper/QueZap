@@ -1,9 +1,13 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.6'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.hibernate.orm' version '6.6.29.Final'
-	id 'org.graalvm.buildtools.native' version '0.10.6'
+  id 'java'
+  id 'org.springframework.boot' version '3.5.6'
+  id 'io.spring.dependency-management' version '1.1.7'
+  id 'org.hibernate.orm' version '6.6.29.Final'
+  id 'org.graalvm.buildtools.native' version '0.10.6'
+  id 'net.ltgt.errorprone' version '4.3.0'
+  id 'net.ltgt.nullaway' version '2.3.0'
+  id 'com.diffplug.spotless' version '8.0.0'
+  id 'checkstyle'
 }
 
 group = 'com.quezap'
@@ -11,42 +15,150 @@ version = '0.0.1-SNAPSHOT'
 description = 'Demo project for Spring Boot'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
-	}
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(25)
+  }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
 }
 
 repositories {
-	mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'org.postgresql:postgresql'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  errorprone 'com.google.errorprone:error_prone_core:2.42.0'
+  errorprone 'com.uber.nullaway:nullaway:0.12.10'
+  compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.4.0'
+  testCompileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.4.0'
+
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  developmentOnly 'org.springframework.boot:spring-boot-devtools'
+  runtimeOnly 'com.h2database:h2'
+  runtimeOnly 'org.postgresql:postgresql'
+  annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework.security:spring-security-test'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-hibernate {
-	enhancement {
-		enableAssociationManagement = true
-	}
+// hibernate {
+// 	enhancement {
+// 		enableAssociationManagement = true
+// 	}
+// }
+
+// --- Configuration Error Prone / NullAway (Conditionnelle) ---
+def enableNullAway = project.hasProperty('nullaway') && project.property('nullaway') == 'true'
+
+tasks.withType(JavaCompile).configureEach {
+  options.errorprone {
+    if (enableNullAway) {
+      check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+      option('NullAway:AnnotatedPackages', 'com.quezap')
+      option('TreatGeneratedAsUnannotated', 'true')
+    } else {
+      // Si NullAway n'est pas activé, spécifier quand même les packages
+      // mais le désactiver avec OFF
+      option('NullAway:AnnotatedPackages', 'com.quezap')
+      check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.OFF)
+    }
+  }
+
+  if (enableNullAway) {
+    options.compilerArgs << '-Werror'
+  }
+}
+
+// --- Configuration Spotless ---
+spotless {
+  // * Java
+  java {
+    // * Utiliser Google Java Format
+    googleJavaFormat('1.28.0')
+    removeUnusedImports()
+    importOrder(
+        'java',
+        'javax',
+        'org.springframework',
+        'com.quezap',
+        '#',
+        '',
+        )
+    formatAnnotations()
+    target('**/*.java')
+    targetExclude('**/build/**', '**/generated/**')
+  }
+
+  // * Scripts Gradle Groovy
+  groovyGradle {
+    greclipse()
+    target('**/*.gradle')
+    targetExclude('**/build/**')
+
+    leadingTabsToSpaces(2)
+  }
+}
+
+// * Intègre Spotless dans 'check'
+tasks.named('check') {
+  dependsOn('spotlessCheck', 'checkstyleMain', 'checkstyleTest')
+}
+
+// Configuration Checkstyle
+checkstyle {
+  // Utiliser une version récente de l'outil Checkstyle
+  toolVersion = '10.21.1'
+
+  // Chemin vers le fichier de configuration principal (checkstyle.xml)
+  configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+
+  // Propriétés de configuration (nécessaires si vous utilisez des suppressions)
+  configProperties = [
+    // Chemin vers le filtre de suppression (checkstyle-suppressions.xml)
+    'org.checkstyle.google.suppressionfilter.config': file("${rootDir}/config/checkstyle/checkstyle-suppressions.xml"),
+  ]
+}
+
+// Configuration des tâches de compilation/vérification (pour Main et Test)
+tasks.withType(Checkstyle).configureEach {
+  // Activer la tâche uniquement s'il y a des fichiers Java dans src/main/java
+  // L'expression Groovy `fileTree(...)` est similaire à la syntaxe Kotlin
+  enabled = fileTree('src/main/java').files.size() > 0
+
+  reports {
+    // Exiger le rapport HTML (facile à lire)
+    html.required = true
+    // Désactiver le rapport XML (facultatif)
+    xml.required = false
+  }
+}
+
+// Désactiver Checkstyle pour les fichiers générés par AOT
+tasks.named('checkstyleAot') {
+  enabled = false
+}
+
+tasks.named('checkstyleAotTest') {
+  enabled = false
+}
+
+// --- Tâches diverses ---
+
+graalvmNative {
+  binaries.configureEach {
+    buildArgs.add('-march=compatibility')
+  }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+  useJUnitPlatform()
 }

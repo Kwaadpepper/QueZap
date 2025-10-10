@@ -1,25 +1,57 @@
 {
-    "conventionalCommits.scopes": [
-        "back"
+  "conventionalCommits.scopes": [
+    "back"
+  ],
+  "editor.formatOnSave": true,
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.gradle.enabled": true,
+  "java.import.gradle.wrapper.enabled": true,
+  "java.import.gradle.offline.enabled": false,
+  "java.import.generatesMetadataFilesAtProjectRoot": true,
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.format.comments.enabled": true,
+  "java.format.enabled": false,
+  "[java]": {
+    "editor.formatOnSave": false,
+    "files.trimTrailingWhitespace": false,
+  },
+  "triggerTaskOnSave.tasks": {
+    "Gradle Spotless Apply Silently": [
+      "*.java",
+      "*.kts",
     ],
-    "workbench.colorCustomizations": {
-        "activityBar.activeBackground": "#9ba2dd",
-        "activityBar.background": "#9ba2dd",
-        "activityBar.foreground": "#15202b",
-        "activityBar.inactiveForeground": "#15202b99",
-        "activityBarBadge.background": "#f7e7e9",
-        "activityBarBadge.foreground": "#15202b",
-        "commandCenter.border": "#15202b99",
-        "sash.hoverBorder": "#9ba2dd",
-        "statusBar.background": "#757fd0",
-        "statusBar.foreground": "#15202b",
-        "statusBarItem.hoverBackground": "#4f5cc3",
-        "statusBarItem.remoteBackground": "#757fd0",
-        "statusBarItem.remoteForeground": "#15202b",
-        "titleBar.activeBackground": "#757fd0",
-        "titleBar.activeForeground": "#15202b",
-        "titleBar.inactiveBackground": "#757fd099",
-        "titleBar.inactiveForeground": "#15202b99"
-    },
-    "peacock.color": "#757fd0"
+  },
+  "java.checkstyle.configuration": "config/checkstyle/checkstyle.xml",
+  "java.checkstyle.properties": {
+    "org.checkstyle.google.suppressionfilter.config": "${workspaceFolder}/config/checkstyle/checkstyle-suppressions.xml"
+  },
+  "java.checkstyle.version": "11.0.0",
+  "java.completion.favoriteStaticMembers": [
+    "org.eclipse.jdt.annotation",
+    "org.jspecify.annotations",
+    "org.springframework.lang",
+    "com.quezap",
+    "java.util",
+    "java.lang",
+  ],
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#9ba2dd",
+    "activityBar.background": "#9ba2dd",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#f7e7e9",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#9ba2dd",
+    "statusBar.background": "#757fd0",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#4f5cc3",
+    "statusBarItem.remoteBackground": "#757fd0",
+    "statusBarItem.remoteForeground": "#15202b",
+    "titleBar.activeBackground": "#757fd0",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#757fd099",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#757fd0"
 }
