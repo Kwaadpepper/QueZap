@@ -8,6 +8,7 @@ plugins {
   id 'net.ltgt.nullaway' version '2.3.0'
   id 'com.diffplug.spotless' version '8.0.0'
   id 'checkstyle'
+  id 'jacoco'
 }
 
 group = 'com.quezap'
@@ -28,6 +29,12 @@ configurations {
 
 repositories {
   mavenCentral()
+}
+
+configurations.all {
+  resolutionStrategy {
+    force 'com.google.guava:guava:33.5.0-jre'
+  }
 }
 
 dependencies {
@@ -76,6 +83,8 @@ tasks.withType(JavaCompile).configureEach {
   if (enableNullAway) {
     options.compilerArgs << '-Werror'
   }
+
+  options.compilerArgs << "-Xlint:deprecation"
 }
 
 // --- Configuration Spotless ---
@@ -83,7 +92,7 @@ spotless {
   // * Java
   java {
     // * Utiliser Google Java Format
-    googleJavaFormat('1.28.0')
+    googleJavaFormat('1.29.0')
     removeUnusedImports()
     importOrder(
         'java',
@@ -116,7 +125,7 @@ tasks.named('check') {
 // Configuration Checkstyle
 checkstyle {
   // Utiliser une version récente de l'outil Checkstyle
-  toolVersion = '10.21.1'
+  toolVersion = '12.0.0'
 
   // Chemin vers le fichier de configuration principal (checkstyle.xml)
   configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
@@ -130,8 +139,6 @@ checkstyle {
 
 // Configuration des tâches de compilation/vérification (pour Main et Test)
 tasks.withType(Checkstyle).configureEach {
-  // Activer la tâche uniquement s'il y a des fichiers Java dans src/main/java
-  // L'expression Groovy `fileTree(...)` est similaire à la syntaxe Kotlin
   enabled = fileTree('src/main/java').files.size() > 0
 
   reports {
@@ -159,6 +166,49 @@ graalvmNative {
   }
 }
 
-tasks.named('test') {
+// --- Configuration JaCoCo (Couverture de Code) ---
+jacoco {
+  toolVersion = "0.8.13"
+}
+
+tasks.named('jacocoTestReport') {
+  dependsOn tasks.named('test')
+
+  reports {
+    html.required = true
+    html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
+
+    xml.required = true
+    xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
+
+    csv.required = false
+  }
+}
+
+// --- Configuration de l'exécution des tests (pour JaCoCo) ---
+tasks.named('test', Test) {
   useJUnitPlatform()
+
+  jacoco {
+    destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
+    classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
+  }
+}
+
+project.afterEvaluate {
+  tasks.named('jacocoTestReport').configure {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+      fileTree(dir: it, exclude: [
+        // Exclure les classes Spring Boot standards
+        '**/com/quezap/*Application.class',
+        // Exclure les classes de configuration/interfaces DTO sans logique
+        '**/*Configuration.class',
+        '**/*Dto.class',
+        '**/*MapperImpl.class',
+        '**/*Constants.class',
+        // Exclure les classes gérées par l'ORM si elles n'ont que des getters/setters
+        '**/domain/entities/**',
+      ])
+    }))
+  }
 }
