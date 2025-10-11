@@ -6,11 +6,9 @@ import java.time.ZonedDateTime;
 import com.quezap.domain.exceptions.IllegalDomainStateException;
 import com.quezap.lib.utils.UuidV7;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-@NonNullByDefault
 class UserTest {
   @Test
   void canInstantiate() {
@@ -19,6 +17,20 @@ class UserTest {
 
     // WHEN
     new User(name, ZonedDateTime.now(ZoneId.of("UTC")));
+
+    // THEN
+    Assertions.assertDoesNotThrow(() -> {});
+  }
+
+  @Test
+  void canHydrate() {
+    // GIVEN
+    var name = "some-name";
+    var utc = ZonedDateTime.now(ZoneId.of("UTC"));
+    var id = UuidV7.randomUuid();
+
+    // WHEN
+    User.hydrate(id, name, utc);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -35,16 +47,12 @@ class UserTest {
   }
 
   @Test
-  void canHydrate() {
+  void cannotInstantiateWithNameTooLong() {
     // GIVEN
-    var name = "some-name";
+    var name = "A".repeat(256);
     var utc = ZonedDateTime.now(ZoneId.of("UTC"));
-    var id = UuidV7.randomUuid();
 
-    // WHEN
-    User.hydrate(id, name, utc);
-
-    // THEN
-    Assertions.assertDoesNotThrow(() -> {});
+    // WHEN / THEN
+    Assertions.assertThrows(IllegalDomainStateException.class, () -> new User(name, utc));
   }
 }

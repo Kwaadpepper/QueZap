@@ -18,6 +18,7 @@ public class User extends AggregateRoot {
 
   private static void validateCommonInvariants(String name) {
     Domain.checkDomain(() -> !name.isBlank(), "Name cannot be blank");
+    Domain.checkDomain(() -> name.length() <= 65, "Name cannot exceed 65 characters");
   }
 
   public User(String name, ZonedDateTime updatedAt) {
