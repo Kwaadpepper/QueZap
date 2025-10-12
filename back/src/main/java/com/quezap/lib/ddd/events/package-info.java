@@ -1,2 +1,2 @@
 @org.eclipse.jdt.annotation.NonNullByDefault
-package com.quezap.domain.exceptions;
+package com.quezap.lib.ddd.events;

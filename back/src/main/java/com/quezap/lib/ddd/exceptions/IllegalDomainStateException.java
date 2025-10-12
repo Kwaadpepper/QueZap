@@ -1,4 +1,4 @@
-package com.quezap.domain.exceptions;
+package com.quezap.lib.ddd.exceptions;
 
 public class IllegalDomainStateException extends RuntimeException {
   public IllegalDomainStateException(String message) {

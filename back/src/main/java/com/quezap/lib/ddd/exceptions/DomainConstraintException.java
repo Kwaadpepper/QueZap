@@ -1,4 +1,4 @@
-package com.quezap.domain.exceptions;
+package com.quezap.lib.ddd.exceptions;
 
 public class DomainConstraintException extends RuntimeException {
   public DomainConstraintException(String message) {
