@@ -4,6 +4,8 @@ spring:
       enabled: true
     script:
       enabled: true
+    history:
+      enabled: false
   main:
     web-application-type: none
   devtools:
@@ -11,3 +13,10 @@ spring:
       enabled: false
   autoconfigure:
     exclude:
+
+logging:
+  pattern:
+    console:
+  file:
+    # No log file
+    name:
