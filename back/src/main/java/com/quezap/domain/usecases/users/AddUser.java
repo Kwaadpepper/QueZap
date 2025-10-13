@@ -33,9 +33,9 @@ public sealed interface AddUser {
 
     public Handler(
         UserRepository userRepository,
+        CredentialRepository credentialRepository,
         IdentifierHasher identifierHasher,
-        PasswordHasher passwordHasher,
-        CredentialRepository credentialRepository) {
+        PasswordHasher passwordHasher) {
       this.userRepository = userRepository;
       this.identifierHasher = identifierHasher;
       this.passwordHasher = passwordHasher;
