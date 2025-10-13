@@ -6,6 +6,11 @@ server:
 spring:
   application:
     name: quizz
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false
 
 logging:
   level:

@@ -14,8 +14,9 @@ import com.quezap.lib.pagination.PageRequest;
 public sealed interface ListUsers {
   record Input(PageRequest page) implements UseCaseInput {}
 
-  record Output(PageOf<UserDto> items) implements UseCaseOutput {
-    record UserDto(UserId id, String name, ZonedDateTime createdAt, ZonedDateTime updatedAt) {}
+  public record Output(PageOf<UserDto> items) implements UseCaseOutput {
+    public record UserDto(
+        UserId id, String name, ZonedDateTime createdAt, ZonedDateTime updatedAt) {}
   }
 
   final class Handler implements UseCaseHandler<Input, Output>, ListUsers {
