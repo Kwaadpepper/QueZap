@@ -15,7 +15,7 @@ import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
-sealed interface UpdateUserPassword {
+public sealed interface UpdateUserPassword {
   sealed interface Input extends UseCaseInput {
     record UserName(String name, RawPassword newPassword) implements Input {}
 

@@ -11,7 +11,7 @@ import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.PageRequest;
 
-sealed interface ListUsers {
+public sealed interface ListUsers {
   record Input(PageRequest page) implements UseCaseInput {}
 
   record Output(PageOf<UserDto> items) implements UseCaseOutput {
