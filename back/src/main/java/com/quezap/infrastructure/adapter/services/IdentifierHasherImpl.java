@@ -3,10 +3,13 @@ package com.quezap.infrastructure.adapter.services;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
+import org.springframework.stereotype.Service;
+
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.port.services.IdentifierHasher;
 
+@Service
 public class IdentifierHasherImpl implements IdentifierHasher {
 
   @Override
