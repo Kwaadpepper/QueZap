@@ -64,7 +64,7 @@ class UpdatePasswordTest {
     Mockito.when(user.getId()).thenReturn(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(user.getCredential()).thenReturn(credentialId);
     Mockito.when(userRepository.findByName(userName)).thenReturn(user);
-    Mockito.when(userRepository.find(user.getId())).thenReturn(user);
+    Mockito.when(userRepository.find(Mockito.any())).thenReturn(user);
     Mockito.when(credentialRepository.find(credentialId.value()))
         .thenReturn(Mockito.mock(Credential.class));
     Mockito.when(passwordHasher.hash(newPassword)).thenReturn(Mockito.mock(HashedPassword.class));
