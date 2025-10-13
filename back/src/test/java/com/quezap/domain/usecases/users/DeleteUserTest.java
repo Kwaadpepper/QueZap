@@ -3,8 +3,10 @@ package com.quezap.domain.usecases.users;
 import java.util.UUID;
 
 import com.quezap.domain.errors.users.DeleteUserError;
+import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
+import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 
 import org.junit.jupiter.api.Assertions;
@@ -13,11 +15,13 @@ import org.mockito.Mockito;
 
 class DeleteUserTest {
   private final UserRepository userRepository;
+  private final CredentialRepository credentialRepository;
   private final DeleteUser.Handler deleteUserHandler;
 
   public DeleteUserTest() {
     userRepository = Mockito.mock(UserRepository.class);
-    deleteUserHandler = new DeleteUser.Handler(userRepository);
+    credentialRepository = Mockito.mock(CredentialRepository.class);
+    deleteUserHandler = new DeleteUser.Handler(userRepository, credentialRepository);
   }
 
   @Test
@@ -29,6 +33,8 @@ class DeleteUserTest {
 
     // WHEN
     Mockito.when(userRepository.find(userId.value())).thenReturn(user);
+    Mockito.when(credentialRepository.find(user.getCredential().value()))
+        .thenReturn(Mockito.mock(Credential.class));
 
     var output = deleteUserHandler.handle(input);
 
@@ -48,6 +54,26 @@ class DeleteUserTest {
     Mockito.when(userRepository.findByName(userName)).thenReturn(user);
     Mockito.when(userRepository.find(userId.value())).thenReturn(user);
     Mockito.when(user.getId()).thenReturn(userId.value());
+
+    Mockito.when(credentialRepository.find(user.getCredential().value()))
+        .thenReturn(Mockito.mock(Credential.class));
+
+    var output = deleteUserHandler.handle(input);
+
+    // THEN
+    Assertions.assertInstanceOf(DeleteUser.Output.UserDeleted.class, output);
+  }
+
+  @Test
+  void canDeleteUserThatIsMissingCredential() {
+    // GIVEN
+    var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var user = Mockito.mock(User.class);
+    var input = new DeleteUser.Input.Id(userId);
+
+    // WHEN
+    Mockito.when(userRepository.find(userId.value())).thenReturn(user);
+    Mockito.when(credentialRepository.find(user.getCredential().value())).thenReturn(null);
 
     var output = deleteUserHandler.handle(input);
 

@@ -4,12 +4,16 @@ import java.util.Optional;
 
 import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
+import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.UseCaseHandler;
 import com.quezap.lib.ddd.UseCaseInput;
 import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public sealed interface DeleteUser {
 
@@ -24,10 +28,14 @@ public sealed interface DeleteUser {
   }
 
   final class Handler implements UseCaseHandler<Input, Output>, DeleteUser {
-    private final UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(Handler.class);
 
-    public Handler(UserRepository userRepository) {
+    private final UserRepository userRepository;
+    private final CredentialRepository credentialRepository;
+
+    public Handler(UserRepository userRepository, CredentialRepository credentialRepository) {
       this.userRepository = userRepository;
+      this.credentialRepository = credentialRepository;
     }
 
     @Override
@@ -46,6 +54,14 @@ public sealed interface DeleteUser {
 
       if (user == null) {
         throw userNotFoundException;
+      }
+
+      final var credential = credentialRepository.find(user.getCredential().value());
+
+      if (credential == null) {
+        logger.warn("User {} has no associated credential, removing user anyway.", userId.value());
+      } else {
+        credentialRepository.delete(credential);
       }
 
       userRepository.delete(user);
