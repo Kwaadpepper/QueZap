@@ -1,5 +1,6 @@
 package com.quezap.domain.usecases.users;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -34,7 +35,7 @@ class ListUsersTest {
             new User(
                 "some-name",
                 new CredentialId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000")),
-                ZonedDateTime.now()));
+                ZonedDateTime.now(ZoneId.of("UTC"))));
 
     // WHEN
     Mockito.when(userRepository.findAll(pageRequest))
