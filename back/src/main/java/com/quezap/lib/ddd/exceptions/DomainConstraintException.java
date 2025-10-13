@@ -1,19 +1,19 @@
 package com.quezap.lib.ddd.exceptions;
 
 public class DomainConstraintException extends RuntimeException {
-  public DomainConstraintException(String message) {
-    super(message);
+  private final DomainErrorCode error;
+
+  public DomainConstraintException(DomainErrorCode error) {
+    super(error.getMessage());
+    this.error = error;
   }
 
-  public DomainConstraintException(String message, Throwable cause) {
-    super(message, cause);
+  public DomainConstraintException(DomainErrorCode error, Throwable cause) {
+    super(error.getMessage(), cause);
+    this.error = error;
   }
 
-  public DomainConstraintException(Throwable cause) {
-    super(cause);
-  }
-
-  public DomainConstraintException() {
-    super();
+  public DomainErrorCode getError() {
+    return error;
   }
 }

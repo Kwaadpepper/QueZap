@@ -2,6 +2,7 @@ package com.quezap.domain.usecases.users;
 
 import java.util.Optional;
 
+import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.ddd.AggregateRoot;
@@ -31,7 +32,7 @@ public sealed interface DeleteUser {
 
     @Override
     public Output handle(Input usecaseInput) {
-      final var userNotFoundException = new DomainConstraintException("User not found");
+      final var userNotFoundException = new DomainConstraintException(DeleteUserError.NO_SUCH_USER);
       final UserId userId =
           switch (usecaseInput) {
             case Input.Id(UserId id) -> id;

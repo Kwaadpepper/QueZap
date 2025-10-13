@@ -3,6 +3,7 @@ package com.quezap.domain.usecases.users;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+import com.quezap.domain.errors.users.AddUserError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
@@ -50,11 +51,11 @@ public sealed interface AddUser {
       final var hashedPassword = passwordHasher.hash(rawPassword);
 
       if (credentialRepository.findByidentifier(hashedIdentifier) != null) {
-        throw new DomainConstraintException("Identifier is already taken");
+        throw new DomainConstraintException(AddUserError.IDENTIFIER_ALREADY_TAKEN);
       }
 
       if (userRepository.findByName(userName) != null) {
-        throw new DomainConstraintException("User name is already taken");
+        throw new DomainConstraintException(AddUserError.USER_NAME_ALREADY_TAKEN);
       }
 
       final var credential =

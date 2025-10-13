@@ -2,6 +2,7 @@ package com.quezap.domain.usecases.users;
 
 import java.util.UUID;
 
+import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
@@ -65,6 +66,6 @@ class DeleteUserTest {
 
     var exception =
         Assertions.assertThrows(RuntimeException.class, () -> deleteUserHandler.handle(input));
-    Assertions.assertEquals("User not found", exception.getMessage());
+    Assertions.assertEquals(DeleteUserError.NO_SUCH_USER.getMessage(), exception.getMessage());
   }
 }

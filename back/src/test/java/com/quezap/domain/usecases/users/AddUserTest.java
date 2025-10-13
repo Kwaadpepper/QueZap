@@ -1,5 +1,6 @@
 package com.quezap.domain.usecases.users;
 
+import com.quezap.domain.errors.users.AddUserError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
@@ -72,7 +73,7 @@ class AddUserTest {
     // THEN
     Assertions.assertThatThrownBy(() -> handler.handle(input))
         .isInstanceOf(DomainConstraintException.class)
-        .hasMessage("Identifier is already taken");
+        .hasMessage(AddUserError.IDENTIFIER_ALREADY_TAKEN.getMessage());
   }
 
   @Test
@@ -92,6 +93,6 @@ class AddUserTest {
     // THEN
     Assertions.assertThatThrownBy(() -> handler.handle(input))
         .isInstanceOf(DomainConstraintException.class)
-        .hasMessage("User name is already taken");
+        .hasMessage(AddUserError.USER_NAME_ALREADY_TAKEN.getMessage());
   }
 }
