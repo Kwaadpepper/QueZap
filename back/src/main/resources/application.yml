@@ -1,0 +1,12 @@
+debug: false
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: quizz
+
+logging:
+  level:
+    root: WARN
