@@ -2,7 +2,8 @@ package com.quezap.domain.models.valueobjects;
 
 import java.util.UUID;
 
-import com.quezap.domain.exceptions.IllegalDomainStateException;
+import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

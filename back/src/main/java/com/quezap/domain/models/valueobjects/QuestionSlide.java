@@ -1,5 +1,6 @@
 package com.quezap.domain.models.valueobjects;
 
+import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.lib.utils.Domain;
 
 public record QuestionSlide(Integer timer, Integer points, QuestionId question) {

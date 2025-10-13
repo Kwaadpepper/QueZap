@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
@@ -14,6 +15,8 @@ import org.eclipse.jdt.annotation.Nullable;
 public class User extends AggregateRoot {
   private String name;
 
+  private CredentialId credential;
+
   private ZonedDateTime updatedAt;
 
   private static void validateCommonInvariants(String name) {
@@ -21,21 +24,24 @@ public class User extends AggregateRoot {
     Domain.checkDomain(() -> name.length() <= 65, "Name cannot exceed 65 characters");
   }
 
-  public User(String name, ZonedDateTime updatedAt) {
+  public User(String name, CredentialId credential, ZonedDateTime updatedAt) {
     validateCommonInvariants(name);
     this.name = name;
+    this.credential = credential;
     this.updatedAt = updatedAt;
   }
 
-  protected User(UUID id, String name, ZonedDateTime updatedAt) {
+  protected User(UUID id, String name, CredentialId credential, ZonedDateTime updatedAt) {
     super(id);
     validateCommonInvariants(name);
     this.name = name;
+    this.credential = credential;
     this.updatedAt = updatedAt;
   }
 
-  public static User hydrate(UUID id, String name, ZonedDateTime updatedAt) {
-    return new User(id, name, updatedAt);
+  public static User hydrate(
+      UUID id, String name, CredentialId credential, ZonedDateTime updatedAt) {
+    return new User(id, name, credential, updatedAt);
   }
 
   @Override
@@ -49,6 +55,10 @@ public class User extends AggregateRoot {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public CredentialId getCredential() {
+    return credential;
   }
 
   @Override

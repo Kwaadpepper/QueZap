@@ -1,4 +1,4 @@
-package com.quezap.domain.models.valueobjects;
+package com.quezap.domain.models.valueobjects.auth;
 
 import com.quezap.lib.utils.Domain;
 

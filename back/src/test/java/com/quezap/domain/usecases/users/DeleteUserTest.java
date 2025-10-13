@@ -3,7 +3,7 @@ package com.quezap.domain.usecases.users;
 import java.util.UUID;
 
 import com.quezap.domain.models.entities.User;
-import com.quezap.domain.models.valueobjects.UserId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
 
 import org.junit.jupiter.api.Assertions;

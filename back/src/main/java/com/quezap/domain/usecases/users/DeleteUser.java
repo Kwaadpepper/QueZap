@@ -2,7 +2,7 @@ package com.quezap.domain.usecases.users;
 
 import java.util.Optional;
 
-import com.quezap.domain.models.valueobjects.UserId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.UseCaseHandler;

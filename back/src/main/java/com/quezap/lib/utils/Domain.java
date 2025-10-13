@@ -2,7 +2,7 @@ package com.quezap.lib.utils;
 
 import java.util.function.BooleanSupplier;
 
-import com.quezap.domain.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 /** Utility class for domain validation logic. */
 public final class Domain {

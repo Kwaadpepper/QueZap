@@ -4,8 +4,9 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.quezap.domain.models.valueobjects.HashedIdentifier;
-import com.quezap.domain.models.valueobjects.HashedPassword;
+import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
+import com.quezap.domain.models.valueobjects.auth.HashedPassword;
+import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.lib.ddd.AggregateRoot;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -54,6 +55,10 @@ public class Credential extends AggregateRoot {
   @Override
   public UUID getId() {
     return id;
+  }
+
+  public CredentialId getCredentialId() {
+    return new CredentialId(id);
   }
 
   public @Nullable ZonedDateTime getLastConnectionAt() {

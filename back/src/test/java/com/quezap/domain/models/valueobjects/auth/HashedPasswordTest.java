@@ -1,6 +1,6 @@
-package com.quezap.domain.models.valueobjects;
+package com.quezap.domain.models.valueobjects.auth;
 
-import com.quezap.domain.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Assertions;

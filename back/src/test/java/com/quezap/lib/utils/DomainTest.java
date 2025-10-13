@@ -1,6 +1,6 @@
 package com.quezap.lib.utils;
 
-import com.quezap.domain.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

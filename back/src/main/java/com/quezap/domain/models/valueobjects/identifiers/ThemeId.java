@@ -1,4 +1,4 @@
-package com.quezap.domain.models.valueobjects;
+package com.quezap.domain.models.valueobjects.identifiers;
 
 import java.util.UUID;
 

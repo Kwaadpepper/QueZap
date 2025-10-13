@@ -6,11 +6,11 @@ import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.UUID;
 
-import com.quezap.domain.exceptions.IllegalDomainStateException;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Picture;
 import com.quezap.domain.models.valueobjects.PictureType;
 import com.quezap.domain.models.valueobjects.QuestionType;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

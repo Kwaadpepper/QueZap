@@ -3,15 +3,13 @@ package com.quezap.domain.models.entities;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
-import com.quezap.domain.models.valueobjects.HashedIdentifier;
-import com.quezap.domain.models.valueobjects.HashedPassword;
+import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
+import com.quezap.domain.models.valueobjects.auth.HashedPassword;
 import com.quezap.lib.utils.UuidV7;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-@NonNullByDefault
 class CredentialTest {
   @Test
   void canInstantiate() {

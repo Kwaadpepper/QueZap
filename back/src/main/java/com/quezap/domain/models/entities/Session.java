@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.QuestionSlide;
 import com.quezap.domain.models.valueobjects.SessionCode;
-import com.quezap.domain.models.valueobjects.UserId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
