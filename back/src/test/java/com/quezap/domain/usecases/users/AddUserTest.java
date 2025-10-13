@@ -31,7 +31,7 @@ class AddUserTest {
     passwordHasher = Mockito.mock(PasswordHasher.class);
 
     handler =
-        new AddUser.Handler(userRepository, identifierHasher, passwordHasher, credentialRepository);
+        new AddUser.Handler(userRepository, credentialRepository, identifierHasher, passwordHasher);
   }
 
   @Test
