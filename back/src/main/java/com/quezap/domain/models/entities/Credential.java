@@ -1,5 +1,6 @@
 package com.quezap.domain.models.entities;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -13,10 +14,11 @@ import org.eclipse.jdt.annotation.Nullable;
 
 public class Credential extends AggregateRoot {
 
-  private final HashedPassword hashedPassword;
   private final HashedIdentifier hashedIdentifier;
   private final @Nullable ZonedDateTime lastConnectionAt;
-  private final ZonedDateTime updatedAt;
+
+  private HashedPassword hashedPassword;
+  private ZonedDateTime updatedAt;
 
   public Credential(
       HashedPassword hashedPassword,
@@ -80,6 +82,11 @@ public class Credential extends AggregateRoot {
 
   public ZonedDateTime getUpdatedAt() {
     return updatedAt;
+  }
+
+  public void updatePassword(HashedPassword newHashedPassword) {
+    this.hashedPassword = newHashedPassword;
+    this.updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
   }
 
   @Override
