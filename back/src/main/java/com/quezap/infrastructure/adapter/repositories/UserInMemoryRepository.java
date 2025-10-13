@@ -1,0 +1,63 @@
+package com.quezap.infrastructure.adapter.repositories;
+
+import java.util.LinkedList;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.stereotype.Repository;
+
+import com.quezap.domain.models.entities.User;
+import com.quezap.domain.port.repositories.UserRepository;
+import com.quezap.lib.pagination.PageOf;
+import com.quezap.lib.pagination.PageRequest;
+
+import org.eclipse.jdt.annotation.Nullable;
+
+@Repository
+public class UserInMemoryRepository implements UserRepository {
+  private final ConcurrentHashMap<UUID, User> storage = new ConcurrentHashMap<>();
+
+  @Override
+  public @Nullable User find(UUID id) {
+    return storage.get(id);
+  }
+
+  @Override
+  public void save(User entity) {
+    storage.put(entity.getId(), entity);
+  }
+
+  @Override
+  public void update(User entity) {
+    storage.put(entity.getId(), entity);
+  }
+
+  @Override
+  public void delete(User entity) {
+    storage.remove(entity.getId());
+  }
+
+  @Override
+  public @Nullable User findByName(String name) {
+    return storage.values().stream()
+        .filter(user -> user.getName().equals(name))
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Override
+  public PageOf<User> findAll(PageRequest pageRequest) {
+    var users = storage.values().stream().toArray();
+    long totalElements = users.length;
+    long fromIndex =
+        Math.min((pageRequest.pageNumber() - 1) * pageRequest.pageSize(), totalElements);
+    long toIndex = Math.min(fromIndex + pageRequest.pageSize(), totalElements);
+    var content = new LinkedList<User>();
+
+    for (long i = fromIndex; i < toIndex; i++) {
+      content.add((User) users[(int) i]);
+    }
+
+    return PageOf.of(pageRequest, content, totalElements);
+  }
+}

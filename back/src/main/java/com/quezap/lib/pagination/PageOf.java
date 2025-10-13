@@ -14,45 +14,49 @@ public class PageOf<T> {
     return new PageOf<>(pageRequest, List.of(), 0L);
   }
 
+  public static <T> PageOf<T> of(PageRequest pageRequest, List<T> items, Long totalItems) {
+    return new PageOf<>(pageRequest, items, totalItems);
+  }
+
   public PageOf(PageRequest pageRequest, List<T> items, Long totalItems) {
     this.pageRequest = pageRequest;
     this.items = List.copyOf(items);
     this.totalItems = totalItems;
   }
 
-  public List<T> getItems() {
+  public List<T> items() {
     return items;
   }
 
-  public Long getTotalItems() {
+  public Long totalItems() {
     return totalItems;
   }
 
-  public Long getCurrentPage() {
+  public Long currentPage() {
     return pageRequest.pageNumber();
   }
 
-  public Long getPageSize() {
+  public Long pageSize() {
     return pageRequest.pageSize();
   }
 
-  public Long getTotalPages() {
+  public Long totalPages() {
     return (long) Math.ceil((double) totalItems / pageRequest.pageSize());
   }
 
   public boolean hasNextPage() {
-    return pageRequest.pageNumber() < getTotalPages();
+    return pageRequest.pageNumber() < totalPages();
   }
 
   public boolean hasPreviousPage() {
     return pageRequest.pageNumber() > 1;
   }
 
-  public @Nullable Long getNextPageNumber() {
+  public @Nullable Long nextPage() {
     return hasNextPage() ? pageRequest.pageNumber() + 1 : null;
   }
 
-  public @Nullable Long getPreviousPageNumber() {
+  public @Nullable Long previousPage() {
     return hasPreviousPage() ? pageRequest.pageNumber() - 1 : null;
   }
 
