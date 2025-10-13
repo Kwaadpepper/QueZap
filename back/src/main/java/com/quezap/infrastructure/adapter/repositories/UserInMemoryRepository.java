@@ -1,6 +1,6 @@
 package com.quezap.infrastructure.adapter.repositories;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +52,7 @@ public class UserInMemoryRepository implements UserRepository {
     long fromIndex =
         Math.min((pageRequest.pageNumber() - 1) * pageRequest.pageSize(), totalElements);
     long toIndex = Math.min(fromIndex + pageRequest.pageSize(), totalElements);
-    var content = new LinkedList<User>();
+    var content = new ArrayList<User>();
 
     for (long i = fromIndex; i < toIndex; i++) {
       content.add((User) users[(int) i]);
