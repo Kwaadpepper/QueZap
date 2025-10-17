@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public sealed interface DeleteUser {
 
-  sealed interface Input extends UseCaseInput {
+  public sealed interface Input extends UseCaseInput {
     record UserName(String name) implements Input {}
 
     record Id(UserId id) implements Input {}
