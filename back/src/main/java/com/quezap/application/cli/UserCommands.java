@@ -3,21 +3,34 @@ package com.quezap.application.cli;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.shell.standard.ShellComponent;
-import org.springframework.shell.standard.ShellMethod;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.shell.command.CommandRegistration;
+import org.springframework.shell.command.annotation.Command;
+import org.springframework.shell.command.annotation.Option;
 
+import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
+import com.quezap.domain.models.valueobjects.auth.RawPassword;
+import com.quezap.domain.usecases.users.AddUser;
 import com.quezap.domain.usecases.users.ListUsers;
+import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.pagination.PageRequest;
 
-@ShellComponent
+import org.jline.reader.LineReader;
+
 public class UserCommands {
   private final ListUsers.Handler listUsersHandler;
+  private final AddUser.Handler addUserHandler;
 
-  public UserCommands(ListUsers.Handler listUsersHandler) {
+  @Autowired @Lazy private LineReader lineReader;
+
+  public UserCommands(ListUsers.Handler listUsersHandler, AddUser.Handler addUserHandler) {
     this.listUsersHandler = listUsersHandler;
+    this.addUserHandler = addUserHandler;
   }
 
-  @ShellMethod(key = "users:list", value = "liste les utilisateurs")
+  @Command(command = "list", description = "list users")
   public String listUsers() {
     final var output = new StringBuilder();
     final var users = new ArrayList<ListUsers.Output.UserDto>();
@@ -33,7 +46,7 @@ public class UserCommands {
       users.addAll(pageUsers);
     } while (!pageUsers.isEmpty());
 
-    output.append("Liste des utilisateurs :\n");
+    output.append("Users list :\n");
     for (ListUsers.Output.UserDto user : users) {
       output.append(formatUser(user)).append("\n");
     }
@@ -43,5 +56,30 @@ public class UserCommands {
 
   private String formatUser(ListUsers.Output.UserDto user) {
     return String.format("- %s (%s)", user.name(), user.id());
+  }
+
+  @Command(
+      command = {"add"},
+      description = "Add a user")
+  String addUser(
+      @Option(required = true, arity = CommandRegistration.OptionArity.EXACTLY_ONE) String name,
+      @Option(required = true, arity = CommandRegistration.OptionArity.EXACTLY_ONE) String login) {
+    try {
+      final var identifier = new RawIdentifier(login);
+      final var password = new RawPassword(readPassword("Mot de passe : "));
+      final var input = new AddUser.Input(name, identifier, password);
+
+      addUserHandler.handle(input);
+
+      return "Done";
+    } catch (IllegalDomainStateException e) {
+      return "Error : " + e.getMessage();
+    } catch (DomainConstraintException e) {
+      return "Error " + e.getMessage();
+    }
+  }
+
+  private String readPassword(String prompt) {
+    return lineReader.readLine(prompt, null);
   }
 }

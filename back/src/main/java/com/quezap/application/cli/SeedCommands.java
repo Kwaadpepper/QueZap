@@ -1,11 +1,10 @@
 package com.quezap.application.cli;
 
-import org.springframework.shell.standard.ShellComponent;
-import org.springframework.shell.standard.ShellMethod;
+import org.springframework.shell.command.annotation.Command;
 
 import com.quezap.application.seed.UserSeeder;
 
-@ShellComponent
+@Command(command = "seed")
 public class SeedCommands {
   private final UserSeeder userSeeder;
 
@@ -13,7 +12,7 @@ public class SeedCommands {
     this.userSeeder = userSeeder;
   }
 
-  @ShellMethod(key = "seed:users", value = "génère des utilisateurs de test")
+  @Command(command = "users", description = "génère des utilisateurs de test")
   public String seedUsers() {
     userSeeder.seed();
 

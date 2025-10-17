@@ -6,5 +6,6 @@
   <suppress checks="MissingJavadoc*" files=".*[/\\]*.java$"/>
 
   <suppress checks="ImportOrder" files=".*[/\\]*.java$"/>
+  <suppress checks="CatchParameterNameCheck" files=".*[/\\]*.java$"/>
 
 </suppressions>

@@ -3,10 +3,12 @@ package com.quezap.quizz;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.shell.command.annotation.CommandScan;
 
 /** Fichier principal de l'application Spring Boot. */
 @SpringBootApplication
 @ComponentScan(basePackages = "com.quezap")
+@CommandScan(basePackages = "com.quezap")
 public class QuizzApplication {
 
   /** Point d'entrée de l'application. */
