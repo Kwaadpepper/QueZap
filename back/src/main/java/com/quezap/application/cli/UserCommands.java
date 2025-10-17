@@ -19,23 +19,29 @@ public class UserCommands {
 
   @ShellMethod(key = "users:list", value = "liste les utilisateurs")
   public String listUsers() {
-    final StringBuilder output = new StringBuilder();
+    final var output = new StringBuilder();
     final var users = new ArrayList<ListUsers.Output.UserDto>();
 
+    final var perPage = 10L;
+    var pageNumber = 1L;
     List<ListUsers.Output.UserDto> pageUsers;
     do {
-      final var pageRequest = new PageRequest(1L, 10L);
+      final var pageRequest = new PageRequest(pageNumber++, perPage);
       final var input = new ListUsers.Input(pageRequest);
 
       pageUsers = listUsersHandler.handle(input).items().items();
       users.addAll(pageUsers);
-    } while (pageUsers.size() == 10);
+    } while (!pageUsers.isEmpty());
 
     output.append("Liste des utilisateurs :\n");
     for (ListUsers.Output.UserDto user : users) {
-      output.append("- ").append(user.name()).append(" (").append(user.id()).append(")\n");
+      output.append(formatUser(user)).append("\n");
     }
 
     return output.toString();
+  }
+
+  private String formatUser(ListUsers.Output.UserDto user) {
+    return String.format("- %s (%s)", user.name(), user.id());
   }
 }
