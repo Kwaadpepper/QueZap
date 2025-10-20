@@ -25,7 +25,9 @@ public class Question extends AggregateRoot {
   private static void validateCommonInvariants(
       QuestionType type, String question, Set<Answer> answers) {
     Domain.checkDomain(() -> !question.isBlank(), "Label cannot be blank");
-    Domain.checkDomain(() -> question.length() <= 120, "Label cannot exceed 120 characters");
+    Domain.checkDomain(
+        () -> question.trim().length() >= 15, "Label cannot be less than 15 characters");
+    Domain.checkDomain(() -> question.length() <= 255, "Label cannot exceed 255 characters");
     Domain.checkDomain(() -> !answers.isEmpty(), "Answers cannot be empty");
     Domain.checkDomain(
         () -> answers.size() <= ANSWERS_MAX_SIZE, "Answers cannot exceed " + ANSWERS_MAX_SIZE);
