@@ -2,6 +2,7 @@ package com.quezap.domain.models.entities;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -59,8 +60,8 @@ public class Session extends AggregateRoot {
     validateCommonInvariants(questionSlides, startedAt, endedAt);
     this.name = name;
     this.code = code;
-    this.questionSlides = questionSlides;
-    this.participants = participants;
+    this.questionSlides = new HashSet<>(questionSlides);
+    this.participants = new HashSet<>(participants);
     this.author = author;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
@@ -73,14 +74,14 @@ public class Session extends AggregateRoot {
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
       UserId author,
-      ZonedDateTime startedAt,
-      ZonedDateTime endedAt) {
+      @Nullable ZonedDateTime startedAt,
+      @Nullable ZonedDateTime endedAt) {
     super(id);
     validateCommonInvariants(questionSlides, startedAt, endedAt);
     this.name = name;
     this.code = code;
-    this.questionSlides = questionSlides;
-    this.participants = participants;
+    this.questionSlides = new HashSet<>(questionSlides);
+    this.participants = new HashSet<>(participants);
     this.author = author;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
@@ -93,8 +94,8 @@ public class Session extends AggregateRoot {
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
       UserId author,
-      ZonedDateTime startedAt,
-      ZonedDateTime endedAt) {
+      @Nullable ZonedDateTime startedAt,
+      @Nullable ZonedDateTime endedAt) {
     return new Session(id, name, code, questionSlides, participants, author, startedAt, endedAt);
   }
 
