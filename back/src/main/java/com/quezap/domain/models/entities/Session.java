@@ -118,6 +118,12 @@ public class Session extends AggregateRoot {
   }
 
   public void addQuestion(QuestionSlide question) {
+    if (isRunning()) {
+      throw new DomainConstraintException(AddQuestionError.SESSION_IS_RUNNING);
+    }
+    if (isEnded()) {
+      throw new DomainConstraintException(AddQuestionError.SESSION_IS_ENDED);
+    }
     if (questionSlides.size() >= QUESTIONS_COUNT_MAX_SIZE) {
       throw new DomainConstraintException(AddQuestionError.MAX_QUESTIONS_REACHED);
     }
@@ -143,6 +149,10 @@ public class Session extends AggregateRoot {
   @Override
   public ZonedDateTime getCreatedAt() {
     return createdAt;
+  }
+
+  public boolean isRunning() {
+    return isStarted() && !isEnded();
   }
 
   public boolean isStarted() {
