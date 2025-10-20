@@ -116,7 +116,7 @@ public class Question extends AggregateRoot {
   }
 
   public Set<Answer> getAnswers() {
-    return answers;
+    return Set.copyOf(answers);
   }
 
   @Override

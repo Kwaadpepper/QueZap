@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.quezap.domain.models.valueobjects.QuestionSlide;
 import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
+import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
@@ -19,6 +20,7 @@ public class Session extends AggregateRoot {
   private final String label;
   private final SessionCode code;
   private final Set<QuestionSlide> questionSlides;
+  private final Set<Participant> participants;
   private final UserId author;
   private final ZonedDateTime startedAt;
   private final ZonedDateTime endedAt;
@@ -41,6 +43,7 @@ public class Session extends AggregateRoot {
       String label,
       SessionCode code,
       Set<QuestionSlide> questionSlides,
+      Set<Participant> participants,
       UserId author,
       ZonedDateTime startedAt,
       ZonedDateTime endedAt) {
@@ -49,6 +52,7 @@ public class Session extends AggregateRoot {
     this.label = label;
     this.code = code;
     this.questionSlides = questionSlides;
+    this.participants = participants;
     this.author = author;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
@@ -59,6 +63,7 @@ public class Session extends AggregateRoot {
       String label,
       SessionCode code,
       Set<QuestionSlide> questionSlides,
+      Set<Participant> participants,
       UserId author,
       ZonedDateTime startedAt,
       ZonedDateTime endedAt) {
@@ -67,6 +72,7 @@ public class Session extends AggregateRoot {
     this.label = label;
     this.code = code;
     this.questionSlides = questionSlides;
+    this.participants = participants;
     this.author = author;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
@@ -77,10 +83,11 @@ public class Session extends AggregateRoot {
       String label,
       SessionCode code,
       Set<QuestionSlide> questionSlides,
+      Set<Participant> participants,
       UserId author,
       ZonedDateTime startedAt,
       ZonedDateTime endedAt) {
-    return new Session(id, label, code, questionSlides, author, startedAt, endedAt);
+    return new Session(id, label, code, questionSlides, participants, author, startedAt, endedAt);
   }
 
   @Override
@@ -97,11 +104,15 @@ public class Session extends AggregateRoot {
   }
 
   public Set<QuestionSlide> getQuestionSlides() {
-    return questionSlides;
+    return Set.copyOf(questionSlides);
   }
 
   public ZonedDateTime getStartedAt() {
     return startedAt;
+  }
+
+  public Set<Participant> getParticipants() {
+    return Set.copyOf(participants);
   }
 
   public UserId getAuthor() {

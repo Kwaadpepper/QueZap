@@ -1,5 +1,6 @@
 package com.quezap.domain.models.valueobjects;
 
+import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.junit.jupiter.api.Assertions;
