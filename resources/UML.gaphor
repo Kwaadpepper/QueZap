@@ -980,13 +980,13 @@
 </UML:LiteralUnlimitedNatural>
 <UML:Property id="78341c5b-a5db-11f0-8016-bd0dbed4de35">
 <name>
-<val>label</val>
+<val>name</val>
 </name>
 <structuredClassifier>
 <ref refid="bdd046c5-a5da-11f0-91fc-bd0dbed4de35"/>
 </structuredClassifier>
 <typeValue>
-<val>String</val>
+<val>SessionNAme</val>
 </typeValue>
 <visibility>
 <val>private</val>
