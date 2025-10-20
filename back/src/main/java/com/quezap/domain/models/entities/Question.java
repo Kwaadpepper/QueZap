@@ -1,6 +1,7 @@
 package com.quezap.domain.models.entities;
 
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -70,7 +71,7 @@ public class Question extends AggregateRoot {
     this.type = type;
     this.value = value;
     this.picture = picture;
-    this.answers = answers;
+    this.answers = new HashSet<>(answers);
     this.updatedAt = updatedAt;
   }
 
@@ -86,7 +87,7 @@ public class Question extends AggregateRoot {
     this.type = type;
     this.value = value;
     this.picture = picture;
-    this.answers = answers;
+    this.answers = new HashSet<>(answers);
     this.updatedAt = updatedAt;
   }
 
