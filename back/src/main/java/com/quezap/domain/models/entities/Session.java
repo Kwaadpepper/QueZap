@@ -199,7 +199,7 @@ public class Session extends AggregateRoot {
     if (obj == null) {
       return false;
     }
-    if (!(obj instanceof Credential that)) {
+    if (!(obj instanceof Session that)) {
       return false;
     }
     return getId().equals(that.getId());
