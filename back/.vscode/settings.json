@@ -1,6 +1,7 @@
 {
   "conventionalCommits.scopes": [
-    "back"
+    "back",
+    "gaphor"
   ],
   "editor.formatOnSave": true,
   "java.configuration.updateBuildConfiguration": "automatic",
