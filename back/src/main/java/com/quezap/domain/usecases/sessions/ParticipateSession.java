@@ -46,12 +46,7 @@ public sealed interface ParticipateSession {
         throw new DomainConstraintException(ParticipateSessionError.INVALID_CODE);
       }
 
-      final var sessionParticipants = session.getParticipants();
-
-      if (sessionParticipants.stream().anyMatch(p -> p.name() == participantName)) {
-        throw new DomainConstraintException(ParticipateSessionError.NAME_ALREADY_TAKEN);
-      }
-
+      // * Validate sanitized name
       if (sanitizedUserName.isBlank() || !sanitizedUserName.equals(participantName.value())) {
         throw new DomainConstraintException(ParticipateSessionError.NAME_REFUSED);
       }
@@ -60,7 +55,9 @@ public sealed interface ParticipateSession {
       final var participationToken = participationTokenGenerator.generate(sessionId);
       final var sessionParticipant = new Participant(participantName, 0, participationToken);
 
-      sessionParticipants.add(sessionParticipant);
+      session.addParticipant(sessionParticipant);
+
+      sessionRepository.save(session);
 
       return new Output.Participation(participationToken);
     }

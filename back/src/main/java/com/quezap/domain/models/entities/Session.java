@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.quezap.domain.errors.sessions.ParticipateSessionError;
 import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.valueobjects.QuestionSlide;
 import com.quezap.domain.models.valueobjects.SessionCode;
@@ -173,6 +174,14 @@ public class Session extends AggregateRoot {
     }
     endedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     // TODO: Emmit event SessionEnded
+  }
+
+  public void addParticipant(Participant participant) {
+    if (participants.stream().anyMatch(p -> p.name().equals(participant.name()))) {
+      throw new DomainConstraintException(ParticipateSessionError.NAME_ALREADY_TAKEN);
+    }
+
+    participants.add(participant);
   }
 
   public boolean hasEnoughParticipantsToStart() {
