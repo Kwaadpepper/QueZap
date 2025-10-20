@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.quezap.domain.errors.sessions.AddQuestionError;
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
+import com.quezap.domain.errors.sessions.RemoveQuestionError;
 import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.valueobjects.QuestionSlide;
 import com.quezap.domain.models.valueobjects.SessionCode;
@@ -128,6 +129,16 @@ public class Session extends AggregateRoot {
       throw new DomainConstraintException(AddQuestionError.MAX_QUESTIONS_REACHED);
     }
     questionSlides.add(question);
+  }
+
+  public void removeQuestion(QuestionSlide question) {
+    if (isRunning()) {
+      throw new DomainConstraintException(RemoveQuestionError.SESSION_IS_RUNNING);
+    }
+    if (isEnded()) {
+      throw new DomainConstraintException(RemoveQuestionError.SESSION_IS_ENDED);
+    }
+    questionSlides.remove(question);
   }
 
   public @Nullable ZonedDateTime getStartedAt() {
