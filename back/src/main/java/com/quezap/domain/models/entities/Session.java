@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.quezap.domain.errors.sessions.AddQuestionError;
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
 import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.valueobjects.QuestionSlide;
@@ -114,6 +115,13 @@ public class Session extends AggregateRoot {
 
   public Set<QuestionSlide> getQuestionSlides() {
     return Set.copyOf(questionSlides);
+  }
+
+  public void addQuestion(QuestionSlide question) {
+    if (questionSlides.size() >= QUESTIONS_COUNT_MAX_SIZE) {
+      throw new DomainConstraintException(AddQuestionError.MAX_QUESTIONS_REACHED);
+    }
+    questionSlides.add(question);
   }
 
   public @Nullable ZonedDateTime getStartedAt() {
