@@ -5,7 +5,7 @@ public record SessionCode(String value) {
     if (value.isBlank()) {
       throw new IllegalArgumentException("Session code cannot be blank");
     }
-    if (value.length() != 4) {
+    if (value.trim().length() != 4) {
       throw new IllegalArgumentException("Session code must be 4 characters long");
     }
     if (!value.matches("^[A-Z0-9]{4}$")) {
