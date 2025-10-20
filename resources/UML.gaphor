@@ -752,7 +752,7 @@
 <ref refid="2c0c2396-a5db-11f0-b2ee-bd0dbed4de35"/>
 </structuredClassifier>
 <typeValue>
-<val>String</val>
+<val>ParticipantName</val>
 </typeValue>
 <visibility>
 <val>private</val>
