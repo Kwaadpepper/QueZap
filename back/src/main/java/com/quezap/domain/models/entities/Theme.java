@@ -14,6 +14,7 @@ public class Theme extends AggregateRoot {
 
   private static void validateCommonInvariants(String theme) {
     Domain.checkDomain(() -> !theme.isBlank(), "Theme cannot be blank");
+    Domain.checkDomain(() -> theme.trim().length() >= 2, "Theme cannot be less than 2 characters");
     Domain.checkDomain(() -> theme.length() <= 100, "Theme cannot exceed 100 characters");
   }
 

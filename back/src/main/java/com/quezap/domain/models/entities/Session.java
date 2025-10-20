@@ -36,6 +36,7 @@ public class Session extends AggregateRoot {
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
     Domain.checkDomain(() -> !label.isBlank(), "Label cannot be blank");
+    Domain.checkDomain(() -> label.trim().length() >= 6, "Label cannot be less than 6 characters");
     Domain.checkDomain(() -> label.length() <= 120, "Label cannot exceed 120 characters");
     Domain.checkDomain(() -> !questionSlides.isEmpty(), "Question slides cannot be empty");
     Domain.checkDomain(

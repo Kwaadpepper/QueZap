@@ -21,6 +21,7 @@ public class User extends AggregateRoot {
 
   private static void validateCommonInvariants(String name) {
     Domain.checkDomain(() -> !name.isBlank(), "Name cannot be blank");
+    Domain.checkDomain(() -> name.trim().length() >= 3, "Name cannot be less than 3 characters");
     Domain.checkDomain(() -> name.length() <= 65, "Name cannot exceed 65 characters");
   }
 
