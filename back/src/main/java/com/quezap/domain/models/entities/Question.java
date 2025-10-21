@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Picture;
 import com.quezap.domain.models.valueobjects.QuestionType;
+import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
@@ -20,6 +21,7 @@ public class Question extends AggregateRoot {
   private final QuestionType type;
   private final String value;
   private final Picture picture;
+  private final ThemeId theme;
   private final Set<Answer> answers;
   private final ZonedDateTime updatedAt;
 
@@ -64,6 +66,7 @@ public class Question extends AggregateRoot {
       QuestionType type,
       String value,
       Picture picture,
+      ThemeId theme,
       Set<Answer> answers,
       ZonedDateTime updatedAt) {
     super();
@@ -71,6 +74,7 @@ public class Question extends AggregateRoot {
     this.type = type;
     this.value = value;
     this.picture = picture;
+    this.theme = theme;
     this.answers = new HashSet<>(answers);
     this.updatedAt = updatedAt;
   }
@@ -80,6 +84,7 @@ public class Question extends AggregateRoot {
       QuestionType type,
       String value,
       Picture picture,
+      ThemeId theme,
       Set<Answer> answers,
       ZonedDateTime updatedAt) {
     super(id);
@@ -87,6 +92,7 @@ public class Question extends AggregateRoot {
     this.type = type;
     this.value = value;
     this.picture = picture;
+    this.theme = theme;
     this.answers = new HashSet<>(answers);
     this.updatedAt = updatedAt;
   }
@@ -96,9 +102,10 @@ public class Question extends AggregateRoot {
       QuestionType type,
       String value,
       Picture picture,
+      ThemeId theme,
       Set<Answer> answers,
       ZonedDateTime updatedAt) {
-    return new Question(id, type, value, picture, answers, updatedAt);
+    return new Question(id, type, value, picture, theme, answers, updatedAt);
   }
 
   @Override
@@ -116,6 +123,10 @@ public class Question extends AggregateRoot {
 
   public Picture getPicture() {
     return picture;
+  }
+
+  public ThemeId getTheme() {
+    return theme;
   }
 
   public Set<Answer> getAnswers() {
