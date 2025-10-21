@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.quezap.domain.errors.sessions.AddQuestionError;
+import com.quezap.domain.errors.sessions.AnswerSessionError;
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
 import com.quezap.domain.errors.sessions.RemoveQuestionError;
 import com.quezap.domain.errors.sessions.StartSessionError;
@@ -15,6 +16,7 @@ import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
+import com.quezap.domain.models.valueobjects.participations.ParticipantName;
 import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.lib.ddd.AggregateRoot;
@@ -246,6 +248,31 @@ public class Session extends AggregateRoot {
 
   public boolean hasEnoughQuestionsToStart() {
     return !questionSlides.isEmpty();
+  }
+
+  public void addAnswer(ParticipantName participantName, Integer slideIndex, Integer answerIndex) {
+    if (participants.stream().noneMatch(p -> p.name().equals(participantName))) {
+      throw new IllegalArgumentException("Participant not found in session");
+    }
+    if (!isStarted()) {
+      throw new DomainConstraintException(AnswerSessionError.SESSION_NOT_STARTED);
+    }
+    if (isEnded()) {
+      throw new DomainConstraintException(AnswerSessionError.SESSION_ALREADY_ENDED);
+    }
+    if (slideIndex < 0 || slideIndex >= questionSlides.size()) {
+      throw new DomainConstraintException(AnswerSessionError.INVALID_SLIDE_INDEX);
+    }
+    // * Cannot validate answerIndex against possible answers here
+    if (answerIndex < 0) {
+      throw new DomainConstraintException(AnswerSessionError.INVALID_ANSWER_INDEX);
+    }
+    if (slideIndex < currentSlideIndex) {
+      throw new DomainConstraintException(AnswerSessionError.INVALID_SLIDE_INDEX);
+    }
+    final var answer = new QuestionAnswer(participantName, slideIndex, answerIndex);
+
+    answers.add(answer);
   }
 
   @Override
