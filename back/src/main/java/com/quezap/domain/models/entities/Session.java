@@ -11,11 +11,12 @@ import com.quezap.domain.errors.sessions.AddQuestionError;
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
 import com.quezap.domain.errors.sessions.RemoveQuestionError;
 import com.quezap.domain.errors.sessions.StartSessionError;
-import com.quezap.domain.models.valueobjects.QuestionSlide;
 import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
+import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
+import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
@@ -30,6 +31,7 @@ public class Session extends AggregateRoot {
   private final SessionCode code;
   private final Set<QuestionSlide> questionSlides;
   private final Set<Participant> participants;
+  private final Set<QuestionAnswer> answers;
   private final UserId author;
   private @Nullable ZonedDateTime startedAt;
   private @Nullable ZonedDateTime endedAt;
@@ -55,6 +57,7 @@ public class Session extends AggregateRoot {
       SessionCode code,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
+      Set<QuestionAnswer> answers,
       UserId author,
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
@@ -64,6 +67,7 @@ public class Session extends AggregateRoot {
     this.code = code;
     this.questionSlides = new HashSet<>(questionSlides);
     this.participants = new HashSet<>(participants);
+    this.answers = new HashSet<>(answers);
     this.author = author;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
@@ -75,6 +79,7 @@ public class Session extends AggregateRoot {
       SessionCode code,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
+      Set<QuestionAnswer> answers,
       UserId author,
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
@@ -84,6 +89,7 @@ public class Session extends AggregateRoot {
     this.code = code;
     this.questionSlides = new HashSet<>(questionSlides);
     this.participants = new HashSet<>(participants);
+    this.answers = new HashSet<>(answers);
     this.author = author;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
@@ -95,10 +101,12 @@ public class Session extends AggregateRoot {
       SessionCode code,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
+      Set<QuestionAnswer> answers,
       UserId author,
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
-    return new Session(id, name, code, questionSlides, participants, author, startedAt, endedAt);
+    return new Session(
+        id, name, code, questionSlides, participants, answers, author, startedAt, endedAt);
   }
 
   @Override

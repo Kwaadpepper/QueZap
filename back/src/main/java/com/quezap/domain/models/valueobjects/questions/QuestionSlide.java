@@ -1,4 +1,4 @@
-package com.quezap.domain.models.valueobjects;
+package com.quezap.domain.models.valueobjects.questions;
 
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.lib.utils.Domain;

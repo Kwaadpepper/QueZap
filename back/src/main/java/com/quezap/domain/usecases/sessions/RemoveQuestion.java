@@ -1,8 +1,8 @@
 package com.quezap.domain.usecases.sessions;
 
 import com.quezap.domain.errors.sessions.RemoveQuestionError;
-import com.quezap.domain.models.valueobjects.QuestionSlide;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
+import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.lib.ddd.UseCaseHandler;

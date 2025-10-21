@@ -3,6 +3,7 @@ package com.quezap.domain.models.valueobjects;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
+import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.junit.jupiter.api.Assertions;

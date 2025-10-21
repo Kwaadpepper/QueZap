@@ -6,11 +6,12 @@ import java.util.Set;
 
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.entities.builders.SessionBuilder.Builder.WithoutOptional;
-import com.quezap.domain.models.valueobjects.QuestionSlide;
 import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
+import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
+import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -29,6 +30,10 @@ public sealed interface SessionBuilder {
 
       WithoutOptional addParticipant(Participant participant);
 
+      WithoutOptional answers(Set<QuestionAnswer> answers);
+
+      WithoutOptional addAnswer(QuestionAnswer answer);
+
       WithoutOptional startedAt(ZonedDateTime startedAt);
 
       WithoutOptional endedAt(ZonedDateTime endedAt);
@@ -42,6 +47,7 @@ public sealed interface SessionBuilder {
     private SessionCode code;
     private Set<QuestionSlide> questionSlides = new HashSet<>();
     private Set<Participant> participants = new HashSet<>();
+    private Set<QuestionAnswer> questionAnswers = new HashSet<>();
     private UserId author;
     private @Nullable ZonedDateTime startedAt = null;
     private @Nullable ZonedDateTime endedAt = null;
@@ -66,7 +72,7 @@ public sealed interface SessionBuilder {
 
     @Override
     public WithoutOptional questionSlides(Set<QuestionSlide> questionSlides) {
-      this.questionSlides = questionSlides;
+      this.questionSlides = new HashSet<>(questionSlides);
       return this;
     }
 
@@ -78,7 +84,7 @@ public sealed interface SessionBuilder {
 
     @Override
     public WithoutOptional participants(Set<Participant> participants) {
-      this.participants = participants;
+      this.participants = new HashSet<>(participants);
       return this;
     }
 
@@ -90,7 +96,20 @@ public sealed interface SessionBuilder {
 
     @Override
     public Session build() {
-      return new Session(name, code, questionSlides, participants, author, startedAt, endedAt);
+      return new Session(
+          name, code, questionSlides, participants, questionAnswers, author, startedAt, endedAt);
+    }
+
+    @Override
+    public WithoutOptional answers(Set<QuestionAnswer> answers) {
+      this.questionAnswers = new HashSet<>(answers);
+      return this;
+    }
+
+    @Override
+    public WithoutOptional addAnswer(QuestionAnswer answer) {
+      this.questionAnswers.add(answer);
+      return this;
     }
   }
 }

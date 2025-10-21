@@ -9,7 +9,7 @@ import java.util.UUID;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Picture;
 import com.quezap.domain.models.valueobjects.PictureType;
-import com.quezap.domain.models.valueobjects.QuestionType;
+import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.junit.jupiter.api.Assertions;
