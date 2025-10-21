@@ -15,7 +15,11 @@ class ParticipantTest {
     // GIVEN
     var name = new ParticipantName("John Doe");
     var score = 10;
-    var token = new ParticipationToken("valid");
+    var token =
+        new ParticipationToken(
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+                + "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRyd"
+                + "WUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30");
 
     // WHEN
     new Participant(name, score, token);
@@ -29,7 +33,11 @@ class ParticipantTest {
     // GIVEN
     var name = new ParticipantName("John Doe");
     var score = -1;
-    var token = new ParticipationToken("valid");
+    var token =
+        new ParticipationToken(
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+                + "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRyd"
+                + "WUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30");
 
     // WHEN & THEN
     Assertions.assertThrows(

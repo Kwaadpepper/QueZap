@@ -7,8 +7,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.SessionCode;
+import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
+import com.quezap.domain.models.valueobjects.participations.Participant;
+import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
@@ -20,9 +23,9 @@ class SessionTest {
   @Test
   void canInstantiate() {
     // GIVEN
-    var label = "Session 1";
+    var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
-    Set<QuestionSlide> questionSlides =
+    var questionSlides =
         Set.of(
             new QuestionSlide(
                 10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))),
@@ -30,65 +33,28 @@ class SessionTest {
                 12, 2, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6d-0000-000000000000"))),
             new QuestionSlide(
                 8, 3, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"))));
+    var participants = Set.<Participant>of();
+    var answers = Set.<QuestionAnswer>of();
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
     var startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     var endedAt = startedAt.plusHours(1);
 
     // WHEN
-    new Session(label, sessionCode, questionSlides, userId, startedAt, endedAt);
+    new Session(
+        label, sessionCode, questionSlides, participants, answers, userId, startedAt, endedAt);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
   }
 
   @Test
-  void cannotInstantiateWithBlankLabel() {
-    // GIVEN
-    var label = "   ";
-    var sessionCode = new SessionCode("B1C3");
-    Set<QuestionSlide> questionSlides =
-        Set.of(
-            new QuestionSlide(
-                10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))));
-    var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
-    var startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
-    var endedAt = startedAt.plusHours(1);
-
-    // WHEN & THEN
-    Assertions.assertThrows(
-        IllegalDomainStateException.class,
-        () -> {
-          new Session(label, sessionCode, questionSlides, userId, startedAt, endedAt);
-        });
-  }
-
-  @Test
-  void cannotInstatiateWithLabelTooLong() {
-    // GIVEN
-    var label = "S".repeat(256);
-    var sessionCode = new SessionCode("B1C3");
-    Set<QuestionSlide> questionSlides =
-        Set.of(
-            new QuestionSlide(
-                10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))));
-    var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
-    var startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
-    var endedAt = startedAt.plusHours(1);
-
-    // WHEN & THEN
-    Assertions.assertThrows(
-        IllegalDomainStateException.class,
-        () -> {
-          new Session(label, sessionCode, questionSlides, userId, startedAt, endedAt);
-        });
-  }
-
-  @Test
   void cannotInstantiateWithEmptyQuestionSlides() {
     // GIVEN
-    var label = "Session 1";
+    var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
-    Set<QuestionSlide> questionSlides = Set.of();
+    var questionSlides = Set.<QuestionSlide>of();
+    var participants = Set.<Participant>of();
+    var answers = Set.<QuestionAnswer>of();
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
     var startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     var endedAt = startedAt.plusHours(1);
@@ -97,16 +63,26 @@ class SessionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Session(label, sessionCode, questionSlides, userId, startedAt, endedAt);
+          new Session(
+              label,
+              sessionCode,
+              questionSlides,
+              participants,
+              answers,
+              userId,
+              startedAt,
+              endedAt);
         });
   }
 
   @Test
   void cannotInstantiateWithTooManyQuestionSlides() {
     // GIVEN
-    var label = "Session 1";
+    var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
-    Set<QuestionSlide> questionSlides = new HashSet<>();
+    var questionSlides = new HashSet<QuestionSlide>();
+    var participants = Set.<Participant>of();
+    var answers = Set.<QuestionAnswer>of();
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
     var startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     var endedAt = startedAt.plusHours(1);
@@ -125,19 +101,29 @@ class SessionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Session(label, sessionCode, questionSlides, userId, startedAt, endedAt);
+          new Session(
+              label,
+              sessionCode,
+              questionSlides,
+              participants,
+              answers,
+              userId,
+              startedAt,
+              endedAt);
         });
   }
 
   @Test
   void cannotInstantiateWithInvalidDates() {
     // GIVEN
-    var label = "Session 1";
+    var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
-    Set<QuestionSlide> questionSlides =
+    var questionSlides =
         Set.of(
             new QuestionSlide(
                 10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))));
+    var participants = Set.<Participant>of();
+    var answers = Set.<QuestionAnswer>of();
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
     var startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     var endedAt = startedAt.minusHours(1);
@@ -146,7 +132,15 @@ class SessionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Session(label, sessionCode, questionSlides, userId, startedAt, endedAt);
+          new Session(
+              label,
+              sessionCode,
+              questionSlides,
+              participants,
+              answers,
+              userId,
+              startedAt,
+              endedAt);
         });
   }
 }

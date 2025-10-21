@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Picture;
 import com.quezap.domain.models.valueobjects.PictureType;
+import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
@@ -24,11 +25,12 @@ class QuestionTest {
     var questionType = QuestionType.BOOLEAN;
     var value = "What is the capital of France?";
     var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers = Set.of(new Answer("Paris", null, true), new Answer("London", null, false));
     var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
 
     // WHEN
-    new Question(id, questionType, value, picture, answers, updatedAt);
+    new Question(id, questionType, value, picture, themeId, answers, updatedAt);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -41,6 +43,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
     var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
             new Answer("Paris", null, true),
@@ -50,7 +53,7 @@ class QuestionTest {
     var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
 
     // WHEN
-    new Question(id, questionType, value, picture, answers, updatedAt);
+    new Question(id, questionType, value, picture, themeId, answers, updatedAt);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -63,6 +66,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "   ";
     var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
             new Answer("Paris", null, true),
@@ -75,7 +79,7 @@ class QuestionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Question(id, questionType, value, picture, answers, updatedAt);
+          new Question(id, questionType, value, picture, themeId, answers, updatedAt);
         });
   }
 
@@ -86,6 +90,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
     var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
             new Answer("Paris", null, false),
@@ -98,7 +103,7 @@ class QuestionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Question(id, questionType, value, picture, answers, updatedAt);
+          new Question(id, questionType, value, picture, themeId, answers, updatedAt);
         });
   }
 
@@ -109,6 +114,7 @@ class QuestionTest {
     var questionType = QuestionType.BOOLEAN;
     var value = "What is the capital of France?";
     var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
             new Answer("Paris", null, true),
@@ -120,7 +126,7 @@ class QuestionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Question(id, questionType, value, picture, answers, updatedAt);
+          new Question(id, questionType, value, picture, themeId, answers, updatedAt);
         });
   }
 
@@ -131,6 +137,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
     var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
             new Answer("Paris", null, true),
@@ -144,7 +151,7 @@ class QuestionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Question(id, questionType, value, picture, answers, updatedAt);
+          new Question(id, questionType, value, picture, themeId, answers, updatedAt);
         });
   }
 }
