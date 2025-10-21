@@ -728,7 +728,6 @@
 <ownedAttribute>
 <reflist>
 <ref refid="4c465fbe-a5db-11f0-9f91-bd0dbed4de35"/>
-<ref refid="3847cf9a-ad8e-11f0-88d3-81dde7dba71d"/>
 </reflist>
 </ownedAttribute>
 <presentation>
@@ -3120,20 +3119,6 @@
 <type>
 <ref refid="d30e1e43-a5d9-11f0-97eb-bd0dbed4de35"/>
 </type>
-</UML:Property>
-<UML:Property id="3847cf9a-ad8e-11f0-88d3-81dde7dba71d">
-<name>
-<val>token</val>
-</name>
-<structuredClassifier>
-<ref refid="2c0c2396-a5db-11f0-b2ee-bd0dbed4de35"/>
-</structuredClassifier>
-<typeValue>
-<val>ParticipationToken</val>
-</typeValue>
-<visibility>
-<val>private</val>
-</visibility>
 </UML:Property>
 <UML:Class id="412d84e8-ad8e-11f0-a9ca-81dde7dba71d">
 <appliedStereotype>
