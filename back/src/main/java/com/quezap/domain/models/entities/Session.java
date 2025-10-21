@@ -29,6 +29,7 @@ public class Session extends AggregateRoot {
 
   private final SessionName name;
   private final SessionCode code;
+  private final Integer currentSlideIndex;
   private final Set<QuestionSlide> questionSlides;
   private final Set<Participant> participants;
   private final Set<QuestionAnswer> answers;
@@ -38,12 +39,17 @@ public class Session extends AggregateRoot {
 
   private static void validateCommonInvariants(
       Set<QuestionSlide> questionSlides,
+      Integer currentSlideIndex,
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
     Domain.checkDomain(() -> !questionSlides.isEmpty(), "Question slides cannot be empty");
     Domain.checkDomain(
         () -> questionSlides.size() <= QUESTIONS_COUNT_MAX_SIZE,
         "Question slides cannot exceed " + QUESTIONS_COUNT_MAX_SIZE);
+    Domain.checkDomain(
+        () -> currentSlideIndex >= 0 && currentSlideIndex < questionSlides.size(),
+        "Current slide index must be within the range of question slides");
+
     if (endedAt != null) {
       Domain.checkDomain(() -> startedAt != null, "Session cannot end before it starts");
     }
@@ -55,6 +61,7 @@ public class Session extends AggregateRoot {
   public Session(
       SessionName name,
       SessionCode code,
+      Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
@@ -62,9 +69,10 @@ public class Session extends AggregateRoot {
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
     super();
-    validateCommonInvariants(questionSlides, startedAt, endedAt);
+    validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
     this.code = code;
+    this.currentSlideIndex = currentSlideIndex;
     this.questionSlides = new HashSet<>(questionSlides);
     this.participants = new HashSet<>(participants);
     this.answers = new HashSet<>(answers);
@@ -77,6 +85,7 @@ public class Session extends AggregateRoot {
       UUID id,
       SessionName name,
       SessionCode code,
+      Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
@@ -84,9 +93,10 @@ public class Session extends AggregateRoot {
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
     super(id);
-    validateCommonInvariants(questionSlides, startedAt, endedAt);
+    validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
     this.code = code;
+    this.currentSlideIndex = currentSlideIndex;
     this.questionSlides = new HashSet<>(questionSlides);
     this.participants = new HashSet<>(participants);
     this.answers = new HashSet<>(answers);
@@ -99,6 +109,7 @@ public class Session extends AggregateRoot {
       UUID id,
       SessionName name,
       SessionCode code,
+      Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
@@ -106,7 +117,16 @@ public class Session extends AggregateRoot {
       @Nullable ZonedDateTime startedAt,
       @Nullable ZonedDateTime endedAt) {
     return new Session(
-        id, name, code, questionSlides, participants, answers, author, startedAt, endedAt);
+        id,
+        name,
+        code,
+        currentSlideIndex,
+        questionSlides,
+        participants,
+        answers,
+        author,
+        startedAt,
+        endedAt);
   }
 
   @Override
@@ -225,7 +245,7 @@ public class Session extends AggregateRoot {
   }
 
   public boolean hasEnoughQuestionsToStart() {
-    return questionSlides.size() >= 1;
+    return !questionSlides.isEmpty();
   }
 
   @Override

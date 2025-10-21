@@ -25,6 +25,7 @@ class SessionTest {
     // GIVEN
     var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
+    var currentSlideIndex = 0;
     var questionSlides =
         Set.of(
             new QuestionSlide(
@@ -41,7 +42,15 @@ class SessionTest {
 
     // WHEN
     new Session(
-        label, sessionCode, questionSlides, participants, answers, userId, startedAt, endedAt);
+        label,
+        sessionCode,
+        currentSlideIndex,
+        questionSlides,
+        participants,
+        answers,
+        userId,
+        startedAt,
+        endedAt);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -52,6 +61,7 @@ class SessionTest {
     // GIVEN
     var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
+    var currentSlideIndex = 0;
     var questionSlides = Set.<QuestionSlide>of();
     var participants = Set.<Participant>of();
     var answers = Set.<QuestionAnswer>of();
@@ -66,6 +76,7 @@ class SessionTest {
           new Session(
               label,
               sessionCode,
+              currentSlideIndex,
               questionSlides,
               participants,
               answers,
@@ -80,6 +91,7 @@ class SessionTest {
     // GIVEN
     var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
+    var currentSlideIndex = 0;
     var questionSlides = new HashSet<QuestionSlide>();
     var participants = Set.<Participant>of();
     var answers = Set.<QuestionAnswer>of();
@@ -104,6 +116,7 @@ class SessionTest {
           new Session(
               label,
               sessionCode,
+              currentSlideIndex,
               questionSlides,
               participants,
               answers,
@@ -118,6 +131,7 @@ class SessionTest {
     // GIVEN
     var label = new SessionName("Session 1");
     var sessionCode = new SessionCode("B1C3");
+    var currentSlideIndex = 0;
     var questionSlides =
         Set.of(
             new QuestionSlide(
@@ -135,6 +149,42 @@ class SessionTest {
           new Session(
               label,
               sessionCode,
+              currentSlideIndex,
+              questionSlides,
+              participants,
+              answers,
+              userId,
+              startedAt,
+              endedAt);
+        });
+  }
+
+  @Test
+  void cannotInstanciateWithInvalidSlideIndex() {
+    // GIVEN
+    var label = new SessionName("Session 1");
+    var sessionCode = new SessionCode("B1C3");
+    var currentSlideIndex = 5;
+    var questionSlides =
+        Set.of(
+            new QuestionSlide(
+                10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))),
+            new QuestionSlide(
+                12, 2, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6d-0000-000000000000"))));
+    var participants = Set.<Participant>of();
+    var answers = Set.<QuestionAnswer>of();
+    var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
+    var startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
+    var endedAt = startedAt.plusHours(1);
+
+    // WHEN & THEN
+    Assertions.assertThrows(
+        IllegalDomainStateException.class,
+        () -> {
+          new Session(
+              label,
+              sessionCode,
+              currentSlideIndex,
               questionSlides,
               participants,
               answers,

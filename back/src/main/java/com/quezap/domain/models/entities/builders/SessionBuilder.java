@@ -22,9 +22,11 @@ public sealed interface SessionBuilder {
     }
 
     public interface WithoutOptional {
-      WithoutOptional questionSlides(Set<QuestionSlide> questionSlides);
+      WithoutOptional questionSlides(Set<QuestionSlide> questionSlides, Integer currentSlideIndex);
 
       WithoutOptional addQuestionSlide(QuestionSlide slide);
+
+      WithoutOptional currentSlideIndex(Integer currentSlideIndex);
 
       WithoutOptional participants(Set<Participant> participants);
 
@@ -45,6 +47,7 @@ public sealed interface SessionBuilder {
   class BuilderImpl implements WithoutOptional {
     private SessionName name;
     private SessionCode code;
+    private Integer currentSlideIndex = 0;
     private Set<QuestionSlide> questionSlides = new HashSet<>();
     private Set<Participant> participants = new HashSet<>();
     private Set<QuestionAnswer> questionAnswers = new HashSet<>();
@@ -71,8 +74,10 @@ public sealed interface SessionBuilder {
     }
 
     @Override
-    public WithoutOptional questionSlides(Set<QuestionSlide> questionSlides) {
+    public WithoutOptional questionSlides(
+        Set<QuestionSlide> questionSlides, Integer currentSlideIndex) {
       this.questionSlides = new HashSet<>(questionSlides);
+      this.currentSlideIndex = currentSlideIndex;
       return this;
     }
 
@@ -95,12 +100,6 @@ public sealed interface SessionBuilder {
     }
 
     @Override
-    public Session build() {
-      return new Session(
-          name, code, questionSlides, participants, questionAnswers, author, startedAt, endedAt);
-    }
-
-    @Override
     public WithoutOptional answers(Set<QuestionAnswer> answers) {
       this.questionAnswers = new HashSet<>(answers);
       return this;
@@ -110,6 +109,26 @@ public sealed interface SessionBuilder {
     public WithoutOptional addAnswer(QuestionAnswer answer) {
       this.questionAnswers.add(answer);
       return this;
+    }
+
+    @Override
+    public WithoutOptional currentSlideIndex(Integer currentSlideIndex) {
+      this.currentSlideIndex = currentSlideIndex;
+      return this;
+    }
+
+    @Override
+    public Session build() {
+      return new Session(
+          name,
+          code,
+          currentSlideIndex,
+          questionSlides,
+          participants,
+          questionAnswers,
+          author,
+          startedAt,
+          endedAt);
     }
   }
 }
