@@ -42,4 +42,17 @@ public class SessionInMemoryRepository implements SessionRepository {
         .findFirst()
         .orElse(null);
   }
+
+  @Override
+  public @Nullable Session latestByCode() {
+    return storage.values().stream()
+        .max(
+            (a, b) -> {
+              final var s1Code = a.getCode();
+              final var s2Code = b.getCode();
+
+              return s1Code.value().compareTo(s2Code.value());
+            })
+        .orElse(null);
+  }
 }
