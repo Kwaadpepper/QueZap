@@ -1,0 +1,36 @@
+debug: false
+
+server:
+  port: 0  # Port aléatoire pour les tests
+
+spring:
+  application:
+    name: quizz-test
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false
+  # Configuration H2 en mémoire pour les tests
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+
+logging:
+  level:
+    root: WARN
+    '[com.quezap]': DEBUG
+
+profanity:
+  custom-words: badword1,badword2
+
+session-code:
+  seed: 12345
+  length: 6
+  dictionary: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
