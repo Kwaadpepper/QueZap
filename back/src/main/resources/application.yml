@@ -15,3 +15,11 @@ spring:
 logging:
   level:
     root: WARN
+
+profanity:
+  custom-words: badword1,badword2
+
+session-code:
+  seed: 12345
+  length: 6
+  dictionary: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"

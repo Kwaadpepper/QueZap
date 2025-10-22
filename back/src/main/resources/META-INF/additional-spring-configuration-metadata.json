@@ -1,0 +1,28 @@
+{
+  "properties": [
+    {
+      "name": "profanity.custom-words",
+      "type": "java.lang.String",
+      "description": "A comma-separated list of custom words to be considered profane.",
+      "defaultValue": ""
+    },
+    {
+      "name": "session-code.seed",
+      "type": "java.lang.Long",
+      "description": "The seed value used for encoding and decoding session codes.",
+      "defaultValue": 123456
+    },
+    {
+      "name": "session-code.length",
+      "type": "java.lang.Integer",
+      "description": "The length of the generated session codes.",
+      "defaultValue": 6
+    },
+    {
+      "name": "session-code.dictionary",
+      "type": "java.lang.String",
+      "description": "The dictionary of characters used for generating session codes.",
+      "defaultValue": "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    }
+  ]
+}
