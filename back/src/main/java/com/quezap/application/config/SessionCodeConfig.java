@@ -10,9 +10,9 @@ public class SessionCodeConfig {
   private final char[] dictionary;
 
   public SessionCodeConfig(
-      @Value("session-code.length") Integer length,
-      @Value("session-code.seed") Long seed,
-      @Value("session-code.dictionary") String dictionaryString) {
+      @Value("${session-code.length}") Integer length,
+      @Value("${session-code.seed}") Long seed,
+      @Value("${session-code.dictionary}") String dictionaryString) {
     this.length = length;
     this.seed = seed;
     this.dictionary = dictionaryString.toCharArray();
