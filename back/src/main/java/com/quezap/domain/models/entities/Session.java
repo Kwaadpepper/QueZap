@@ -30,7 +30,7 @@ public class Session extends AggregateRoot {
   public static final int QUESTIONS_COUNT_MAX_SIZE = 60;
 
   private final SessionName name;
-  private final SessionNumber code;
+  private final SessionNumber number;
   private final Integer currentSlideIndex;
   private final Set<QuestionSlide> questionSlides;
   private final Set<Participant> participants;
@@ -62,7 +62,7 @@ public class Session extends AggregateRoot {
 
   public Session(
       SessionName name,
-      SessionNumber code,
+      SessionNumber number,
       Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
@@ -73,7 +73,7 @@ public class Session extends AggregateRoot {
     super();
     validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
-    this.code = code;
+    this.number = number;
     this.currentSlideIndex = currentSlideIndex;
     this.questionSlides = new HashSet<>(questionSlides);
     this.participants = new HashSet<>(participants);
@@ -86,7 +86,7 @@ public class Session extends AggregateRoot {
   protected Session(
       UUID id,
       SessionName name,
-      SessionNumber code,
+      SessionNumber number,
       Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
@@ -97,7 +97,7 @@ public class Session extends AggregateRoot {
     super(id);
     validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
-    this.code = code;
+    this.number = number;
     this.currentSlideIndex = currentSlideIndex;
     this.questionSlides = new HashSet<>(questionSlides);
     this.participants = new HashSet<>(participants);
@@ -110,7 +110,7 @@ public class Session extends AggregateRoot {
   public static Session hydrate(
       UUID id,
       SessionName name,
-      SessionNumber code,
+      SessionNumber number,
       Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
@@ -121,7 +121,7 @@ public class Session extends AggregateRoot {
     return new Session(
         id,
         name,
-        code,
+        number,
         currentSlideIndex,
         questionSlides,
         participants,
@@ -140,8 +140,8 @@ public class Session extends AggregateRoot {
     return name;
   }
 
-  public SessionNumber getCode() {
-    return code;
+  public SessionNumber getNumber() {
+    return number;
   }
 
   public Set<QuestionSlide> getQuestionSlides() {

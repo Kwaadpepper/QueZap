@@ -5,6 +5,7 @@ import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.participations.ParticipantName;
 import com.quezap.domain.models.valueobjects.participations.ParticipationToken;
 import com.quezap.domain.port.repositories.SessionRepository;
+import com.quezap.domain.port.services.SessionCodeEncoder;
 import com.quezap.lib.ddd.UseCaseHandler;
 import com.quezap.lib.ddd.UseCaseInput;
 import com.quezap.lib.ddd.UseCaseOutput;
@@ -22,9 +23,11 @@ public interface AnswerQuestion {
 
   final class Handler implements UseCaseHandler<Input, Output>, AnswerQuestion {
     private final SessionRepository sessionRepository;
+    private final SessionCodeEncoder sessionCodeEncoder;
 
-    public Handler(SessionRepository sessionRepository) {
+    public Handler(SessionRepository sessionRepository, SessionCodeEncoder sessionCodeEncoder) {
       this.sessionRepository = sessionRepository;
+      this.sessionCodeEncoder = sessionCodeEncoder;
     }
 
     @Override
@@ -33,7 +36,9 @@ public interface AnswerQuestion {
       final var token = usecaseInput.token();
       final var slideIndex = usecaseInput.slideIndex();
       final var answerIndex = usecaseInput.answerIndex();
-      final var session = sessionRepository.findByCode(sessionCode);
+
+      final var sessionNumber = sessionCodeEncoder.decode(sessionCode);
+      final var session = sessionRepository.findByNumber(sessionNumber);
 
       if (session == null) {
         throw new DomainConstraintException(AnswerSessionError.NO_SUCH_SESSION);

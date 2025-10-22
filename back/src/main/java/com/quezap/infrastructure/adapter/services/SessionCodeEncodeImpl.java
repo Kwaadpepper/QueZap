@@ -8,12 +8,12 @@ import com.quezap.domain.port.services.SessionCodeEncoder;
 import io.github.kwaadpepper.serialintcaster.SerialCaster;
 import io.github.kwaadpepper.serialintcaster.SerialCasterException;
 
-public class SessionCodeGeneratorImpl implements SessionCodeEncoder {
+public class SessionCodeEncodeImpl implements SessionCodeEncoder {
   private final int length;
   private final long seed;
   private final char[] dict;
 
-  public SessionCodeGeneratorImpl(SessionCodeConfig config) {
+  public SessionCodeEncodeImpl(SessionCodeConfig config) {
     this.length = config.getLength();
     this.seed = config.getSeed();
     this.dict = config.getDictionary();

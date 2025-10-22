@@ -6,7 +6,6 @@ import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.domain.port.services.SessionCodeEncoder;
 import com.quezap.lib.ddd.UseCaseHandler;
 import com.quezap.lib.ddd.UseCaseInput;
 import com.quezap.lib.ddd.UseCaseOutput;
@@ -23,30 +22,27 @@ public sealed interface AddSession {
   final class Handler implements UseCaseHandler<Input, Output>, AddSession {
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
-    private final SessionCodeEncoder sessionCodeGenerator;
 
-    public Handler(
-        SessionRepository sessionRepository,
-        UserRepository userRepository,
-        SessionCodeEncoder sessionCodeGenerator) {
+    public Handler(SessionRepository sessionRepository, UserRepository userRepository) {
       this.sessionRepository = sessionRepository;
       this.userRepository = userRepository;
-      this.sessionCodeGenerator = sessionCodeGenerator;
     }
 
     @Override
     public Output handle(Input usecaseInput) {
       final var sessionName = usecaseInput.name();
       final var userId = usecaseInput.user();
-      final var sessionCode = sessionCodeGenerator.generateUniqueCode();
-      final var sessionBuilder = SessionBuilder.Builder.with(sessionName, sessionCode, userId);
+
+      final var lastCreatedSession = sessionRepository.latestByCode();
+      final var sessionNumber = lastCreatedSession.getNumber();
+      final var sessionBuilder = SessionBuilder.Builder.with(sessionName, sessionNumber, userId);
       final var session = sessionBuilder.build();
 
       if (userRepository.find(userId.value()) == null) {
         throw new DomainConstraintException(AddSessionError.NO_SUCH_USER);
       }
 
-      if (sessionRepository.findByCode(sessionCode) != null) {
+      if (sessionRepository.findByNumber(sessionNumber) != null) {
         throw new IllegalDomainStateException("Generated session code is not unique");
       }
 

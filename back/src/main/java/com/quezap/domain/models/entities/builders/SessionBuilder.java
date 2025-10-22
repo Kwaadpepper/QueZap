@@ -6,8 +6,8 @@ import java.util.Set;
 
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.entities.builders.SessionBuilder.Builder.WithoutOptional;
-import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.SessionName;
+import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
@@ -17,8 +17,8 @@ import org.eclipse.jdt.annotation.Nullable;
 
 public sealed interface SessionBuilder {
   public static non-sealed class Builder implements SessionBuilder {
-    public static WithoutOptional with(SessionName name, SessionCode code, UserId author) {
-      return new BuilderImpl(name, code, author);
+    public static WithoutOptional with(SessionName name, SessionNumber number, UserId author) {
+      return new BuilderImpl(name, number, author);
     }
 
     public interface WithoutOptional {
@@ -46,7 +46,7 @@ public sealed interface SessionBuilder {
 
   class BuilderImpl implements WithoutOptional {
     private SessionName name;
-    private SessionCode code;
+    private SessionNumber number;
     private Integer currentSlideIndex = 0;
     private Set<QuestionSlide> questionSlides = new HashSet<>();
     private Set<Participant> participants = new HashSet<>();
@@ -55,9 +55,9 @@ public sealed interface SessionBuilder {
     private @Nullable ZonedDateTime startedAt = null;
     private @Nullable ZonedDateTime endedAt = null;
 
-    public BuilderImpl(SessionName name, SessionCode code, UserId author) {
+    public BuilderImpl(SessionName name, SessionNumber number, UserId author) {
       this.name = name;
-      this.code = code;
+      this.number = number;
       this.author = author;
     }
 
@@ -121,7 +121,7 @@ public sealed interface SessionBuilder {
     public Session build() {
       return new Session(
           name,
-          code,
+          number,
           currentSlideIndex,
           questionSlides,
           participants,

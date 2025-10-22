@@ -17,7 +17,7 @@ class SessionCodeGeneratorTest {
 
   SessionCodeGeneratorTest() {
     final var config = new SessionCodeConfig(LENGTH, SEED, new String(dict));
-    this.sessionCodeGenerator = new SessionCodeGeneratorImpl(config);
+    this.sessionCodeGenerator = new SessionCodeEncodeImpl(config);
   }
 
   @Test

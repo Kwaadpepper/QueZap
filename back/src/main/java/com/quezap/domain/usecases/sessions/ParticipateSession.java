@@ -8,6 +8,7 @@ import com.quezap.domain.models.valueobjects.participations.ParticipantName;
 import com.quezap.domain.models.valueobjects.participations.ParticipationToken;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.services.ParticipationTokenGenerator;
+import com.quezap.domain.port.services.SessionCodeEncoder;
 import com.quezap.domain.port.services.UserNameSanitizer;
 import com.quezap.lib.ddd.UseCaseHandler;
 import com.quezap.lib.ddd.UseCaseInput;
@@ -25,14 +26,17 @@ public sealed interface ParticipateSession {
     private final SessionRepository sessionRepository;
     private final ParticipationTokenGenerator participationTokenGenerator;
     private final UserNameSanitizer userNameSanitizer;
+    private final SessionCodeEncoder sessionCodeEncoder;
 
     public Handler(
         SessionRepository sessionRepository,
         ParticipationTokenGenerator sessionTokenGenerator,
-        UserNameSanitizer userNameSanitizer) {
+        UserNameSanitizer userNameSanitizer,
+        SessionCodeEncoder sessionCodeEncoder) {
       this.sessionRepository = sessionRepository;
       this.participationTokenGenerator = sessionTokenGenerator;
       this.userNameSanitizer = userNameSanitizer;
+      this.sessionCodeEncoder = sessionCodeEncoder;
     }
 
     @Override
@@ -40,7 +44,9 @@ public sealed interface ParticipateSession {
       final var sessionCode = usecaseInput.code();
       final var participantName = usecaseInput.name();
       final var sanitizedUserName = userNameSanitizer.sanitize(participantName.value());
-      final var session = sessionRepository.findByCode(sessionCode);
+
+      final var sessionNumber = sessionCodeEncoder.decode(sessionCode);
+      final var session = sessionRepository.findByNumber(sessionNumber);
 
       if (session == null) {
         throw new DomainConstraintException(ParticipateSessionError.INVALID_CODE);

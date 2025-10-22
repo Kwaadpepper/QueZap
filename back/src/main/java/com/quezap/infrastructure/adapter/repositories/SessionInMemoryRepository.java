@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.Session;
-import com.quezap.domain.models.valueobjects.SessionCode;
+import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.port.repositories.SessionRepository;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -36,9 +36,9 @@ public class SessionInMemoryRepository implements SessionRepository {
   }
 
   @Override
-  public @Nullable Session findByCode(SessionCode code) {
+  public @Nullable Session findByNumber(SessionNumber number) {
     return storage.values().stream()
-        .filter(session -> session.getCode().equals(code))
+        .filter(session -> session.getNumber().equals(number))
         .findFirst()
         .orElse(null);
   }
@@ -48,8 +48,8 @@ public class SessionInMemoryRepository implements SessionRepository {
     return storage.values().stream()
         .max(
             (a, b) -> {
-              final var s1Code = a.getCode();
-              final var s2Code = b.getCode();
+              final var s1Code = a.getNumber();
+              final var s2Code = b.getNumber();
 
               return s1Code.value().compareTo(s2Code.value());
             })
