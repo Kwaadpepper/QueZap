@@ -50,6 +50,9 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.springframework.shell:spring-shell-starter:3.4.1'
 
+  // Code generator
+  implementation 'io.github.kwaadpepper:serial-int-caster:2.0.0'
+
   // Profanity filter
   implementation 'com.modernmt.text:profanity-filter:1.0.1'
 
