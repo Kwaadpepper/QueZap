@@ -48,7 +48,7 @@ public class SessionCodeEncodeImpl implements SessionCodeEncoder {
   }
 
   private class CodeGeneratorException extends RuntimeException {
-    public CodeGeneratorException(String message, Exception cause) {
+    CodeGeneratorException(String message, Exception cause) {
       super(message, cause);
     }
   }
