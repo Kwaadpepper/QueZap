@@ -1,15 +1,12 @@
 package com.quezap.domain.models.valueobjects;
 
+import com.quezap.lib.utils.Domain;
+
 public record SessionCode(String value) {
   public SessionCode {
-    if (value.isBlank()) {
-      throw new IllegalArgumentException("Session code cannot be blank");
-    }
-    if (value.trim().length() != 4) {
-      throw new IllegalArgumentException("Session code must be 4 characters long");
-    }
-    if (!value.matches("^[A-Z0-9]{4}$")) {
-      throw new IllegalArgumentException("Session code must be alphanumeric and uppercase");
-    }
+    Domain.checkDomain(() -> !value.isBlank(), "Session code cannot be blank");
+    Domain.checkDomain(() -> value.trim().length() == 6, "Session code must be 6 characters long");
+    Domain.checkDomain(
+        () -> value.matches("^[A-Z0-9]*$"), "Session code must be alphanumeric and uppercase");
   }
 }

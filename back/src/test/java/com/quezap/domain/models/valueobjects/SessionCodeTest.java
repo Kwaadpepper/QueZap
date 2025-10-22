@@ -1,5 +1,7 @@
 package com.quezap.domain.models.valueobjects;
 
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,7 +12,7 @@ class SessionCodeTest {
   @Test
   void canInstantiateSessionCode() {
     // GIVEN
-    var code = "A1B2";
+    var code = "A1B2C3";
 
     // WHEN
     new SessionCode(code);
@@ -24,6 +26,6 @@ class SessionCodeTest {
   void cannotInstantiateSessionCodeWithInvalidValues(String code) {
 
     // WHEN & THEN
-    Assertions.assertThrows(IllegalArgumentException.class, () -> new SessionCode(code));
+    Assertions.assertThrows(IllegalDomainStateException.class, () -> new SessionCode(code));
   }
 }

@@ -12,8 +12,8 @@ import com.quezap.domain.errors.sessions.AnswerSessionError;
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
 import com.quezap.domain.errors.sessions.RemoveQuestionError;
 import com.quezap.domain.errors.sessions.StartSessionError;
-import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.SessionName;
+import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.participations.ParticipantName;
@@ -30,7 +30,7 @@ public class Session extends AggregateRoot {
   public static final int QUESTIONS_COUNT_MAX_SIZE = 60;
 
   private final SessionName name;
-  private final SessionCode code;
+  private final SessionNumber code;
   private final Integer currentSlideIndex;
   private final Set<QuestionSlide> questionSlides;
   private final Set<Participant> participants;
@@ -62,7 +62,7 @@ public class Session extends AggregateRoot {
 
   public Session(
       SessionName name,
-      SessionCode code,
+      SessionNumber code,
       Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
@@ -86,7 +86,7 @@ public class Session extends AggregateRoot {
   protected Session(
       UUID id,
       SessionName name,
-      SessionCode code,
+      SessionNumber code,
       Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
@@ -110,7 +110,7 @@ public class Session extends AggregateRoot {
   public static Session hydrate(
       UUID id,
       SessionName name,
-      SessionCode code,
+      SessionNumber code,
       Integer currentSlideIndex,
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
@@ -140,7 +140,7 @@ public class Session extends AggregateRoot {
     return name;
   }
 
-  public SessionCode getCode() {
+  public SessionNumber getCode() {
     return code;
   }
 

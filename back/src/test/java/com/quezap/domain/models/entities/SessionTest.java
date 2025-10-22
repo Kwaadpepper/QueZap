@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.SessionName;
+import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
@@ -24,7 +24,7 @@ class SessionTest {
   void canInstantiate() {
     // GIVEN
     var label = new SessionName("Session 1");
-    var sessionCode = new SessionCode("B1C3");
+    var sessionCode = new SessionNumber(2);
     var currentSlideIndex = 0;
     var questionSlides =
         Set.of(
@@ -60,7 +60,7 @@ class SessionTest {
   void cannotInstantiateWithEmptyQuestionSlides() {
     // GIVEN
     var label = new SessionName("Session 1");
-    var sessionCode = new SessionCode("B1C3");
+    var sessionCode = new SessionNumber(2);
     var currentSlideIndex = 0;
     var questionSlides = Set.<QuestionSlide>of();
     var participants = Set.<Participant>of();
@@ -90,7 +90,7 @@ class SessionTest {
   void cannotInstantiateWithTooManyQuestionSlides() {
     // GIVEN
     var label = new SessionName("Session 1");
-    var sessionCode = new SessionCode("B1C3");
+    var sessionCode = new SessionNumber(2);
     var currentSlideIndex = 0;
     var questionSlides = new HashSet<QuestionSlide>();
     var participants = Set.<Participant>of();
@@ -130,7 +130,7 @@ class SessionTest {
   void cannotInstantiateWithInvalidDates() {
     // GIVEN
     var label = new SessionName("Session 1");
-    var sessionCode = new SessionCode("B1C3");
+    var sessionCode = new SessionNumber(2);
     var currentSlideIndex = 0;
     var questionSlides =
         Set.of(
@@ -163,7 +163,7 @@ class SessionTest {
   void cannotInstanciateWithInvalidSlideIndex() {
     // GIVEN
     var label = new SessionName("Session 1");
-    var sessionCode = new SessionCode("B1C3");
+    var sessionCode = new SessionNumber(2);
     var currentSlideIndex = 5;
     var questionSlides =
         Set.of(

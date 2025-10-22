@@ -6,7 +6,7 @@ import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.domain.port.services.SessionCodeGenerator;
+import com.quezap.domain.port.services.SessionCodeEncoder;
 import com.quezap.lib.ddd.UseCaseHandler;
 import com.quezap.lib.ddd.UseCaseInput;
 import com.quezap.lib.ddd.UseCaseOutput;
@@ -23,12 +23,12 @@ public sealed interface AddSession {
   final class Handler implements UseCaseHandler<Input, Output>, AddSession {
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
-    private final SessionCodeGenerator sessionCodeGenerator;
+    private final SessionCodeEncoder sessionCodeGenerator;
 
     public Handler(
         SessionRepository sessionRepository,
         UserRepository userRepository,
-        SessionCodeGenerator sessionCodeGenerator) {
+        SessionCodeEncoder sessionCodeGenerator) {
       this.sessionRepository = sessionRepository;
       this.userRepository = userRepository;
       this.sessionCodeGenerator = sessionCodeGenerator;
