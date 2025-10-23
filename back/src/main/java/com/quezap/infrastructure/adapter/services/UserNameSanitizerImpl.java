@@ -126,23 +126,31 @@ public class UserNameSanitizerImpl implements UserNameSanitizer {
     return normalizeWhitespace(result);
   }
 
-  /** Load words from dependency */
+  /** Load words from dependency. */
   private Dictionary loadDictionary(String language) {
     String resource = "dictionary." + language;
 
     InputStream stream = ProfanityFilter.class.getResourceAsStream(resource);
-    if (stream == null) throw new RuntimeException("Internal resource not found: " + resource);
+    if (stream == null) {
+      throw new DictLoadingException("Internal resource not found: " + resource);
+    }
 
     try {
       return Dictionary.read(language, stream);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load internal resource: " + resource);
+    } catch (IOException _) {
+      throw new DictLoadingException("Unable to load internal resource: " + resource);
     } finally {
       try {
         stream.close();
-      } catch (IOException e) {
+      } catch (IOException _) {
         // ignore
       }
+    }
+  }
+
+  private static class DictLoadingException extends RuntimeException {
+    DictLoadingException(String message) {
+      super(message);
     }
   }
 }
