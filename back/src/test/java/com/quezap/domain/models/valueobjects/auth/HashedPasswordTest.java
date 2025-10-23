@@ -2,11 +2,9 @@ package com.quezap.domain.models.valueobjects.auth;
 
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-@NonNullByDefault
 class HashedPasswordTest {
 
   @Test

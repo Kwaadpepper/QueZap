@@ -13,7 +13,7 @@ import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public sealed interface SessionBuilder {
   public static non-sealed class Builder implements SessionBuilder {

@@ -9,7 +9,7 @@ import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.port.repositories.CredentialRepository;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Repository
 public class CredentialInMemoryRepository implements CredentialRepository {

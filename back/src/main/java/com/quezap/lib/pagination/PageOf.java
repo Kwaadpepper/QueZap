@@ -3,7 +3,7 @@ package com.quezap.lib.pagination;
 import java.util.List;
 import java.util.function.Function;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class PageOf<T> {
   private final PageRequest pageRequest;

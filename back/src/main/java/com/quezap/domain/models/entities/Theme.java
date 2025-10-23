@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class Theme extends AggregateRoot {
   private final String value;

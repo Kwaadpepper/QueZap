@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.port.repositories.QuestionRepository;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Repository
 public class QuestionInMemoryRepository implements QuestionRepository {

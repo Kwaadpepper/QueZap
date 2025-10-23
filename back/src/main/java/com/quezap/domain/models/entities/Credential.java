@@ -10,7 +10,7 @@ import com.quezap.domain.models.valueobjects.auth.HashedPassword;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.lib.ddd.AggregateRoot;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class Credential extends AggregateRoot {
 

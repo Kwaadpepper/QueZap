@@ -13,7 +13,7 @@ import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class Question extends AggregateRoot {
   private static final int ANSWERS_MAX_SIZE = 4;

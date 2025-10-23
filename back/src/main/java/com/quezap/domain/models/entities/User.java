@@ -9,7 +9,7 @@ import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
 import jakarta.persistence.Entity;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 public class User extends AggregateRoot {

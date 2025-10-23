@@ -1,10 +1,8 @@
 package com.quezap.lib.utils;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-@NonNullByDefault
 class UuidV7Test {
   @Test
   void canGenerateUuidV7() {

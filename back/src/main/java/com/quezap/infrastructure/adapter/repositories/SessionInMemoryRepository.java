@@ -9,7 +9,7 @@ import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.port.repositories.SessionRepository;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Repository
 public class SessionInMemoryRepository implements SessionRepository {

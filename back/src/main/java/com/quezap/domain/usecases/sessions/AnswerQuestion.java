@@ -11,7 +11,7 @@ import com.quezap.lib.ddd.UseCaseInput;
 import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface AnswerQuestion {
   record Input(SessionCode code, ParticipationToken token, Integer slideIndex, Integer answerIndex)

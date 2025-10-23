@@ -11,7 +11,7 @@ import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.PageRequest;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Repository
 public class UserInMemoryRepository implements UserRepository {

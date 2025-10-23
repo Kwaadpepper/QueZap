@@ -24,7 +24,7 @@ import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.utils.Domain;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class Session extends AggregateRoot {
   public static final int QUESTIONS_COUNT_MAX_SIZE = 60;

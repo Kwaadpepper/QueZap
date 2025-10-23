@@ -12,7 +12,7 @@ import com.quezap.domain.port.services.UserNameSanitizer;
 import com.modernmt.text.profanity.ProfanityFilter;
 import com.modernmt.text.profanity.dictionary.Dictionary;
 import com.modernmt.text.profanity.dictionary.Profanity;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class UserNameSanitizerImpl implements UserNameSanitizer {
   private final ProfanityFilter profanityFilter;

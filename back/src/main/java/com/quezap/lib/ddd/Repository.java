@@ -2,7 +2,7 @@ package com.quezap.lib.ddd;
 
 import java.util.UUID;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generic repository interface for managing aggregate root entities.

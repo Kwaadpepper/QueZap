@@ -5,7 +5,7 @@ import com.quezap.lib.ddd.Repository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.PageRequest;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface UserRepository extends Repository<User> {
   public @Nullable User findByName(String name);

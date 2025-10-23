@@ -4,7 +4,7 @@ import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.lib.ddd.Repository;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface SessionRepository extends Repository<Session> {
   public @Nullable Session findByNumber(SessionNumber code);

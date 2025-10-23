@@ -40,7 +40,11 @@ configurations.all {
 dependencies {
   errorprone 'com.google.errorprone:error_prone_core:2.42.0'
   errorprone 'com.uber.nullaway:nullaway:0.12.10'
+
+  // Annotations de nullabilité (JSpecify en priorité, Eclipse en fallback)
+  compileOnly 'org.jspecify:jspecify:1.0.0'
   compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.4.0'
+  testCompileOnly 'org.jspecify:jspecify:1.0.0'
   testCompileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.4.0'
 
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -80,20 +84,28 @@ dependencies {
 def enableNullAway = project.hasProperty('nullaway') && project.property('nullaway') == 'true'
 
 tasks.withType(JavaCompile).configureEach {
+  // Désactiver Error Prone complètement pour les tâches AOT (fichiers générés)
+  def isAotTask = name in ['compileAotJava', 'compileAotTestJava']
+
   options.errorprone {
-    if (enableNullAway) {
+    if (isAotTask) {
+      // Désactiver complètement Error Prone pour les tâches AOT
+      enabled = false
+    } else if (enableNullAway) {
+      // Activer NullAway pour les tâches normales
       check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
       option('NullAway:AnnotatedPackages', 'com.quezap')
+      option('NullAway:JSpecifyMode', 'true')
       option('TreatGeneratedAsUnannotated', 'true')
     } else {
-      // Si NullAway n'est pas activé, spécifier quand même les packages
-      // mais le désactiver avec OFF
+      // Si NullAway n'est pas activé, le désactiver
       option('NullAway:AnnotatedPackages', 'com.quezap')
+      option('NullAway:JSpecifyMode', 'true')
       check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.OFF)
     }
   }
 
-  if (enableNullAway) {
+  if (enableNullAway && !isAotTask) {
     options.compilerArgs << '-Werror'
   }
 

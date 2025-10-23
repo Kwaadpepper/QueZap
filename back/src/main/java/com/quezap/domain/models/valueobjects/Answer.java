@@ -2,7 +2,7 @@ package com.quezap.domain.models.valueobjects;
 
 import com.quezap.lib.utils.Domain;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public record Answer(
     @Nullable String stringAnswer, @Nullable Picture pictureAnswer, Boolean isCorrect) {

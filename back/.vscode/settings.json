@@ -10,6 +10,23 @@
   "java.import.gradle.offline.enabled": false,
   "java.import.generatesMetadataFilesAtProjectRoot": true,
   "java.compile.nullAnalysis.mode": "automatic",
+  "java.compile.nullAnalysis.nonnullbydefault": [
+    "org.jspecify.annotations.NullMarked",
+    "org.eclipse.jdt.annotation.NonNullByDefault",
+    "org.springframework.lang.NonNullApi"
+  ],
+  "java.compile.nullAnalysis.nonnull": [
+    "org.jspecify.annotations.NonNull",
+    "org.eclipse.jdt.annotation.NonNull",
+    "org.springframework.lang.NonNull",
+    "javax.annotation.Nonnull"
+  ],
+  "java.compile.nullAnalysis.nullable": [
+    "org.jspecify.annotations.Nullable",
+    "org.eclipse.jdt.annotation.Nullable",
+    "org.springframework.lang.Nullable",
+    "javax.annotation.Nullable"
+  ],
   "java.format.comments.enabled": true,
   "java.format.enabled": false,
   "[java]": {
@@ -28,8 +45,8 @@
   },
   "java.checkstyle.version": "11.0.0",
   "java.completion.favoriteStaticMembers": [
-    "org.eclipse.jdt.annotation",
     "org.jspecify.annotations",
+    "org.eclipse.jdt.annotation",
     "org.springframework.lang",
     "com.quezap",
     "java.util",
