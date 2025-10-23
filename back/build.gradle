@@ -1,6 +1,6 @@
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.5.6'
+  id 'org.springframework.boot' version '3.5.7'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'org.hibernate.orm' version '6.6.29.Final'
   id 'org.graalvm.buildtools.native' version '0.10.6'
@@ -41,11 +41,8 @@ dependencies {
   errorprone 'com.google.errorprone:error_prone_core:2.42.0'
   errorprone 'com.uber.nullaway:nullaway:0.12.10'
 
-  // Annotations de nullabilité (JSpecify en priorité, Eclipse en fallback)
   compileOnly 'org.jspecify:jspecify:1.0.0'
-  compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.4.0'
   testCompileOnly 'org.jspecify:jspecify:1.0.0'
-  testCompileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.4.0'
 
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -134,13 +131,6 @@ spotless {
 
   // * Scripts Gradle Groovy
   groovyGradle {
-
-// // 1. Configure le formatteur avec la signature valide
-//     def greclipseConfig = greclipse('4.31')
-
-//     // 2. CORRECTION: Utilisez 'dependency' (au singulier).
-//     // Cette méthode est prévue pour ajouter des dépendances une par une.
-//     greclipseConfig.dependency 'org.eclipse.platform:org.eclipse.osgi:3.19.0'
 
     target('**/*.gradle')
     targetExclude('**/build/**')

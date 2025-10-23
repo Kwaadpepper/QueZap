@@ -11,21 +11,13 @@
   "java.import.generatesMetadataFilesAtProjectRoot": true,
   "java.compile.nullAnalysis.mode": "automatic",
   "java.compile.nullAnalysis.nonnullbydefault": [
-    "org.jspecify.annotations.NullMarked",
-    "org.eclipse.jdt.annotation.NonNullByDefault",
-    "org.springframework.lang.NonNullApi"
+    "org.jspecify.annotations.NullMarked"
   ],
   "java.compile.nullAnalysis.nonnull": [
-    "org.jspecify.annotations.NonNull",
-    "org.eclipse.jdt.annotation.NonNull",
-    "org.springframework.lang.NonNull",
-    "javax.annotation.Nonnull"
+    "org.jspecify.annotations.NonNull"
   ],
   "java.compile.nullAnalysis.nullable": [
-    "org.jspecify.annotations.Nullable",
-    "org.eclipse.jdt.annotation.Nullable",
-    "org.springframework.lang.Nullable",
-    "javax.annotation.Nullable"
+    "org.jspecify.annotations.Nullable"
   ],
   "java.format.comments.enabled": true,
   "java.format.enabled": false,
