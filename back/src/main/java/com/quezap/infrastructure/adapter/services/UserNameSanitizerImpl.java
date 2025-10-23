@@ -2,6 +2,7 @@ package com.quezap.infrastructure.adapter.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ public class UserNameSanitizerImpl implements UserNameSanitizer {
 
   @Override
   public String sanitize(String userName) {
-    var normalized = normalizeWhitespace(userName).toLowerCase();
+    var normalized = normalizeWhitespace(userName).toLowerCase(Locale.ROOT);
 
     @Nullable String profanity;
 
@@ -70,21 +71,21 @@ public class UserNameSanitizerImpl implements UserNameSanitizer {
 
     while (frIterator.hasNext()) {
       final var p = frIterator.next();
-      if (input.contains(p.text().toLowerCase())) {
+      if (input.contains(p.text().toLowerCase(Locale.ROOT))) {
         return p.text();
       }
     }
 
     while (enIterator.hasNext()) {
       final var p = enIterator.next();
-      if (input.contains(p.text().toLowerCase())) {
+      if (input.contains(p.text().toLowerCase(Locale.ROOT))) {
         return p.text();
       }
     }
 
     while (customIterator.hasNext()) {
       final var p = customIterator.next();
-      if (input.contains(p.text().toLowerCase())) {
+      if (input.contains(p.text().toLowerCase(Locale.ROOT))) {
         return p.text();
       }
     }
@@ -119,7 +120,7 @@ public class UserNameSanitizerImpl implements UserNameSanitizer {
   }
 
   private String stripWordFrom(String input, String badWord) {
-    final var escapedWord = Pattern.quote(badWord.toLowerCase());
+    final var escapedWord = Pattern.quote(badWord.toLowerCase(Locale.ROOT));
     final var result = input.replaceAll(escapedWord, "");
 
     return normalizeWhitespace(result);
