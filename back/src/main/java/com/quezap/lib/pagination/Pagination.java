@@ -27,7 +27,7 @@ public record Pagination(long from, long to) {
     Domain.checkDomain(() -> pageSize > 0, "Page size must be positive and non-zero");
 
     final var fromIndex = (pageNumber - 1) * pageSize;
-    final var toIndex = pageNumber * pageSize - 1;
+    final var toIndex = Math.max(pageNumber * pageSize - 1, 1);
 
     return new Pagination(fromIndex, toIndex);
   }

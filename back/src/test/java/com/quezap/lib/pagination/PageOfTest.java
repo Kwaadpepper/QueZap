@@ -15,6 +15,20 @@ class PageOfTest {
   @Test
   void canInstanciatePageRequestWithPageValues() {
     // GIVEN
+    var pageNumber = 1L;
+    var pageSize = 1L;
+
+    // WHEN
+    var page = Pagination.ofPage(pageNumber, pageSize);
+
+    // THEN
+    Assertions.assertEquals(0L, page.from());
+    Assertions.assertEquals(1L, page.to());
+  }
+
+  @Test
+  void canInstanciatePageRequestWithPageValuesAgain() {
+    // GIVEN
     var pageNumber = 2L;
     var pageSize = 25L;
 
