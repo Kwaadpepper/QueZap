@@ -15,6 +15,14 @@ Pour lancer le shell en développement :
 SPRING_PROFILES_ACTIVE=cli ./gradlew bootRun --console=plain
 ```
 
+## Développement
+
+Pour développer en local et initialiser avec des données aléatoires
+
+```bash
+SPRING_PROFILES_ACTIVE=local ./gradlew clean bootRun
+```
+
 ## Tests
 
 Pour lancer les tests
