@@ -122,7 +122,14 @@ spotless {
 
   // * Scripts Gradle Groovy
   groovyGradle {
-    greclipse()
+
+// // 1. Configure le formatteur avec la signature valide
+//     def greclipseConfig = greclipse('4.31')
+
+//     // 2. CORRECTION: Utilisez 'dependency' (au singulier).
+//     // Cette méthode est prévue pour ajouter des dépendances une par une.
+//     greclipseConfig.dependency 'org.eclipse.platform:org.eclipse.osgi:3.19.0'
+
     target('**/*.gradle')
     targetExclude('**/build/**')
 
