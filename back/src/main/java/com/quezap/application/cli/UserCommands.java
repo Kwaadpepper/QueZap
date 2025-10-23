@@ -18,7 +18,7 @@ import com.quezap.domain.usecases.users.DeleteUser;
 import com.quezap.domain.usecases.users.ListUsers;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
-import com.quezap.lib.pagination.PageRequest;
+import com.quezap.lib.pagination.Pagination;
 
 import org.jline.reader.LineReader;
 
@@ -48,7 +48,7 @@ public class UserCommands {
     var pageNumber = 1L;
     List<ListUsers.Output.UserDto> pageUsers;
     do {
-      final var pageRequest = new PageRequest(pageNumber++, perPage);
+      final var pageRequest = Pagination.ofPage(pageNumber++, perPage);
       final var input = new ListUsers.Input(pageRequest);
 
       pageUsers = listUsersHandler.handle(input).items().items();

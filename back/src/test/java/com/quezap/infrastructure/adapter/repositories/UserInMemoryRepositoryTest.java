@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.quezap.domain.models.entities.User;
-import com.quezap.lib.pagination.PageRequest;
+import com.quezap.lib.pagination.Pagination;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ class UserInMemoryRepositoryTest {
   @Test
   void canListUsers() {
     // GIVEN
-    var pageRequest = new PageRequest(1L, 10L);
+    var pageRequest = Pagination.ofPage(1L, 10L);
     var userList = List.of(Mockito.mock(User.class), Mockito.mock(User.class));
 
     userList.forEach(

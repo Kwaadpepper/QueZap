@@ -6,20 +6,20 @@ import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
 public class PageOf<T> {
-  private final PageRequest pageRequest;
+  private final Pagination pageRequest;
   private final List<T> items;
   private final long totalItems;
 
-  public static <T> PageOf<T> empty(PageRequest pageRequest) {
-    return new PageOf<>(pageRequest, List.of(), 0L);
+  public static <T> PageOf<T> empty(Pagination pagination) {
+    return new PageOf<>(pagination, List.of(), 0L);
   }
 
-  public static <T> PageOf<T> of(PageRequest pageRequest, List<T> items, Long totalItems) {
-    return new PageOf<>(pageRequest, items, totalItems);
+  public static <T> PageOf<T> of(Pagination pagination, List<T> items, Long totalItems) {
+    return new PageOf<>(pagination, items, totalItems);
   }
 
-  public PageOf(PageRequest pageRequest, List<T> items, Long totalItems) {
-    this.pageRequest = pageRequest;
+  public PageOf(Pagination pagination, List<T> items, Long totalItems) {
+    this.pageRequest = pagination;
     this.items = List.copyOf(items);
     this.totalItems = totalItems;
   }

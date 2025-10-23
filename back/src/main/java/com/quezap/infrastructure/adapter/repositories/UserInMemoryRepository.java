@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.pagination.PageOf;
-import com.quezap.lib.pagination.PageRequest;
+import com.quezap.lib.pagination.Pagination;
 
 import org.jspecify.annotations.Nullable;
 
@@ -46,18 +46,17 @@ public class UserInMemoryRepository implements UserRepository {
   }
 
   @Override
-  public PageOf<User> findAll(PageRequest pageRequest) {
+  public PageOf<User> findAll(Pagination pagination) {
     var users = storage.values().stream().toArray();
     long totalElements = users.length;
-    long fromIndex =
-        Math.min((pageRequest.pageNumber() - 1) * pageRequest.pageSize(), totalElements);
-    long toIndex = Math.min(fromIndex + pageRequest.pageSize(), totalElements);
+    long fromIndex = Math.min((pagination.pageNumber() - 1) * pagination.pageSize(), totalElements);
+    long toIndex = Math.min(fromIndex + pagination.pageSize(), totalElements);
     var content = new ArrayList<User>();
 
     for (long i = fromIndex; i < toIndex; i++) {
       content.add((User) users[(int) i]);
     }
 
-    return PageOf.of(pageRequest, content, totalElements);
+    return PageOf.of(pagination, content, totalElements);
   }
 }

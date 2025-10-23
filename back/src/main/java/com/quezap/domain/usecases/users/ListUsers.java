@@ -9,10 +9,10 @@ import com.quezap.lib.ddd.UseCaseHandler;
 import com.quezap.lib.ddd.UseCaseInput;
 import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.pagination.PageOf;
-import com.quezap.lib.pagination.PageRequest;
+import com.quezap.lib.pagination.Pagination;
 
 public sealed interface ListUsers {
-  record Input(PageRequest page) implements UseCaseInput {}
+  record Input(Pagination pagination) implements UseCaseInput {}
 
   public record Output(PageOf<UserDto> items) implements UseCaseOutput {
     public record UserDto(
@@ -28,7 +28,7 @@ public sealed interface ListUsers {
 
     @Override
     public Output handle(Input usecaseInput) {
-      final var page = userRepository.findAll(usecaseInput.page());
+      final var page = userRepository.findAll(usecaseInput.pagination());
 
       return new Output(page.map(this::toDto));
     }

@@ -9,7 +9,7 @@ import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.pagination.PageOf;
-import com.quezap.lib.pagination.PageRequest;
+import com.quezap.lib.pagination.Pagination;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class ListUsersTest {
   @Test
   void canListUsers() {
     // GIVEN
-    var pageRequest = new PageRequest(1L, 1L);
+    var pageRequest = Pagination.ofPage(1L, 1L);
     var input = new ListUsers.Input(pageRequest);
     var users =
         List.of(
