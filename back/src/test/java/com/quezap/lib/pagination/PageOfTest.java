@@ -42,7 +42,7 @@ class PageOfTest {
 
   // --- Tests d'arguments invalides pour ofPage ---
 
-  @ParameterizedTest()
+  @ParameterizedTest
   @MethodSource("invalidPageValues")
   void cannotInstanciatePageRequestWithInvalidPageArguments(long pageNumber, long pageSize) {
     // WHEN / THEN
@@ -67,7 +67,7 @@ class PageOfTest {
         Arguments.of(1L, 51L));
   }
 
-  @ParameterizedTest()
+  @ParameterizedTest
   @MethodSource("invalidIndexes")
   void cannotInstanciatePageRequestWithInvalidIndexes(long from, long to) {
     // WHEN / THEN
