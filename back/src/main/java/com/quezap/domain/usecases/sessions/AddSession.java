@@ -3,6 +3,7 @@ package com.quezap.domain.usecases.sessions;
 import com.quezap.domain.errors.sessions.AddSessionError;
 import com.quezap.domain.models.entities.builders.SessionBuilder;
 import com.quezap.domain.models.valueobjects.SessionName;
+import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.repositories.UserRepository;
@@ -34,7 +35,8 @@ public sealed interface AddSession {
       final var userId = usecaseInput.user();
 
       final var lastCreatedSession = sessionRepository.latestByCode();
-      final var sessionNumber = lastCreatedSession.getNumber();
+      final var sessionNumber =
+          lastCreatedSession != null ? lastCreatedSession.getNumber() : new SessionNumber(1);
       final var sessionBuilder = SessionBuilder.Builder.with(sessionName, sessionNumber, userId);
       final var session = sessionBuilder.build();
 
