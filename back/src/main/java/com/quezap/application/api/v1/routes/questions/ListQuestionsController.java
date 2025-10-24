@@ -20,7 +20,7 @@ public class ListQuestionsController {
     this.handler = handler;
   }
 
-  @GetMapping("find")
+  @GetMapping("apiv1/questions/find")
   PageOfDto<QuestionShortInfoDto> find(
       @Valid PaginationDto paginationDto, @Valid FindQuestionsDto queryDto) {
     final var input = toInput(paginationDto, queryDto);
