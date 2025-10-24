@@ -11,14 +11,20 @@ public class PaginationValidator implements ConstraintValidator<PaginationRange,
     final var hasPageRange = dto.page() != null && dto.perPage() != null;
     final var hasIndexRange = dto.from() != null && dto.to() != null;
 
+    context.disableDefaultConstraintViolation();
+
     if (hasPageRange && hasIndexRange) {
-      context.disableDefaultConstraintViolation();
       context
           .buildConstraintViolationWithTemplate("Provide either page/perPage or from/to, not both")
           .addConstraintViolation();
       return false;
     }
 
-    return hasPageRange || hasIndexRange;
+    context
+        .buildConstraintViolationWithTemplate(
+            "Provide any of page/perPage or from/to for pagination")
+        .addConstraintViolation();
+
+    return hasPageRange || hasIndexRange || (!hasPageRange && !hasIndexRange);
   }
 }
