@@ -45,7 +45,7 @@ public sealed interface ListQuestions {
   }
 
   record Output(PageOf<QuestionDto> value) implements UseCaseOutput {
-    record QuestionDto(QuestionId id, String question, ZonedDateTime createdAt) {}
+    public record QuestionDto(QuestionId id, String question, ZonedDateTime createdAt) {}
   }
 
   // * HANDLER

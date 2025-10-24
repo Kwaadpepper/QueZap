@@ -28,19 +28,19 @@ public class PageOf<T> {
     return items;
   }
 
-  public Long totalItems() {
+  public long totalItems() {
     return totalItems;
   }
 
-  public Long currentPage() {
+  public long currentPage() {
     return pageRequest.pageNumber();
   }
 
-  public Long pageSize() {
+  public long pageSize() {
     return pageRequest.pageSize();
   }
 
-  public Long totalPages() {
+  public long totalPages() {
     return (long) Math.ceil((double) totalItems / pageRequest.pageSize());
   }
 
