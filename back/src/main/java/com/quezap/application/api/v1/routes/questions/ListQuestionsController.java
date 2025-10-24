@@ -7,7 +7,9 @@ import com.quezap.application.api.v1.dto.request.PaginationDto;
 import com.quezap.application.api.v1.dto.request.questions.FindQuestionsDto;
 import com.quezap.application.api.v1.dto.response.PageOfDto;
 import com.quezap.application.api.v1.dto.response.questions.QuestionShortInfoDto;
+import com.quezap.application.api.v1.exceptions.BadPaginationException;
 import com.quezap.domain.usecases.questions.ListQuestions;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.pagination.Pagination;
 
 import jakarta.validation.Valid;
@@ -44,17 +46,21 @@ public class ListQuestionsController {
   }
 
   private Pagination toDomain(PaginationDto dto) {
-    final var page = dto.page();
-    final var perPage = dto.perPage();
-    final var from = dto.from();
-    final var to = dto.to();
+    try {
+      final var page = dto.page();
+      final var perPage = dto.perPage();
+      final var from = dto.from();
+      final var to = dto.to();
 
-    if (page != null && perPage != null) {
-      return Pagination.ofPage(page, perPage);
-    } else if (from != null && to != null) {
-      return Pagination.ofIndexes(from, to);
+      if (page != null && perPage != null) {
+        return Pagination.ofPage(page, perPage);
+      } else if (from != null && to != null) {
+        return Pagination.ofIndexes(from, to);
+      }
+      return Pagination.firstPage();
+    } catch (IllegalDomainStateException e) {
+      throw new BadPaginationException(e.getMessage());
     }
-    return Pagination.firstPage();
   }
 
   private QuestionShortInfoDto toDto(ListQuestions.Output.QuestionDto question) {
