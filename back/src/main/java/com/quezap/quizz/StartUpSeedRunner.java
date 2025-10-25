@@ -6,6 +6,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.quezap.application.seed.ThemeSeeder;
 import com.quezap.application.seed.UserSeeder;
 
 import org.slf4j.Logger;
@@ -17,9 +18,11 @@ public class StartUpSeedRunner {
   private static final String SEED_ON_PROFILE = "local";
 
   private UserSeeder userSeeder;
+  private ThemeSeeder themeSeeder;
 
-  public StartUpSeedRunner(UserSeeder userSeeder) {
+  public StartUpSeedRunner(UserSeeder userSeeder, ThemeSeeder themeSeeder) {
     this.userSeeder = userSeeder;
+    this.themeSeeder = themeSeeder;
   }
 
   @EventListener
@@ -36,6 +39,7 @@ public class StartUpSeedRunner {
     logger.info("Running seeders.");
 
     userSeeder.seed();
+    themeSeeder.seed();
 
     logger.info("Seeders Done.");
   }

@@ -4,34 +4,26 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.lib.ddd.AggregateRoot;
-import com.quezap.lib.utils.Domain;
 
 import org.jspecify.annotations.Nullable;
 
 public class Theme extends AggregateRoot {
-  private final String value;
+  private ThemeName value;
 
-  private static void validateCommonInvariants(String theme) {
-    Domain.checkDomain(() -> !theme.isBlank(), "Theme cannot be blank");
-    Domain.checkDomain(() -> theme.trim().length() >= 2, "Theme cannot be less than 2 characters");
-    Domain.checkDomain(() -> theme.length() <= 100, "Theme cannot exceed 100 characters");
-  }
-
-  public Theme(String value) {
+  public Theme(ThemeName name) {
     super();
-    validateCommonInvariants(value);
-    this.value = value;
+    this.value = name;
   }
 
-  protected Theme(UUID id, String value) {
+  protected Theme(UUID id, ThemeName name) {
     super(id);
-    validateCommonInvariants(value);
-    this.value = value;
+    this.value = name;
   }
 
-  public static Theme hydrate(UUID id, String value) {
-    return new Theme(id, value);
+  public static Theme hydrate(UUID id, ThemeName name) {
+    return new Theme(id, name);
   }
 
   @Override
@@ -39,8 +31,12 @@ public class Theme extends AggregateRoot {
     return id;
   }
 
-  public String getValue() {
+  public ThemeName getName() {
     return value;
+  }
+
+  public void setName(ThemeName name) {
+    this.value = name;
   }
 
   @Override
