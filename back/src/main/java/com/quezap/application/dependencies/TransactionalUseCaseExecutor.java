@@ -26,7 +26,7 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
 
   @Override
   @Transactional
-  public <I extends UseCaseInput, O extends @Nullable UseCaseOutput> O execute(
+  public <I extends UseCaseInput, O extends UseCaseOutput> O execute(
       UseCaseHandler<I, O> useCaseHandler, I usecaseInput) {
 
     final AtomicReference<Throwable> exceptionHolder = new AtomicReference<>();

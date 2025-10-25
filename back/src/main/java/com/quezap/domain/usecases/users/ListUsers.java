@@ -14,7 +14,7 @@ import com.quezap.lib.pagination.Pagination;
 public sealed interface ListUsers {
   record Input(Pagination pagination) implements UseCaseInput {}
 
-  public record Output(PageOf<UserDto> items) implements UseCaseOutput {
+  public record Output(PageOf<UserDto> page) implements UseCaseOutput {
     public record UserDto(
         UserId id, String name, ZonedDateTime createdAt, ZonedDateTime updatedAt) {}
   }

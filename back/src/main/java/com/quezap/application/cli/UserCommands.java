@@ -18,12 +18,14 @@ import com.quezap.domain.usecases.users.DeleteUser;
 import com.quezap.domain.usecases.users.ListUsers;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 
 import org.jline.reader.LineReader;
 
 @Command(command = "users", description = "User management commands")
 public class UserCommands {
+  private final UseCaseExecutor executor;
   private final ListUsers.Handler listUsersHandler;
   private final AddUser.Handler addUserHandler;
   private final DeleteUser.Handler deleteUserHandler;
@@ -31,9 +33,11 @@ public class UserCommands {
   @Autowired @Lazy private LineReader lineReader;
 
   public UserCommands(
+      UseCaseExecutor executor,
       ListUsers.Handler listUsersHandler,
       AddUser.Handler addUserHandler,
       DeleteUser.Handler deleteUserHandler) {
+    this.executor = executor;
     this.listUsersHandler = listUsersHandler;
     this.addUserHandler = addUserHandler;
     this.deleteUserHandler = deleteUserHandler;
@@ -50,9 +54,12 @@ public class UserCommands {
     do {
       final var pageRequest = Pagination.ofPage(pageNumber++, perPage);
       final var input = new ListUsers.Input(pageRequest);
+      final var result = executor.execute(listUsersHandler, input);
+      final var paginatedUsers = result.page();
 
-      pageUsers = listUsersHandler.handle(input).items().items();
+      pageUsers = paginatedUsers.items();
       users.addAll(pageUsers);
+
     } while (!pageUsers.isEmpty());
 
     output.append("Users list :\n");
@@ -78,7 +85,7 @@ public class UserCommands {
       final var password = new RawPassword(readPassword("Mot de passe : "));
       final var input = new AddUser.Input(name, identifier, password);
 
-      addUserHandler.handle(input);
+      executor.execute(addUserHandler, input);
 
       return "Done";
     } catch (IllegalDomainStateException e) {
@@ -96,11 +103,14 @@ public class UserCommands {
           String loginOrId) {
     try {
       if (isUserId(loginOrId)) {
-        final var input = new DeleteUser.Input.Id(new UserId(UUID.fromString(loginOrId)));
-        deleteUserHandler.handle(input);
+        final var newUserId = new UserId(UUID.fromString(loginOrId));
+        final var input = new DeleteUser.Input.Id(newUserId);
+
+        executor.execute(deleteUserHandler, input);
       } else {
         final var input = new DeleteUser.Input.UserName(loginOrId);
-        deleteUserHandler.handle(input);
+
+        executor.execute(deleteUserHandler, input);
       }
 
       return "Done";
