@@ -4,10 +4,6 @@ import org.springframework.stereotype.Component;
 
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
-import com.quezap.domain.port.repositories.CredentialRepository;
-import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.domain.port.services.IdentifierHasher;
-import com.quezap.domain.port.services.PasswordHasher;
 import com.quezap.domain.usecases.users.AddUser;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
@@ -18,16 +14,9 @@ public class UserSeeder implements Seeder {
   private final UseCaseExecutor executor;
   private final AddUser.Handler handler;
 
-  public UserSeeder(
-      UseCaseExecutor executor,
-      UserRepository userRepository,
-      CredentialRepository credentialRepository,
-      IdentifierHasher identifierHasher,
-      PasswordHasher passwordHashery) {
+  public UserSeeder(UseCaseExecutor executor, AddUser.Handler handler) {
     this.executor = executor;
-    handler =
-        new AddUser.Handler(
-            userRepository, credentialRepository, identifierHasher, passwordHashery);
+    this.handler = handler;
   }
 
   @Override
