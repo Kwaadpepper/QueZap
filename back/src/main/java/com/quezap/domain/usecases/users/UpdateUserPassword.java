@@ -3,12 +3,12 @@ package com.quezap.domain.usecases.users;
 import java.util.Optional;
 
 import com.quezap.domain.errors.users.UpdateUserPasswordError;
+import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.domain.port.services.PasswordHasher;
-import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
@@ -49,8 +49,7 @@ public sealed interface UpdateUserPassword {
             case Input.Id(UserId id, RawPassword pwd) -> id;
             case Input.UserName(String name, RawPassword pwd) ->
                 Optional.ofNullable(userRepository.findByName(name))
-                    .map(AggregateRoot::getId)
-                    .map(UserId::new)
+                    .map(User::getId)
                     .orElseThrow(() -> userNotFoundException);
           };
       final var newPassword =
@@ -58,14 +57,14 @@ public sealed interface UpdateUserPassword {
             case Input.Id(UserId id, RawPassword pwd) -> pwd;
             case Input.UserName(String name, RawPassword pwd) -> pwd;
           };
-      final var user = userRepository.find(userId.value());
+      final var user = userRepository.find(userId);
 
       if (user == null) {
         throw userNotFoundException;
       }
 
       final var credential =
-          Optional.ofNullable(credentialRepository.find(user.getCredential().value()))
+          Optional.ofNullable(credentialRepository.find(user.getCredential()))
               .orElseThrow(() -> new IllegalDomainStateException("A user is missing credential"));
       final var hashedNewPassword = passwordHasher.hash(newPassword);
 

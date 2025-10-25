@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.quezap.domain.models.entities.User;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.pagination.Pagination;
 
 import org.assertj.core.api.Assertions;
@@ -27,7 +28,7 @@ class UserInMemoryRepositoryTest {
 
     userList.forEach(
         user -> {
-          Mockito.when(user.getId()).thenReturn(UUID.randomUUID());
+          Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
           repository.save(user);
         });
 
@@ -44,7 +45,7 @@ class UserInMemoryRepositoryTest {
     var user = Mockito.mock(User.class);
 
     // WHEN
-    Mockito.when(user.getId()).thenReturn(UUID.randomUUID());
+    Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
 
     repository.save(user);
 
@@ -56,7 +57,7 @@ class UserInMemoryRepositoryTest {
   void canRetrieveUserById() {
     // GIVEN
     var user = Mockito.mock(User.class);
-    var id = UUID.randomUUID();
+    var id = Mockito.mock(UserId.class);
     Mockito.when(user.getId()).thenReturn(id);
     repository.save(user);
 
@@ -70,7 +71,7 @@ class UserInMemoryRepositoryTest {
   @Test
   void cannotRetrieveNonExistentUser() {
     // GIVEN
-    var nonExistentId = UUID.randomUUID();
+    var nonExistentId = Mockito.mock(UserId.class);
     // WHEN
     var retrievedUser = repository.find(nonExistentId);
 
@@ -82,7 +83,7 @@ class UserInMemoryRepositoryTest {
   void canDeleteUser() {
     // GIVEN
     var user = Mockito.mock(User.class);
-    var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
+    var id = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(user.getId()).thenReturn(id);
     repository.save(user);
 
@@ -98,7 +99,7 @@ class UserInMemoryRepositoryTest {
   void deletingNonExistentUserDoesNotThrow() {
     // GIVEN
     var user = Mockito.mock(User.class);
-    Mockito.when(user.getId()).thenReturn(UUID.randomUUID());
+    Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
 
     // WHEN & THEN
     Assertions.assertThatCode(() -> repository.delete(user)).doesNotThrowAnyException();
@@ -108,7 +109,7 @@ class UserInMemoryRepositoryTest {
   void canUpdateUser() {
     // GIVEN
     var user = Mockito.mock(User.class);
-    var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
+    var id = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(user.getId()).thenReturn(id);
     repository.save(user);
 
@@ -124,7 +125,7 @@ class UserInMemoryRepositoryTest {
   void updatingNonExistentUserDoesNotThrow() {
     // GIVEN
     var user = Mockito.mock(User.class);
-    Mockito.when(user.getId()).thenReturn(UUID.randomUUID());
+    Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
 
     // WHEN & THEN
     Assertions.assertThatCode(() -> repository.update(user)).doesNotThrowAnyException();

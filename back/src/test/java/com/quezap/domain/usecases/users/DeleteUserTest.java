@@ -29,14 +29,14 @@ class DeleteUserTest {
   void canDeleteUserById() {
     // GIVEN
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
-    var credentialId = UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000");
+    var credentialId = new CredentialId(UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000"));
     var user = Mockito.mock(User.class);
     var input = new DeleteUser.Input.Id(userId);
 
     // WHEN
-    Mockito.when(user.getId()).thenReturn(userId.value());
-    Mockito.when(user.getCredential()).thenReturn(new CredentialId(credentialId));
-    Mockito.when(userRepository.find(userId.value())).thenReturn(user);
+    Mockito.when(user.getId()).thenReturn(userId);
+    Mockito.when(user.getCredential()).thenReturn(credentialId);
+    Mockito.when(userRepository.find(userId)).thenReturn(user);
     Mockito.when(credentialRepository.find(credentialId))
         .thenReturn(Mockito.mock(Credential.class));
 
@@ -50,16 +50,16 @@ class DeleteUserTest {
   void canDeleteUserByName() {
     // GIVEN
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
-    var credentialId = UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000");
+    var credentialId = new CredentialId(UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000"));
     var userName = "test";
     var user = Mockito.mock(User.class);
     var input = new DeleteUser.Input.UserName(userName);
 
     // WHEN
     Mockito.when(userRepository.findByName(userName)).thenReturn(user);
-    Mockito.when(userRepository.find(userId.value())).thenReturn(user);
-    Mockito.when(user.getId()).thenReturn(userId.value());
-    Mockito.when(user.getCredential()).thenReturn(new CredentialId(credentialId));
+    Mockito.when(userRepository.find(userId)).thenReturn(user);
+    Mockito.when(user.getId()).thenReturn(userId);
+    Mockito.when(user.getCredential()).thenReturn(credentialId);
 
     Mockito.when(credentialRepository.find(credentialId))
         .thenReturn(Mockito.mock(Credential.class));
@@ -74,14 +74,14 @@ class DeleteUserTest {
   void canDeleteUserThatIsMissingCredential() {
     // GIVEN
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
-    var credentialId = UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000");
+    var credentialId = new CredentialId(UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000"));
     var user = Mockito.mock(User.class);
     var input = new DeleteUser.Input.Id(userId);
 
     // WHEN
-    Mockito.when(user.getId()).thenReturn(userId.value());
-    Mockito.when(user.getCredential()).thenReturn(new CredentialId(credentialId));
-    Mockito.when(userRepository.find(userId.value())).thenReturn(user);
+    Mockito.when(user.getId()).thenReturn(userId);
+    Mockito.when(user.getCredential()).thenReturn(credentialId);
+    Mockito.when(userRepository.find(userId)).thenReturn(user);
     Mockito.when(credentialRepository.find(credentialId)).thenReturn(null);
 
     var output = deleteUserHandler.handle(input);
@@ -97,7 +97,7 @@ class DeleteUserTest {
     var input = new DeleteUser.Input.Id(userId);
 
     // WHEN / THEN
-    Mockito.when(userRepository.find(userId.value())).thenReturn(null);
+    Mockito.when(userRepository.find(userId)).thenReturn(null);
 
     var exception =
         Assertions.assertThrows(RuntimeException.class, () -> deleteUserHandler.handle(input));

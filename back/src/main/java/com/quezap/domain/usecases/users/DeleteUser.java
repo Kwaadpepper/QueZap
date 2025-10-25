@@ -3,10 +3,10 @@ package com.quezap.domain.usecases.users;
 import java.util.Optional;
 
 import com.quezap.domain.errors.users.DeleteUserError;
+import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
@@ -46,17 +46,16 @@ public sealed interface DeleteUser {
             case Input.Id(UserId id) -> id;
             case Input.UserName(String name) ->
                 Optional.ofNullable(userRepository.findByName(name))
-                    .map(AggregateRoot::getId)
-                    .map(UserId::new)
+                    .map(User::getId)
                     .orElseThrow(() -> userNotFoundException);
           };
-      final var user = userRepository.find(userId.value());
+      final var user = userRepository.find(userId);
 
       if (user == null) {
         throw userNotFoundException;
       }
 
-      final var credential = credentialRepository.find(user.getCredential().value());
+      final var credential = credentialRepository.find(user.getCredential());
 
       if (credential == null) {
         logger.warn("User {} has no associated credential, removing user anyway.", userId.value());

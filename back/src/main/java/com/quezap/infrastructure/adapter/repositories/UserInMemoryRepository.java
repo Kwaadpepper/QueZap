@@ -1,12 +1,12 @@
 package com.quezap.infrastructure.adapter.repositories;
 
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.User;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
@@ -15,10 +15,10 @@ import org.jspecify.annotations.Nullable;
 
 @Repository
 public class UserInMemoryRepository implements UserRepository {
-  private final ConcurrentHashMap<UUID, User> storage = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<UserId, User> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable User find(UUID id) {
+  public @Nullable User find(UserId id) {
     return storage.get(id);
   }
 

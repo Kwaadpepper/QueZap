@@ -41,7 +41,7 @@ public sealed interface AddSession {
       final var sessionBuilder = SessionBuilder.Builder.with(sessionName, sessionNumber, userId);
       final var session = sessionBuilder.build();
 
-      if (userRepository.find(userId.value()) == null) {
+      if (userRepository.find(userId) == null) {
         throw new DomainConstraintException(AddSessionError.NO_SUCH_USER);
       }
 
@@ -51,7 +51,7 @@ public sealed interface AddSession {
 
       sessionRepository.save(session);
 
-      return new Output.SessionAdded(new SessionId(session.getId()));
+      return new Output.SessionAdded(session.getId());
     }
   }
 }

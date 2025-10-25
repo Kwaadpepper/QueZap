@@ -35,7 +35,7 @@ public sealed interface ListUsers {
 
     private Output.UserDto toDto(User user) {
       return new Output.UserDto(
-          new UserId(user.getId()), user.getName(), user.getCreatedAt(), user.getUpdatedAt());
+          user.getId(), user.getName(), user.getCreatedAt(), user.getUpdatedAt());
     }
   }
 }

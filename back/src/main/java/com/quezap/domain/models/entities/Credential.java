@@ -12,7 +12,7 @@ import com.quezap.lib.ddd.AggregateRoot;
 
 import org.jspecify.annotations.Nullable;
 
-public class Credential extends AggregateRoot {
+public class Credential extends AggregateRoot<CredentialId> {
 
   private final HashedIdentifier hashedIdentifier;
   private final @Nullable ZonedDateTime lastConnectionAt;
@@ -55,12 +55,8 @@ public class Credential extends AggregateRoot {
   }
 
   @Override
-  public UUID getId() {
-    return id;
-  }
-
-  public CredentialId getCredentialId() {
-    return new CredentialId(id);
+  public CredentialId getId() {
+    return new CredentialId(rawId);
   }
 
   public @Nullable ZonedDateTime getLastConnectionAt() {
@@ -105,6 +101,6 @@ public class Credential extends AggregateRoot {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return Objects.hash(rawId);
   }
 }

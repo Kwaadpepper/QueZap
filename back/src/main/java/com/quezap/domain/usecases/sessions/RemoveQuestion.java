@@ -31,8 +31,8 @@ public sealed interface RemoveQuestion {
       final var questionSlide = usecaseInput.question();
       final var questionId = questionSlide.question();
       final var sessionId = usecaseInput.session();
-      final var session = sessionRepository.find(sessionId.value());
-      final var question = questionRepository.find(questionId.value());
+      final var session = sessionRepository.find(sessionId);
+      final var question = questionRepository.find(questionId);
 
       if (session == null) {
         throw new DomainConstraintException(RemoveQuestionError.NO_SUCH_SESSION);

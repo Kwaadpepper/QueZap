@@ -1,22 +1,22 @@
 package com.quezap.infrastructure.adapter.repositories;
 
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.SessionNumber;
+import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.port.repositories.SessionRepository;
 
 import org.jspecify.annotations.Nullable;
 
 @Repository
 public class SessionInMemoryRepository implements SessionRepository {
-  private final ConcurrentHashMap<UUID, Session> storage = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<SessionId, Session> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable Session find(UUID id) {
+  public @Nullable Session find(SessionId id) {
     return storage.get(id);
   }
 

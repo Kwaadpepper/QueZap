@@ -3,13 +3,13 @@ package com.quezap.infrastructure.adapter.repositories;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
+import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.lib.pagination.PageOf;
@@ -19,10 +19,10 @@ import org.jspecify.annotations.Nullable;
 
 @Repository
 public class QuestionInMemoryRepository implements QuestionRepository {
-  private final ConcurrentHashMap<UUID, Question> storage = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<QuestionId, Question> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable Question find(UUID id) {
+  public @Nullable Question find(QuestionId id) {
     return storage.get(id);
   }
 

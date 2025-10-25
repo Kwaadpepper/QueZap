@@ -5,11 +5,12 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.ThemeName;
+import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.lib.ddd.AggregateRoot;
 
 import org.jspecify.annotations.Nullable;
 
-public class Theme extends AggregateRoot {
+public class Theme extends AggregateRoot<ThemeId> {
   private ThemeName value;
 
   public Theme(ThemeName name) {
@@ -27,8 +28,8 @@ public class Theme extends AggregateRoot {
   }
 
   @Override
-  public UUID getId() {
-    return id;
+  public ThemeId getId() {
+    return new ThemeId(rawId);
   }
 
   public ThemeName getName() {
@@ -52,7 +53,7 @@ public class Theme extends AggregateRoot {
     if (obj == null) {
       return false;
     }
-    if (!(obj instanceof Credential that)) {
+    if (!(obj instanceof Theme that)) {
       return false;
     }
     return getId().equals(that.getId());
@@ -60,6 +61,6 @@ public class Theme extends AggregateRoot {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return Objects.hash(rawId);
   }
 }

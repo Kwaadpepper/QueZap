@@ -25,7 +25,7 @@ public sealed interface StartSession {
     @Override
     public Output handle(Input usecaseInput) {
       final var sessionId = usecaseInput.id();
-      final var session = sessionRepository.find(sessionId.value());
+      final var session = sessionRepository.find(sessionId);
 
       if (session == null) {
         throw new DomainConstraintException(StartSessionError.NO_SUCH_SESSION);

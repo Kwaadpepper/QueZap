@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Picture;
+import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.lib.ddd.AggregateRoot;
@@ -15,12 +16,12 @@ import com.quezap.lib.utils.Domain;
 
 import org.jspecify.annotations.Nullable;
 
-public class Question extends AggregateRoot {
+public class Question extends AggregateRoot<QuestionId> {
   private static final int ANSWERS_MAX_SIZE = 4;
 
   private final QuestionType type;
   private final String value;
-  private final Picture picture;
+  private final @Nullable Picture picture;
   private final ThemeId theme;
   private final Set<Answer> answers;
   private final ZonedDateTime updatedAt;
@@ -31,7 +32,8 @@ public class Question extends AggregateRoot {
     Domain.checkDomain(
         () -> question.trim().length() >= 15, "Label cannot be less than 15 characters");
     Domain.checkDomain(() -> question.length() <= 255, "Label cannot exceed 255 characters");
-    Domain.checkDomain(() -> !answers.isEmpty(), "Answers cannot be empty");
+
+    // * Answers validations
     Domain.checkDomain(
         () -> answers.size() <= ANSWERS_MAX_SIZE, "Answers cannot exceed " + ANSWERS_MAX_SIZE);
     Domain.checkDomain(
@@ -53,7 +55,10 @@ public class Question extends AggregateRoot {
     switch (type) {
       case QuestionType.BOOLEAN ->
           Domain.checkDomain(
-              () -> answers.size() == 2, "True/False questions must have exactly 2 answers");
+              () -> answers.size() == 1, "Affirmation questions must have exactly 1 answer");
+      case QuestionType.BINARY ->
+          Domain.checkDomain(
+              () -> answers.size() == 2, "Binary questions must have exactly 2 answers");
       case QuestionType.QUIZZ ->
           Domain.checkDomain(
               () -> answers.size() >= 2 && answers.size() <= 4,
@@ -65,7 +70,7 @@ public class Question extends AggregateRoot {
   public Question(
       QuestionType type,
       String value,
-      Picture picture,
+      @Nullable Picture picture,
       ThemeId theme,
       Set<Answer> answers,
       ZonedDateTime updatedAt) {
@@ -83,7 +88,7 @@ public class Question extends AggregateRoot {
       UUID id,
       QuestionType type,
       String value,
-      Picture picture,
+      @Nullable Picture picture,
       ThemeId theme,
       Set<Answer> answers,
       ZonedDateTime updatedAt) {
@@ -101,7 +106,7 @@ public class Question extends AggregateRoot {
       UUID id,
       QuestionType type,
       String value,
-      Picture picture,
+      @Nullable Picture picture,
       ThemeId theme,
       Set<Answer> answers,
       ZonedDateTime updatedAt) {
@@ -109,8 +114,8 @@ public class Question extends AggregateRoot {
   }
 
   @Override
-  public UUID getId() {
-    return id;
+  public QuestionId getId() {
+    return new QuestionId(rawId);
   }
 
   public QuestionType getType() {
@@ -121,7 +126,7 @@ public class Question extends AggregateRoot {
     return value;
   }
 
-  public Picture getPicture() {
+  public @Nullable Picture getPicture() {
     return picture;
   }
 
@@ -150,7 +155,7 @@ public class Question extends AggregateRoot {
     if (obj == null) {
       return false;
     }
-    if (!(obj instanceof Credential that)) {
+    if (!(obj instanceof Question that)) {
       return false;
     }
     return getId().equals(that.getId());
@@ -158,6 +163,6 @@ public class Question extends AggregateRoot {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return Objects.hash(rawId);
   }
 }

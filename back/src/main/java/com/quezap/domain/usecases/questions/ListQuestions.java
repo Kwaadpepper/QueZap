@@ -100,8 +100,7 @@ public sealed interface ListQuestions {
     }
 
     private QuestionDto toDto(Question question) {
-      return new QuestionDto(
-          new QuestionId(question.getId()), question.getValue(), question.getCreatedAt());
+      return new QuestionDto(question.getId(), question.getValue(), question.getCreatedAt());
     }
   }
 }

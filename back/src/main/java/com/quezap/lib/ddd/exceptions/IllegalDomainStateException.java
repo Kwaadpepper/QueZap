@@ -1,5 +1,9 @@
 package com.quezap.lib.ddd.exceptions;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.NonNull;
+
 public class IllegalDomainStateException extends RuntimeException {
   public IllegalDomainStateException(String message) {
     super(message);
@@ -15,5 +19,10 @@ public class IllegalDomainStateException extends RuntimeException {
 
   public IllegalDomainStateException() {
     super();
+  }
+
+  @Override
+  public @NonNull String getMessage() {
+    return Objects.requireNonNull(super.getMessage());
   }
 }

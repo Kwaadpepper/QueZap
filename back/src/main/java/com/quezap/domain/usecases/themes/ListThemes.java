@@ -66,7 +66,7 @@ public sealed interface ListThemes {
     }
 
     private ThemeDto toDto(Theme theme) {
-      return new ThemeDto(new ThemeId(theme.getId()), theme.getName(), theme.getCreatedAt());
+      return new ThemeDto(theme.getId(), theme.getName(), theme.getCreatedAt());
     }
   }
 }

@@ -1,22 +1,22 @@
 package com.quezap.infrastructure.adapter.repositories;
 
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
+import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.port.repositories.CredentialRepository;
 
 import org.jspecify.annotations.Nullable;
 
 @Repository
 public class CredentialInMemoryRepository implements CredentialRepository {
-  private final ConcurrentHashMap<UUID, Credential> storage = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<CredentialId, Credential> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable Credential find(UUID id) {
+  public @Nullable Credential find(CredentialId id) {
     return storage.get(id);
   }
 

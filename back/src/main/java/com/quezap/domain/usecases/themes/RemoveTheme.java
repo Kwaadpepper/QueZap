@@ -31,7 +31,7 @@ public sealed interface RemoveTheme {
     @Override
     public Output handle(Input usecaseInput) {
       final var themeId = usecaseInput.id();
-      final var theme = themeRepository.find(themeId.value());
+      final var theme = themeRepository.find(themeId);
       final var pagination = Pagination.firstPage();
       final var themeSet = Set.of(themeId);
 

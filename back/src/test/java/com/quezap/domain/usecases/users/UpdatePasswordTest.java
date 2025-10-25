@@ -40,8 +40,8 @@ class UpdatePasswordTest {
     // WHEN
     var user = Mockito.mock(User.class);
     Mockito.when(user.getCredential()).thenReturn(credentialId);
-    Mockito.when(userRepository.find(userId.value())).thenReturn(user);
-    Mockito.when(credentialRepository.find(credentialId.value()))
+    Mockito.when(userRepository.find(userId)).thenReturn(user);
+    Mockito.when(credentialRepository.find(credentialId))
         .thenReturn(Mockito.mock(Credential.class));
     Mockito.when(passwordHasher.hash(newPassword)).thenReturn(Mockito.mock(HashedPassword.class));
 
@@ -56,16 +56,17 @@ class UpdatePasswordTest {
     // GIVEN
     var userName = "johndoe";
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"));
+    var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     var newPassword = new RawPassword("P4assw0rd.");
     final var input = new UpdateUserPassword.Input.UserName(userName, newPassword);
 
     // WHEN
     var user = Mockito.mock(User.class);
-    Mockito.when(user.getId()).thenReturn(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    Mockito.when(user.getId()).thenReturn(userId);
     Mockito.when(user.getCredential()).thenReturn(credentialId);
     Mockito.when(userRepository.findByName(userName)).thenReturn(user);
     Mockito.when(userRepository.find(Mockito.any())).thenReturn(user);
-    Mockito.when(credentialRepository.find(credentialId.value()))
+    Mockito.when(credentialRepository.find(credentialId))
         .thenReturn(Mockito.mock(Credential.class));
     Mockito.when(passwordHasher.hash(newPassword)).thenReturn(Mockito.mock(HashedPassword.class));
 
@@ -83,7 +84,7 @@ class UpdatePasswordTest {
     final var input = new UpdateUserPassword.Input.Id(userId, newPassword);
 
     // WHEN
-    Mockito.when(userRepository.find(userId.value())).thenReturn(null);
+    Mockito.when(userRepository.find(userId)).thenReturn(null);
     var thrown = Assertions.catchThrowable(() -> handler.handle(input));
 
     // THEN

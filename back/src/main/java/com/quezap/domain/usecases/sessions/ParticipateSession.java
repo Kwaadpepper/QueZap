@@ -2,7 +2,6 @@ package com.quezap.domain.usecases.sessions;
 
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
 import com.quezap.domain.models.valueobjects.SessionCode;
-import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.participations.ParticipantName;
 import com.quezap.domain.models.valueobjects.participations.ParticipationToken;
@@ -57,7 +56,7 @@ public sealed interface ParticipateSession {
         throw new DomainConstraintException(ParticipateSessionError.NAME_REFUSED);
       }
 
-      final var sessionId = new SessionId(session.getId());
+      final var sessionId = session.getId();
       final var participationToken = participationTokenGenerator.generate(sessionId);
       final var sessionParticipant = new Participant(participantName, 0, participationToken);
 

@@ -2,7 +2,6 @@ package com.quezap.infrastructure.adapter.repositories;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.ThemeName;
+import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
@@ -18,10 +18,10 @@ import org.jspecify.annotations.Nullable;
 
 @Repository
 public class ThemeInMemoryRepository implements ThemeRepository {
-  private final ConcurrentHashMap<UUID, Theme> storage = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<ThemeId, Theme> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable Theme find(UUID id) {
+  public @Nullable Theme find(ThemeId id) {
     return storage.get(id);
   }
 

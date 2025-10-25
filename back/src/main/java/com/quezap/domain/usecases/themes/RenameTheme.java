@@ -27,7 +27,7 @@ public sealed interface RenameTheme {
     public Output handle(Input usecaseInput) {
       final var themeId = usecaseInput.id();
       final var newName = usecaseInput.newName();
-      final var theme = themeRepository.find(themeId.value());
+      final var theme = themeRepository.find(themeId);
 
       if (theme != null) {
         throw new DomainConstraintException(RenameThemeError.THEME_DOES_NOT_EXISTS);

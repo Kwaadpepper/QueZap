@@ -14,6 +14,7 @@ import com.quezap.domain.errors.sessions.RemoveQuestionError;
 import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
+import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.participations.ParticipantName;
@@ -26,7 +27,7 @@ import com.quezap.lib.utils.Domain;
 
 import org.jspecify.annotations.Nullable;
 
-public class Session extends AggregateRoot {
+public class Session extends AggregateRoot<SessionId> {
   public static final int QUESTIONS_COUNT_MAX_SIZE = 60;
 
   private final SessionName name;
@@ -132,8 +133,8 @@ public class Session extends AggregateRoot {
   }
 
   @Override
-  public UUID getId() {
-    return id;
+  public SessionId getId() {
+    return new SessionId(rawId);
   }
 
   public SessionName getName() {
@@ -291,6 +292,6 @@ public class Session extends AggregateRoot {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return Objects.hash(rawId);
   }
 }

@@ -1,5 +1,9 @@
 package com.quezap.lib.ddd.exceptions;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.NonNull;
+
 public class DomainConstraintException extends RuntimeException {
   private final DomainErrorCode error;
 
@@ -8,12 +12,22 @@ public class DomainConstraintException extends RuntimeException {
     this.error = error;
   }
 
+  public DomainConstraintException(DomainErrorCode error, String message) {
+    super(message);
+    this.error = error;
+  }
+
   public DomainConstraintException(DomainErrorCode error, Throwable cause) {
     super(error.getMessage(), cause);
     this.error = error;
   }
 
-  public DomainErrorCode getError() {
-    return error;
+  public Integer getCode() {
+    return error.getCode();
+  }
+
+  @Override
+  public @NonNull String getMessage() {
+    return Objects.requireNonNull(super.getMessage());
   }
 }

@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.utils.Domain;
 
@@ -12,7 +13,7 @@ import jakarta.persistence.Entity;
 import org.jspecify.annotations.Nullable;
 
 @Entity
-public class User extends AggregateRoot {
+public class User extends AggregateRoot<UserId> {
   private String name;
 
   private CredentialId credential;
@@ -46,8 +47,8 @@ public class User extends AggregateRoot {
   }
 
   @Override
-  public UUID getId() {
-    return id;
+  public UserId getId() {
+    return new UserId(rawId);
   }
 
   public String getName() {
@@ -91,6 +92,6 @@ public class User extends AggregateRoot {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return Objects.hash(rawId);
   }
 }
