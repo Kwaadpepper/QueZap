@@ -59,7 +59,7 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
     private final @Nullable Runnable onSuccessHook;
     private final @Nullable Consumer<Throwable> onFailureHook;
 
-    public UseCaseSynchronization(
+    UseCaseSynchronization(
         Logger logger,
         String useCaseName,
         AtomicReference<Throwable> exceptionHolder,
@@ -95,9 +95,13 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
           exceptionHolder.get() != null
               ? exceptionHolder.get()
               : new RuntimeException("Transaction rolled back (unknown cause)");
+      final var errorMessage = error.getMessage();
 
       log("FAILURE", Level.WARN);
-      log("Cause: {}", Level.DEBUG, error.getMessage());
+
+      if (errorMessage != null) {
+        log("Cause: {}", Level.DEBUG, errorMessage);
+      }
 
       if (onFailureHook != null) {
         onFailureHook.accept(error);
