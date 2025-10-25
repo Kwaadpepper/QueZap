@@ -3,6 +3,7 @@ package com.quezap.domain.usecases.themes;
 import com.quezap.domain.errors.themes.AddThemeError;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
+import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
@@ -14,7 +15,7 @@ public sealed interface AddTheme {
   record Input(ThemeName name) implements UseCaseInput {}
 
   sealed interface Output extends UseCaseOutput {
-    record ThemeAdded() implements Output {}
+    record ThemeAdded(ThemeId id) implements Output {}
   }
 
   final class Handler implements UseCaseHandler<Input, Output>, AddTheme {
@@ -36,7 +37,7 @@ public sealed interface AddTheme {
 
       themeRepository.save(theme);
 
-      return new Output.ThemeAdded();
+      return new Output.ThemeAdded(new ThemeId(theme.getId()));
     }
   }
 }
