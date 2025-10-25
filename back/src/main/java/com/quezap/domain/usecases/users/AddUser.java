@@ -12,10 +12,10 @@ import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.domain.port.services.IdentifierHasher;
 import com.quezap.domain.port.services.PasswordHasher;
-import com.quezap.lib.ddd.UseCaseHandler;
-import com.quezap.lib.ddd.UseCaseInput;
-import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UseCaseHandler;
+import com.quezap.lib.ddd.usecases.UseCaseInput;
+import com.quezap.lib.ddd.usecases.UseCaseOutput;
 
 public sealed interface AddUser {
   record Input(String name, RawIdentifier identifier, RawPassword password)

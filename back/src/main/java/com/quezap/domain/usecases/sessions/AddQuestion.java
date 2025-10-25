@@ -5,10 +5,10 @@ import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.SessionRepository;
-import com.quezap.lib.ddd.UseCaseHandler;
-import com.quezap.lib.ddd.UseCaseInput;
-import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UseCaseHandler;
+import com.quezap.lib.ddd.usecases.UseCaseInput;
+import com.quezap.lib.ddd.usecases.UseCaseOutput;
 
 public sealed interface AddQuestion {
   record Input(SessionId session, QuestionSlide question) implements UseCaseInput {}

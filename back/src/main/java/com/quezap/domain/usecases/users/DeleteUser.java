@@ -7,10 +7,10 @@ import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.ddd.AggregateRoot;
-import com.quezap.lib.ddd.UseCaseHandler;
-import com.quezap.lib.ddd.UseCaseInput;
-import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UseCaseHandler;
+import com.quezap.lib.ddd.usecases.UseCaseInput;
+import com.quezap.lib.ddd.usecases.UseCaseOutput;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

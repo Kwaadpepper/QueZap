@@ -9,9 +9,9 @@ import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.usecases.questions.ListQuestions.Output.QuestionDto;
-import com.quezap.lib.ddd.UseCaseHandler;
-import com.quezap.lib.ddd.UseCaseInput;
-import com.quezap.lib.ddd.UseCaseOutput;
+import com.quezap.lib.ddd.usecases.UseCaseHandler;
+import com.quezap.lib.ddd.usecases.UseCaseInput;
+import com.quezap.lib.ddd.usecases.UseCaseOutput;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 

@@ -10,10 +10,10 @@ import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.services.ParticipationTokenGenerator;
 import com.quezap.domain.port.services.SessionCodeEncoder;
 import com.quezap.domain.port.services.UserNameSanitizer;
-import com.quezap.lib.ddd.UseCaseHandler;
-import com.quezap.lib.ddd.UseCaseInput;
-import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UseCaseHandler;
+import com.quezap.lib.ddd.usecases.UseCaseInput;
+import com.quezap.lib.ddd.usecases.UseCaseOutput;
 
 public sealed interface ParticipateSession {
   record Input(ParticipantName name, SessionCode code) implements UseCaseInput {}

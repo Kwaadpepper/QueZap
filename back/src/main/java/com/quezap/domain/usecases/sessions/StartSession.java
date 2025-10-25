@@ -3,10 +3,10 @@ package com.quezap.domain.usecases.sessions;
 import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.port.repositories.SessionRepository;
-import com.quezap.lib.ddd.UseCaseHandler;
-import com.quezap.lib.ddd.UseCaseInput;
-import com.quezap.lib.ddd.UseCaseOutput;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UseCaseHandler;
+import com.quezap.lib.ddd.usecases.UseCaseInput;
+import com.quezap.lib.ddd.usecases.UseCaseOutput;
 
 public sealed interface StartSession {
   record Input(SessionId id) implements UseCaseInput {}

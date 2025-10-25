@@ -1,4 +1,4 @@
-package com.quezap.lib.ddd;
+package com.quezap.lib.ddd.usecases;
 
 public interface UseCaseHandler<I extends UseCaseInput, O extends UseCaseOutput> {
   /**
