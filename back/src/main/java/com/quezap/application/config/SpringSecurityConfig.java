@@ -1,5 +1,6 @@
 package com.quezap.application.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class SpringSecurityConfig {
   }
 
   @Bean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
     return http.sessionManagement(
