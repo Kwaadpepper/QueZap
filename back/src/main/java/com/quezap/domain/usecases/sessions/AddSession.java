@@ -4,6 +4,7 @@ import com.quezap.domain.errors.sessions.AddSessionError;
 import com.quezap.domain.models.entities.builders.SessionBuilder;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
+import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.repositories.UserRepository;
@@ -17,7 +18,7 @@ public sealed interface AddSession {
   record Input(SessionName name, UserId user) implements UseCaseInput {}
 
   sealed interface Output extends UseCaseOutput {
-    record SessionAdded() implements Output {}
+    record SessionAdded(SessionId id) implements Output {}
   }
 
   final class Handler implements UseCaseHandler<Input, Output>, AddSession {
@@ -50,7 +51,7 @@ public sealed interface AddSession {
 
       sessionRepository.save(session);
 
-      return new Output.SessionAdded();
+      return new Output.SessionAdded(new SessionId(session.getId()));
     }
   }
 }
