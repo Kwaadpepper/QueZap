@@ -14,7 +14,7 @@ public sealed interface AddQuestion {
   record Input(SessionId session, QuestionSlide question) implements UseCaseInput {}
 
   sealed interface Output extends UseCaseOutput {
-    record SessionAdded() implements Output {}
+    record QuestionAddedToSession() implements Output {}
   }
 
   final class Handler implements UseCaseHandler<Input, Output>, AddQuestion {
@@ -45,7 +45,7 @@ public sealed interface AddQuestion {
       session.addQuestion(questionSlide);
       sessionRepository.save(session);
 
-      return new Output.SessionAdded();
+      return new Output.QuestionAddedToSession();
     }
   }
 }
