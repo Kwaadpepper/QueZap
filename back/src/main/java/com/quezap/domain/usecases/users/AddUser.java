@@ -8,6 +8,7 @@ import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.domain.port.services.IdentifierHasher;
@@ -22,7 +23,7 @@ public sealed interface AddUser {
       implements UseCaseInput {}
 
   sealed interface Output extends UseCaseOutput {
-    record UserAdded() implements Output {}
+    record UserAdded(UserId id) implements Output {}
   }
 
   final class Handler implements UseCaseHandler<Input, Output>, AddUser {
@@ -67,7 +68,7 @@ public sealed interface AddUser {
       credentialRepository.save(credential);
       userRepository.save(user);
 
-      return new Output.UserAdded();
+      return new Output.UserAdded(new UserId(user.getId()));
     }
   }
 }
