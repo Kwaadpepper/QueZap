@@ -59,7 +59,9 @@ public class ListQuestionsController {
       }
       return Pagination.firstPage();
     } catch (IllegalDomainStateException e) {
-      throw new BadPaginationException(e.getMessage());
+      final var errorMessage = e.getMessage();
+      throw new BadPaginationException(
+          errorMessage != null ? errorMessage : "Invalid pagination parameters");
     }
   }
 
