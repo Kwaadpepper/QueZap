@@ -22,6 +22,8 @@ java {
 }
 
 configurations {
+  mockitoAgent
+
   compileOnly {
     extendsFrom annotationProcessor
   }
@@ -219,6 +221,8 @@ tasks.named('test', Test) {
     destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
     classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
   }
+
+  jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
 }
 
 project.afterEvaluate {
