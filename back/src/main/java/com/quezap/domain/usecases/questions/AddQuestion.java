@@ -41,12 +41,11 @@ public sealed interface AddQuestion {
         ThemeId theme)
         implements Input {}
 
-    record Quiz(
-        QuestionType type,
+    record Quizz(
         String question,
+        Set<AnswerData> answers,
         @Nullable PictureUploadData picture,
-        ThemeId theme,
-        Set<AnswerData> answers)
+        ThemeId theme)
         implements Input {}
 
     public record AnswerData(
@@ -78,7 +77,7 @@ public sealed interface AddQuestion {
       return switch (usecaseInput) {
         case Input.Affirmation affirmation -> handleAffirmation(affirmation);
         case Input.Binary binaryQuestion -> handleBinary(binaryQuestion);
-        case Input.Quiz quiz -> handleQuiz(quiz);
+        case Input.Quizz quiz -> handleQuiz(quiz);
       };
     }
 
@@ -124,7 +123,7 @@ public sealed interface AddQuestion {
       return new Output(question.getId());
     }
 
-    private Output handleQuiz(Input.Quiz input) {
+    private Output handleQuiz(Input.Quizz input) {
       final var questionValue = input.question();
       final var pictureBytes = input.picture();
       final var themeId = input.theme();
