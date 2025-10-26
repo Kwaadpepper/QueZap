@@ -8,3 +8,11 @@ spring:
 logging:
   level:
     root: INFO
+
+pictures-s3:
+  host: localhost
+  port: 9190
+  public-endpoint: http://localhost:9190
+  bucket-name: quezap-pictures-local
+  access-key-id: quezap_java_writer
+  secret-access-key: LocalPassword
