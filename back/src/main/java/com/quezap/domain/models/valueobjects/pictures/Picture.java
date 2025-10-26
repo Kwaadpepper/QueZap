@@ -1,5 +1,6 @@
 package com.quezap.domain.models.valueobjects.pictures;
 
+import java.util.Locale;
 import java.util.UUID;
 
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
@@ -30,7 +31,8 @@ public record Picture(String objectKey, PictureType pictureType) {
 
   private String getExtension(String objectKey) {
     try {
-      final var extension = objectKey.substring(objectKey.lastIndexOf('.') + 1).toLowerCase();
+      final var extension =
+          objectKey.substring(objectKey.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
 
       Domain.checkDomain(() -> !extension.isBlank(), "The objectKey must have a valid extension.");
 
