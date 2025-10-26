@@ -24,6 +24,7 @@
 <ref refid="daad74fd-adb4-11f0-8a8b-81dde7dba71d"/>
 <ref refid="61dad832-adb5-11f0-92e9-81dde7dba71d"/>
 <ref refid="6a3c918e-ae71-11f0-aa7d-81dde7dba71d"/>
+<ref refid="0d44fb8e-b241-11f0-8bba-790c73f0be39"/>
 <ref refid="571517cd-a5db-11f0-bf8e-bd0dbed4de35"/>
 <ref refid="608f860c-a5db-11f0-86eb-bd0dbed4de35"/>
 <ref refid="eb44e8b2-a5db-11f0-babe-bd0dbed4de35"/>
@@ -538,6 +539,7 @@
 <ref refid="b697ac26-adb5-11f0-9767-81dde7dba71d"/>
 <ref refid="7f8d28db-ae71-11f0-9283-81dde7dba71d"/>
 <ref refid="85fab46d-ae71-11f0-8bee-81dde7dba71d"/>
+<ref refid="191f6a5a-b241-11f0-8cff-790c73f0be39"/>
 </reflist>
 </instanceSpecification>
 <name>
@@ -1306,7 +1308,7 @@
 </UML:InstanceSpecification>
 <UML:Property id="48e08e94-a5dc-11f0-a0f6-bd0dbed4de35">
 <name>
-<val>path</val>
+<val>key</val>
 </name>
 <structuredClassifier>
 <ref refid="efd24d04-a5db-11f0-b80e-bd0dbed4de35"/>
@@ -2281,6 +2283,7 @@
 <reflist>
 <ref refid="978edc63-a5df-11f0-8c3c-bd0dbed4de35"/>
 <ref refid="9b4a1118-a5df-11f0-824b-bd0dbed4de35"/>
+<ref refid="53bd5dc9-b1c2-11f0-a856-790c73f0be39"/>
 </reflist>
 </ownedLiteral>
 <presentation>
@@ -2300,7 +2303,7 @@
 <val>119.0</val>
 </width>
 <height>
-<val>100.0</val>
+<val>117.0</val>
 </height>
 <diagram>
 <ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
@@ -3959,5 +3962,82 @@
 </reflist>
 </extended>
 </UML:InstanceSpecification>
+<UML:EnumerationLiteral id="53bd5dc9-b1c2-11f0-a856-790c73f0be39">
+<enumeration>
+<ref refid="8eda8756-a5df-11f0-8f23-bd0dbed4de35"/>
+</enumeration>
+<name>
+<val>Binary</val>
+</name>
+</UML:EnumerationLiteral>
+<UML:Class id="0d449bbd-b241-11f0-a5f8-790c73f0be39">
+<appliedStereotype>
+<reflist>
+<ref refid="191f6a5a-b241-11f0-8cff-790c73f0be39"/>
+</reflist>
+</appliedStereotype>
+<name>
+<val>PathId</val>
+</name>
+<ownedAttribute>
+<reflist>
+<ref refid="30fd59f9-b241-11f0-9107-790c73f0be39"/>
+</reflist>
+</ownedAttribute>
+<presentation>
+<reflist>
+<ref refid="0d44fb8e-b241-11f0-8bba-790c73f0be39"/>
+</reflist>
+</presentation>
+</UML:Class>
+<UML:ClassItem id="0d44fb8e-b241-11f0-8bba-790c73f0be39">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 876.69050875565, 771.0714842888348)</val>
+</matrix>
+<top-left>
+<val>(0.0, 0.0)</val>
+</top-left>
+<width>
+<val>109.0</val>
+</width>
+<height>
+<val>83.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<show_operations>
+<val>0</val>
+</show_operations>
+<subject>
+<ref refid="0d449bbd-b241-11f0-a5f8-790c73f0be39"/>
+</subject>
+</UML:ClassItem>
+<UML:InstanceSpecification id="191f6a5a-b241-11f0-8cff-790c73f0be39">
+<classifier>
+<reflist>
+<ref refid="e08c463e-a5da-11f0-a8a0-bd0dbed4de35"/>
+</reflist>
+</classifier>
+<extended>
+<reflist>
+<ref refid="0d449bbd-b241-11f0-a5f8-790c73f0be39"/>
+</reflist>
+</extended>
+</UML:InstanceSpecification>
+<UML:Property id="30fd59f9-b241-11f0-9107-790c73f0be39">
+<name>
+<val>value</val>
+</name>
+<structuredClassifier>
+<ref refid="0d449bbd-b241-11f0-a5f8-790c73f0be39"/>
+</structuredClassifier>
+<typeValue>
+<val>UUID</val>
+</typeValue>
+<visibility>
+<val>private</val>
+</visibility>
+</UML:Property>
 </model>
 </gaphor>
