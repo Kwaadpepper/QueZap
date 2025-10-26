@@ -29,7 +29,7 @@ public sealed interface RenameTheme {
       final var newName = usecaseInput.newName();
       final var theme = themeRepository.find(themeId);
 
-      if (theme != null) {
+      if (theme == null) {
         throw new DomainConstraintException(RenameThemeError.THEME_DOES_NOT_EXISTS);
       }
 
