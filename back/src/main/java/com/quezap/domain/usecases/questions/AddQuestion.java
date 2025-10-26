@@ -117,7 +117,7 @@ public sealed interface AddQuestion {
 
       final var picture = storePicture(pictureBytes);
       final var question =
-          createQuestion(QuestionType.BOOLEAN, questionValue, picture, themeId, answers);
+          createQuestion(QuestionType.BINARY, questionValue, picture, themeId, answers);
 
       questionRepository.save(question);
 
