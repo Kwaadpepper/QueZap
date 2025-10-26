@@ -7,9 +7,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.Answer;
-import com.quezap.domain.models.valueobjects.Picture;
-import com.quezap.domain.models.valueobjects.PictureType;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.pictures.Picture;
+import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 

@@ -1,5 +1,7 @@
 package com.quezap.domain.models.valueobjects;
 
+import com.quezap.domain.models.valueobjects.pictures.Picture;
+import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import org.junit.jupiter.api.Assertions;

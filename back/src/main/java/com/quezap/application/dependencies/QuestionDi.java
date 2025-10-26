@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.quezap.domain.models.valueobjects.Picture;
+import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.domain.port.services.QuestionPictureManager;

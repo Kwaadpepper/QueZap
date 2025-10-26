@@ -2,7 +2,7 @@ package com.quezap.domain.port.services;
 
 import java.util.stream.Stream;
 
-import com.quezap.domain.models.valueobjects.Picture;
+import com.quezap.domain.models.valueobjects.pictures.Picture;
 
 public interface QuestionPictureManager {
   Picture store(Stream<Byte> pictureData);

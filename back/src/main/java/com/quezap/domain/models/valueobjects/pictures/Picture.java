@@ -1,4 +1,4 @@
-package com.quezap.domain.models.valueobjects;
+package com.quezap.domain.models.valueobjects.pictures;
 
 import java.net.URI;
 import java.util.Locale;

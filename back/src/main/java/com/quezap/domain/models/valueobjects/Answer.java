@@ -1,5 +1,6 @@
 package com.quezap.domain.models.valueobjects;
 
+import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.lib.utils.Domain;
 
 import org.jspecify.annotations.Nullable;
