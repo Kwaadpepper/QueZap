@@ -17,11 +17,15 @@ import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.domain.port.services.QuestionPictureManager;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.usecases.OnFailure;
+import com.quezap.lib.ddd.usecases.TransactionRegistrar;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public sealed interface AddQuestion {
 
@@ -51,23 +55,23 @@ public sealed interface AddQuestion {
 
   record Output(QuestionId id) implements UseCaseOutput {}
 
-  final class Handler implements UseCaseHandler<Input, Output>, AddQuestion {
+  final class Handler implements UseCaseHandler<Input, Output>, AddQuestion, OnFailure {
+    private static final Logger logger = LoggerFactory.getLogger(Handler.class);
     private final QuestionRepository questionRepository;
     private final ThemeRepository themeRepository;
     private final QuestionPictureManager questionPictureManager;
+    private final TransactionRegistrar cleanupCoordinator;
 
     public Handler(
         QuestionRepository questionRepository,
         ThemeRepository themeRepository,
-        QuestionPictureManager questionPictureManager) {
+        QuestionPictureManager questionPictureManager,
+        TransactionRegistrar cleanupCoordinator) {
       this.questionRepository = questionRepository;
       this.themeRepository = themeRepository;
       this.questionPictureManager = questionPictureManager;
+      this.cleanupCoordinator = cleanupCoordinator;
     }
-
-    // TODO: Un agregate root doit avoir un identifiant avec lui.
-    // TODO: Les questions et reponse doivent se trimballer des identifiant d'images plutot que des
-    // images.
 
     @Override
     public Output handle(Input usecaseInput) {
@@ -121,7 +125,24 @@ public sealed interface AddQuestion {
     }
 
     private Output handleQuiz(Input.Quiz input) {
-      return null;
+      final var questionValue = input.question();
+      final var pictureBytes = input.picture();
+      final var themeId = input.theme();
+      final var theme = themeRepository.find(themeId);
+      final var answers =
+          input.answers().stream().map(this::answerDataMapper).collect(Collectors.toSet());
+
+      if (theme == null) {
+        throw new DomainConstraintException(AddQuestionError.THEME_DOES_NOT_EXISTS);
+      }
+
+      final var picture = storePicture(pictureBytes);
+      final var question =
+          createQuestion(QuestionType.QUIZZ, questionValue, picture, themeId, answers);
+
+      questionRepository.save(question);
+
+      return new Output(question.getId());
     }
 
     private Question createQuestion(
@@ -145,7 +166,11 @@ public sealed interface AddQuestion {
         return null;
       }
 
-      return questionPictureManager.store(pictureData);
+      final var picture = questionPictureManager.store(pictureData);
+
+      cleanupCoordinator.register(picture);
+
+      return picture;
     }
 
     private Answer answerDataMapper(Input.AnswerData answerData) {
@@ -155,6 +180,25 @@ public sealed interface AddQuestion {
       final var picture = storePicture(pictureBytes);
 
       return new Answer(answerText, picture, isCorrect);
+    }
+
+    @Override
+    public void onFailure(Throwable error) {
+      final Set<Picture> picturesToClean = cleanupCoordinator.retrieveAndUnbind(Picture.class);
+
+      if (!picturesToClean.isEmpty()) {
+
+        for (Picture picture : picturesToClean) {
+          try {
+            questionPictureManager.remove(picture);
+          } catch (Exception e) {
+            logger.error(
+                "Critical error during cleanup: Unable to delete picture {}.",
+                picture.objectKey(),
+                e);
+          }
+        }
+      }
     }
   }
 }
