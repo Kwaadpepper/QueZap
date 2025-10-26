@@ -1,18 +1,23 @@
 package com.quezap.domain.models.valueobjects;
 
+import java.util.UUID;
+
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.utils.UuidV7;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class PictureTest {
 
   @Test
   void canInstantiatePicture() {
     // GIVEN
-    var uri = java.net.URI.create("path/to/picture.jpg");
+    var uri = UuidV7.randomUuid() + ".jpg";
     var pictureType = PictureType.JPG;
 
     // WHEN
@@ -23,12 +28,37 @@ class PictureTest {
   }
 
   @Test
-  void cannotInstantiatePictureWithInvalidUri() {
+  void canInstantiatePictureWithAnotherType() {
     // GIVEN
-    var uri = java.net.URI.create("invalid_uri");
+    var uri = UuidV7.randomUuid() + ".png";
     var pictureType = PictureType.PNG;
 
-    // WHEN & THEN
+    // WHEN
+    new Picture(uri, pictureType);
+
+    // THEN
+    Assertions.assertDoesNotThrow(() -> {});
+  }
+
+  @Test
+  void canInstantiatePictureWithPathPrefix() {
+    // GIVEN
+    var uri = "picture/" + UuidV7.randomUuid() + ".png";
+    var pictureType = PictureType.PNG;
+
+    // WHEN
+    new Picture(uri, pictureType);
+
+    // THEN
+    Assertions.assertDoesNotThrow(() -> {});
+  }
+
+  @Test
+  void cannotInstantiatePictureWithInvalidUuid() {
+    // GIVEN
+    var uri = "invalid-uuid.jpg";
+    var pictureType = PictureType.JPG;
+    // WHEN / THEN
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
@@ -37,12 +67,27 @@ class PictureTest {
   }
 
   @Test
-  void cannotInstantiatePictureWithHttpUri() {
+  void cannotInstantiatePictureWithUuidNotV7() {
     // GIVEN
-    var uri = java.net.URI.create("https://example.com/picture.png");
+    var uri = "picture/" + UUID.randomUUID().toString() + ".png";
+    var pictureType = PictureType.JPG;
+
+    // WHEN / THEN
+    Assertions.assertThrows(
+        IllegalDomainStateException.class,
+        () -> {
+          new Picture(uri, pictureType);
+        });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {".", "", ".test", ".webp"})
+  void cannotInstanciateWithWrongPictureExtension(String ext) {
+    // GIVEN
+    var uri = "picture/" + UuidV7.randomUuid() + ext;
     var pictureType = PictureType.PNG;
 
-    // WHEN & THEN
+    // WHEN / THEN
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
