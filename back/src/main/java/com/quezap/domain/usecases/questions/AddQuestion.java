@@ -10,6 +10,7 @@ import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
+import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.ThemeRepository;
@@ -25,22 +26,27 @@ import org.jspecify.annotations.Nullable;
 public sealed interface AddQuestion {
 
   sealed interface Input extends UseCaseInput {
-    record Affirmation(String question, boolean isTrue, @Nullable Set<Byte> picture, ThemeId theme)
+    record Affirmation(
+        String question, boolean isTrue, @Nullable PictureUploadData picture, ThemeId theme)
         implements Input {}
 
     record Binary(
-        String question, Set<AnswerData> answers, @Nullable Set<Byte> picture, ThemeId theme)
+        String question,
+        Set<AnswerData> answers,
+        @Nullable PictureUploadData picture,
+        ThemeId theme)
         implements Input {}
 
     record Quiz(
         QuestionType type,
         String question,
-        @Nullable Set<Byte> picture,
+        @Nullable PictureUploadData picture,
         ThemeId theme,
         Set<AnswerData> answers)
         implements Input {}
 
-    public record AnswerData(String answerText, @Nullable Set<Byte> picture, boolean isCorrect) {}
+    public record AnswerData(
+        String answerText, @Nullable PictureUploadData picture, boolean isCorrect) {}
   }
 
   record Output(QuestionId id) implements UseCaseOutput {}
@@ -134,12 +140,12 @@ public sealed interface AddQuestion {
       }
     }
 
-    private @Nullable Picture storePicture(@Nullable Set<Byte> pictureData) {
+    private @Nullable Picture storePicture(@Nullable PictureUploadData pictureData) {
       if (pictureData == null) {
         return null;
       }
 
-      return questionPictureManager.store(pictureData.stream());
+      return questionPictureManager.store(pictureData);
     }
 
     private Answer answerDataMapper(Input.AnswerData answerData) {
