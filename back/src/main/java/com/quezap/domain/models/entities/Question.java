@@ -41,15 +41,21 @@ public class Question extends AggregateRoot<QuestionId> {
         "There must be at least one correct answer");
 
     switch (answers.size()) {
-      case 2 ->
-          Domain.checkDomain(
-              () -> answers.stream().filter(Answer::isCorrect).count() == 1,
-              "There must be exactly one correct answer");
-      case 3, 4 ->
-          Domain.checkDomain(
-              () -> answers.stream().filter(Answer::isCorrect).count() >= 1,
-              "There must be at least one correct answer");
-      default -> throw new IllegalStateException("Unexpected value: " + answers.size());
+      case 1:
+        // IGNORE --- No specific check for single answer questions here
+        break;
+      case 2:
+        Domain.checkDomain(
+            () -> answers.stream().filter(Answer::isCorrect).count() == 1,
+            "There must be exactly one correct answer");
+        break;
+      case 3, 4:
+        Domain.checkDomain(
+            () -> answers.stream().filter(Answer::isCorrect).count() >= 1,
+            "There must be at least one correct answer");
+        break;
+      default:
+        throw new IllegalStateException("Unexpected value: " + answers.size());
     }
 
     switch (type) {

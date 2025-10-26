@@ -23,6 +23,24 @@ class QuestionTest {
     // GIVEN
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.BOOLEAN;
+    var value = "Is Paris the capital of France?";
+    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var answers = Set.of(new Answer("Paris", null, true));
+    var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
+
+    // WHEN
+    new Question(id, questionType, value, picture, themeId, answers, updatedAt);
+
+    // THEN
+    Assertions.assertDoesNotThrow(() -> {});
+  }
+
+  @Test
+  void canInstantiateBinary() {
+    // GIVEN
+    var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
+    var questionType = QuestionType.BINARY;
     var value = "What is the capital of France?";
     var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
