@@ -3,6 +3,7 @@ package com.quezap.domain.models.valueobjects;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.utils.UuidV7;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ class AnswerTest {
   void canInstantiatePictureAnswer() {
     // GIVEN
     String answerText = null;
-    var answerPicture = new Picture("picture.jpg", PictureType.JPG);
+    var answerPicture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
     var isCorrect = false;
 
     // WHEN
@@ -40,7 +41,7 @@ class AnswerTest {
   void cannotInstantiateAnswerWithBothTextAndPicture() {
     // GIVEN
     var answerText = "This is an answer";
-    var answerPicture = new Picture("picture.jpg", PictureType.PNG);
+    var answerPicture = new Picture(UuidV7.randomUuid() + ".png", PictureType.PNG);
     var isCorrect = true;
 
     // WHEN & THEN
