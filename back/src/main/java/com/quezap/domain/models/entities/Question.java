@@ -64,8 +64,8 @@ public class Question extends AggregateRoot<QuestionId> {
               () -> answers.size() == 2, "Binary questions must have exactly 2 answers");
       case QuestionType.QUIZZ ->
           Domain.checkDomain(
-              () -> answers.size() >= 2 && answers.size() <= 4,
-              "Quizz questions must have between 2 and 4 answers");
+              () -> answers.size() >= 3 && answers.size() <= 4,
+              "Quizz questions must have between 3 and 4 answers");
       default -> throw new IllegalStateException("Unexpected value: " + type.name());
     }
   }
