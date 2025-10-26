@@ -3,6 +3,7 @@ package com.quezap.application.config;
 import java.net.URI;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -20,12 +21,12 @@ public class PicturesS3Config {
   private final String secretAccessKey;
 
   public PicturesS3Config(
-      String host,
-      Integer port,
-      String publicEndpoint,
-      String bucketName,
-      String accessKeyId,
-      String secretAccessKey) {
+      @Value("${pictures-s3.host}") String host,
+      @Value("${pictures-s3.port}") Integer port,
+      @Value("${pictures-s3.public-endpoint}") String publicEndpoint,
+      @Value("${pictures-s3.bucket-name}") String bucketName,
+      @Value("${pictures-s3.access-key-id}") String accessKeyId,
+      @Value("${pictures-s3.secret-access-key}") String secretAccessKey) {
     this.host = host;
     this.port = port;
     this.publicEndpoint = publicEndpoint;
