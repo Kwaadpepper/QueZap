@@ -23,6 +23,31 @@
       "type": "java.lang.String",
       "description": "The dictionary of characters used for generating session codes.",
       "defaultValue": "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    },
+    {
+      "name": "pictures-s3.host",
+      "type": "java.lang.String",
+      "description": "The host URL of the S3-compatible storage service for pictures."
+    },
+    {
+      "name": "pictures-s3.public-endpoint",
+      "type": "java.lang.String",
+      "description": "The public endpoint URL for accessing pictures stored in the S3-compatible storage service."
+    },
+    {
+      "name": "pictures-s3.bucket-name",
+      "type": "java.lang.String",
+      "description": "The name of the S3 bucket where pictures are stored."
+    },
+    {
+      "name": "pictures-s3.access-key-id",
+      "type": "java.lang.String",
+      "description": "The access key ID for authenticating with the S3-compatible storage service."
+    },
+    {
+      "name": "pictures-s3.secret-access-key",
+      "type": "java.lang.String",
+      "description": "The secret access key for authenticating with the S3-compatible storage service."
     }
   ]
 }
