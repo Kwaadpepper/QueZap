@@ -35,7 +35,7 @@ public sealed interface RemoveTheme {
       final var pagination = Pagination.firstPage();
       final var themeSet = Set.of(themeId);
 
-      if (theme != null) {
+      if (theme == null) {
         throw new DomainConstraintException(RemoveThemeError.THEME_DOES_NOT_EXISTS);
       }
 
