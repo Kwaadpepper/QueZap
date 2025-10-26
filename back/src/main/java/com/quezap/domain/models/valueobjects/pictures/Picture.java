@@ -1,26 +1,19 @@
 package com.quezap.domain.models.valueobjects.pictures;
 
-import java.net.URI;
-import java.util.Locale;
+import java.util.UUID;
 
 import com.quezap.lib.utils.Domain;
 
-public record Picture(URI path, PictureType pictureType) {
+public record Picture(String objectKey, PictureType pictureType) {
   public Picture {
-    final var pathStr = path.getPath();
-    final var expectedExtension = "." + pictureType.name().toLowerCase(Locale.ROOT);
+    final var uuidPart =
+        UUID.fromString(
+            objectKey.substring(objectKey.lastIndexOf('/') + 1, objectKey.lastIndexOf('.')));
+    final var extensionPart = objectKey.substring(objectKey.lastIndexOf('.') + 1).toLowerCase();
 
+    Domain.checkDomain(() -> uuidPart.version() == 7, "The objectKey must be a UUIDv7.");
     Domain.checkDomain(
-        () ->
-            path.getScheme() == null
-                && path.getAuthority() == null
-                && path.getQuery() == null
-                && path.getFragment() == null,
-        "The path must be relative and not contain scheme, authority, query, or fragment.");
-
-    Domain.checkDomain(
-        () -> pathStr.toLowerCase(Locale.ROOT).endsWith(expectedExtension),
-        "The file extension does not match the picture type. Expected extension: "
-            + expectedExtension);
+        () -> pictureType.extensions().contains(extensionPart),
+        "The objectKey extension does not match the PictureType.");
   }
 }

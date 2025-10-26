@@ -3,7 +3,6 @@ package com.quezap.application.config;
 import java.net.URI;
 import java.util.Objects;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -65,8 +64,7 @@ public class PicturesS3Config {
     return bucketName;
   }
 
-  @Bean
-  S3Client s3Client() {
+  public S3Client getS3Client() {
     final var endpoint = createEndpoint();
     final var credentialsProvider = createProvider();
 
