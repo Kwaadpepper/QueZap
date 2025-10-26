@@ -3,7 +3,7 @@ package com.quezap.domain.errors.themes;
 import com.quezap.lib.ddd.exceptions.DomainErrorCode;
 
 public enum AddThemeError implements DomainErrorCode {
-  THEME_ALREADY_EXISTS(2601, "A theme with the same name already exists");
+  THEME_ALREADY_EXISTS(3001, "A theme with the same name already exists");
 
   private final int code;
   private final String message;
