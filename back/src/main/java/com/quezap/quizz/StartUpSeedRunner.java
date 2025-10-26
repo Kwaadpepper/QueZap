@@ -6,6 +6,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.quezap.application.seed.QuestionSeeder;
 import com.quezap.application.seed.ThemeSeeder;
 import com.quezap.application.seed.UserSeeder;
 
@@ -19,10 +20,13 @@ public class StartUpSeedRunner {
 
   private UserSeeder userSeeder;
   private ThemeSeeder themeSeeder;
+  private QuestionSeeder questionSeeder;
 
-  public StartUpSeedRunner(UserSeeder userSeeder, ThemeSeeder themeSeeder) {
+  public StartUpSeedRunner(
+      UserSeeder userSeeder, ThemeSeeder themeSeeder, QuestionSeeder questionSeeder) {
     this.userSeeder = userSeeder;
     this.themeSeeder = themeSeeder;
+    this.questionSeeder = questionSeeder;
   }
 
   @EventListener
@@ -40,6 +44,7 @@ public class StartUpSeedRunner {
 
     userSeeder.seed();
     themeSeeder.seed();
+    questionSeeder.seed();
 
     logger.info("Seeders Done.");
   }
