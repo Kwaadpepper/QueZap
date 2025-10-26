@@ -56,6 +56,25 @@ class AddAffirmationQuestionTest {
   }
 
   @Test
+  void canAddAffirmationQuestionWithNegativeAnswer() {
+    // GIVEN
+    var value = "Will ths test fail?";
+    PictureUploadData picture = null;
+    var isTrue = false;
+    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
+
+    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+
+    // WHEN
+    addQuestionHandler.handle(input);
+
+    // THEN
+    Mockito.verify(questionRepository).save(Mockito.any());
+    Assertions.assertThatNoException().isThrownBy(() -> {});
+  }
+
+  @Test
   void canAddAffirmationQuestionWithPicture() {
     // GIVEN
     var value = "Will this test be working?";

@@ -37,7 +37,9 @@ public class Question extends AggregateRoot<QuestionId> {
     Domain.checkDomain(
         () -> answers.size() <= ANSWERS_MAX_SIZE, "Answers cannot exceed " + ANSWERS_MAX_SIZE);
     Domain.checkDomain(
-        () -> answers.stream().filter(Answer::isCorrect).count() >= 1,
+        () ->
+            answers.stream().filter(Answer::isCorrect).count() >= 1
+                || type.equals(QuestionType.BOOLEAN),
         "There must be at least one correct answer");
 
     switch (answers.size()) {
