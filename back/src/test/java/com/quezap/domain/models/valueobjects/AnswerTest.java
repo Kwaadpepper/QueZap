@@ -1,7 +1,5 @@
 package com.quezap.domain.models.valueobjects;
 
-import java.net.URI;
-
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
@@ -28,7 +26,7 @@ class AnswerTest {
   void canInstantiatePictureAnswer() {
     // GIVEN
     String answerText = null;
-    var answerPicture = new Picture(URI.create("path/to/picture.jpg"), PictureType.JPG);
+    var answerPicture = new Picture("picture.jpg", PictureType.JPG);
     var isCorrect = false;
 
     // WHEN
@@ -42,7 +40,7 @@ class AnswerTest {
   void cannotInstantiateAnswerWithBothTextAndPicture() {
     // GIVEN
     var answerText = "This is an answer";
-    var answerPicture = new Picture(URI.create("path/to/picture.png"), PictureType.PNG);
+    var answerPicture = new Picture("picture.jpg", PictureType.PNG);
     var isCorrect = true;
 
     // WHEN & THEN

@@ -1,6 +1,5 @@
 package com.quezap.domain.models.entities;
 
-import java.net.URI;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
@@ -24,7 +23,7 @@ class QuestionTest {
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.BOOLEAN;
     var value = "Is Paris the capital of France?";
-    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var picture = new Picture("picture.jpg", PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers = Set.of(new Answer("Paris", null, true));
     var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
@@ -42,7 +41,7 @@ class QuestionTest {
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.BINARY;
     var value = "What is the capital of France?";
-    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var picture = new Picture("picture.jpg", PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers = Set.of(new Answer("Paris", null, true), new Answer("London", null, false));
     var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
@@ -60,7 +59,7 @@ class QuestionTest {
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
-    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var picture = new Picture("picture.jpg", PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
@@ -83,7 +82,7 @@ class QuestionTest {
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.QUIZZ;
     var value = "   ";
-    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var picture = new Picture("picture.jpg", PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
@@ -107,7 +106,7 @@ class QuestionTest {
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
-    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var picture = new Picture("picture.jpg", PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
@@ -131,7 +130,7 @@ class QuestionTest {
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.BOOLEAN;
     var value = "What is the capital of France?";
-    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var picture = new Picture("picture.jpg", PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
@@ -154,7 +153,7 @@ class QuestionTest {
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
-    var picture = new Picture(URI.create("picture.jpg"), PictureType.JPG);
+    var picture = new Picture("picture.jpg", PictureType.JPG);
     var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
     var answers =
         Set.of(
