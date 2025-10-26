@@ -30,6 +30,11 @@
       "description": "The host URL of the S3-compatible storage service for pictures."
     },
     {
+      "name": "pictures-s3.port",
+      "type": "java.lang.Integer",
+      "description": "The port number of the S3-compatible storage service for pictures."
+    },
+    {
       "name": "pictures-s3.public-endpoint",
       "type": "java.lang.String",
       "description": "The public endpoint URL for accessing pictures stored in the S3-compatible storage service."

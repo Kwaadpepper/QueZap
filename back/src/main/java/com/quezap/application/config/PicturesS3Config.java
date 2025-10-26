@@ -1,12 +1,20 @@
 package com.quezap.application.config;
 
+import java.net.URI;
 import java.util.Objects;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 public class PicturesS3Config {
   private final String host;
+  private final Integer port;
   private final String publicEndpoint;
   private final String bucketName;
   private final String accessKeyId;
@@ -14,11 +22,13 @@ public class PicturesS3Config {
 
   public PicturesS3Config(
       String host,
+      Integer port,
       String publicEndpoint,
       String bucketName,
       String accessKeyId,
       String secretAccessKey) {
     this.host = host;
+    this.port = port;
     this.publicEndpoint = publicEndpoint;
     this.bucketName = bucketName;
     this.accessKeyId = accessKeyId;
@@ -47,10 +57,6 @@ public class PicturesS3Config {
     }
   }
 
-  public String getHost() {
-    return host;
-  }
-
   public String getPublicEndpoint() {
     return publicEndpoint;
   }
@@ -59,11 +65,29 @@ public class PicturesS3Config {
     return bucketName;
   }
 
-  public String getAccessKeyId() {
-    return accessKeyId;
+  @Bean
+  S3Client s3Client() {
+    final var endpoint = createEndpoint();
+    final var credentialsProvider = createProvider();
+
+    return S3Client.builder()
+        .endpointOverride(endpoint)
+        .credentialsProvider(credentialsProvider)
+        // Region is required, but we don't really care which one for MinIO
+        .region(Region.EU_WEST_1)
+        .build();
   }
 
-  public String getSecretAccessKey() {
-    return secretAccessKey;
+  private URI createEndpoint() {
+    final var endpoint = String.format("http://%s:%d", host, port);
+    return URI.create(endpoint);
+  }
+
+  private StaticCredentialsProvider createProvider() {
+    return StaticCredentialsProvider.create(createCredentials());
+  }
+
+  private AwsBasicCredentials createCredentials() {
+    return AwsBasicCredentials.create(accessKeyId, secretAccessKey);
   }
 }

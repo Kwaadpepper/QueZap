@@ -51,6 +51,10 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.springframework.shell:spring-shell-starter:3.4.1'
 
+  // S3
+  implementation "software.amazon.awssdk:s3:2.36.2"
+  implementation "software.amazon.awssdk:auth:2.36.2"
+
   // Code generator
   implementation 'io.github.kwaadpepper:serial-int-caster:2.0.0'
 
