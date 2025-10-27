@@ -20,7 +20,7 @@ spring:
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
 
 profanity:
   custom-words: badword1,badword2
