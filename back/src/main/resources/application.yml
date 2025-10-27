@@ -11,6 +11,9 @@ spring:
       enabled: false
     script:
       enabled: false
+    history:
+      enabled: false
+      name:
   output:
     ansi:
       enabled: ALWAYS
