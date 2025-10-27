@@ -1,0 +1,22 @@
+meta {
+  name: Create Theme
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{ADDRESS}}/apiv1/themes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "New Theme"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

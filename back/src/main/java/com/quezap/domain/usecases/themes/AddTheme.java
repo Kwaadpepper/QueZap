@@ -14,9 +14,7 @@ public sealed interface AddTheme {
 
   record Input(ThemeName name) implements UseCaseInput {}
 
-  sealed interface Output extends UseCaseOutput {
-    record ThemeAdded(ThemeId id) implements Output {}
-  }
+  record Output(ThemeId id) implements UseCaseOutput {}
 
   final class Handler implements UseCaseHandler<Input, Output>, AddTheme {
     private final ThemeRepository themeRepository;
@@ -37,7 +35,7 @@ public sealed interface AddTheme {
 
       themeRepository.save(theme);
 
-      return new Output.ThemeAdded(theme.getId());
+      return new Output(theme.getId());
     }
   }
 }
