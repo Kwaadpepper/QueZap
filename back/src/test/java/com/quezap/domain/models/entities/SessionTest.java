@@ -28,12 +28,9 @@ class SessionTest {
     var currentSlideIndex = 0;
     var questionSlides =
         Set.of(
-            new QuestionSlide(
-                10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))),
-            new QuestionSlide(
-                12, 2, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6d-0000-000000000000"))),
-            new QuestionSlide(
-                8, 3, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"))));
+            new QuestionSlide(10, 1, QuestionId.fromString("017f5a80-7e6d-7e6e-0000-000000000000")),
+            new QuestionSlide(12, 2, QuestionId.fromString("017f5a80-7e6d-7e6d-0000-000000000000")),
+            new QuestionSlide(8, 3, QuestionId.fromString("017f5a80-7e6d-7e6f-0000-000000000000")));
     var participants = Set.<Participant>of();
     var answers = Set.<QuestionAnswer>of();
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
@@ -104,9 +101,8 @@ class SessionTest {
           new QuestionSlide(
               10 * i,
               i,
-              new QuestionId(
-                  UUID.fromString(
-                      "017f5a80-7e6d-7e6e-0000-0000000000" + String.format("%02d", i)))));
+              QuestionId.fromString(
+                  "017f5a80-7e6d-7e6e-0000-0000000000" + String.format("%02d", i))));
     }
 
     // WHEN & THEN
@@ -135,7 +131,7 @@ class SessionTest {
     var questionSlides =
         Set.of(
             new QuestionSlide(
-                10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))));
+                10, 1, QuestionId.fromString("017f5a80-7e6d-7e6e-0000-000000000000")));
     var participants = Set.<Participant>of();
     var answers = Set.<QuestionAnswer>of();
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
@@ -167,10 +163,9 @@ class SessionTest {
     var currentSlideIndex = 5;
     var questionSlides =
         Set.of(
+            new QuestionSlide(10, 1, QuestionId.fromString("017f5a80-7e6d-7e6e-0000-000000000000")),
             new QuestionSlide(
-                10, 1, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))),
-            new QuestionSlide(
-                12, 2, new QuestionId(UUID.fromString("017f5a80-7e6d-7e6d-0000-000000000000"))));
+                12, 2, QuestionId.fromString("017f5a80-7e6d-7e6d-0000-000000000000")));
     var participants = Set.<Participant>of();
     var answers = Set.<QuestionAnswer>of();
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));

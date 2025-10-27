@@ -1,7 +1,5 @@
 package com.quezap.domain.usecases.questions;
 
-import java.util.UUID;
-
 import com.quezap.domain.errors.questions.DeleteQuestionError;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
@@ -24,7 +22,7 @@ class RemoveQuestionTest {
   @Test
   void canDeleteQuestion() {
     // GIVEN
-    var questionId = new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var questionId = QuestionId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new RemoveQuestion.Input(questionId);
 
     // WHEN
@@ -41,7 +39,7 @@ class RemoveQuestionTest {
   @Test
   void cannotDeleteNonExistingQuestion() {
     // GIVEN
-    var questionId = new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var questionId = QuestionId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new RemoveQuestion.Input(questionId);
 
     // WHEN

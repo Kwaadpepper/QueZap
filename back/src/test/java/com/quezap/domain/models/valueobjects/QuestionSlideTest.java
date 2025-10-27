@@ -1,7 +1,5 @@
 package com.quezap.domain.models.valueobjects;
 
-import java.util.UUID;
-
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
@@ -15,7 +13,7 @@ class QuestionSlideTest {
     // GIVEN
     var timer = 30;
     var points = 10;
-    var questionId = new QuestionId(UUID.fromString("017f5a80-7e6d-7e6d-0000-000000000000"));
+    var questionId = QuestionId.fromString("017f5a80-7e6d-7e6d-0000-000000000000");
 
     // WHEN
     new QuestionSlide(timer, points, questionId);
@@ -29,7 +27,7 @@ class QuestionSlideTest {
     // GIVEN
     var timer = -1;
     var points = 10;
-    var questionId = new QuestionId(UUID.fromString("017f5a80-7e6d-7e6d-0000-000000000000"));
+    var questionId = QuestionId.fromString("017f5a80-7e6d-7e6d-0000-000000000000");
 
     // WHEN & THEN
     Assertions.assertThrows(
@@ -44,7 +42,7 @@ class QuestionSlideTest {
     // GIVEN
     var timer = 30;
     var points = -5;
-    var questionId = new QuestionId(UUID.fromString("017f5a80-7e6d-7e6d-0000-000000000000"));
+    var questionId = QuestionId.fromString("017f5a80-7e6d-7e6d-0000-000000000000");
 
     // WHEN & THEN
     Assertions.assertThrows(
