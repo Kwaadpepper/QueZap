@@ -22,7 +22,9 @@ java {
 }
 
 configurations {
-  mockitoAgent
+  mockitoAgent {
+    transitive = false
+  }
 
   compileOnly {
     extendsFrom annotationProcessor
@@ -75,6 +77,8 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testImplementation 'org.springframework.security:spring-security-test'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+  mockitoAgent("org.mockito:mockito-core")
 }
 
 // hibernate {
@@ -222,7 +226,9 @@ tasks.named('test', Test) {
     classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
   }
 
-  jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
+  jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
+
+  jvmArgs += "-Xshare:off"
 }
 
 project.afterEvaluate {
