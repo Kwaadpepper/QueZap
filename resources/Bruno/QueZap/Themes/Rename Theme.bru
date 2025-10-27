@@ -1,0 +1,26 @@
+meta {
+  name: Rename Theme
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{ADDRESS}}/apiv1/themes/rename/:themeUuid
+  body: json
+  auth: inherit
+}
+
+params:path {
+  themeUuid: 019a2647-5b30-709a-bb59-fe841e6e26d4
+}
+
+body:json {
+  {
+    "name": "New Themes"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
