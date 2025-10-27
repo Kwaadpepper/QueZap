@@ -1,0 +1,24 @@
+meta {
+  name: Find Themes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{ADDRESS}}/apiv1/themes/find?page=1&perPage=2
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  perPage: 2
+  ~from: 0
+  ~to: 3
+  ~search: plants
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
