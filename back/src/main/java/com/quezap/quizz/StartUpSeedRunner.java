@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 @Component
 public class StartUpSeedRunner {
   private static Logger logger = LoggerFactory.getLogger(StartUpSeedRunner.class);
-  private static final String SEED_ON_PROFILE = "local";
+  private static final String SEED_ON_PROFILE = "seed";
 
   private UserSeeder userSeeder;
   private ThemeSeeder themeSeeder;
