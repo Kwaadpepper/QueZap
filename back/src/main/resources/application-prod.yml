@@ -6,3 +6,11 @@ server:
 logging:
   level:
     root: INFO
+
+pictures-s3:
+  host: ${APP_S3_HOST}
+  port: ${APP_S3_PORT}
+  public-endpoint: ${APP_S3_PUBLIC_ENDPOINT}
+  bucket-name: ${APP_S3_BUCKET_NAME}
+  access-key-id: ${APP_S3_ACCESS_KEY_ID}
+  secret-access-key: ${APP_S3_SECRET_ACCESS_KEY}
