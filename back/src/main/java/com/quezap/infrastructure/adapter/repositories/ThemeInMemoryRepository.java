@@ -52,7 +52,7 @@ public class ThemeInMemoryRepository implements ThemeRepository {
   public PageOf<Theme> paginate(Pagination pagination) {
     final var allQuestions = storage.values().stream().toList();
 
-    return paginate(pagination, allQuestions);
+    return paginateEntities(pagination, allQuestions);
   }
 
   @Override
@@ -62,10 +62,10 @@ public class ThemeInMemoryRepository implements ThemeRepository {
             .filter(q -> stringLike(q.getName().value(), search.value()))
             .toList();
 
-    return paginate(pagination, filteredQuestions);
+    return paginateEntities(pagination, filteredQuestions);
   }
 
-  private PageOf<Theme> paginate(Pagination pagination, List<Theme> themes) {
+  private PageOf<Theme> paginateEntities(Pagination pagination, List<Theme> themes) {
     final var totalItems = themes.size();
     final var fromIndex = ((pagination.pageNumber() - 1) * pagination.pageSize());
 

@@ -45,7 +45,7 @@ public class QuestionInMemoryRepository implements QuestionRepository {
   public PageOf<Question> paginate(Pagination pagination) {
     final var allQuestions = storage.values().stream().toList();
 
-    return paginate(pagination, allQuestions);
+    return paginateEntities(pagination, allQuestions);
   }
 
   @Override
@@ -53,7 +53,7 @@ public class QuestionInMemoryRepository implements QuestionRepository {
     final var filteredQuestions =
         storage.values().stream().filter(q -> themes.contains(q.getTheme())).toList();
 
-    return paginate(pagination, filteredQuestions);
+    return paginateEntities(pagination, filteredQuestions);
   }
 
   @Override
@@ -61,7 +61,7 @@ public class QuestionInMemoryRepository implements QuestionRepository {
     final var filteredQuestions =
         storage.values().stream().filter(q -> stringLike(q.getValue(), search.value())).toList();
 
-    return paginate(pagination, filteredQuestions);
+    return paginateEntities(pagination, filteredQuestions);
   }
 
   @Override
@@ -72,10 +72,10 @@ public class QuestionInMemoryRepository implements QuestionRepository {
             .filter(q -> themes.contains(q.getTheme()) && stringLike(q.getValue(), search.value()))
             .toList();
 
-    return paginate(pagination, filteredQuestions);
+    return paginateEntities(pagination, filteredQuestions);
   }
 
-  private PageOf<Question> paginate(Pagination pagination, List<Question> questions) {
+  private PageOf<Question> paginateEntities(Pagination pagination, List<Question> questions) {
     final var totalItems = questions.size();
     final var fromIndex = ((pagination.pageNumber() - 1) * pagination.pageSize());
 
