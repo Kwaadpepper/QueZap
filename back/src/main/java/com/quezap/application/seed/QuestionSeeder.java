@@ -1,6 +1,7 @@
 package com.quezap.application.seed;
 
 import java.util.Random;
+import java.util.Set;
 import java.util.random.RandomGenerator;
 
 import org.springframework.stereotype.Component;
@@ -29,10 +30,12 @@ public class QuestionSeeder implements Seeder {
 
   @Override
   public void seed() {
-    seedSimpleBooleanQuestions();
+    seedAffirmationQuestions();
+    seedBinaryQuestions();
+    seedQuizzQuestions();
   }
 
-  private void seedSimpleBooleanQuestions() {
+  private void seedAffirmationQuestions() {
     final var randomGen = RandomGenerator.getDefault();
     final var themes =
         themeRepository.paginate(Pagination.firstPage(50L)).items().stream()
@@ -45,6 +48,46 @@ public class QuestionSeeder implements Seeder {
       final var isTrue = randomGen.nextBoolean();
       final var input = new AddQuestion.Input.Affirmation(question, isTrue, null, randomThemeId);
 
+      executor.execute(handler, input);
+    }
+  }
+
+  private void seedBinaryQuestions() {
+    final var randomGen = RandomGenerator.getDefault();
+    final var themes =
+        themeRepository.paginate(Pagination.firstPage(50L)).items().stream()
+            .map(Theme::getId)
+            .toList();
+
+    for (int i = 1; i <= NUMBER_OF_QUESTIONS_OF_ANY_TYPE; i++) {
+      final var randomThemeId = themes.get(Random.from(randomGen).nextInt(themes.size()));
+      final var question = "Question : can you answer the binary question " + i + "?";
+      final var answers =
+          Set.of(
+              new AddQuestion.Input.AnswerData("Yes", null, randomGen.nextBoolean()),
+              new AddQuestion.Input.AnswerData("No", null, randomGen.nextBoolean()));
+
+      final var input = new AddQuestion.Input.Binary(question, answers, null, randomThemeId);
+      executor.execute(handler, input);
+    }
+  }
+
+  private void seedQuizzQuestions() {
+    final var randomGen = RandomGenerator.getDefault();
+    final var themes =
+        themeRepository.paginate(Pagination.firstPage(50L)).items().stream()
+            .map(Theme::getId)
+            .toList();
+    for (int i = 1; i <= NUMBER_OF_QUESTIONS_OF_ANY_TYPE; i++) {
+      final var randomThemeId = themes.get(Random.from(randomGen).nextInt(themes.size()));
+      final var question = "Question : can you answer the quizz question " + i + "?";
+      final var answers =
+          Set.of(
+              new AddQuestion.Input.AnswerData("Answer 1", null, randomGen.nextBoolean()),
+              new AddQuestion.Input.AnswerData("Answer 2", null, randomGen.nextBoolean()),
+              new AddQuestion.Input.AnswerData("Answer 3", null, randomGen.nextBoolean()),
+              new AddQuestion.Input.AnswerData("Answer 4", null, randomGen.nextBoolean()));
+      final var input = new AddQuestion.Input.Quizz(question, answers, null, randomThemeId);
       executor.execute(handler, input);
     }
   }
