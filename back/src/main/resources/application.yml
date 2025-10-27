@@ -11,6 +11,9 @@ spring:
       enabled: false
     script:
       enabled: false
+  output:
+    ansi:
+      enabled: ALWAYS
 
 logging:
   level:
