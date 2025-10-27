@@ -12,20 +12,20 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-class DeleteQuestionTest {
+class RemoveQuestionTest {
   private final QuestionRepository questionRepository;
-  private final DeleteQuestion.Handler deleteQuestionHandler;
+  private final RemoveQuestion.Handler deleteQuestionHandler;
 
-  public DeleteQuestionTest() {
+  public RemoveQuestionTest() {
     this.questionRepository = Mockito.mock(QuestionRepository.class);
-    this.deleteQuestionHandler = new DeleteQuestion.Handler(questionRepository);
+    this.deleteQuestionHandler = new RemoveQuestion.Handler(questionRepository);
   }
 
   @Test
   void canDeleteQuestion() {
     // GIVEN
     var questionId = new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
-    var input = new DeleteQuestion.Input(questionId);
+    var input = new RemoveQuestion.Input(questionId);
 
     // WHEN
     final var question = Mockito.mock(Question.class);
@@ -42,7 +42,7 @@ class DeleteQuestionTest {
   void cannotDeleteNonExistingQuestion() {
     // GIVEN
     var questionId = new QuestionId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
-    var input = new DeleteQuestion.Input(questionId);
+    var input = new RemoveQuestion.Input(questionId);
 
     // WHEN
     Mockito.when(questionRepository.find(questionId)).thenReturn(null);
