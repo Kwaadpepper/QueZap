@@ -15,10 +15,10 @@ import com.quezap.lib.pagination.Pagination;
 import jakarta.validation.Valid;
 
 @RestController("questions")
-public class ListQuestionsController {
+public class FindQuestionsController {
   private final ListQuestions.Handler handler;
 
-  ListQuestionsController(ListQuestions.Handler handler) {
+  FindQuestionsController(ListQuestions.Handler handler) {
     this.handler = handler;
   }
 
