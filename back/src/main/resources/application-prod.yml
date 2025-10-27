@@ -1,5 +1,3 @@
-debug: false
-
 server:
   port: 80
 
@@ -7,10 +5,15 @@ logging:
   level:
     root: INFO
 
+spring:
+  devtools:
+    restart:
+      enabled: false
+
 pictures-s3:
   host: ${APP_S3_HOST}
   port: ${APP_S3_PORT}
   public-endpoint: ${APP_S3_PUBLIC_ENDPOINT}
   bucket-name: ${APP_S3_BUCKET_NAME}
-  access-key-id: ${APP_S3_ACCESS_KEY_ID}
+  access-key-id: ${APP_S3_ACCESS-KEY-ID}
   secret-access-key: ${APP_S3_SECRET_ACCESS_KEY}

@@ -14,7 +14,7 @@ spring:
 
 logging:
   level:
-    root: WARN
+    root: DEBUG
 
 profanity:
   custom-words: badword1,badword2
