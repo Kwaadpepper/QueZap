@@ -1,5 +1,7 @@
 package com.quezap.application.dependencies;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -9,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.quezap.lib.ddd.events.DomainEvent;
+import com.quezap.lib.ddd.events.DomainEventPublisher;
 import com.quezap.lib.ddd.usecases.OnFailure;
 import com.quezap.lib.ddd.usecases.OnSuccess;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
@@ -23,6 +27,12 @@ import org.slf4j.LoggerFactory;
 @Component
 public class TransactionalUseCaseExecutor implements UseCaseExecutor {
   private final Logger logger = LoggerFactory.getLogger(TransactionalUseCaseExecutor.class);
+
+  private DomainEventPublisher domainEventPublisher;
+
+  public TransactionalUseCaseExecutor(DomainEventPublisher domainEventPublisher) {
+    this.domainEventPublisher = domainEventPublisher;
+  }
 
   @Override
   @Transactional
@@ -50,6 +60,31 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
 
       throw e;
     }
+  }
+
+  @Override
+  public void publish(DomainEvent<?> event) {
+    if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+
+      domainEventPublisher.publish(event);
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    List<DomainEvent<?>> transactionEvents =
+        (List<DomainEvent<?>>) TransactionSynchronizationManager.getResource(DomainEvent.class);
+
+    if (transactionEvents == null) {
+      transactionEvents = new ArrayList<>();
+      // Link the list to the current transaction
+      TransactionSynchronizationManager.bindResource(DomainEvent.class, transactionEvents);
+
+      // Register synchronization to publish events after commit
+      TransactionSynchronizationManager.registerSynchronization(
+          new EventPublishingSynchronization(transactionEvents, domainEventPublisher));
+    }
+
+    transactionEvents.add(event);
   }
 
   private static class UseCaseSynchronization implements TransactionSynchronization {
@@ -131,6 +166,27 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
       INFO,
       WARN,
       ERROR
+    }
+  }
+
+  private static class EventPublishingSynchronization implements TransactionSynchronization {
+    private final List<DomainEvent<?>> events;
+    private final DomainEventPublisher publisher;
+
+    public EventPublishingSynchronization(
+        List<DomainEvent<?>> events, DomainEventPublisher publisher) {
+      this.events = events;
+      this.publisher = publisher;
+    }
+
+    @Override
+    public void afterCompletion(int status) {
+      TransactionSynchronizationManager.unbindResourceIfPossible(DomainEvent.class);
+    }
+
+    @Override
+    public void afterCommit() {
+      events.forEach(publisher::publish);
     }
   }
 }

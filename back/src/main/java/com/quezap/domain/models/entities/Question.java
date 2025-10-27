@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.quezap.domain.events.questions.QuestionDeleted;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
@@ -118,6 +119,8 @@ public class Question extends AggregateRoot<QuestionId> {
     return new Question(id, type, value, picture, theme, answers, updatedAt);
   }
 
+  // * PROPERTIES
+
   @Override
   public QuestionId getId() {
     return new QuestionId(rawId);
@@ -150,6 +153,30 @@ public class Question extends AggregateRoot<QuestionId> {
 
   public ZonedDateTime getUpdatedAt() {
     return updatedAt;
+  }
+
+  // * ACTIONS
+
+  public void delete() {
+    final var picturesToDelete = new HashSet<Picture>();
+    QuestionDeleted deleteEvent;
+
+    if (picture != null) {
+      picturesToDelete.add(this.picture);
+    }
+
+    if (answers != null) {
+      answers.forEach(
+          a -> {
+            if (a.picture() != null) {
+              picturesToDelete.add(a.picture());
+            }
+          });
+    }
+
+    deleteEvent = new QuestionDeleted(picturesToDelete);
+
+    registerEvent(deleteEvent);
   }
 
   @Override

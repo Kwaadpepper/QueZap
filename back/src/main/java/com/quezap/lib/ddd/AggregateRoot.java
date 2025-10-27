@@ -2,9 +2,13 @@ package com.quezap.lib.ddd;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.quezap.lib.ddd.events.DomainEvent;
 import com.quezap.lib.utils.UuidV7;
 
 /**
@@ -15,6 +19,8 @@ import com.quezap.lib.utils.UuidV7;
  * functionality.
  */
 public abstract class AggregateRoot<T extends EntityId> implements Entity {
+  private final List<DomainEvent<?>> domainEvents = new ArrayList<>();
+
   protected final UUID rawId;
   protected final ZonedDateTime createdAt;
 
@@ -45,5 +51,17 @@ public abstract class AggregateRoot<T extends EntityId> implements Entity {
 
   private ZonedDateTime extractCreatedAtFromId(UUID id) {
     return ZonedDateTime.ofInstant(UuidV7.extractInstant(id), ZoneOffset.UTC);
+  }
+
+  protected void registerEvent(DomainEvent<?> event) {
+    this.domainEvents.add(event);
+  }
+
+  public List<DomainEvent<?>> getDomainEvents() {
+    return Collections.unmodifiableList(domainEvents);
+  }
+
+  public void clearDomainEvents() {
+    this.domainEvents.clear();
   }
 }

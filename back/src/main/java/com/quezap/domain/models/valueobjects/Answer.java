@@ -5,19 +5,16 @@ import com.quezap.lib.utils.Domain;
 
 import org.jspecify.annotations.Nullable;
 
-public record Answer(
-    @Nullable String stringAnswer, @Nullable Picture pictureAnswer, Boolean isCorrect) {
+public record Answer(@Nullable String value, @Nullable Picture picture, Boolean isCorrect) {
   public Answer {
     Domain.checkDomain(
-        () ->
-            (stringAnswer == null && pictureAnswer != null)
-                || (stringAnswer != null && pictureAnswer == null),
+        () -> (value == null && picture != null) || (value != null && picture == null),
         "An answer must have either a string answer or a picture answer");
-    if (stringAnswer != null) {
+    if (value != null) {
       Domain.checkDomain(
-          () -> !stringAnswer.isBlank(), "String answer cannot be blank when it is provided");
+          () -> !value.isBlank(), "String answer cannot be blank when it is provided");
       Domain.checkDomain(
-          () -> stringAnswer.length() <= 255,
+          () -> value.length() <= 255,
           "String answer cannot exceed 255 characters when it is provided");
     }
   }
