@@ -62,10 +62,11 @@ public class QuestionSeeder implements Seeder {
     for (int i = 1; i <= NUMBER_OF_QUESTIONS_OF_ANY_TYPE; i++) {
       final var randomThemeId = themes.get(Random.from(randomGen).nextInt(themes.size()));
       final var question = "Question : can you answer the binary question " + i + "?";
+      final var responseTruth = randomGen.nextBoolean();
       final var answers =
           Set.of(
-              new AddQuestion.Input.AnswerData("Yes", null, randomGen.nextBoolean()),
-              new AddQuestion.Input.AnswerData("No", null, randomGen.nextBoolean()));
+              new AddQuestion.Input.AnswerData("Yes", null, responseTruth),
+              new AddQuestion.Input.AnswerData("No", null, !responseTruth));
 
       final var input = new AddQuestion.Input.Binary(question, answers, null, randomThemeId);
       executor.execute(handler, input);
@@ -81,12 +82,13 @@ public class QuestionSeeder implements Seeder {
     for (int i = 1; i <= NUMBER_OF_QUESTIONS_OF_ANY_TYPE; i++) {
       final var randomThemeId = themes.get(Random.from(randomGen).nextInt(themes.size()));
       final var question = "Question : can you answer the quizz question " + i + "?";
+      final var responseTruth = randomGen.nextInt(4);
       final var answers =
           Set.of(
-              new AddQuestion.Input.AnswerData("Answer 1", null, randomGen.nextBoolean()),
-              new AddQuestion.Input.AnswerData("Answer 2", null, randomGen.nextBoolean()),
-              new AddQuestion.Input.AnswerData("Answer 3", null, randomGen.nextBoolean()),
-              new AddQuestion.Input.AnswerData("Answer 4", null, randomGen.nextBoolean()));
+              new AddQuestion.Input.AnswerData("Answer 1", null, responseTruth == 0),
+              new AddQuestion.Input.AnswerData("Answer 2", null, responseTruth == 1),
+              new AddQuestion.Input.AnswerData("Answer 3", null, responseTruth == 2),
+              new AddQuestion.Input.AnswerData("Answer 4", null, responseTruth == 3));
       final var input = new AddQuestion.Input.Quizz(question, answers, null, randomThemeId);
       executor.execute(handler, input);
     }
