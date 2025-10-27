@@ -14,7 +14,7 @@ import com.quezap.lib.pagination.Pagination;
 
 import jakarta.validation.Valid;
 
-@RestController("questions")
+@RestController
 public class FindQuestionsController {
   private final ListQuestions.Handler handler;
 

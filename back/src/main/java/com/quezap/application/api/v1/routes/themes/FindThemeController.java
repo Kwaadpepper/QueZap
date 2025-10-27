@@ -14,7 +14,7 @@ import com.quezap.lib.pagination.Pagination;
 
 import jakarta.validation.Valid;
 
-@RestController("themes")
+@RestController
 public class FindThemeController {
   private final ListThemes.Handler handler;
 
