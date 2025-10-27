@@ -2,7 +2,6 @@ package com.quezap.domain.usecases.questions;
 
 import java.io.InputStream;
 import java.util.Set;
-import java.util.UUID;
 
 import com.quezap.domain.errors.questions.AddQuestionError;
 import com.quezap.domain.models.entities.Theme;
@@ -47,7 +46,7 @@ class AddQuizzQuestionTest {
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("No", null, false),
             new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -71,7 +70,7 @@ class AddQuizzQuestionTest {
             new AddQuestion.Input.AnswerData("No", null, false),
             new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false),
             new AddQuestion.Input.AnswerData("D the D response", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -94,7 +93,7 @@ class AddQuizzQuestionTest {
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("No", null, false),
             new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -128,7 +127,7 @@ class AddQuizzQuestionTest {
                 "After waiting 3 minutes",
                 new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG),
                 false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -154,7 +153,7 @@ class AddQuizzQuestionTest {
             new AddQuestion.Input.AnswerData("No", null, false),
             new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false),
             new AddQuestion.Input.AnswerData("D the D response", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(null);
@@ -176,7 +175,7 @@ class AddQuizzQuestionTest {
             new AddQuestion.Input.AnswerData("Yes", null, false),
             new AddQuestion.Input.AnswerData("No", null, false),
             new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -197,7 +196,7 @@ class AddQuizzQuestionTest {
         Set.of(
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("No", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -221,7 +220,7 @@ class AddQuizzQuestionTest {
             new AddQuestion.Input.AnswerData("Maybe", null, false),
             new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false),
             new AddQuestion.Input.AnswerData("D the D response", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));

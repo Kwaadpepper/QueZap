@@ -2,7 +2,6 @@ package com.quezap.domain.usecases.themes;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.entities.Theme;
@@ -31,7 +30,7 @@ class RemoveThemeTest {
   @Test
   void canRemoveTheme() {
     // GIVEN
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var removeThemeInput = new RemoveTheme.Input(themeId);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(Mockito.mock(Theme.class));
@@ -51,7 +50,7 @@ class RemoveThemeTest {
   @Test
   void cannotRemoveNonExistingTheme() {
     // GIVEN
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var removeThemeInput = new RemoveTheme.Input(themeId);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(null);
@@ -64,7 +63,7 @@ class RemoveThemeTest {
   @Test
   void cannotRemoveThemeWithQuestions() {
     // GIVEN
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var removeThemeInput = new RemoveTheme.Input(themeId);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(Mockito.mock(Theme.class));

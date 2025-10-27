@@ -1,10 +1,7 @@
 package com.quezap.domain.usecases.themes;
 
-import java.util.UUID;
-
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
-import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 
@@ -24,7 +21,7 @@ class RenameThemeTest {
   @Test
   void canRenameTheme() {
     // GIVEN
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var newName = new ThemeName("New Theme Name");
     var renameThemeInput = new RenameTheme.Input(themeId, newName);
 
@@ -42,7 +39,7 @@ class RenameThemeTest {
   @Test
   void cannotRenameNonExistingTheme() {
     // GIVEN
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var newName = new ThemeName("New Theme Name");
     var renameThemeInput = new RenameTheme.Input(themeId, newName);
 
@@ -59,7 +56,7 @@ class RenameThemeTest {
   @Test
   void cannotRenameThemeToExistingName() {
     // GIVEN
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var newName = new ThemeName("Existing Theme Name");
     var renameThemeInput = new RenameTheme.Input(themeId, newName);
 

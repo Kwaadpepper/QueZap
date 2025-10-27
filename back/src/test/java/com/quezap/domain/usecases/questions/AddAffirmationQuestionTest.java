@@ -1,7 +1,6 @@
 package com.quezap.domain.usecases.questions;
 
 import java.io.InputStream;
-import java.util.UUID;
 
 import com.quezap.domain.errors.questions.AddQuestionError;
 import com.quezap.domain.models.entities.Theme;
@@ -42,7 +41,7 @@ class AddAffirmationQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var isTrue = true;
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -61,7 +60,7 @@ class AddAffirmationQuestionTest {
     var value = "Will ths test fail?";
     PictureUploadData picture = null;
     var isTrue = false;
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -80,7 +79,7 @@ class AddAffirmationQuestionTest {
     var value = "Will this test be working?";
     var picture = new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG);
     var isTrue = true;
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -101,7 +100,7 @@ class AddAffirmationQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var isTrue = true;
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(null);

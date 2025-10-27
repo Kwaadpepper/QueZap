@@ -25,7 +25,7 @@ class QuestionTest {
     var questionType = QuestionType.BOOLEAN;
     var value = "Is Paris the capital of France?";
     var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
     var answers = Set.of(new Answer("Paris", null, true));
     var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
 
@@ -43,7 +43,7 @@ class QuestionTest {
     var questionType = QuestionType.BINARY;
     var value = "What is the capital of France?";
     var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
     var answers = Set.of(new Answer("Paris", null, true), new Answer("London", null, false));
     var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
 
@@ -61,7 +61,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
     var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
     var answers =
         Set.of(
             new Answer("Paris", null, true),
@@ -84,7 +84,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "   ";
     var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
     var answers =
         Set.of(
             new Answer("Paris", null, true),
@@ -108,7 +108,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
     var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
     var answers =
         Set.of(
             new Answer("Paris", null, false),
@@ -132,7 +132,7 @@ class QuestionTest {
     var questionType = QuestionType.BOOLEAN;
     var value = "What is the capital of France?";
     var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
     var answers =
         Set.of(
             new Answer("Paris", null, true),
@@ -155,7 +155,7 @@ class QuestionTest {
     var questionType = QuestionType.QUIZZ;
     var value = "What is the capital of France?";
     var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
-    var themeId = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6b-0000-000000000000"));
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
     var answers =
         Set.of(
             new Answer("Paris", null, true),

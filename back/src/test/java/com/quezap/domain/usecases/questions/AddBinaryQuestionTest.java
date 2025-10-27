@@ -2,7 +2,6 @@ package com.quezap.domain.usecases.questions;
 
 import java.io.InputStream;
 import java.util.Set;
-import java.util.UUID;
 
 import com.quezap.domain.errors.questions.AddQuestionError;
 import com.quezap.domain.models.entities.Theme;
@@ -46,7 +45,7 @@ class AddBinaryQuestionTest {
         Set.of(
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("No", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -68,7 +67,7 @@ class AddBinaryQuestionTest {
         Set.of(
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("No", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -98,7 +97,7 @@ class AddBinaryQuestionTest {
                 "No",
                 new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG),
                 false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -122,7 +121,7 @@ class AddBinaryQuestionTest {
         Set.of(
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("No", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(null);
@@ -143,7 +142,7 @@ class AddBinaryQuestionTest {
         Set.of(
             new AddQuestion.Input.AnswerData("Maybe", null, false),
             new AddQuestion.Input.AnswerData("I don't know", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -161,7 +160,7 @@ class AddBinaryQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var answers = Set.of(new AddQuestion.Input.AnswerData("Yes", null, true));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -183,7 +182,7 @@ class AddBinaryQuestionTest {
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("No", null, false),
             new AddQuestion.Input.AnswerData("Maybe", null, false));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
@@ -204,7 +203,7 @@ class AddBinaryQuestionTest {
         Set.of(
             new AddQuestion.Input.AnswerData("Yes", null, true),
             new AddQuestion.Input.AnswerData("Absolutely", null, true));
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Binary(value, answers, picture, theme);
 
     Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));

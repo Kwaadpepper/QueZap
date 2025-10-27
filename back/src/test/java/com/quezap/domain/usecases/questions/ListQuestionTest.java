@@ -2,7 +2,6 @@ package com.quezap.domain.usecases.questions;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
@@ -64,7 +63,7 @@ class ListQuestionTest {
   void canListQuestionsWithThemes() {
     // GIVEN
     var pagination = Pagination.firstPage();
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var themeIds = Set.of(theme);
     var input = new ListQuestions.Input.WithThemes(pagination, themeIds);
 
@@ -85,7 +84,7 @@ class ListQuestionTest {
     // GIVEN
     var pagination = Pagination.firstPage();
     var searchTerm = new SearchQuery("term");
-    var theme = new ThemeId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
+    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var themeIds = Set.of(theme);
     var input = new ListQuestions.Input.SearchingWithThemes(pagination, searchTerm, themeIds);
 
