@@ -9,4 +9,8 @@ public record QuestionId(UUID value) implements EntityId {
   public QuestionId {
     Domain.checkDomain(() -> value.version() == 7, "A QuestionId must be a UUIDv7");
   }
+
+  public static QuestionId fromString(String value) {
+    return new QuestionId(UUID.fromString(value));
+  }
 }

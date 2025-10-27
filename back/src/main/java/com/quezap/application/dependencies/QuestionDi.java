@@ -8,6 +8,7 @@ import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.domain.port.services.QuestionPictureManager;
 import com.quezap.domain.usecases.questions.AddQuestion;
 import com.quezap.domain.usecases.questions.ListQuestions;
+import com.quezap.domain.usecases.questions.RemoveQuestion;
 import com.quezap.lib.ddd.usecases.TransactionRegistrar;
 
 @Configuration
@@ -37,5 +38,10 @@ public class QuestionDi {
   AddQuestion.Handler addQuestionHandler() {
     return new AddQuestion.Handler(
         questionRepository, themeRepository, questionPictureManager, transactionRegistrar);
+  }
+
+  @Bean
+  RemoveQuestion.Handler removeQuestionHandler() {
+    return new RemoveQuestion.Handler(questionRepository);
   }
 }
