@@ -1,0 +1,20 @@
+meta {
+  name: Delete Theme
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{ADDRESS}}/apiv1/themes/:themeUuid
+  body: none
+  auth: inherit
+}
+
+params:path {
+  themeUuid: 019a260d-fdfb-7cfe-8ea9-c92bfd4b287b
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
