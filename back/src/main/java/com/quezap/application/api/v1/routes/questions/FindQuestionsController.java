@@ -60,8 +60,7 @@ public class FindQuestionsController {
       return Pagination.firstPage();
     } catch (IllegalDomainStateException e) {
       final var errorMessage = e.getMessage();
-      throw new BadPaginationException(
-          errorMessage != null ? errorMessage : "Invalid pagination parameters");
+      throw new BadPaginationException(errorMessage);
     }
   }
 
