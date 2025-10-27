@@ -23,3 +23,11 @@ session-code:
   seed: 12345
   length: 6
   dictionary: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+pictures-s3:
+  host: ${APP_S3_HOST:localhost}
+  port: ${APP_S3_PORT:9190}
+  public-endpoint: ${APP_S3_PUBLIC_ENDPOINT:http://localhost:9190}
+  bucket-name: ${APP_S3_BUCKET_NAME:quezap-pictures-local}
+  access-key-id: ${APP_S3_ACCESS_KEY_ID:quezap_java_writer}
+  secret-access-key: ${APP_S3_SECRET_ACCESS_KEY:LocalPassword}

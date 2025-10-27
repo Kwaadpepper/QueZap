@@ -7,7 +7,7 @@ spring:
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
 
 pictures-s3:
   host: localhost
