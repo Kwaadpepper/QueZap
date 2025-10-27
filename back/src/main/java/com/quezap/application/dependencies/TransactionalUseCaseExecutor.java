@@ -173,8 +173,7 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
     private final List<DomainEvent<?>> events;
     private final DomainEventPublisher publisher;
 
-    public EventPublishingSynchronization(
-        List<DomainEvent<?>> events, DomainEventPublisher publisher) {
+    EventPublishingSynchronization(List<DomainEvent<?>> events, DomainEventPublisher publisher) {
       this.events = events;
       this.publisher = publisher;
     }
