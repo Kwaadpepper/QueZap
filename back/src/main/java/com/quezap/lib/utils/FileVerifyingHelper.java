@@ -131,6 +131,7 @@ public final class FileVerifyingHelper {
     return truncatedName + (extension.isEmpty() ? "" : "." + extension);
   }
 
+  @SuppressWarnings("DefaultCharset")
   private static Charset detectEncoding(final String filename) {
     final var detector = new CharsetDetector();
     detector.setText(filename.getBytes());
