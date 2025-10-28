@@ -3,7 +3,6 @@ package com.quezap.aop;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -15,7 +14,6 @@ import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 
 /** Aspect to publish domain events after repository operations such as save, update, and delete. */
-@Component
 @Aspect
 public class DomainEventPublishingAspect {
 
