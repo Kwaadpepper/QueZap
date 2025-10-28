@@ -1,7 +1,9 @@
-package com.quezap.quizz;
+package com.quezap.application;
 
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -9,9 +11,6 @@ import org.springframework.stereotype.Component;
 import com.quezap.application.seed.QuestionSeeder;
 import com.quezap.application.seed.ThemeSeeder;
 import com.quezap.application.seed.UserSeeder;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Component
 public class StartUpSeedRunner {
