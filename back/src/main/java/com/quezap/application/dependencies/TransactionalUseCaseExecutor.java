@@ -3,7 +3,6 @@ package com.quezap.application.dependencies;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.stereotype.Component;
@@ -13,8 +12,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.quezap.lib.ddd.events.DomainEvent;
 import com.quezap.lib.ddd.events.DomainEventPublisher;
-import com.quezap.lib.ddd.usecases.OnFailure;
-import com.quezap.lib.ddd.usecases.OnSuccess;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
@@ -27,8 +25,7 @@ import org.slf4j.LoggerFactory;
 @Component
 public class TransactionalUseCaseExecutor implements UseCaseExecutor {
   private final Logger logger = LoggerFactory.getLogger(TransactionalUseCaseExecutor.class);
-
-  private DomainEventPublisher domainEventPublisher;
+  private final DomainEventPublisher domainEventPublisher;
 
   public TransactionalUseCaseExecutor(DomainEventPublisher domainEventPublisher) {
     this.domainEventPublisher = domainEventPublisher;
@@ -39,25 +36,15 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
   public <I extends UseCaseInput, O extends UseCaseOutput> O execute(
       UseCaseHandler<I, O> useCaseHandler, I usecaseInput) {
 
-    final AtomicReference<Throwable> exceptionHolder = new AtomicReference<>();
+    final var useCaseName = AopUtils.getTargetClass(useCaseHandler).getCanonicalName();
+    final var unitOfWork = new TransactionalUnitOfWork(logger, useCaseName);
+
+    TransactionSynchronizationManager.registerSynchronization(unitOfWork);
 
     try {
-      final var useCaseName = AopUtils.getTargetClass(useCaseHandler).getCanonicalName();
-      final Runnable onSuccessHook =
-          useCaseHandler instanceof OnSuccess onSuccessHandler ? onSuccessHandler::onSuccess : null;
-      final Consumer<Throwable> onFailureHook =
-          useCaseHandler instanceof OnFailure onFailureHandler ? onFailureHandler::onFailure : null;
-
-      // Register transaction synchronization to handle commit/rollback events.
-      TransactionSynchronizationManager.registerSynchronization(
-          new UseCaseSynchronization(
-              logger, useCaseName, exceptionHolder, onSuccessHook, onFailureHook));
-      return useCaseHandler.handle(usecaseInput);
+      return useCaseHandler.handle(usecaseInput, unitOfWork);
     } catch (Exception e) {
-
-      // Capture the exception.
-      exceptionHolder.set(e);
-
+      unitOfWork.setException(e);
       throw e;
     }
   }
@@ -65,7 +52,6 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
   @Override
   public void publish(DomainEvent<?> event) {
     if (!TransactionSynchronizationManager.isActualTransactionActive()) {
-
       domainEventPublisher.publish(event);
       return;
     }
@@ -76,10 +62,7 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
 
     if (transactionEvents == null) {
       transactionEvents = new ArrayList<>();
-      // Link the list to the current transaction
       TransactionSynchronizationManager.bindResource(DomainEvent.class, transactionEvents);
-
-      // Register synchronization to publish events after commit
       TransactionSynchronizationManager.registerSynchronization(
           new EventPublishingSynchronization(transactionEvents, domainEventPublisher));
     }
@@ -87,67 +70,51 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
     transactionEvents.add(event);
   }
 
-  private static class UseCaseSynchronization implements TransactionSynchronization {
+  private static class TransactionalUnitOfWork
+      implements UnitOfWorkEvents, TransactionSynchronization {
     private final Logger logger;
-    private final AtomicReference<Throwable> exceptionHolder;
     private final String useCaseName;
-    private final @Nullable Runnable onSuccessHook;
-    private final @Nullable Consumer<Throwable> onFailureHook;
+    private @Nullable Runnable onCommitHook;
+    private @Nullable Runnable onRollbackHook;
+    private final AtomicReference<Throwable> exceptionHolder = new AtomicReference<>();
 
-    UseCaseSynchronization(
-        Logger logger,
-        String useCaseName,
-        AtomicReference<Throwable> exceptionHolder,
-        @Nullable Runnable onSuccessHook,
-        @Nullable Consumer<Throwable> onFailureHook) {
+    TransactionalUnitOfWork(Logger logger, String useCaseName) {
       this.logger = logger;
       this.useCaseName = useCaseName;
-      this.exceptionHolder = exceptionHolder;
-      this.onSuccessHook = onSuccessHook;
-      this.onFailureHook = onFailureHook;
+    }
+
+    @Override
+    public void onCommit(Runnable action) {
+      this.onCommitHook = action;
+    }
+
+    @Override
+    public void onRollback(Runnable action) {
+      this.onRollbackHook = action;
+    }
+
+    public void setException(Throwable e) {
+      this.exceptionHolder.set(e);
     }
 
     @Override
     public void afterCompletion(int status) {
       switch (status) {
-        case TransactionSynchronization.STATUS_COMMITTED -> handleCommit();
-        case TransactionSynchronization.STATUS_ROLLED_BACK -> handleRollback();
-        case TransactionSynchronization.STATUS_UNKNOWN -> handleUnknown();
-        default -> log("transaction completed with unrecognized status: {}", Level.ERROR, status);
-      }
-    }
-
-    private void handleCommit() {
-      log("SUCCESS", Level.INFO);
-
-      if (onSuccessHook != null) {
-        onSuccessHook.run();
-      }
-    }
-
-    private void handleRollback() {
-      final var error =
-          exceptionHolder.get() != null
-              ? exceptionHolder.get()
-              : new RuntimeException("Transaction rolled back (unknown cause)");
-      final var errorMessage = error.getMessage();
-
-      log("FAILURE", Level.WARN);
-
-      if (errorMessage != null) {
-        log("Cause: {}", Level.DEBUG, errorMessage);
-      }
-
-      if (onFailureHook != null) {
-        onFailureHook.accept(error);
-      }
-    }
-
-    private void handleUnknown() {
-      log("UNKNOWN", Level.ERROR);
-
-      if (onFailureHook != null) {
-        onFailureHook.accept(new RuntimeException("Transaction status unknown"));
+        case TransactionSynchronization.STATUS_COMMITTED:
+          log("SUCCESS", Level.INFO);
+          if (onCommitHook != null) {
+            onCommitHook.run();
+          }
+          break;
+        case TransactionSynchronization.STATUS_ROLLED_BACK:
+          log("FAILURE", Level.WARN);
+          if (onRollbackHook != null) {
+            onRollbackHook.run();
+          }
+          break;
+        default:
+          log("UNKNOWN", Level.ERROR);
+          break;
       }
     }
 
