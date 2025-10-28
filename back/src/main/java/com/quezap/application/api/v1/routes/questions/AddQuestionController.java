@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.application.api.v1.dto.request.questions.NewAffirmationDto;
+import com.quezap.application.api.v1.dto.response.questions.QuestionIdDto;
 import com.quezap.application.api.v1.exceptions.ServerException;
 import com.quezap.application.services.PictureMetadataValidatorService;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
@@ -26,7 +26,7 @@ public class AddQuestionController {
   }
 
   @PostMapping("apiv1/questions/affirmation")
-  public String addAffirmation(@RequestBody NewAffirmationDto request) {
+  public QuestionIdDto addAffirmation(NewAffirmationDto request) {
     final var question = request.question();
     final var isTrue = request.isTrue();
     final var picture = request.picture();
@@ -41,11 +41,15 @@ public class AddQuestionController {
       final var input = new AddQuestion.Input.Affirmation(question, isTrue, pictureData, themeId);
       final var output = handler.handle(input);
 
-      return output.id().toString();
+      return toDto(output);
 
     } catch (IOException e) {
       throw new ServerException("Failed to read uploaded file", e);
     }
+  }
+
+  private QuestionIdDto toDto(AddQuestion.Output output) {
+    return new QuestionIdDto(output.id().value());
   }
 
   private PictureUploadData buildPictureUploadData(
