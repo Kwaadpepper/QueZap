@@ -4,16 +4,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
-import com.quezap.aop.DomainEventPublishingAspect;
+import com.quezap.application.ddd.DomainEventPublishingAspect;
+import com.quezap.application.ddd.TransactionalUseCaseExecutor;
 import com.quezap.lib.ddd.events.DomainEventPublisher;
+import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
-/**
- * Configuration for Domain-Driven Design specific infrastructure. This class explicitly enables and
- * configures the mechanism for publishing domain events from AggregateRoots.
- */
 @Configuration
 @EnableAspectJAutoProxy
-public class DddEventConfig {
+public class DddInfrastructureConfig {
+
+  @Bean
+  UseCaseExecutor useCaseExecutor() {
+    return new TransactionalUseCaseExecutor();
+  }
 
   @Bean
   DomainEventPublishingAspect domainEventPublishingAspect(
