@@ -1,2 +1,2 @@
 @org.jspecify.annotations.NullMarked
-package com.quezap.application.ddd;
+package com.quezap.aop;

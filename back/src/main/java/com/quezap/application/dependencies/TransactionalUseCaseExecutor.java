@@ -1,4 +1,4 @@
-package com.quezap.application.ddd;
+package com.quezap.application.dependencies;
 
 import java.util.concurrent.atomic.AtomicReference;
 

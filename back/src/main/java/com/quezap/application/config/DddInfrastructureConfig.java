@@ -4,8 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
-import com.quezap.application.ddd.DomainEventPublishingAspect;
-import com.quezap.application.ddd.TransactionalUseCaseExecutor;
+import com.quezap.aop.DomainEventPublishingAspect;
+import com.quezap.application.dependencies.TransactionalUseCaseExecutor;
 import com.quezap.lib.ddd.events.DomainEventPublisher;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
