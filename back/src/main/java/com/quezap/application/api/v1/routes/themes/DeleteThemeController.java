@@ -6,12 +6,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.usecases.themes.RemoveTheme;
+import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
 @RestController
 public class DeleteThemeController {
+  private final UseCaseExecutor executor;
   private final RemoveTheme.Handler handler;
 
-  DeleteThemeController(RemoveTheme.Handler handler) {
+  DeleteThemeController(UseCaseExecutor executor, RemoveTheme.Handler handler) {
+    this.executor = executor;
     this.handler = handler;
   }
 
@@ -19,6 +22,6 @@ public class DeleteThemeController {
   void delete(@PathVariable("id") ThemeId id) {
     final var input = new RemoveTheme.Input(id);
 
-    handler.handle(input);
+    executor.execute(handler, input);
   }
 }

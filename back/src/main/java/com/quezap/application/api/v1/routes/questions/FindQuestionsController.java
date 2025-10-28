@@ -10,15 +10,18 @@ import com.quezap.application.api.v1.dto.response.questions.QuestionShortInfoDto
 import com.quezap.application.api.v1.exceptions.BadPaginationException;
 import com.quezap.domain.usecases.questions.ListQuestions;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class FindQuestionsController {
+  private final UseCaseExecutor executor;
   private final ListQuestions.Handler handler;
 
-  FindQuestionsController(ListQuestions.Handler handler) {
+  FindQuestionsController(UseCaseExecutor executor, ListQuestions.Handler handler) {
+    this.executor = executor;
     this.handler = handler;
   }
 
@@ -26,7 +29,7 @@ public class FindQuestionsController {
   PageOfDto<QuestionShortInfoDto> find(
       @Valid PaginationDto paginationDto, @Valid FindQuestionsDto queryDto) {
     final var input = toInput(paginationDto, queryDto);
-    final var output = handler.handle(input);
+    final var output = executor.execute(handler, input);
 
     return PageOfDto.fromDomain(output.value(), this::toDto);
   }

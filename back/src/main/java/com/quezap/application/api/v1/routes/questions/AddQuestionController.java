@@ -13,14 +13,19 @@ import com.quezap.application.services.PictureMetadataValidatorService;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
 import com.quezap.domain.usecases.questions.AddQuestion;
+import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
 @RestController
 public class AddQuestionController {
+  private final UseCaseExecutor executor;
   private final AddQuestion.Handler handler;
   private final PictureMetadataValidatorService validatorService; // Injecté
 
   AddQuestionController(
-      AddQuestion.Handler handler, PictureMetadataValidatorService validatorService) {
+      UseCaseExecutor executor,
+      AddQuestion.Handler handler,
+      PictureMetadataValidatorService validatorService) {
+    this.executor = executor;
     this.handler = handler;
     this.validatorService = validatorService;
   }
@@ -39,7 +44,7 @@ public class AddQuestionController {
           buildPictureUploadData(pictureStream, mimeType, picture.getSize());
 
       final var input = new AddQuestion.Input.Affirmation(question, isTrue, pictureData, themeId);
-      final var output = handler.handle(input);
+      final var output = executor.execute(handler, input);
 
       return toDto(output);
 

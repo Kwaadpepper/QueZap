@@ -8,14 +8,17 @@ import com.quezap.application.api.v1.dto.request.themes.CreateThemeRequest;
 import com.quezap.application.api.v1.dto.response.themes.ThemeIdDto;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.usecases.themes.AddTheme;
+import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class AddThemeController {
+  private final UseCaseExecutor executor;
   private final AddTheme.Handler handler;
 
-  AddThemeController(AddTheme.Handler handler) {
+  AddThemeController(UseCaseExecutor executor, AddTheme.Handler handler) {
+    this.executor = executor;
     this.handler = handler;
   }
 
@@ -24,7 +27,7 @@ public class AddThemeController {
     final var themName = request.name();
     final var input = new AddTheme.Input(themName);
 
-    final var output = handler.handle(input);
+    final var output = executor.execute(handler, input);
 
     return toDto(output.id());
   }

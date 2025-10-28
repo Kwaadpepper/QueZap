@@ -10,22 +10,26 @@ import com.quezap.application.api.v1.dto.response.themes.ThemeDto;
 import com.quezap.application.api.v1.exceptions.BadPaginationException;
 import com.quezap.domain.usecases.themes.ListThemes;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class FindThemeController {
+  private final UseCaseExecutor executor;
   private final ListThemes.Handler handler;
 
-  FindThemeController(ListThemes.Handler handler) {
+  FindThemeController(UseCaseExecutor executor, ListThemes.Handler handler) {
+    this.executor = executor;
     this.handler = handler;
   }
 
   @GetMapping("apiv1/themes/find")
   PageOfDto<ThemeDto> find(@Valid PaginationDto paginationDto, @Valid FindThemesDto queryDto) {
     final var input = toInput(paginationDto, queryDto);
-    final var output = handler.handle(input);
+
+    final var output = executor.execute(handler, input);
 
     return PageOfDto.fromDomain(output.value(), this::toDto);
   }
