@@ -107,7 +107,8 @@ class FileVerifyingHelperTest {
       final MultipartFile mockFile = mock(MultipartFile.class);
       when(mockFile.getOriginalFilename()).thenReturn(filename);
       when(mockFile.getContentType()).thenReturn(contentType);
-      when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream(fileContent.getBytes()));
+      when(mockFile.getInputStream())
+          .thenReturn(new ByteArrayInputStream(fileContent.getBytes(StandardCharsets.UTF_8)));
 
       // WHEN
       final boolean isValid = FileVerifyingHelper.fileNameIsValidAndMatchesExtension(mockFile);
