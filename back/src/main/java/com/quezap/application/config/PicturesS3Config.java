@@ -11,6 +11,8 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 
@@ -71,6 +73,7 @@ public class PicturesS3Config {
   public S3Client getS3Client() {
     final var endpoint = createEndpoint();
     final var credentialsProvider = createProvider();
+    final var retryStrategy = createRetryStrategy();
 
     return S3Client.builder()
         .endpointProvider(
@@ -80,8 +83,18 @@ public class PicturesS3Config {
                         .url(URI.create(endpoint + "/" + endpointParams.bucket()))
                         .build()))
         .credentialsProvider(credentialsProvider)
+        .overrideConfiguration(conf -> conf.retryStrategy(retryStrategy))
         .region(Region.EU_WEST_1)
         .build();
+  }
+
+  private RetryStrategy createRetryStrategy() {
+    final var builder = StandardRetryStrategy.builder();
+
+    // No retries as we are doing transactional operations with input streams
+    builder.maxAttempts(1);
+
+    return builder.build();
   }
 
   private URI createEndpoint() {
