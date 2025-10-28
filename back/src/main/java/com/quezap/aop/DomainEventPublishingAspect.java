@@ -1,62 +1,56 @@
 package com.quezap.aop;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.events.DomainEvent;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.events.DomainEventPublisher;
 
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 
 /** Aspect to publish domain events after repository operations such as save, update, and delete. */
 @Component
 @Aspect
 public class DomainEventPublishingAspect {
-  private final UseCaseExecutor executor;
 
-  public DomainEventPublishingAspect(UseCaseExecutor executor) {
-    this.executor = executor;
+  private final DomainEventPublisher domainEventPublisher;
+
+  public DomainEventPublishingAspect(DomainEventPublisher domainEventPublisher) {
+    this.domainEventPublisher = domainEventPublisher;
   }
 
-  @AfterReturning(
-      pointcut =
-          "execution(* com.quezap.lib.ddd.Repository.save(..)) || "
-              + "execution(* com.quezap.lib.ddd.Repository.update(..))")
-  public void afterSaveOrUpdate(JoinPoint joinPoint) {
-    processAggregateForEvents(joinPoint);
-  }
+  @After(
+      "execution(* com.quezap.lib.ddd.Repository.save(..))"
+          + " || execution(* com.quezap.lib.ddd.Repository.update(..))"
+          + " || execution(* com.quezap.lib.ddd.Repository.delete(..))"
+          + " && args(aggregate)")
+  public void publishEventsAfterPersistence(AggregateRoot<?> aggregate) {
+    List<DomainEvent<?>> events = new ArrayList<>(aggregate.getDomainEvents());
+    aggregate.clearDomainEvents();
 
-  @AfterReturning(pointcut = "execution(* com.quezap.lib.ddd.Repository.delete(..))")
-  public void afterDelete(JoinPoint joinPoint) {
-    processAggregateForEvents(joinPoint);
-  }
-
-  private void processAggregateForEvents(JoinPoint joinPoint) {
-
-    if (joinPoint.getArgs().length < 1) {
-      throw new IllegalArgumentException(
-          "Expected at least one argument for repository method, but got none.");
+    if (events.isEmpty()) {
+      return;
     }
 
-    final Object entity = joinPoint.getArgs()[0];
-
-    if (!(entity instanceof AggregateRoot<?> aggregate)) {
-      throw new IllegalArgumentException(
-          "Expected argument to be an instance of AggregateRoot, but got: "
-              + entity.getClass().getName());
+    // Publish events if not in a transaction
+    if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+      events.forEach(domainEventPublisher::publish);
+      return;
     }
 
-    @SuppressWarnings("unchecked")
-    List<DomainEvent<?>> events = (List<DomainEvent<?>>) (List<?>) aggregate.getDomainEvents();
-
-    if (!events.isEmpty()) {
-      events.forEach(executor::publish);
-
-      aggregate.clearDomainEvents();
-    }
+    // Register synchronization to publish events after transaction commit
+    TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+          @Override
+          public void afterCommit() {
+            events.forEach(domainEventPublisher::publish);
+          }
+        });
   }
 }

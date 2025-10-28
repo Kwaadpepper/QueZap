@@ -1,7 +1,5 @@
 package com.quezap.application.dependencies;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.aop.support.AopUtils;
@@ -10,8 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.quezap.lib.ddd.events.DomainEvent;
-import com.quezap.lib.ddd.events.DomainEventPublisher;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
@@ -25,11 +21,6 @@ import org.slf4j.LoggerFactory;
 @Component
 public class TransactionalUseCaseExecutor implements UseCaseExecutor {
   private final Logger logger = LoggerFactory.getLogger(TransactionalUseCaseExecutor.class);
-  private final DomainEventPublisher domainEventPublisher;
-
-  public TransactionalUseCaseExecutor(DomainEventPublisher domainEventPublisher) {
-    this.domainEventPublisher = domainEventPublisher;
-  }
 
   @Override
   @Transactional
@@ -47,27 +38,6 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
       unitOfWork.setException(e);
       throw e;
     }
-  }
-
-  @Override
-  public void publish(DomainEvent<?> event) {
-    if (!TransactionSynchronizationManager.isActualTransactionActive()) {
-      domainEventPublisher.publish(event);
-      return;
-    }
-
-    @SuppressWarnings("unchecked")
-    List<DomainEvent<?>> transactionEvents =
-        (List<DomainEvent<?>>) TransactionSynchronizationManager.getResource(DomainEvent.class);
-
-    if (transactionEvents == null) {
-      transactionEvents = new ArrayList<>();
-      TransactionSynchronizationManager.bindResource(DomainEvent.class, transactionEvents);
-      TransactionSynchronizationManager.registerSynchronization(
-          new EventPublishingSynchronization(transactionEvents, domainEventPublisher));
-    }
-
-    transactionEvents.add(event);
   }
 
   private static class TransactionalUnitOfWork
@@ -133,26 +103,6 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
       INFO,
       WARN,
       ERROR
-    }
-  }
-
-  private static class EventPublishingSynchronization implements TransactionSynchronization {
-    private final List<DomainEvent<?>> events;
-    private final DomainEventPublisher publisher;
-
-    EventPublishingSynchronization(List<DomainEvent<?>> events, DomainEventPublisher publisher) {
-      this.events = events;
-      this.publisher = publisher;
-    }
-
-    @Override
-    public void afterCompletion(int status) {
-      TransactionSynchronizationManager.unbindResourceIfPossible(DomainEvent.class);
-    }
-
-    @Override
-    public void afterCommit() {
-      events.forEach(publisher::publish);
     }
   }
 }
