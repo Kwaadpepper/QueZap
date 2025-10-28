@@ -1,4 +1,4 @@
-package com.quezap.application.dependencies;
+package com.quezap.application.dependencies.injection;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
