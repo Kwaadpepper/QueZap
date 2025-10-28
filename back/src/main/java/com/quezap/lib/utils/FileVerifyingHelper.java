@@ -84,6 +84,8 @@ public final class FileVerifyingHelper {
   }
 
   public static String sanitizeFileName(final String fileName) {
+    final var uuid = UUID.randomUUID();
+    final Long randomizedUuidMsb = uuid.getMostSignificantBits();
     final var originalEncoding = detectEncoding(fileName);
     final var originalBytes = fileName.getBytes(originalEncoding);
 
@@ -115,8 +117,7 @@ public final class FileVerifyingHelper {
     sanitizedFileName = sanitizedFileName.replaceFirst("^[\\.\\-]", "");
     sanitizedFileName = FileVerifyingHelper.beautifyFileName(sanitizedFileName);
 
-    sanitizedFileName =
-        Math.abs(UUID.randomUUID().getMostSignificantBits()) + "-" + sanitizedFileName;
+    sanitizedFileName = Math.abs(randomizedUuidMsb) + "-" + sanitizedFileName;
 
     // Maximize filename length to 255 bytes.
     final var extension = getFileExtension(sanitizedFileName);
