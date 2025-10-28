@@ -1,0 +1,23 @@
+meta {
+  name: Create Question
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{ADDRESS}}/apiv1/questions/affirmation
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  picture: @file(/home/jeremy/Images/a.png)
+  question: Is the about CPU gouvernor policy ?
+  isTrue: true
+  themeId: 019a2b66-6967-78b5-8e2a-3540ff1daa5b
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
