@@ -61,7 +61,7 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
       this.onRollbackHook = action;
     }
 
-    public void setException(Throwable e) {
+    void setException(Throwable e) {
       this.exceptionHolder.set(e);
     }
 
