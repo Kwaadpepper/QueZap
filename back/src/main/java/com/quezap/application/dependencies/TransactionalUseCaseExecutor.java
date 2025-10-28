@@ -68,21 +68,19 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
     @Override
     public void afterCompletion(int status) {
       switch (status) {
-        case TransactionSynchronization.STATUS_COMMITTED:
+        case TransactionSynchronization.STATUS_COMMITTED -> {
           log("SUCCESS", Level.INFO);
           if (onCommitHook != null) {
             onCommitHook.run();
           }
-          break;
-        case TransactionSynchronization.STATUS_ROLLED_BACK:
+        }
+        case TransactionSynchronization.STATUS_ROLLED_BACK -> {
           log("FAILURE", Level.WARN);
           if (onRollbackHook != null) {
             onRollbackHook.run();
           }
-          break;
-        default:
-          log("UNKNOWN", Level.ERROR);
-          break;
+        }
+        default -> log("UNKNOWN", Level.ERROR);
       }
     }
 
