@@ -11,6 +11,8 @@ import com.quezap.lib.utils.UuidV7;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -50,6 +52,7 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
       return new Picture(objectKey, pictureType);
     } catch (Exception e) {
+      logExceptionDetails(e);
       throw new QuestionPictureManagerException("Error storing picture in S3.", e);
     }
   }
@@ -70,6 +73,7 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
       return false;
     } catch (Exception e) {
+      logExceptionDetails(e);
       throw new QuestionPictureManagerException("Error checking picture existence in S3.", e);
     }
   }
@@ -102,6 +106,7 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
       return new Picture(destinationKey, pictureType);
     } catch (Exception e) {
+      logExceptionDetails(e);
       throw new QuestionPictureManagerException("Error copying picture in S3.", e);
     }
   }
@@ -134,6 +139,20 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
     public QuestionPictureManagerException(String message) {
       super(message);
+    }
+  }
+
+  private final void logExceptionDetails(Exception e) {
+    if (e instanceof SdkClientException sdkEx) {
+      logger.error("SdkClientException: ", sdkEx);
+    } else if (e instanceof AwsServiceException awsEx) {
+      logger.error("AwsServiceException: ", awsEx);
+      logger.error("Status code: {}", awsEx.statusCode());
+      logger.error("AWS Error Code: {}", awsEx.awsErrorDetails().errorCode());
+      logger.error("Error Type: {}", awsEx.awsErrorDetails().errorMessage());
+      logger.error("Request ID: {}", awsEx.requestId());
+    } else {
+      logger.error("General exception: ", e);
     }
   }
 }
