@@ -2,6 +2,7 @@ package com.quezap.lib.utils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -74,7 +75,7 @@ public final class FileVerifyingHelper {
     filename = filename.replaceAll("\\.{2,}", "."); // "file...name..zip" becomes "file.name.zip"
 
     // Lowercase for windows/unix interoperability.
-    filename = filename.toLowerCase();
+    filename = filename.toLowerCase(Locale.ROOT);
 
     // Trim leading and trailing '.' and '-'
     filename = filename.replaceAll("(^[.-]+)|([.-]+$)", ""); // ".file-name.-" becomes "file-name"

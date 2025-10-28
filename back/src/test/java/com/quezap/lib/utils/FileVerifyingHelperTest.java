@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -187,7 +188,8 @@ class FileVerifyingHelperTest {
     void shouldRemoveUnsafeCharactersAndAppendUuid(String input) {
       // GIVEN
       final String expectedExtension = input.substring(input.lastIndexOf('.') + 1);
-      final String expectedPattern = "\\d+-[a-z0-9\\.\\-_]+\\." + expectedExtension.toLowerCase();
+      final String expectedPattern =
+          "\\d+-[a-z0-9\\.\\-_]+\\." + expectedExtension.toLowerCase(Locale.ROOT);
 
       // WHEN
       final String result = FileVerifyingHelper.sanitizeFileName(input);
