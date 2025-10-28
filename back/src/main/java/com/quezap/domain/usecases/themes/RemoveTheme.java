@@ -7,6 +7,7 @@ import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -29,7 +30,7 @@ public sealed interface RemoveTheme {
     }
 
     @Override
-    public Output handle(Input usecaseInput) {
+    public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var themeId = usecaseInput.id();
       final var theme = themeRepository.find(themeId);
       final var pagination = Pagination.firstPage();

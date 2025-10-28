@@ -12,6 +12,7 @@ import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.domain.port.services.IdentifierHasher;
 import com.quezap.domain.port.services.PasswordHasher;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ class AddUserTest {
     var identifier = new RawIdentifier("some-id");
     var password = new RawPassword("Some-password1!");
     final var input = new AddUser.Input(userName, identifier, password);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier))
@@ -50,7 +52,7 @@ class AddUserTest {
         .thenReturn(null);
     Mockito.when(userRepository.findByName(userName)).thenReturn(null);
 
-    handler.handle(input);
+    handler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -64,6 +66,7 @@ class AddUserTest {
     var password = new RawPassword("Some-password1!");
     var hashedIdentifier = new HashedIdentifier("some-hashed-id");
     final var input = new AddUser.Input(userName, identifier, password);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier)).thenReturn(hashedIdentifier);
@@ -71,7 +74,7 @@ class AddUserTest {
         .thenReturn(Mockito.mock(Credential.class));
 
     // THEN
-    Assertions.assertThatThrownBy(() -> handler.handle(input))
+    Assertions.assertThatThrownBy(() -> handler.handle(input, unitOfWork))
         .isInstanceOf(DomainConstraintException.class)
         .hasMessage(AddUserError.IDENTIFIER_ALREADY_TAKEN.getMessage());
   }
@@ -84,6 +87,7 @@ class AddUserTest {
     var password = new RawPassword("Some-password1!");
     var hashedIdentifier = new HashedIdentifier("some-hashed-id");
     final var input = new AddUser.Input(userName, identifier, password);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier)).thenReturn(hashedIdentifier);
@@ -91,7 +95,7 @@ class AddUserTest {
     Mockito.when(userRepository.findByName(userName)).thenReturn(Mockito.mock(User.class));
 
     // THEN
-    Assertions.assertThatThrownBy(() -> handler.handle(input))
+    Assertions.assertThatThrownBy(() -> handler.handle(input, unitOfWork))
         .isInstanceOf(DomainConstraintException.class)
         .hasMessage(AddUserError.USER_NAME_ALREADY_TAKEN.getMessage());
   }

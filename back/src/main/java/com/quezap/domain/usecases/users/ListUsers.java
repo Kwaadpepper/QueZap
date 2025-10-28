@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -27,7 +28,7 @@ public sealed interface ListUsers {
     }
 
     @Override
-    public Output handle(Input usecaseInput) {
+    public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var page = userRepository.findAll(usecaseInput.pagination());
 
       return new Output(page.map(this::toDto));

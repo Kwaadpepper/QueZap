@@ -7,6 +7,7 @@ import com.quezap.domain.models.valueobjects.participations.ParticipationToken;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.services.SessionCodeEncoder;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -31,7 +32,7 @@ public interface AnswerQuestion {
     }
 
     @Override
-    public Output handle(Input usecaseInput) {
+    public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var sessionCode = usecaseInput.code();
       final var token = usecaseInput.token();
       final var slideIndex = usecaseInput.slideIndex();

@@ -143,16 +143,16 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
   }
 
   private final void logExceptionDetails(Exception e) {
-    if (e instanceof SdkClientException sdkEx) {
-      logger.error("SdkClientException: ", sdkEx);
-    } else if (e instanceof AwsServiceException awsEx) {
-      logger.error("AwsServiceException: ", awsEx);
-      logger.error("Status code: {}", awsEx.statusCode());
-      logger.error("AWS Error Code: {}", awsEx.awsErrorDetails().errorCode());
-      logger.error("Error Type: {}", awsEx.awsErrorDetails().errorMessage());
-      logger.error("Request ID: {}", awsEx.requestId());
-    } else {
-      logger.error("General exception: ", e);
+    switch (e) {
+      case SdkClientException sdkEx -> logger.error("SdkClientException: ", sdkEx);
+      case AwsServiceException awsEx -> {
+        logger.error("AwsServiceException: ", awsEx);
+        logger.error("Status code: {}", awsEx.statusCode());
+        logger.error("AWS Error Code: {}", awsEx.awsErrorDetails().errorCode());
+        logger.error("Error Type: {}", awsEx.awsErrorDetails().errorMessage());
+        logger.error("Request ID: {}", awsEx.requestId());
+      }
+      default -> logger.error("General exception: ", e);
     }
   }
 }

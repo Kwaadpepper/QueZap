@@ -6,6 +6,7 @@ import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -27,7 +28,7 @@ public sealed interface RemoveQuestion {
     }
 
     @Override
-    public Output handle(Input usecaseInput) {
+    public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var questionSlide = usecaseInput.question();
       final var questionId = questionSlide.question();
       final var sessionId = usecaseInput.session();

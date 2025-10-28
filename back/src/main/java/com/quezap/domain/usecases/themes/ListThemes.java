@@ -8,6 +8,7 @@ import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.domain.usecases.themes.ListThemes.Output.ThemeDto;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -43,7 +44,7 @@ public sealed interface ListThemes {
     }
 
     @Override
-    public Output handle(Input usecaseInput) {
+    public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       return switch (usecaseInput) {
         case Input.PerPage input -> listPerPage(input);
         case Input.Searching input -> listSearching(input);

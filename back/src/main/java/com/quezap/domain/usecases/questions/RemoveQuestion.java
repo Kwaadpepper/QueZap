@@ -4,6 +4,7 @@ import com.quezap.domain.errors.questions.DeleteQuestionError;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -23,7 +24,7 @@ public sealed interface RemoveQuestion {
     }
 
     @Override
-    public RemoveQuestion.Output handle(Input input) {
+    public RemoveQuestion.Output handle(Input input, UnitOfWorkEvents unitOfWork) {
       final var questionId = input.questionId();
       final var question = questionRepository.find(questionId);
 

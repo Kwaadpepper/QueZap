@@ -10,6 +10,7 @@ import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -31,7 +32,7 @@ public sealed interface AddSession {
     }
 
     @Override
-    public Output handle(Input usecaseInput) {
+    public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var sessionName = usecaseInput.name();
       final var userId = usecaseInput.user();
 

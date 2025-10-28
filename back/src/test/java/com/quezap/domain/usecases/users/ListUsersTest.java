@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.port.repositories.UserRepository;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
@@ -30,6 +31,7 @@ class ListUsersTest {
     // GIVEN
     var pageRequest = Pagination.ofPage(1L, 1L);
     var input = new ListUsers.Input(pageRequest);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
     var users =
         List.of(
             new User(
@@ -40,7 +42,7 @@ class ListUsersTest {
     // WHEN
     Mockito.when(userRepository.findAll(pageRequest))
         .thenReturn(new PageOf<User>(pageRequest, users, 1L));
-    handler.handle(input);
+    handler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();

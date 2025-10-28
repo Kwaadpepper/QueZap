@@ -9,6 +9,7 @@ import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
@@ -32,6 +33,7 @@ class RemoveThemeTest {
     // GIVEN
     var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var removeThemeInput = new RemoveTheme.Input(themeId);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(Mockito.mock(Theme.class));
     Mockito.when(
@@ -40,7 +42,7 @@ class RemoveThemeTest {
         .thenReturn(PageOf.empty(Mockito.any(Pagination.class)));
 
     // WHEN
-    removeThemeHandler.handle(removeThemeInput);
+    removeThemeHandler.handle(removeThemeInput, unitOfWork);
 
     // THEN
     Mockito.verify(themeRepository).delete(Mockito.any(Theme.class));
@@ -52,12 +54,14 @@ class RemoveThemeTest {
     // GIVEN
     var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var removeThemeInput = new RemoveTheme.Input(themeId);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(null);
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class, () -> removeThemeHandler.handle(removeThemeInput));
+        DomainConstraintException.class,
+        () -> removeThemeHandler.handle(removeThemeInput, unitOfWork));
   }
 
   @Test
@@ -65,6 +69,7 @@ class RemoveThemeTest {
     // GIVEN
     var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var removeThemeInput = new RemoveTheme.Input(themeId);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(Mockito.mock(Theme.class));
 
@@ -76,6 +81,7 @@ class RemoveThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class, () -> removeThemeHandler.handle(removeThemeInput));
+        DomainConstraintException.class,
+        () -> removeThemeHandler.handle(removeThemeInput, unitOfWork));
   }
 }

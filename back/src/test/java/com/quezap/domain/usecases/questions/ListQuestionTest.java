@@ -7,6 +7,7 @@ import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
@@ -32,9 +33,10 @@ class ListQuestionTest {
     var questions = List.of(Mockito.mock(Question.class));
     var questionPage = PageOf.of(pagination, questions, 1L);
     Mockito.when(questionRepository.paginate(pagination)).thenReturn(questionPage);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input);
+    listQuestionsHandler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});
@@ -51,9 +53,10 @@ class ListQuestionTest {
     var questionPage = PageOf.of(pagination, questions, 1L);
     Mockito.when(questionRepository.paginateSearching(pagination, searchTerm))
         .thenReturn(questionPage);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input);
+    listQuestionsHandler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});
@@ -71,9 +74,10 @@ class ListQuestionTest {
     var questionPage = PageOf.of(pagination, questions, 1L);
     Mockito.when(questionRepository.paginateWithThemes(pagination, themeIds))
         .thenReturn(questionPage);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input);
+    listQuestionsHandler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});
@@ -92,9 +96,10 @@ class ListQuestionTest {
     var questionPage = PageOf.of(pagination, questions, 1L);
     Mockito.when(questionRepository.paginateSearchingWithThemes(pagination, searchTerm, themeIds))
         .thenReturn(questionPage);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input);
+    listQuestionsHandler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});

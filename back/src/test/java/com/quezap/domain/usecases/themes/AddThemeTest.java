@@ -4,6 +4,7 @@ import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,9 +24,10 @@ class AddThemeTest {
     // GIVEN
     var themeName = new ThemeName("New Theme");
     var addThemeInput = new AddTheme.Input(themeName);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    addThemeHandler.handle(addThemeInput);
+    addThemeHandler.handle(addThemeInput, unitOfWork);
 
     // THEN
     Mockito.verify(themeRepository).save(Mockito.any(Theme.class));
@@ -37,6 +39,7 @@ class AddThemeTest {
     // GIVEN
     var themeName = new ThemeName("Existing Theme");
     var addThemeInput = new AddTheme.Input(themeName);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.findByName(themeName)).thenReturn(Mockito.mock(Theme.class));
 
@@ -44,7 +47,7 @@ class AddThemeTest {
     Assertions.assertThrows(
         DomainConstraintException.class,
         () -> {
-          addThemeHandler.handle(addThemeInput);
+          addThemeHandler.handle(addThemeInput, unitOfWork);
         });
   }
 }

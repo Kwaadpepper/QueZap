@@ -11,6 +11,7 @@ import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.domain.port.services.PasswordHasher;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
@@ -41,7 +42,7 @@ public sealed interface UpdateUserPassword {
     }
 
     @Override
-    public Output handle(Input usecaseInput) {
+    public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var userNotFoundException =
           new DomainConstraintException(UpdateUserPasswordError.NO_SUCH_USER);
       final UserId userId =

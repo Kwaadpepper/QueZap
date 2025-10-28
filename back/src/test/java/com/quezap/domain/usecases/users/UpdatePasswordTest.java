@@ -11,6 +11,7 @@ import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.domain.port.services.PasswordHasher;
+import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ class UpdatePasswordTest {
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"));
     var newPassword = new RawPassword("P4assw0rd.");
     final var input = new UpdateUserPassword.Input.Id(userId, newPassword);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
     var user = Mockito.mock(User.class);
@@ -45,7 +47,7 @@ class UpdatePasswordTest {
         .thenReturn(Mockito.mock(Credential.class));
     Mockito.when(passwordHasher.hash(newPassword)).thenReturn(Mockito.mock(HashedPassword.class));
 
-    handler.handle(input);
+    handler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -59,6 +61,7 @@ class UpdatePasswordTest {
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     var newPassword = new RawPassword("P4assw0rd.");
     final var input = new UpdateUserPassword.Input.UserName(userName, newPassword);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
     var user = Mockito.mock(User.class);
@@ -70,7 +73,7 @@ class UpdatePasswordTest {
         .thenReturn(Mockito.mock(Credential.class));
     Mockito.when(passwordHasher.hash(newPassword)).thenReturn(Mockito.mock(HashedPassword.class));
 
-    handler.handle(input);
+    handler.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -82,10 +85,11 @@ class UpdatePasswordTest {
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     var newPassword = new RawPassword("P4assw0rd.");
     final var input = new UpdateUserPassword.Input.Id(userId, newPassword);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(userRepository.find(userId)).thenReturn(null);
-    var thrown = Assertions.catchThrowable(() -> handler.handle(input));
+    var thrown = Assertions.catchThrowable(() -> handler.handle(input, unitOfWork));
 
     // THEN
     Assertions.assertThat(thrown).isInstanceOf(Exception.class);
@@ -97,10 +101,11 @@ class UpdatePasswordTest {
     var userName = "johndoe";
     var newPassword = new RawPassword("P4assw0rd.");
     final var input = new UpdateUserPassword.Input.UserName(userName, newPassword);
+    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(userRepository.findByName(userName)).thenReturn(null);
-    var thrown = Assertions.catchThrowable(() -> handler.handle(input));
+    var thrown = Assertions.catchThrowable(() -> handler.handle(input, unitOfWork));
 
     // THEN
     Assertions.assertThat(thrown).isInstanceOf(Exception.class);
