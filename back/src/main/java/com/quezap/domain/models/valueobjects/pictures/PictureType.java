@@ -22,4 +22,11 @@ public enum PictureType {
       case WEBP -> List.of("webp");
     };
   }
+
+  public static PictureType fromMimeType(String mimeType) {
+    return List.of(values()).stream()
+        .filter(type -> type.mimeType().equalsIgnoreCase(mimeType))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Unsupported MIME type: " + mimeType));
+  }
 }
