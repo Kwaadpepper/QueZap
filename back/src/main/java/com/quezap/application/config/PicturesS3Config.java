@@ -2,14 +2,17 @@ package com.quezap.application.config;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 
 @Configuration
 public class PicturesS3Config {
@@ -70,9 +73,13 @@ public class PicturesS3Config {
     final var credentialsProvider = createProvider();
 
     return S3Client.builder()
-        .endpointOverride(endpoint)
+        .endpointProvider(
+            (S3EndpointParams endpointParams) ->
+                CompletableFuture.completedFuture(
+                    Endpoint.builder()
+                        .url(URI.create(endpoint + "/" + endpointParams.bucket()))
+                        .build()))
         .credentialsProvider(credentialsProvider)
-        // Region is required, but we don't really care which one for MinIO
         .region(Region.EU_WEST_1)
         .build();
   }
