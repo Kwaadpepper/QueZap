@@ -172,4 +172,55 @@ class QuestionTest {
           new Question(id, questionType, value, picture, themeId, answers, updatedAt);
         });
   }
+
+  @Test
+  void cannotInstantiateWithDuplicateAnswers() {
+    // GIVEN
+    var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
+    var questionType = QuestionType.QUIZZ;
+    var value = "What is the capital of France?";
+    var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
+    var answers =
+        Set.of(
+            new Answer("Paris", null, true),
+            new Answer("Paris", null, false), // Duplicate answer
+            new Answer("Berlin", null, false),
+            new Answer("Madrid", null, false));
+    var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
+
+    // WHEN / THEN
+    Assertions.assertThrows(
+        IllegalDomainStateException.class,
+        () -> {
+          new Question(id, questionType, value, picture, themeId, answers, updatedAt);
+        });
+  }
+
+  @Test
+  void cannotInstantiateWithMixedAnswerTypes() {
+    // GIVEN
+    var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
+    var questionType = QuestionType.QUIZZ;
+    var value = "What is the capital of France?";
+    var picture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
+    var answers =
+        Set.of(
+            new Answer("Paris", null, true), // Text answer
+            new Answer(
+                null,
+                new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG),
+                false), // Picture answer
+            new Answer("Berlin", null, false),
+            new Answer("Madrid", null, false));
+    var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
+
+    // WHEN / THEN
+    Assertions.assertThrows(
+        IllegalDomainStateException.class,
+        () -> {
+          new Question(id, questionType, value, picture, themeId, answers, updatedAt);
+        });
+  }
 }

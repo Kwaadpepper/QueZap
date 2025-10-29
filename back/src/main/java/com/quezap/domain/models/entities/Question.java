@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import com.quezap.domain.events.questions.QuestionDeleted;
 import com.quezap.domain.models.valueobjects.Answer;
@@ -29,6 +30,7 @@ public class Question extends AggregateRoot<QuestionId> {
 
   private static void validateCommonInvariants(
       QuestionType type, String question, Set<Answer> answers) {
+
     Domain.checkDomain(() -> !question.isBlank(), "Label cannot be blank");
     Domain.checkDomain(
         () -> question.trim().length() >= 15, "Label cannot be less than 15 characters");
@@ -42,6 +44,19 @@ public class Question extends AggregateRoot<QuestionId> {
             answers.stream().filter(Answer::isCorrect).count() >= 1
                 || type.equals(QuestionType.BOOLEAN),
         "There must be at least one correct answer");
+
+    Domain.checkDomain(
+        () -> answers.stream().map(Answer::value).distinct().count() == answers.size(),
+        "Answers must be unique");
+
+    Domain.checkDomain(
+        () -> {
+          final var hasTextAnswers =
+              answers.stream().anyMatch(a -> isNotNullAnd(a.value(), v -> !v.isBlank()));
+          final var hasPictureAnswers = answers.stream().anyMatch(a -> a.picture() != null);
+          return !(hasTextAnswers && hasPictureAnswers);
+        },
+        "Answers must be of a single type (either all text or all pictures)");
 
     switch (answers.size()) {
       case 1 -> {
@@ -71,6 +86,10 @@ public class Question extends AggregateRoot<QuestionId> {
               "Quizz questions must have between 3 and 4 answers");
       default -> throw new IllegalStateException("Unexpected value: " + type.name());
     }
+  }
+
+  private static <O> boolean isNotNullAnd(@Nullable O object, Predicate<O> tester) {
+    return object != null && tester.test(object);
   }
 
   public Question(
