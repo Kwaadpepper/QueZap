@@ -38,18 +38,17 @@ class AnswerTest {
   }
 
   @Test
-  void cannotInstantiateAnswerWithBothTextAndPicture() {
+  void canInstantiateAnswerWithBothTextAndPicture() {
     // GIVEN
     var answerText = "This is an answer";
     var answerPicture = new Picture(UuidV7.randomUuid() + ".png", PictureType.PNG);
     var isCorrect = true;
 
-    // WHEN & THEN
-    Assertions.assertThrows(
-        IllegalDomainStateException.class,
-        () -> {
-          new Answer(answerText, answerPicture, isCorrect);
-        });
+    // WHEN
+    new Answer(answerText, answerPicture, isCorrect);
+
+    // THEN
+    Assertions.assertDoesNotThrow(() -> {});
   }
 
   @Test

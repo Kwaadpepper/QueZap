@@ -8,8 +8,8 @@ import org.jspecify.annotations.Nullable;
 public record Answer(@Nullable String value, @Nullable Picture picture, Boolean isCorrect) {
   public Answer {
     Domain.checkDomain(
-        () -> (value == null && picture != null) || (value != null && picture == null),
-        "An answer must have either a string answer or a picture answer");
+        () -> !(value == null && picture == null),
+        "An answer must have at least a string answer or a picture answer");
     if (value != null) {
       Domain.checkDomain(
           () -> !value.isBlank(), "String answer cannot be blank when it is provided");
