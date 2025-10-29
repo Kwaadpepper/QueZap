@@ -31,6 +31,12 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
 
     logger.info("Starting registration of custom AOT hints...");
 
+    logger.info("Registering hints for Apache Tika resources");
+    hints
+        .resources()
+        .registerPattern("org/apache/tika/mime/tika-mimetypes.xml")
+        .registerPattern("org/apache/tika/parser/external/tika-external-parsers.xml");
+
     findAndRegisterForReflection(
         hints,
         BASE_PACKAGE,
