@@ -3,6 +3,7 @@ package com.quezap.application.dependencies;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.aop.support.AopUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -17,6 +18,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Component
 public class TransactionalUseCaseExecutor implements UseCaseExecutor {
   private final Logger logger = LoggerFactory.getLogger(TransactionalUseCaseExecutor.class);
 
