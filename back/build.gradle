@@ -190,6 +190,7 @@ tasks.named('checkstyleAot') {
   enabled = false
 }
 
+// Désactiver Checkstyle pour les fichiers générés par AOT
 tasks.named('checkstyleAotTest') {
   enabled = false
 }
@@ -197,6 +198,22 @@ tasks.named('checkstyleAotTest') {
 // --- Tâches diverses ---
 
 graalvmNative {
+  metadataRepository {
+    enabled = true
+  }
+  agent {
+    defaultMode = "conditional"
+    modes {
+      conditional {
+        userCodeFilterPath = "user-code-filter.json"
+      }
+    }
+    metadataCopy {
+      mergeWithExisting = true
+      inputTaskNames.add("test")
+      outputDirectories.add("src/main/resources/META-INF/native-image")
+    }
+  }
   binaries.configureEach {
     buildArgs.add('-march=compatibility')
   }
