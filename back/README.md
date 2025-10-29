@@ -42,5 +42,25 @@ Pour construire les artefacts (Fat Jar)
 Pour construire les artefacts natifs (GraalVm)
 
 ```bash
-./gradlew clean nativeCompile -Pnullaway=true
+./gradlew clean nativeBuild -Pnullaway=true
 ```
+
+Pour compiler avec l'agent qui produit des hints pour la reflexion
+```bash
+./gradlew -Pagent nativeBuild
+```
+
+**Note**: Pour l'instant compiler nativement avec GraalVm ne semble pas évident avec @Transactional.
+
+## Run
+
+Pour lancer directement avec gradle
+```bash
+./gradlew clean bootRun
+```
+
+Pour lancer le produit natif
+```bash
+./build/native/nativeCompile/quizz
+```
+
