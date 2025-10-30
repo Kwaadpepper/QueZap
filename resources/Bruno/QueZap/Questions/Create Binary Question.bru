@@ -1,0 +1,28 @@
+meta {
+  name: Create Binary Question
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{ADDRESS}}/apiv1/questions/binary
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  question: Is the about CPU gouvernor policy ?
+  themeId: {{theme_uuid_for_question}}
+  answers[0].isTrue: true
+  answers[0].picture: @file(/home/jeremy/Images/a.png)
+  answers[1].isTrue: false
+  answers[1].picture: @file(/home/jeremy/Images/sms_encode.png)
+  picture: @file(/home/jeremy/Images/a.png)
+  ~answers[0].answer: Yes
+  ~answers[1].answer: No
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

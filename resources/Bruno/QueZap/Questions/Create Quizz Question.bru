@@ -1,0 +1,28 @@
+meta {
+  name: Create Quizz Question
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{ADDRESS}}/apiv1/questions/quizz
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  question: What is this image about ?
+  themeId: {{theme_uuid_for_question}}
+  answers[0].isTrue: true
+  answers[1].isTrue: false
+  picture: @file(/home/jeremy/Images/a.png)
+  answers[0].answer: About CPU gouvernor policy
+  answers[1].answer: Nothing
+  answers[2].answer: A bout processor informations on a system
+  answers[2].isTrue: true
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

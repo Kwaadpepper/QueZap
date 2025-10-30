@@ -18,6 +18,24 @@ params:query {
   ~search: plants
 }
 
+script:post-response {
+  const brunoVarName = "theme_uuid_for_question";
+  
+  const responseData = res.body;
+  const data = responseData.data ?? [];
+  
+  if (data.length == 0) {
+    console.warn("Aucun thème trouvé dans la réponse.");
+    return;
+  }
+  
+  const themeUuid = data[0].uuid;
+    
+  bru.setVar(brunoVarName, themeUuid);
+  
+  console.info(`UUID du thème stocké : ${themeUuid}`);
+}
+
 settings {
   encodeUrl: true
   timeout: 0
