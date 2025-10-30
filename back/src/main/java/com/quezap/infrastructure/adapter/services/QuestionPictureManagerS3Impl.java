@@ -1,8 +1,18 @@
 package com.quezap.infrastructure.adapter.services;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.security.MessageDigest;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.config.PicturesS3Config;
+import com.quezap.domain.models.valueobjects.Sha256Hash;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
@@ -20,8 +30,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Component
 public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
-  private final Logger logger = LoggerFactory.getLogger(QuestionPictureManagerS3Impl.class);
   private static final String PICTURE_FOLDER = "pictures/questions/";
+  private static final Logger logger = LoggerFactory.getLogger(QuestionPictureManagerS3Impl.class);
+  private static final ExecutorService executorService = Executors.newCachedThreadPool();
+
   private final String bucketName;
   private final S3Client s3Client;
 
@@ -32,8 +44,15 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
   @Override
   public Picture store(PictureUploadData uploadData) {
-    try {
-      final var contentLength = uploadData.contentLength();
+    try (final var pipedOutputStream = new PipedOutputStream();
+        final var pipedInputStream = new PipedInputStream(pipedOutputStream);
+        final var originalStream = new BufferedInputStream(uploadData.inputStream())) {
+
+      // Launch a separate thread to hash the content while piping it to S3
+      final var hashFuture =
+          executorService.submit(interceptStreamAndHashContent(originalStream, pipedOutputStream));
+
+      final long contentLength = uploadData.contentLength();
       final var pictureType = uploadData.type();
       final var objectKey = generateUniqueKey(pictureType);
 
@@ -44,16 +63,22 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
               .contentLength(contentLength)
               .contentType(pictureType.mimeType())
               .build();
-      final var requestBody = RequestBody.fromInputStream(uploadData.inputStream(), contentLength);
 
+      // S3 reads from the piped input stream
+      final var requestBody = RequestBody.fromInputStream(pipedInputStream, contentLength);
       s3Client.putObject(putObjectRequest, requestBody);
 
-      logger.debug("Stored question picture with key {}", objectKey);
+      // Waiting for the hashing thread to complete and get the hash
+      final var hash = hashFuture.get();
 
-      return new Picture(objectKey, pictureType);
+      return new Picture(objectKey, pictureType, hash);
+    } catch (InterruptedException e) {
+      // Restore the interrupted status of main thread
+      Thread.currentThread().interrupt();
+      throw new QuestionPictureManagerException("Thread interrupted while waiting for hash.", e);
     } catch (Exception e) {
       logExceptionDetails(e);
-      throw new QuestionPictureManagerException("Error storing picture in S3.", e);
+      throw new QuestionPictureManagerException("Error storing or hashing picture.", e);
     }
   }
 
@@ -74,7 +99,7 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
       return false;
     } catch (Exception e) {
       logExceptionDetails(e);
-      throw new QuestionPictureManagerException("Error checking picture existence in S3.", e);
+      throw new QuestionPictureManagerException("Error storing or hashing picture.", e);
     }
   }
 
@@ -82,7 +107,8 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
   public Picture copy(Picture picture) {
     try {
       final var sourceKey = picture.objectKey();
-      final var pictureType = picture.pictureType();
+      final var pictureHash = picture.hash();
+      final var pictureType = picture.type();
       final var destinationKey = generateUniqueKey(pictureType);
 
       if (!exists(picture)) {
@@ -90,13 +116,19 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
             "Cannot copy picture: source picture does not exist in S3.");
       }
 
-      s3Client.copyObject(
-          builder ->
-              builder
-                  .sourceBucket(bucketName)
-                  .sourceKey(sourceKey)
-                  .destinationBucket(bucketName)
-                  .destinationKey(destinationKey));
+      final var response =
+          s3Client.copyObject(
+              builder ->
+                  builder
+                      .sourceBucket(bucketName)
+                      .sourceKey(sourceKey)
+                      .destinationBucket(bucketName)
+                      .destinationKey(destinationKey));
+
+      if (!response.sdkHttpResponse().isSuccessful()) {
+        throw new QuestionPictureManagerException(
+            "Error copying picture in S3: no result returned.");
+      }
 
       logger.debug(
           "Copied picture from key {} to new key {} in S3 bucket {}",
@@ -104,7 +136,7 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
           destinationKey,
           bucketName);
 
-      return new Picture(destinationKey, pictureType);
+      return new Picture(destinationKey, pictureType, pictureHash);
     } catch (Exception e) {
       logExceptionDetails(e);
       throw new QuestionPictureManagerException("Error copying picture in S3.", e);
@@ -127,22 +159,44 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
     }
   }
 
-  private final String generateUniqueKey(PictureType pictureType) {
+  private Callable<Sha256Hash> interceptStreamAndHashContent(
+      BufferedInputStream originalStream, PipedOutputStream pipedOutputStream) {
+
+    return () -> {
+      try (BufferedInputStream inputStream = originalStream;
+          PipedOutputStream outputStream = pipedOutputStream) {
+
+        final var digest = MessageDigest.getInstance("SHA-256");
+
+        var buffer = new byte[8192];
+        int bytesRead;
+
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+          digest.update(buffer, 0, bytesRead);
+          outputStream.write(buffer, 0, bytesRead);
+        }
+
+        return new Sha256Hash(digest.digest());
+      } catch (Exception e) {
+        logger.error("Error in hashing/teeing thread", e);
+
+        try {
+          pipedOutputStream.close();
+        } catch (IOException ioEx) {
+          logger.error("Error closing PipedOutputStream after thread failure", ioEx);
+        }
+
+        throw e;
+      }
+    };
+  }
+
+  private String generateUniqueKey(PictureType pictureType) {
     final var extension = pictureType.extensions().get(0);
     return PICTURE_FOLDER + UuidV7.randomUuid().toString() + "." + extension;
   }
 
-  public static class QuestionPictureManagerException extends RuntimeException {
-    public QuestionPictureManagerException(String message, Throwable cause) {
-      super(message, cause);
-    }
-
-    public QuestionPictureManagerException(String message) {
-      super(message);
-    }
-  }
-
-  private final void logExceptionDetails(Exception e) {
+  private void logExceptionDetails(Exception e) {
     switch (e) {
       case SdkClientException sdkEx -> logger.error("SdkClientException: ", sdkEx);
       case AwsServiceException awsEx -> {
@@ -153,6 +207,16 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
         logger.error("Request ID: {}", awsEx.requestId());
       }
       default -> logger.error("General exception: ", e);
+    }
+  }
+
+  public static class QuestionPictureManagerException extends RuntimeException {
+    public QuestionPictureManagerException(String message, Throwable cause) {
+      super(message, cause);
+    }
+
+    public QuestionPictureManagerException(String message) {
+      super(message);
     }
   }
 }

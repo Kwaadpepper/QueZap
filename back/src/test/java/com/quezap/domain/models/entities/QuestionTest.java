@@ -59,6 +59,7 @@ class QuestionTest {
   }
 
   @Test
+  @SuppressWarnings("DistinctVarargsChecker")
   void canInstantiateQuizz() {
     // GIVEN
     var id = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");

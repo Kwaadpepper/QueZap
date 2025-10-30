@@ -7,14 +7,14 @@ import com.quezap.domain.models.valueobjects.Sha256Hash;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.utils.Domain;
 
-public record Picture(String objectKey, PictureType pictureType, Sha256Hash hash) {
+public record Picture(String objectKey, PictureType type, Sha256Hash hash) {
   public Picture {
     final var uuidPart = getUuidPart(objectKey);
     final var extensionPart = getExtension(objectKey);
 
     Domain.checkDomain(() -> uuidPart.version() == 7, "The objectKey must be a UUIDv7.");
     Domain.checkDomain(
-        () -> pictureType.extensions().contains(extensionPart),
+        () -> type.extensions().contains(extensionPart),
         "The objectKey extension does not match the PictureType.");
   }
 
