@@ -68,6 +68,6 @@ public class FindQuestionsController {
   }
 
   private QuestionShortInfoDto toDto(ListQuestions.Output.QuestionDto question) {
-    return new QuestionShortInfoDto(question.question());
+    return new QuestionShortInfoDto(question.id().value(), question.question());
   }
 }
