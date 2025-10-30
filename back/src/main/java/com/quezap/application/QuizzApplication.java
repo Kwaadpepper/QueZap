@@ -5,6 +5,7 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.shell.command.annotation.CommandScan;
 
@@ -15,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 
 /** Fichier principal de l'application Spring Boot. */
 @SpringBootApplication
+@EnableAspectJAutoProxy
 @ComponentScan(basePackages = "com.quezap")
 @CommandScan(basePackages = "com.quezap")
 @ImportRuntimeHints({QuezapRuntimeHints.class, QuizzApplication.ValidationRuntimeHints.class})

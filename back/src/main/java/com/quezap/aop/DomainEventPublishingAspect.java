@@ -26,9 +26,9 @@ public class DomainEventPublishingAspect {
   }
 
   @After(
-      "execution(* com.quezap.lib.ddd.Repository.save(..))"
+      "(execution(* com.quezap.lib.ddd.Repository.save(..))"
           + " || execution(* com.quezap.lib.ddd.Repository.update(..))"
-          + " || execution(* com.quezap.lib.ddd.Repository.delete(..))"
+          + " || execution(* com.quezap.lib.ddd.Repository.delete(..)))"
           + " && args(aggregate)")
   public void publishEventsAfterPersistence(AggregateRoot<?> aggregate) {
     List<DomainEvent<?>> events = new ArrayList<>(aggregate.getDomainEvents());
