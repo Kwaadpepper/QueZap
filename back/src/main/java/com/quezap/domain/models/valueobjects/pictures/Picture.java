@@ -3,10 +3,11 @@ package com.quezap.domain.models.valueobjects.pictures;
 import java.util.Locale;
 import java.util.UUID;
 
+import com.quezap.domain.models.valueobjects.Sha256Hash;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.utils.Domain;
 
-public record Picture(String objectKey, PictureType pictureType) {
+public record Picture(String objectKey, PictureType pictureType, Sha256Hash hash) {
   public Picture {
     final var uuidPart = getUuidPart(objectKey);
     final var extensionPart = getExtension(objectKey);

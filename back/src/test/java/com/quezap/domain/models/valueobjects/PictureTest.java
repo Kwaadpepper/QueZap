@@ -19,9 +19,10 @@ class PictureTest {
     // GIVEN
     var uri = UuidV7.randomUuid() + ".jpg";
     var pictureType = PictureType.JPG;
+    var hash = new Sha256Hash(new byte[32]);
 
     // WHEN
-    new Picture(uri, pictureType);
+    new Picture(uri, pictureType, hash);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -32,9 +33,10 @@ class PictureTest {
     // GIVEN
     var uri = UuidV7.randomUuid() + ".png";
     var pictureType = PictureType.PNG;
+    var hash = new Sha256Hash(new byte[32]);
 
     // WHEN
-    new Picture(uri, pictureType);
+    new Picture(uri, pictureType, hash);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -45,9 +47,10 @@ class PictureTest {
     // GIVEN
     var uri = "picture/" + UuidV7.randomUuid() + ".png";
     var pictureType = PictureType.PNG;
+    var hash = new Sha256Hash(new byte[32]);
 
     // WHEN
-    new Picture(uri, pictureType);
+    new Picture(uri, pictureType, hash);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -58,11 +61,12 @@ class PictureTest {
     // GIVEN
     var uri = "invalid-uuid.jpg";
     var pictureType = PictureType.JPG;
+    var hash = new Sha256Hash(new byte[32]);
     // WHEN / THEN
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Picture(uri, pictureType);
+          new Picture(uri, pictureType, hash);
         });
   }
 
@@ -71,12 +75,13 @@ class PictureTest {
     // GIVEN
     var uri = "picture/" + UUID.randomUUID().toString() + ".png";
     var pictureType = PictureType.JPG;
+    var hash = new Sha256Hash(new byte[32]);
 
     // WHEN / THEN
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Picture(uri, pictureType);
+          new Picture(uri, pictureType, hash);
         });
   }
 
@@ -86,12 +91,13 @@ class PictureTest {
     // GIVEN
     var uri = "picture/" + UuidV7.randomUuid() + ext;
     var pictureType = PictureType.PNG;
+    var hash = new Sha256Hash(new byte[32]);
 
     // WHEN / THEN
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> {
-          new Picture(uri, pictureType);
+          new Picture(uri, pictureType, hash);
         });
   }
 }

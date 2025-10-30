@@ -27,7 +27,8 @@ class AnswerTest {
   void canInstantiatePictureAnswer() {
     // GIVEN
     String answerText = null;
-    var answerPicture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG);
+    var hash = new Sha256Hash(new byte[32]);
+    var answerPicture = new Picture(UuidV7.randomUuid() + ".jpg", PictureType.JPG, hash);
     var isCorrect = false;
 
     // WHEN
@@ -41,7 +42,8 @@ class AnswerTest {
   void canInstantiateAnswerWithBothTextAndPicture() {
     // GIVEN
     var answerText = "This is an answer";
-    var answerPicture = new Picture(UuidV7.randomUuid() + ".png", PictureType.PNG);
+    var hash = new Sha256Hash(new byte[32]);
+    var answerPicture = new Picture(UuidV7.randomUuid() + ".png", PictureType.PNG, hash);
     var isCorrect = true;
 
     // WHEN
