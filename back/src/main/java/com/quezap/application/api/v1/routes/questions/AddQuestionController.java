@@ -20,6 +20,8 @@ import com.quezap.application.api.v1.mappers.QuestionMapper;
 import com.quezap.domain.usecases.questions.AddQuestion;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
+import jakarta.validation.Valid;
+
 @RestController
 public class AddQuestionController {
   private static final String IO_ERROR_MESSAGE = "Failed to process uploaded file";
@@ -36,7 +38,7 @@ public class AddQuestionController {
   }
 
   @PostMapping("apiv1/questions/affirmation")
-  public QuestionIdDto addAffirmation(AffirmationDto request) {
+  public QuestionIdDto addAffirmation(@Valid AffirmationDto request) {
 
     final var picture = request.picture();
     final var themeId = request.themeId();
@@ -58,18 +60,19 @@ public class AddQuestionController {
   }
 
   @PostMapping("apiv1/questions/binary")
-  public QuestionIdDto addBinary(BinaryDto request) {
+  public QuestionIdDto addBinary(@Valid BinaryDto request) {
 
     final var picture = request.picture();
     final var themeId = request.themeId();
     final var question = request.question();
+    final var answers = request.answers();
 
     try (final var questionStream = PictureStreamHelper.openStream(picture)) {
 
       final var questionPictureData = mapper.toPictureUploadData(questionStream, picture);
 
       return executeWithAnswerStreams(
-          request.answers(),
+          answers,
           answerDataSet -> {
             final var input =
                 new AddQuestion.Input.Binary(question, answerDataSet, questionPictureData, themeId);
@@ -84,18 +87,19 @@ public class AddQuestionController {
   }
 
   @PostMapping("apiv1/questions/quizz")
-  public QuestionIdDto addBinary(QuizzDto request) {
+  public QuestionIdDto addBinary(@Valid QuizzDto request) {
 
     final var picture = request.picture();
     final var themeId = request.themeId();
     final var question = request.question();
+    final var answers = request.answers();
 
     try (final var questionStream = PictureStreamHelper.openStream(picture)) {
 
       final var questionPictureData = mapper.toPictureUploadData(questionStream, picture);
 
       return executeWithAnswerStreams(
-          request.answers(),
+          answers,
           answerDataSet -> {
             final var input =
                 new AddQuestion.Input.Binary(question, answerDataSet, questionPictureData, themeId);
