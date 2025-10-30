@@ -89,7 +89,7 @@ public class AddQuestionController {
   }
 
   @PostMapping("apiv1/questions/quizz")
-  public QuestionIdDto addBinary(@Valid QuizzDto request) {
+  public QuestionIdDto addQuizz(@Valid QuizzDto request) {
 
     final var picture = request.picture();
     final var themeId = request.themeId();
@@ -104,8 +104,7 @@ public class AddQuestionController {
           answers,
           answerDataList -> {
             final var input =
-                new AddQuestion.Input.Binary(
-                    question, answerDataList, questionPictureData, themeId);
+                new AddQuestion.Input.Quizz(question, answerDataList, questionPictureData, themeId);
             final var output = executor.execute(handler, input);
 
             return mapper.toDto(output);
