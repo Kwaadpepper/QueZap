@@ -1,7 +1,8 @@
 package com.quezap.application.api.v1.routes.questions;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -73,9 +74,10 @@ public class AddQuestionController {
 
       return executeWithAnswerStreams(
           answers,
-          answerDataSet -> {
+          answerDataList -> {
             final var input =
-                new AddQuestion.Input.Binary(question, answerDataSet, questionPictureData, themeId);
+                new AddQuestion.Input.Binary(
+                    question, answerDataList, questionPictureData, themeId);
             final var output = executor.execute(handler, input);
 
             return mapper.toDto(output);
@@ -100,9 +102,10 @@ public class AddQuestionController {
 
       return executeWithAnswerStreams(
           answers,
-          answerDataSet -> {
+          answerDataList -> {
             final var input =
-                new AddQuestion.Input.Binary(question, answerDataSet, questionPictureData, themeId);
+                new AddQuestion.Input.Binary(
+                    question, answerDataList, questionPictureData, themeId);
             final var output = executor.execute(handler, input);
 
             return mapper.toDto(output);
@@ -114,9 +117,9 @@ public class AddQuestionController {
   }
 
   private <T> T executeWithAnswerStreams(
-      Set<AnswerDto> answers, Function<Set<AddQuestion.Input.AnswerData>, T> operation) {
+      List<AnswerDto> answers, Function<Set<AddQuestion.Input.AnswerData>, T> operation) {
 
-    final var answersWithStreams = new ArrayList<AnswerWithStream>();
+    final var answersWithStreams = new HashSet<AnswerWithStream>();
 
     try {
       for (final var answer : answers) {

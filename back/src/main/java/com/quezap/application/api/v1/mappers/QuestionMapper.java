@@ -2,7 +2,6 @@ package com.quezap.application.api.v1.mappers;
 
 import java.io.InputStream;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -44,7 +43,7 @@ public class QuestionMapper {
   }
 
   public Set<AddQuestion.Input.AnswerData> toAnswerDataSet(
-      List<AnswerWithStream> answersWithStream) {
+      Set<AnswerWithStream> answersWithStream) {
 
     final var answerDataSet = new HashSet<AddQuestion.Input.AnswerData>();
 
