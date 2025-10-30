@@ -5,13 +5,13 @@ meta {
 }
 
 delete {
-  url: {{ADDRESS}}/apiv1/questions/:themeUuid
+  url: {{ADDRESS}}/apiv1/questions/:questionUuid
   body: none
   auth: inherit
 }
 
 params:path {
-  themeUuid: 019a265a-e0f4-7f54-b699-9d5f5ed3c249
+  questionUuid: {{question_uuid_to_delete}}
 }
 
 settings {

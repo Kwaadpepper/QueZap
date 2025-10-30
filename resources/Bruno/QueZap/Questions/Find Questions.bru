@@ -5,14 +5,14 @@ meta {
 }
 
 get {
-  url: {{ADDRESS}}/apiv1/questions/find?page=1&perPage=2
+  url: {{ADDRESS}}/apiv1/questions/find?page=1&perPage=50
   body: none
   auth: inherit
 }
 
 params:query {
   page: 1
-  perPage: 2
+  perPage: 50
   ~from: 0
   ~to: 2
   ~search: 1

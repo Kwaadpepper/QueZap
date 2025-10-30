@@ -17,6 +17,17 @@ body:multipart-form {
   themeId: {{theme_uuid_for_question}}
 }
 
+script:post-response {
+  const brunoVarName = "question_uuid_to_delete";
+  
+  const responseData = res.body;
+  const qustionUuid = responseData.uuid;
+    
+  bru.setVar(brunoVarName, qustionUuid);
+  
+  console.info(`UUID de la question a supprimer stocké : ${qustionUuid}`);
+}
+
 settings {
   encodeUrl: true
   timeout: 0
