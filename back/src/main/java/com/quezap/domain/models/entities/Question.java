@@ -46,7 +46,8 @@ public class Question extends AggregateRoot<QuestionId> {
         "There must be at least one correct answer");
 
     Domain.checkDomain(
-        () -> answers.stream().map(Answer::value).distinct().count() == answers.size(),
+        () ->
+            answers.stream().map(a -> a.value() + a.picture()).distinct().count() == answers.size(),
         "Answers must be unique");
 
     Domain.checkDomain(
