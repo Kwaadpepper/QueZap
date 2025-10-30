@@ -52,7 +52,7 @@ public sealed interface AddUser {
       final var hashedIdentifier = identifierHasher.hash(identifier);
       final var hashedPassword = passwordHasher.hash(rawPassword);
 
-      if (credentialRepository.findByidentifier(hashedIdentifier) != null) {
+      if (credentialRepository.findByIdentifier(hashedIdentifier) != null) {
         throw new DomainConstraintException(AddUserError.IDENTIFIER_ALREADY_TAKEN);
       }
 

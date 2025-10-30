@@ -8,5 +8,5 @@ import com.quezap.lib.ddd.Repository;
 import org.jspecify.annotations.Nullable;
 
 public interface CredentialRepository extends Repository<Credential, CredentialId> {
-  public @Nullable Credential findByidentifier(HashedIdentifier identifier);
+  public @Nullable Credential findByIdentifier(HashedIdentifier identifier);
 }

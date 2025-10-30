@@ -36,7 +36,7 @@ public class CredentialInMemoryRepository implements CredentialRepository {
   }
 
   @Override
-  public @Nullable Credential findByidentifier(HashedIdentifier identifier) {
+  public @Nullable Credential findByIdentifier(HashedIdentifier identifier) {
     return storage.values().stream()
         .filter(credential -> credential.getHashedIdentifier().equals(identifier))
         .findFirst()

@@ -48,7 +48,7 @@ class AddUserTest {
     Mockito.when(identifierHasher.hash(identifier))
         .thenReturn(new HashedIdentifier("hashedIdentifier"));
     Mockito.when(passwordHasher.hash(password)).thenReturn(new HashedPassword("$2a$10$a"));
-    Mockito.when(credentialRepository.findByidentifier(Mockito.any(HashedIdentifier.class)))
+    Mockito.when(credentialRepository.findByIdentifier(Mockito.any(HashedIdentifier.class)))
         .thenReturn(null);
     Mockito.when(userRepository.findByName(userName)).thenReturn(null);
 
@@ -70,7 +70,7 @@ class AddUserTest {
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier)).thenReturn(hashedIdentifier);
-    Mockito.when(credentialRepository.findByidentifier(hashedIdentifier))
+    Mockito.when(credentialRepository.findByIdentifier(hashedIdentifier))
         .thenReturn(Mockito.mock(Credential.class));
 
     // THEN
@@ -91,7 +91,7 @@ class AddUserTest {
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier)).thenReturn(hashedIdentifier);
-    Mockito.when(credentialRepository.findByidentifier(hashedIdentifier)).thenReturn(null);
+    Mockito.when(credentialRepository.findByIdentifier(hashedIdentifier)).thenReturn(null);
     Mockito.when(userRepository.findByName(userName)).thenReturn(Mockito.mock(User.class));
 
     // THEN
