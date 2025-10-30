@@ -54,7 +54,7 @@ public class QuestionMapper {
 
       final var pictureData = toPictureUploadData(stream, dto.picture());
       final var answerData =
-          new AddQuestion.Input.AnswerData(dto.answerText(), pictureData, dto.isTrue());
+          new AddQuestion.Input.AnswerData(dto.answer(), pictureData, dto.isTrue());
 
       answerDataSet.add(answerData);
     }

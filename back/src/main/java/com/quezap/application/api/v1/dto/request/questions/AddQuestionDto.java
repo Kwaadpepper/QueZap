@@ -34,6 +34,6 @@ public sealed interface AddQuestionDto {
       @Nonnull ThemeId themeId) {}
 
   public record AnswerDto(
-      @NotBlank @Size(max = 255) String answerText, @Nullable MultipartFile picture, boolean isTrue)
+      @NotBlank @Size(max = 255) String answer, @Nullable MultipartFile picture, boolean isTrue)
       implements AddQuestionDto {}
 }
