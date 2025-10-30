@@ -1,5 +1,6 @@
 package com.quezap.infrastructure.adapter.repositories;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,6 +74,8 @@ public class ThemeInMemoryRepository implements ThemeRepository {
       return PageOf.empty(pagination);
     }
 
+    themes.sort(createdAtComparator());
+
     final var toIndex = Math.min(fromIndex + pagination.pageSize(), totalItems);
     final var pageItems = themes.subList((int) fromIndex, (int) toIndex);
 
@@ -81,5 +84,9 @@ public class ThemeInMemoryRepository implements ThemeRepository {
 
   private Boolean stringLike(String haystack, String find) {
     return haystack.toLowerCase(Locale.ROOT).indexOf(find.toLowerCase(Locale.ROOT)) != -1;
+  }
+
+  private Comparator<Theme> createdAtComparator() {
+    return Comparator.comparing(Theme::getCreatedAt);
   }
 }

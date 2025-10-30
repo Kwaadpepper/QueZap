@@ -1,6 +1,6 @@
 package com.quezap.infrastructure.adapter.repositories;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
@@ -47,16 +47,23 @@ public class UserInMemoryRepository implements UserRepository {
 
   @Override
   public PageOf<User> findAll(Pagination pagination) {
-    var users = storage.values().stream().toArray();
-    long totalElements = users.length;
-    long fromIndex = Math.min((pagination.pageNumber() - 1) * pagination.pageSize(), totalElements);
-    long toIndex = Math.min(fromIndex + pagination.pageSize(), totalElements);
-    var content = new ArrayList<User>();
+    final var users = storage.values().stream().toList();
+    final var fromIndex = ((pagination.pageNumber() - 1) * pagination.pageSize());
+    final var totalItems = users.size();
 
-    for (long i = fromIndex; i < toIndex; i++) {
-      content.add((User) users[(int) i]);
+    if (fromIndex >= totalItems) {
+      return PageOf.empty(pagination);
     }
 
-    return PageOf.of(pagination, content, totalElements);
+    users.sort(createdAtComparator());
+
+    final var toIndex = Math.min(fromIndex + pagination.pageSize(), totalItems);
+    final var pageItems = users.subList((int) fromIndex, (int) toIndex);
+
+    return PageOf.of(pagination, pageItems, (long) totalItems);
+  }
+
+  private Comparator<User> createdAtComparator() {
+    return Comparator.comparing(User::getCreatedAt);
   }
 }

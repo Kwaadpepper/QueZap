@@ -1,5 +1,6 @@
 package com.quezap.infrastructure.adapter.repositories;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -83,6 +84,8 @@ public class QuestionInMemoryRepository implements QuestionRepository {
       return PageOf.empty(pagination);
     }
 
+    questions.sort(createdAtComparator());
+
     final var toIndex = Math.min(fromIndex + pagination.pageSize(), totalItems);
     final var pageItems = questions.subList((int) fromIndex, (int) toIndex);
 
@@ -91,5 +94,9 @@ public class QuestionInMemoryRepository implements QuestionRepository {
 
   private Boolean stringLike(String haystack, String find) {
     return haystack.toLowerCase(Locale.ROOT).indexOf(find.toLowerCase(Locale.ROOT)) != -1;
+  }
+
+  private Comparator<Question> createdAtComparator() {
+    return Comparator.comparing(Question::getCreatedAt);
   }
 }
