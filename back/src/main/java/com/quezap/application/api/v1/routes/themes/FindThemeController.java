@@ -7,11 +7,9 @@ import com.quezap.application.api.v1.dto.request.PaginationDto;
 import com.quezap.application.api.v1.dto.request.themes.FindThemesDto;
 import com.quezap.application.api.v1.dto.response.PageOfDto;
 import com.quezap.application.api.v1.dto.response.themes.ThemeDto;
-import com.quezap.application.api.v1.exceptions.BadPaginationException;
+import com.quezap.application.api.v1.mappers.PaginationMapper;
 import com.quezap.domain.usecases.themes.ListThemes;
-import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
-import com.quezap.lib.pagination.Pagination;
 
 import jakarta.validation.Valid;
 
@@ -19,10 +17,13 @@ import jakarta.validation.Valid;
 public class FindThemeController {
   private final UseCaseExecutor executor;
   private final ListThemes.Handler handler;
+  private final PaginationMapper paginationMapper;
 
-  FindThemeController(UseCaseExecutor executor, ListThemes.Handler handler) {
+  FindThemeController(
+      UseCaseExecutor executor, ListThemes.Handler handler, PaginationMapper paginationMapper) {
     this.executor = executor;
     this.handler = handler;
+    this.paginationMapper = paginationMapper;
   }
 
   @GetMapping("apiv1/themes/find")
@@ -31,11 +32,11 @@ public class FindThemeController {
 
     final var output = executor.execute(handler, input);
 
-    return PageOfDto.fromDomain(output.value(), this::toDto);
+    return paginationMapper.fromDomain(output.value(), this::toDto);
   }
 
   private ListThemes.Input toInput(PaginationDto paginationDto, FindThemesDto queryDto) {
-    final var pagination = toDomain(paginationDto);
+    final var pagination = paginationMapper.toDomain(paginationDto);
     final var search = queryDto.search();
 
     if (search != null) {
@@ -43,26 +44,6 @@ public class FindThemeController {
     }
 
     return new ListThemes.Input.PerPage(pagination);
-  }
-
-  private Pagination toDomain(PaginationDto dto) {
-    try {
-      final var page = dto.page();
-      final var perPage = dto.perPage();
-      final var from = dto.from();
-      final var to = dto.to();
-
-      if (page != null && perPage != null) {
-        return Pagination.ofPage(page, perPage);
-      } else if (from != null && to != null) {
-        return Pagination.ofIndexes(from, to);
-      }
-      return Pagination.firstPage();
-    } catch (IllegalDomainStateException e) {
-      final var errorMessage = e.getMessage();
-
-      throw new BadPaginationException(errorMessage);
-    }
   }
 
   private ThemeDto toDto(ListThemes.Output.ThemeDto theme) {
