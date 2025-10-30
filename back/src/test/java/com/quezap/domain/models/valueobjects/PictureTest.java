@@ -57,6 +57,23 @@ class PictureTest {
   }
 
   @Test
+  void canComparePictures() {
+    // GIVEN
+    var uri = "picture/" + UuidV7.randomUuid() + ".png";
+    var pictureType = PictureType.PNG;
+    var hash = new Sha256Hash(new byte[32]);
+    var hash2 = new Sha256Hash(new byte[32]);
+
+    // WHEN
+    var pic1 = new Picture(uri, pictureType, hash);
+    var pic2 = new Picture(uri, pictureType, hash2);
+
+    // THEN
+    Assertions.assertEquals(pic1, pic2);
+    Assertions.assertEquals(pic1.hashCode(), pic2.hashCode());
+  }
+
+  @Test
   void cannotInstantiatePictureWithInvalidUuid() {
     // GIVEN
     var uri = "invalid-uuid.jpg";
