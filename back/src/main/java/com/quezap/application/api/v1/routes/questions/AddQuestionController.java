@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.application.api.v1.dto.internal.AnswerWithStream;
-import com.quezap.application.api.v1.dto.request.questions.NewAffirmationDto;
-import com.quezap.application.api.v1.dto.request.questions.NewBinaryDto;
-import com.quezap.application.api.v1.dto.request.questions.NewBinaryDto.AnswerDto;
+import com.quezap.application.api.v1.dto.request.questions.AddQuestionDto.AffirmationDto;
+import com.quezap.application.api.v1.dto.request.questions.AddQuestionDto.AnswerDto;
+import com.quezap.application.api.v1.dto.request.questions.AddQuestionDto.BinaryDto;
+import com.quezap.application.api.v1.dto.request.questions.AddQuestionDto.QuizzDto;
 import com.quezap.application.api.v1.dto.response.questions.QuestionIdDto;
 import com.quezap.application.api.v1.exceptions.ServerException;
 import com.quezap.application.api.v1.helpers.PictureStreamHelper;
@@ -35,7 +36,7 @@ public class AddQuestionController {
   }
 
   @PostMapping("apiv1/questions/affirmation")
-  public QuestionIdDto addAffirmation(NewAffirmationDto request) {
+  public QuestionIdDto addAffirmation(AffirmationDto request) {
 
     final var picture = request.picture();
     final var themeId = request.themeId();
@@ -57,7 +58,33 @@ public class AddQuestionController {
   }
 
   @PostMapping("apiv1/questions/binary")
-  public QuestionIdDto addBinary(NewBinaryDto request) {
+  public QuestionIdDto addBinary(BinaryDto request) {
+
+    final var picture = request.picture();
+    final var themeId = request.themeId();
+    final var question = request.question();
+
+    try (final var questionStream = PictureStreamHelper.openStream(picture)) {
+
+      final var questionPictureData = mapper.toPictureUploadData(questionStream, picture);
+
+      return executeWithAnswerStreams(
+          request.answers(),
+          answerDataSet -> {
+            final var input =
+                new AddQuestion.Input.Binary(question, answerDataSet, questionPictureData, themeId);
+            final var output = executor.execute(handler, input);
+
+            return mapper.toDto(output);
+          });
+
+    } catch (IOException e) {
+      throw new ServerException(IO_ERROR_MESSAGE, e);
+    }
+  }
+
+  @PostMapping("apiv1/questions/quizz")
+  public QuestionIdDto addBinary(QuizzDto request) {
 
     final var picture = request.picture();
     final var themeId = request.themeId();

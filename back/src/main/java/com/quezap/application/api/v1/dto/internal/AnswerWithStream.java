@@ -2,7 +2,7 @@ package com.quezap.application.api.v1.dto.internal;
 
 import java.io.InputStream;
 
-import com.quezap.application.api.v1.dto.request.questions.NewBinaryDto.AnswerDto;
+import com.quezap.application.api.v1.dto.request.questions.AddQuestionDto.AnswerDto;
 
 import org.jspecify.annotations.Nullable;
 
