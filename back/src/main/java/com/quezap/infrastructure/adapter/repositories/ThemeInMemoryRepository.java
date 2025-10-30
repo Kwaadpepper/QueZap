@@ -80,6 +80,6 @@ public class ThemeInMemoryRepository implements ThemeRepository {
   }
 
   private Boolean stringLike(String haystack, String find) {
-    return haystack.toLowerCase(Locale.getDefault()).indexOf(find.toLowerCase(Locale.ROOT)) != -1;
+    return haystack.toLowerCase(Locale.ROOT).indexOf(find.toLowerCase(Locale.ROOT)) != -1;
   }
 }
