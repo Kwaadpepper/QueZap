@@ -36,7 +36,7 @@ public sealed interface AddSession {
       final var sessionName = usecaseInput.name();
       final var userId = usecaseInput.user();
 
-      final var lastCreatedSession = sessionRepository.latestByCode();
+      final var lastCreatedSession = sessionRepository.latestByNumber();
       final var sessionNumber =
           lastCreatedSession != null ? lastCreatedSession.getNumber() : new SessionNumber(1);
       final var sessionBuilder = SessionBuilder.Builder.with(sessionName, sessionNumber, userId);

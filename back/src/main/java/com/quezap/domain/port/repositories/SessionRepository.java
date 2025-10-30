@@ -10,5 +10,5 @@ import org.jspecify.annotations.Nullable;
 public interface SessionRepository extends Repository<Session, SessionId> {
   public @Nullable Session findByNumber(SessionNumber code);
 
-  public @Nullable Session latestByCode();
+  public @Nullable Session latestByNumber();
 }

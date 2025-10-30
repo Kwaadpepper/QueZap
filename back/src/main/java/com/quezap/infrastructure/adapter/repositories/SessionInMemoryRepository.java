@@ -44,14 +44,14 @@ public class SessionInMemoryRepository implements SessionRepository {
   }
 
   @Override
-  public @Nullable Session latestByCode() {
+  public @Nullable Session latestByNumber() {
     return storage.values().stream()
         .max(
             (a, b) -> {
-              final var s1Code = a.getNumber();
-              final var s2Code = b.getNumber();
+              final var s1Number = a.getNumber();
+              final var s2Number = b.getNumber();
 
-              return s1Code.value().compareTo(s2Code.value());
+              return s1Number.value().compareTo(s2Number.value());
             })
         .orElse(null);
   }
