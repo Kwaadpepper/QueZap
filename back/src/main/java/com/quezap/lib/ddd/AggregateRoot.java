@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.quezap.lib.ddd.entities.Entity;
+import com.quezap.lib.ddd.entities.EntityId;
 import com.quezap.lib.ddd.events.DomainEvent;
 import com.quezap.lib.utils.UuidV7;
 

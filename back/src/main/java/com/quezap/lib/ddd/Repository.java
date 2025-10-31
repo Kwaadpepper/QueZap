@@ -2,6 +2,8 @@ package com.quezap.lib.ddd;
 
 import java.util.Optional;
 
+import com.quezap.lib.ddd.entities.EntityId;
+
 import org.jspecify.annotations.NonNull;
 
 /**

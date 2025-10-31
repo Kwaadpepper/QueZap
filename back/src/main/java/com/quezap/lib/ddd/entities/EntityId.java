@@ -1,4 +1,4 @@
-package com.quezap.lib.ddd;
+package com.quezap.lib.ddd.entities;
 
 import java.util.UUID;
 
