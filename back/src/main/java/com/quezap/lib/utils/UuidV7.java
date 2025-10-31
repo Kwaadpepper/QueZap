@@ -1,9 +1,9 @@
 package com.quezap.lib.utils;
 
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Utility class for generating UUID version 7 (UUIDv7) identifiers.
@@ -28,10 +28,9 @@ import java.util.UUID;
  * }</pre>
  *
  * @see <a href="https://antonz.org/uuidv7/#java">UUIDv7 in 33 languages</a>
+ * @edit October 2025: Updated to use a faster random generation method.
  */
 public class UuidV7 {
-  private static final SecureRandom random = new SecureRandom();
-
   private UuidV7() {}
 
   /**
@@ -40,11 +39,8 @@ public class UuidV7 {
    * @return a randomly generated UUIDv7
    */
   public static UUID randomUuid() {
-    byte[] value = randomBytes();
-    ByteBuffer buf = ByteBuffer.wrap(value);
-    long high = buf.getLong();
-    long low = buf.getLong();
-    return new UUID(high, low);
+    final var longs = fasterRandomLongs();
+    return new UUID(longs[0], longs[1]);
   }
 
   /**
@@ -77,22 +73,47 @@ public class UuidV7 {
     return Instant.ofEpochMilli(epochMillis);
   }
 
-  private static byte[] randomBytes() {
-    // random bytes
-    byte[] value = new byte[16];
-    random.nextBytes(value);
+  /**
+   * A faster method to generate UUIDv7 using ThreadLocalRandom.
+   *
+   * @see <a
+   *     href="https://github.com/robsonkades/uuidv7/blob/master/src/main/java/io/github/robsonkades/uuidv7/UUIDv7.java">UUIDv7
+   *     by robsonkades</a>
+   */
+  private static long[] fasterRandomLongs() {
+    final long[] output = new long[] {0L, 0L};
 
-    // current timestamp in ms
-    ByteBuffer timestamp = ByteBuffer.allocate(Long.BYTES);
-    timestamp.putLong(System.currentTimeMillis());
+    // 1) Fetch current time in ms, mask to 48 bits
+    final long currentMillis = System.currentTimeMillis();
+    final long ts48 = currentMillis & 0xFFFFFFFFFFFFL; // 48-bit mask
 
-    // timestamp
-    System.arraycopy(timestamp.array(), 2, value, 0, 6);
+    // 2) Get 74 bits of entropy from ThreadLocalRandom: 64 + 32 bits
+    final long random64 = ThreadLocalRandom.current().nextLong();
+    final int random32 = ThreadLocalRandom.current().nextInt();
 
-    // version and variant
-    value[6] = (byte) ((value[6] & 0x0F) | 0x70);
-    value[8] = (byte) ((value[8] & 0x3F) | 0x80);
+    // Assemble the high 64 bits:
+    //   [ 48-bit timestamp ] [ 4-bit version=7 ] [ 12 high random bits ]
+    long high = (ts48 << 16); // place 48 ms bits at bits 0–47 of high<<16 = bits 16–63
+    final long randHigh12 = (random64 >>> 52) & 0x0FFFL; // top 12 bits of random64
+    high |= randHigh12; // bits 52–63
 
-    return value;
+    high &= ~0x0000_0000_0000_F000L; // clear version bits (bits 48–51)
+    high |= 0x0000000000007000L; // set version (4 bits = 0b0111) at bits 48–51
+
+    // Assemble the low 64 bits:
+    //   [ 2-bit variant=10 ] [ 52 low bits of random64 ] [ 10 high bits of random32 ]
+    long low = 0L; // set variant 0b10 at bits 64–65
+    final long randLow52 = random64 & 0x000FFFFFFFFFFFFFL; // lower 52 bits of random64
+    final int rand32High10 = (random32 >>> 22) & 0x3FF; // top 10 bits of random32
+    low |= (randLow52 << 10); // place 52 bits at bits 66–117
+    low |= rand32High10; // place 10 bits at bits 118–127
+
+    low &= 0x3FFF_FFFF_FFFF_FFFFL; // clear variant bits (bits 64–65)
+    low |= 0x8000_0000_0000_0000L; // set variant 0b10 at bits 64–65
+
+    output[0] = high;
+    output[1] = low;
+
+    return output;
   }
 }
