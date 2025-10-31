@@ -1,7 +1,8 @@
-package com.quezap.lib.ddd;
+package com.quezap.lib.ddd.repositories;
 
 import java.util.Optional;
 
+import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.entities.EntityId;
 
 import org.jspecify.annotations.NonNull;

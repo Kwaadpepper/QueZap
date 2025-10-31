@@ -6,7 +6,7 @@ import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.lib.ddd.Repository;
+import com.quezap.lib.ddd.repositories.Repository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 

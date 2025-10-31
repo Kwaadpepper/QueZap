@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.lib.ddd.Repository;
+import com.quezap.lib.ddd.repositories.Repository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 

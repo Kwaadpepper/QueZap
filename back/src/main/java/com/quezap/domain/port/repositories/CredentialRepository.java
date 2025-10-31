@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
-import com.quezap.lib.ddd.Repository;
+import com.quezap.lib.ddd.repositories.Repository;
 
 import org.jspecify.annotations.NonNull;
 
