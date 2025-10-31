@@ -3,6 +3,8 @@ package com.quezap.application.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.util.function.Supplier;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.quezap.application.api.v1.exceptions.InvalidFileException;
@@ -22,20 +24,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PictureMetadataValidatorServiceTest {
   private final PictureMetadataValidatorService validatorService;
-  private MockedStatic<FileVerifyingHelper> mockedFileVerifyingHelper;
+  private Supplier<MockedStatic<FileVerifyingHelper>> mockedFileVerifyingHelper;
 
   public PictureMetadataValidatorServiceTest() {
     this.validatorService = new PictureMetadataValidatorService();
+    this.mockedFileVerifyingHelper = () -> null;
   }
 
   @BeforeEach
   void setUp() {
-    mockedFileVerifyingHelper = MockEntity.mockStatic(FileVerifyingHelper.class);
+    final var fileHelper = MockEntity.mockStatic(FileVerifyingHelper.class);
+    mockedFileVerifyingHelper = () -> fileHelper;
   }
 
   @AfterEach
   void tearDown() {
-    mockedFileVerifyingHelper.close();
+    getFileVerifyingHelper().close();
   }
 
   @Nested
@@ -50,13 +54,13 @@ class PictureMetadataValidatorServiceTest {
       final MultipartFile mockFile = MockEntity.mock(MultipartFile.class);
       Mockito.when(mockFile.isEmpty()).thenReturn(false);
 
-      mockedFileVerifyingHelper
+      getFileVerifyingHelper()
           .when(
               () ->
                   FileVerifyingHelper.fileNameIsValidAndMatchesExtension(
                       MockEntity.any(MultipartFile.class)))
           .thenReturn(true);
-      mockedFileVerifyingHelper
+      getFileVerifyingHelper()
           .when(() -> FileVerifyingHelper.getFileMimeType(MockEntity.any(MultipartFile.class)))
           .thenReturn(VALID_MIME_TYPE);
 
@@ -84,9 +88,10 @@ class PictureMetadataValidatorServiceTest {
           .isThrownBy(() -> validatorService.validateAndGetMimeType(mockFile))
           .withMessageContaining("must not be empty");
 
-      mockedFileVerifyingHelper.verify(
-          () -> FileVerifyingHelper.fileNameIsValidAndMatchesExtension(MockEntity.any()),
-          Mockito.never());
+      getFileVerifyingHelper()
+          .verify(
+              () -> FileVerifyingHelper.fileNameIsValidAndMatchesExtension(MockEntity.any()),
+              Mockito.never());
     }
 
     @Test
@@ -96,7 +101,7 @@ class PictureMetadataValidatorServiceTest {
       final MultipartFile mockFile = MockEntity.mock(MultipartFile.class);
       Mockito.when(mockFile.isEmpty()).thenReturn(false);
 
-      mockedFileVerifyingHelper
+      getFileVerifyingHelper()
           .when(
               () ->
                   FileVerifyingHelper.fileNameIsValidAndMatchesExtension(
@@ -116,13 +121,13 @@ class PictureMetadataValidatorServiceTest {
       final MultipartFile mockFile = MockEntity.mock(MultipartFile.class);
       Mockito.when(mockFile.isEmpty()).thenReturn(false);
 
-      mockedFileVerifyingHelper
+      getFileVerifyingHelper()
           .when(
               () ->
                   FileVerifyingHelper.fileNameIsValidAndMatchesExtension(
                       MockEntity.any(MultipartFile.class)))
           .thenReturn(true);
-      mockedFileVerifyingHelper
+      getFileVerifyingHelper()
           .when(() -> FileVerifyingHelper.getFileMimeType(MockEntity.any(MultipartFile.class)))
           .thenReturn(null);
 
@@ -140,13 +145,13 @@ class PictureMetadataValidatorServiceTest {
       final MultipartFile mockFile = MockEntity.mock(MultipartFile.class);
       Mockito.when(mockFile.isEmpty()).thenReturn(false);
 
-      mockedFileVerifyingHelper
+      getFileVerifyingHelper()
           .when(
               () ->
                   FileVerifyingHelper.fileNameIsValidAndMatchesExtension(
                       MockEntity.any(MultipartFile.class)))
           .thenReturn(true);
-      mockedFileVerifyingHelper
+      getFileVerifyingHelper()
           .when(() -> FileVerifyingHelper.getFileMimeType(MockEntity.any(MultipartFile.class)))
           .thenReturn("application/zip");
 
@@ -155,5 +160,9 @@ class PictureMetadataValidatorServiceTest {
           .isThrownBy(() -> validatorService.validateAndGetMimeType(mockFile))
           .withMessageContaining("must be one of the following types");
     }
+  }
+
+  private MockedStatic<FileVerifyingHelper> getFileVerifyingHelper() {
+    return mockedFileVerifyingHelper.get();
   }
 }

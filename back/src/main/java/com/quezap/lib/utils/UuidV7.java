@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * }</pre>
  *
  * @see <a href="https://antonz.org/uuidv7/#java">UUIDv7 in 33 languages</a>
- * @edit October 2025: Updated to use a faster random generation method.
+ * @implNote October 2025: Updated to use a faster random generation method.
  */
 public class UuidV7 {
   private UuidV7() {}

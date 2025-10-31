@@ -1,6 +1,5 @@
 package com.quezap.domain.models.entities;
 
-import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -14,11 +13,13 @@ import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.lib.ddd.AggregateRoot;
+import com.quezap.lib.ddd.TracksUpdatedAt;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.Domain;
 
 import org.jspecify.annotations.Nullable;
 
-public class Question extends AggregateRoot<QuestionId> {
+public class Question extends AggregateRoot<QuestionId> implements TracksUpdatedAt {
   private static final int ANSWERS_MAX_SIZE = 4;
 
   private final QuestionType type;
@@ -26,7 +27,7 @@ public class Question extends AggregateRoot<QuestionId> {
   private final @Nullable Picture picture;
   private final ThemeId theme;
   private final Set<Answer> answers;
-  private final ZonedDateTime updatedAt;
+  private TimelinePoint updatedAt;
 
   private static void validateCommonInvariants(
       QuestionType type, String question, Set<Answer> answers) {
@@ -98,8 +99,7 @@ public class Question extends AggregateRoot<QuestionId> {
       String value,
       @Nullable Picture picture,
       ThemeId theme,
-      Set<Answer> answers,
-      ZonedDateTime updatedAt) {
+      Set<Answer> answers) {
     super();
     validateCommonInvariants(type, value, answers);
     this.type = type;
@@ -107,7 +107,7 @@ public class Question extends AggregateRoot<QuestionId> {
     this.picture = picture;
     this.theme = theme;
     this.answers = new HashSet<>(answers);
-    this.updatedAt = updatedAt;
+    this.updatedAt = TimelinePoint.now();
   }
 
   protected Question(
@@ -117,7 +117,7 @@ public class Question extends AggregateRoot<QuestionId> {
       @Nullable Picture picture,
       ThemeId theme,
       Set<Answer> answers,
-      ZonedDateTime updatedAt) {
+      TimelinePoint updatedAt) {
     super(id);
     validateCommonInvariants(type, value, answers);
     this.type = type;
@@ -135,7 +135,7 @@ public class Question extends AggregateRoot<QuestionId> {
       @Nullable Picture picture,
       ThemeId theme,
       Set<Answer> answers,
-      ZonedDateTime updatedAt) {
+      TimelinePoint updatedAt) {
     return new Question(id, type, value, picture, theme, answers, updatedAt);
   }
 
@@ -167,12 +167,18 @@ public class Question extends AggregateRoot<QuestionId> {
   }
 
   @Override
-  public ZonedDateTime getCreatedAt() {
+  public TimelinePoint getCreatedAt() {
     return createdAt;
   }
 
-  public ZonedDateTime getUpdatedAt() {
+  @Override
+  public TimelinePoint getUpdatedAt() {
     return updatedAt;
+  }
+
+  @Override
+  public void setUpdateAt(TimelinePoint now) {
+    this.updatedAt = now;
   }
 
   // * ACTIONS

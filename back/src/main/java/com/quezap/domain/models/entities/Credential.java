@@ -1,7 +1,5 @@
 package com.quezap.domain.models.entities;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -9,35 +7,33 @@ import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.auth.HashedPassword;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.lib.ddd.AggregateRoot;
+import com.quezap.lib.ddd.TracksUpdatedAt;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 
 import org.jspecify.annotations.Nullable;
 
-public class Credential extends AggregateRoot<CredentialId> {
+public class Credential extends AggregateRoot<CredentialId> implements TracksUpdatedAt {
 
   private final HashedIdentifier hashedIdentifier;
-  private final @Nullable ZonedDateTime lastConnectionAt;
+  private final @Nullable TimelinePoint lastConnectionAt;
 
   private HashedPassword hashedPassword;
-  private ZonedDateTime updatedAt;
+  private TimelinePoint updatedAt;
 
-  public Credential(
-      HashedPassword hashedPassword,
-      HashedIdentifier hashedIdentifier,
-      @Nullable ZonedDateTime lastConnectionAt,
-      ZonedDateTime updatedAt) {
+  public Credential(HashedPassword hashedPassword, HashedIdentifier hashedIdentifier) {
     super();
     this.hashedPassword = hashedPassword;
     this.hashedIdentifier = hashedIdentifier;
-    this.lastConnectionAt = lastConnectionAt;
-    this.updatedAt = updatedAt;
+    this.lastConnectionAt = null;
+    this.updatedAt = TimelinePoint.now();
   }
 
   protected Credential(
       UUID id,
       HashedPassword hashedPassword,
       HashedIdentifier hashedIdentifier,
-      @Nullable ZonedDateTime lastConnectionAt,
-      ZonedDateTime updatedAt) {
+      @Nullable TimelinePoint lastConnectionAt,
+      TimelinePoint updatedAt) {
     super(id);
     this.hashedPassword = hashedPassword;
     this.hashedIdentifier = hashedIdentifier;
@@ -49,8 +45,8 @@ public class Credential extends AggregateRoot<CredentialId> {
       UUID id,
       HashedPassword hashedPassword,
       HashedIdentifier hashedIdentifier,
-      @Nullable ZonedDateTime lastConnectionAt,
-      ZonedDateTime updatedAt) {
+      @Nullable TimelinePoint lastConnectionAt,
+      TimelinePoint updatedAt) {
     return new Credential(id, hashedPassword, hashedIdentifier, lastConnectionAt, updatedAt);
   }
 
@@ -59,7 +55,7 @@ public class Credential extends AggregateRoot<CredentialId> {
     return new CredentialId(rawId);
   }
 
-  public @Nullable ZonedDateTime getLastConnectionAt() {
+  public @Nullable TimelinePoint getLastConnectionAt() {
     return lastConnectionAt;
   }
 
@@ -72,17 +68,22 @@ public class Credential extends AggregateRoot<CredentialId> {
   }
 
   @Override
-  public ZonedDateTime getCreatedAt() {
+  public TimelinePoint getCreatedAt() {
     return createdAt;
   }
 
-  public ZonedDateTime getUpdatedAt() {
+  @Override
+  public TimelinePoint getUpdatedAt() {
     return updatedAt;
+  }
+
+  @Override
+  public void setUpdateAt(TimelinePoint now) {
+    this.updatedAt = now;
   }
 
   public void updatePassword(HashedPassword newHashedPassword) {
     this.hashedPassword = newHashedPassword;
-    this.updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
   }
 
   @Override

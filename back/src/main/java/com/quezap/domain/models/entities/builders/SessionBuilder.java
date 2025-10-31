@@ -1,6 +1,5 @@
 package com.quezap.domain.models.entities.builders;
 
-import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,8 +11,6 @@ import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
-
-import org.jspecify.annotations.Nullable;
 
 public sealed interface SessionBuilder {
   public static non-sealed class Builder implements SessionBuilder {
@@ -36,10 +33,6 @@ public sealed interface SessionBuilder {
 
       WithoutOptional addAnswer(QuestionAnswer answer);
 
-      WithoutOptional startedAt(ZonedDateTime startedAt);
-
-      WithoutOptional endedAt(ZonedDateTime endedAt);
-
       Session build();
     }
   }
@@ -52,25 +45,11 @@ public sealed interface SessionBuilder {
     private Set<Participant> participants = new HashSet<>();
     private Set<QuestionAnswer> questionAnswers = new HashSet<>();
     private UserId author;
-    private @Nullable ZonedDateTime startedAt = null;
-    private @Nullable ZonedDateTime endedAt = null;
 
     public BuilderImpl(SessionName name, SessionNumber number, UserId author) {
       this.name = name;
       this.number = number;
       this.author = author;
-    }
-
-    @Override
-    public WithoutOptional startedAt(ZonedDateTime startedAt) {
-      this.startedAt = startedAt;
-      return this;
-    }
-
-    @Override
-    public WithoutOptional endedAt(ZonedDateTime endedAt) {
-      this.endedAt = endedAt;
-      return this;
     }
 
     @Override
@@ -120,15 +99,7 @@ public sealed interface SessionBuilder {
     @Override
     public Session build() {
       return new Session(
-          name,
-          number,
-          currentSlideIndex,
-          questionSlides,
-          participants,
-          questionAnswers,
-          author,
-          startedAt,
-          endedAt);
+          name, number, currentSlideIndex, questionSlides, participants, questionAnswers, author);
     }
   }
 }

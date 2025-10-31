@@ -1,24 +1,24 @@
 package com.quezap.domain.models.entities;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.ddd.AggregateRoot;
+import com.quezap.lib.ddd.TracksUpdatedAt;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.Domain;
 
 import jakarta.persistence.Entity;
 import org.jspecify.annotations.Nullable;
 
 @Entity
-public class User extends AggregateRoot<UserId> {
+public class User extends AggregateRoot<UserId> implements TracksUpdatedAt {
   private String name;
 
   private CredentialId credential;
-
-  private ZonedDateTime updatedAt;
+  private TimelinePoint updatedAt;
 
   private static void validateCommonInvariants(String name) {
     Domain.checkDomain(() -> !name.isBlank(), "Name cannot be blank");
@@ -26,14 +26,14 @@ public class User extends AggregateRoot<UserId> {
     Domain.checkDomain(() -> name.length() <= 65, "Name cannot exceed 65 characters");
   }
 
-  public User(String name, CredentialId credential, ZonedDateTime updatedAt) {
+  public User(String name, CredentialId credential) {
     validateCommonInvariants(name);
     this.name = name;
     this.credential = credential;
-    this.updatedAt = updatedAt;
+    this.updatedAt = TimelinePoint.now();
   }
 
-  protected User(UUID id, String name, CredentialId credential, ZonedDateTime updatedAt) {
+  protected User(UUID id, String name, CredentialId credential, TimelinePoint updatedAt) {
     super(id);
     validateCommonInvariants(name);
     this.name = name;
@@ -42,7 +42,7 @@ public class User extends AggregateRoot<UserId> {
   }
 
   public static User hydrate(
-      UUID id, String name, CredentialId credential, ZonedDateTime updatedAt) {
+      UUID id, String name, CredentialId credential, TimelinePoint updatedAt) {
     return new User(id, name, credential, updatedAt);
   }
 
@@ -64,15 +64,21 @@ public class User extends AggregateRoot<UserId> {
   }
 
   @Override
-  public ZonedDateTime getCreatedAt() {
+  public TimelinePoint getCreatedAt() {
     return createdAt;
   }
 
-  public ZonedDateTime getUpdatedAt() {
+  @Override
+  public TimelinePoint getUpdatedAt() {
     return updatedAt;
   }
 
-  public void setUpdatedAt(ZonedDateTime updatedAt) {
+  @Override
+  public void setUpdateAt(TimelinePoint now) {
+    this.updatedAt = now;
+  }
+
+  public void setUpdatedAt(TimelinePoint updatedAt) {
     this.updatedAt = updatedAt;
   }
 

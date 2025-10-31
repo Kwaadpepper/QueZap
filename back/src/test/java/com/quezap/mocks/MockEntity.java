@@ -44,6 +44,7 @@ public abstract class MockEntity {
     return Mockito.any(classT);
   }
 
+  @SuppressWarnings("TypeParameterUnusedInFormals")
   public static <T> T any() {
     return Mockito.any();
   }

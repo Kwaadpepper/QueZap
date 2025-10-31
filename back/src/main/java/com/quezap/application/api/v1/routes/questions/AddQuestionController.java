@@ -132,7 +132,8 @@ public class AddQuestionController {
     } catch (IOException e) {
       throw new ServerException(IO_ERROR_MESSAGE, e);
     } finally {
-      answersWithStreams.stream().forEach(aS -> PictureStreamHelper.closeStream(aS.stream()));
+      answersWithStreams.stream()
+          .forEach(answer -> PictureStreamHelper.closeStream(answer.stream()));
     }
   }
 }

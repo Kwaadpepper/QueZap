@@ -1,8 +1,5 @@
 package com.quezap.domain.usecases.users;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-
 import com.quezap.domain.errors.users.AddUserError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
@@ -60,10 +57,8 @@ public sealed interface AddUser {
         throw new DomainConstraintException(AddUserError.USER_NAME_ALREADY_TAKEN);
       }
 
-      final var credential =
-          new Credential(
-              hashedPassword, hashedIdentifier, null, ZonedDateTime.now(ZoneId.of("UTC")));
-      final var user = new User(userName, credential.getId(), ZonedDateTime.now(ZoneId.of("UTC")));
+      final var credential = new Credential(hashedPassword, hashedIdentifier);
+      final var user = new User(userName, credential.getId());
 
       credentialRepository.persist(credential);
       userRepository.persist(user);

@@ -1,7 +1,5 @@
 package com.quezap.lib.ddd;
 
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +9,7 @@ import java.util.UUID;
 import com.quezap.lib.ddd.entities.Entity;
 import com.quezap.lib.ddd.entities.EntityId;
 import com.quezap.lib.ddd.events.DomainEvent;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.UuidV7;
 
 /**
@@ -24,7 +23,7 @@ public abstract class AggregateRoot<T extends EntityId> implements Entity {
   private final List<DomainEvent<?>> domainEvents = new ArrayList<>();
 
   protected final UUID rawId;
-  protected final ZonedDateTime createdAt;
+  protected final TimelinePoint createdAt;
 
   /**
    * Protected constructor for AggregateRoot. Initializes the aggregate root with a randomly
@@ -41,18 +40,24 @@ public abstract class AggregateRoot<T extends EntityId> implements Entity {
     this.createdAt = extractCreatedAtFromId(id);
   }
 
-  /** Returns the unique identifier of this aggregate root. */
+  /**
+   * Returns the unique identifier of this aggregate root.
+   *
+   * @return the unique identifier as an instance of {@link EntityId}
+   */
   public abstract T getId();
 
   /**
    * Returns the creation timestamp of this aggregate root.
    *
-   * @return the ZonedDateTime when the aggregate root was created
+   * @return the creation timestamp as a {@link TimelinePoint}
    */
-  public abstract ZonedDateTime getCreatedAt();
+  public TimelinePoint getCreatedAt() {
+    return createdAt;
+  }
 
-  private ZonedDateTime extractCreatedAtFromId(UUID id) {
-    return ZonedDateTime.ofInstant(UuidV7.extractInstant(id), ZoneOffset.UTC);
+  private TimelinePoint extractCreatedAtFromId(UUID id) {
+    return new TimelinePoint(UuidV7.extractInstant(id));
   }
 
   protected void registerEvent(DomainEvent<?> event) {

@@ -1,7 +1,5 @@
 package com.quezap.domain.usecases.questions;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -157,9 +155,7 @@ public sealed interface AddQuestion {
         ThemeId theme,
         Set<Answer> answers) {
       try {
-        final var updatedAt = ZonedDateTime.now(ZoneId.of("UTC"));
-
-        return new Question(type, value, picture, theme, answers, updatedAt);
+        return new Question(type, value, picture, theme, answers);
       } catch (IllegalDomainStateException e) {
         // * Convert to a more specific domain exception with relevant error message
         throw new DomainConstraintException(AddQuestionError.INVALID_QUESTION_DATA, e.getMessage());

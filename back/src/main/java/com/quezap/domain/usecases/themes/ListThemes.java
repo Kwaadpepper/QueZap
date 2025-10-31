@@ -1,7 +1,5 @@
 package com.quezap.domain.usecases.themes;
 
-import java.time.ZonedDateTime;
-
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.ThemeName;
@@ -12,6 +10,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
@@ -31,7 +30,7 @@ public sealed interface ListThemes {
   }
 
   record Output(PageOf<ThemeDto> value) implements UseCaseOutput {
-    public record ThemeDto(ThemeId id, ThemeName name, ZonedDateTime createdAt) {}
+    public record ThemeDto(ThemeId id, ThemeName name, TimelinePoint createdAt) {}
   }
 
   // * HANDLER
@@ -55,7 +54,7 @@ public sealed interface ListThemes {
       final var page = input.page();
       final var questionPage = themeRepository.paginate(page);
 
-      return new Output(questionPage.map(this::toDto));
+      return new Output(questionPage.<ThemeDto>map(this::toDto));
     }
 
     private Output listSearching(Input.Searching input) {
@@ -63,7 +62,7 @@ public sealed interface ListThemes {
       final var search = input.search();
       final var themePage = themeRepository.paginateSearching(page, search);
 
-      return new Output(themePage.map(this::toDto));
+      return new Output(themePage.<ThemeDto>map(this::toDto));
     }
 
     private ThemeDto toDto(Theme theme) {

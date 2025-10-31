@@ -1,7 +1,5 @@
 package com.quezap.domain.models.entities;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -23,6 +21,7 @@ import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.lib.ddd.AggregateRoot;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.Domain;
 
 import org.jspecify.annotations.Nullable;
@@ -37,14 +36,14 @@ public class Session extends AggregateRoot<SessionId> {
   private final Set<Participant> participants;
   private final Set<QuestionAnswer> answers;
   private final UserId author;
-  private @Nullable ZonedDateTime startedAt;
-  private @Nullable ZonedDateTime endedAt;
+  private @Nullable TimelinePoint startedAt;
+  private @Nullable TimelinePoint endedAt;
 
   private static void validateCommonInvariants(
       Set<QuestionSlide> questionSlides,
       Integer currentSlideIndex,
-      @Nullable ZonedDateTime startedAt,
-      @Nullable ZonedDateTime endedAt) {
+      @Nullable TimelinePoint startedAt,
+      @Nullable TimelinePoint endedAt) {
     Domain.checkDomain(() -> !questionSlides.isEmpty(), "Question slides cannot be empty");
     Domain.checkDomain(
         () -> questionSlides.size() <= QUESTIONS_COUNT_MAX_SIZE,
@@ -68,9 +67,7 @@ public class Session extends AggregateRoot<SessionId> {
       Set<QuestionSlide> questionSlides,
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
-      UserId author,
-      @Nullable ZonedDateTime startedAt,
-      @Nullable ZonedDateTime endedAt) {
+      UserId author) {
     super();
     validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
@@ -80,8 +77,8 @@ public class Session extends AggregateRoot<SessionId> {
     this.participants = new HashSet<>(participants);
     this.answers = new HashSet<>(answers);
     this.author = author;
-    this.startedAt = startedAt;
-    this.endedAt = endedAt;
+    this.startedAt = null;
+    this.endedAt = null;
   }
 
   protected Session(
@@ -93,8 +90,8 @@ public class Session extends AggregateRoot<SessionId> {
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
       UserId author,
-      @Nullable ZonedDateTime startedAt,
-      @Nullable ZonedDateTime endedAt) {
+      @Nullable TimelinePoint startedAt,
+      @Nullable TimelinePoint endedAt) {
     super(id);
     validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
@@ -117,8 +114,8 @@ public class Session extends AggregateRoot<SessionId> {
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
       UserId author,
-      @Nullable ZonedDateTime startedAt,
-      @Nullable ZonedDateTime endedAt) {
+      @Nullable TimelinePoint startedAt,
+      @Nullable TimelinePoint endedAt) {
     return new Session(
         id,
         name,
@@ -153,7 +150,7 @@ public class Session extends AggregateRoot<SessionId> {
     if (isRunning()) {
       throw new DomainConstraintException(AddQuestionError.SESSION_IS_RUNNING);
     }
-    if (isEnded()) {
+    if (hasEnded()) {
       throw new DomainConstraintException(AddQuestionError.SESSION_IS_ENDED);
     }
     if (questionSlides.size() >= QUESTIONS_COUNT_MAX_SIZE) {
@@ -166,13 +163,13 @@ public class Session extends AggregateRoot<SessionId> {
     if (isRunning()) {
       throw new DomainConstraintException(RemoveQuestionError.SESSION_IS_RUNNING);
     }
-    if (isEnded()) {
+    if (hasEnded()) {
       throw new DomainConstraintException(RemoveQuestionError.SESSION_IS_ENDED);
     }
     questionSlides.remove(question);
   }
 
-  public @Nullable ZonedDateTime getStartedAt() {
+  public @Nullable TimelinePoint getStartedAt() {
     return startedAt;
   }
 
@@ -184,34 +181,34 @@ public class Session extends AggregateRoot<SessionId> {
     return author;
   }
 
-  public @Nullable ZonedDateTime getEndedAt() {
+  public @Nullable TimelinePoint getEndedAt() {
     return endedAt;
   }
 
   @Override
-  public ZonedDateTime getCreatedAt() {
+  public TimelinePoint getCreatedAt() {
     return createdAt;
   }
 
   public boolean isRunning() {
-    return isStarted() && !isEnded();
+    return hasBegun() && !hasEnded();
   }
 
-  public boolean isStarted() {
-    final var now = ZonedDateTime.now(ZoneId.of("UTC"));
-    return now.isAfter(startedAt) && now.isBefore(endedAt);
+  public boolean hasBegun() {
+    final var now = TimelinePoint.now();
+    return startedAt != null && now.isAfter(startedAt);
   }
 
-  public boolean isEnded() {
-    final var now = ZonedDateTime.now(ZoneId.of("UTC"));
+  public boolean hasEnded() {
+    final var now = TimelinePoint.now();
     return endedAt != null && now.isAfter(endedAt);
   }
 
   public void startSession() {
-    if (isStarted()) {
+    if (hasBegun()) {
       throw new DomainConstraintException(StartSessionError.SESSION_ALREADY_STARTED);
     }
-    if (isEnded()) {
+    if (hasEnded()) {
       throw new DomainConstraintException(StartSessionError.SESSION_ENDED);
     }
     if (!hasEnoughParticipantsToStart()) {
@@ -220,7 +217,7 @@ public class Session extends AggregateRoot<SessionId> {
     if (!hasEnoughQuestionsToStart()) {
       throw new DomainConstraintException(StartSessionError.NOT_ENOUGH_QUESTIONS_TO_START);
     }
-    startedAt = ZonedDateTime.now(ZoneId.of("UTC"));
+    startedAt = TimelinePoint.now();
     // TODO: Emmit event SessionStarted
   }
 
@@ -231,7 +228,7 @@ public class Session extends AggregateRoot<SessionId> {
     if (startedAt == null) {
       throw new IllegalDomainStateException("Session has not started yet");
     }
-    endedAt = ZonedDateTime.now(ZoneId.of("UTC"));
+    endedAt = TimelinePoint.now();
     // TODO: Emmit event SessionEnded
   }
 
@@ -255,10 +252,10 @@ public class Session extends AggregateRoot<SessionId> {
     if (participants.stream().noneMatch(p -> p.name().equals(participantName))) {
       throw new IllegalArgumentException("Participant not found in session");
     }
-    if (!isStarted()) {
+    if (!hasBegun()) {
       throw new DomainConstraintException(AnswerSessionError.SESSION_NOT_STARTED);
     }
-    if (isEnded()) {
+    if (hasEnded()) {
       throw new DomainConstraintException(AnswerSessionError.SESSION_ALREADY_ENDED);
     }
     if (slideIndex < 0 || slideIndex >= questionSlides.size()) {

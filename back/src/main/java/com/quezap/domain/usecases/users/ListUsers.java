@@ -1,7 +1,5 @@
 package com.quezap.domain.usecases.users;
 
-import java.time.ZonedDateTime;
-
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
@@ -9,6 +7,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
@@ -19,7 +18,7 @@ public sealed interface ListUsers {
 
   public record Output(PageOf<@NonNull UserDto> page) implements UseCaseOutput {
     public record UserDto(
-        UserId id, String name, ZonedDateTime createdAt, ZonedDateTime updatedAt) {}
+        UserId id, String name, TimelinePoint createdAt, TimelinePoint updatedAt) {}
   }
 
   final class Handler implements UseCaseHandler<Input, Output>, ListUsers {
