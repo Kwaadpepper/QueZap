@@ -7,8 +7,8 @@ import java.io.PipedOutputStream;
 import java.security.MessageDigest;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.config.PicturesS3Config;
@@ -25,21 +25,24 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
 public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
   private static final String PICTURE_FOLDER = "pictures/questions/";
   private static final Logger logger = LoggerFactory.getLogger(QuestionPictureManagerS3Impl.class);
-  private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
   private final String bucketName;
   private final S3Client s3Client;
+  private final ExecutorService executorService;
 
-  public QuestionPictureManagerS3Impl(PicturesS3Config config) {
+  public QuestionPictureManagerS3Impl(
+      PicturesS3Config config,
+      @Qualifier("pictureHashingExecutor") ExecutorService executorService) {
     this.bucketName = config.getBucketName();
     this.s3Client = config.getS3Client();
+    this.executorService = executorService;
   }
 
   @Override
@@ -50,7 +53,7 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
       // Launch a separate thread to hash the content while piping it to S3
       final var hashFuture =
-          executorService.submit(interceptStreamAndHashContent(originalStream, pipedOutputStream));
+          executorService.submit(hashStreamWhilePiping(originalStream, pipedOutputStream));
 
       final long contentLength = uploadData.contentLength();
       final var pictureType = uploadData.type();
@@ -75,10 +78,10 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
     } catch (InterruptedException e) {
       // Restore the interrupted status of main thread
       Thread.currentThread().interrupt();
-      throw new QuestionPictureManagerException("Thread interrupted while waiting for hash.", e);
+      throw new QuestionPictureManagerException("Thread interrupted while hashing picture.", e);
     } catch (Exception e) {
-      logExceptionDetails(e);
-      throw new QuestionPictureManagerException("Error storing or hashing picture.", e);
+      logStoreException(e);
+      throw new QuestionPictureManagerException("Failed to store picture to S3.", e);
     }
   }
 
@@ -91,15 +94,17 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
       logger.debug("Picture with key {} exists in S3 bucket {}", objectKey, bucketName);
 
       return true;
-    } catch (NoSuchKeyException _) {
-
-      logger.debug(
-          "Picture with key {} does not exist in S3 bucket {}", picture.objectKey(), bucketName);
-
-      return false;
+    } catch (S3Exception e) {
+      if (e.statusCode() == 404) {
+        logger.debug(
+            "Picture with key {} does not exist in S3 bucket {}", picture.objectKey(), bucketName);
+        return false;
+      }
+      logExistsException(e);
+      throw new QuestionPictureManagerException("Failed to check picture existence in S3.", e);
     } catch (Exception e) {
-      logExceptionDetails(e);
-      throw new QuestionPictureManagerException("Error storing or hashing picture.", e);
+      logExistsException(e);
+      throw new QuestionPictureManagerException("Failed to check picture existence in S3.", e);
     }
   }
 
@@ -138,8 +143,8 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
       return new Picture(destinationKey, pictureType, pictureHash);
     } catch (Exception e) {
-      logExceptionDetails(e);
-      throw new QuestionPictureManagerException("Error copying picture in S3.", e);
+      logCopyException(e);
+      throw new QuestionPictureManagerException("Failed to copy picture in S3.", e);
     }
   }
 
@@ -151,15 +156,19 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
       logger.debug("Removed picture with key {} from S3 bucket {}", objectKey, bucketName);
 
-    } catch (NoSuchKeyException _) {
-      logger.debug(
-          "Picture with key {} does not exist in S3 bucket {}; nothing to remove",
-          picture.objectKey(),
-          bucketName);
+    } catch (S3Exception e) {
+      if (e.statusCode() == 404) {
+        logger.debug(
+            "Picture with key {} does not exist in S3 bucket {}; nothing to remove",
+            picture.objectKey(),
+            bucketName);
+      } else {
+        throw e;
+      }
     }
   }
 
-  private Callable<Sha256Hash> interceptStreamAndHashContent(
+  private Callable<Sha256Hash> hashStreamWhilePiping(
       BufferedInputStream originalStream, PipedOutputStream pipedOutputStream) {
 
     return () -> {
@@ -178,12 +187,12 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
         return new Sha256Hash(digest.digest());
       } catch (Exception e) {
-        logger.error("Error in hashing/teeing thread", e);
+        logger.error("Error in hashing/piping thread for picture upload", e);
 
         try {
           pipedOutputStream.close();
-        } catch (IOException ioEx) {
-          logger.error("Error closing PipedOutputStream after thread failure", ioEx);
+        } catch (IOException _) {
+          logger.error("Failed to close PipedOutputStream after hashing thread failure");
         }
 
         throw e;
@@ -196,17 +205,29 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
     return PICTURE_FOLDER + UuidV7.randomUuid().toString() + "." + extension;
   }
 
-  private void logExceptionDetails(Exception e) {
+  private void logStoreException(Exception e) {
+    logExceptionWithContext("Failed to store picture", e);
+  }
+
+  private void logExistsException(Exception e) {
+    logExceptionWithContext("Failed to check picture existence", e);
+  }
+
+  private void logCopyException(Exception e) {
+    logExceptionWithContext("Failed to copy picture", e);
+  }
+
+  private void logExceptionWithContext(String context, Exception e) {
     switch (e) {
-      case SdkClientException sdkEx -> logger.error("SdkClientException: ", sdkEx);
+      case SdkClientException sdkEx -> logger.error("{}: SdkClientException", context, sdkEx);
       case AwsServiceException awsEx -> {
-        logger.error("AwsServiceException: ", awsEx);
+        logger.error("{}: AwsServiceException", context, awsEx);
         logger.error("Status code: {}", awsEx.statusCode());
         logger.error("AWS Error Code: {}", awsEx.awsErrorDetails().errorCode());
-        logger.error("Error Type: {}", awsEx.awsErrorDetails().errorMessage());
+        logger.error("Error Message: {}", awsEx.awsErrorDetails().errorMessage());
         logger.error("Request ID: {}", awsEx.requestId());
       }
-      default -> logger.error("General exception: ", e);
+      default -> logger.error("{}: Unexpected exception", context, e);
     }
   }
 

@@ -3,8 +3,11 @@ package com.quezap.application.config;
 import java.net.URI;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -86,6 +89,18 @@ public class PicturesS3Config {
         .overrideConfiguration(conf -> conf.retryStrategy(retryStrategy))
         .region(Region.EU_WEST_1)
         .build();
+  }
+
+  @Bean(name = "pictureHashingExecutor", destroyMethod = "shutdown")
+  ExecutorService pictureHashingExecutor() {
+    return Executors.newCachedThreadPool(
+        runnable -> {
+          final var thread = new Thread(runnable);
+          thread.setName("picture-hashing-" + thread.threadId());
+          // Shutdown with JVM
+          thread.setDaemon(true);
+          return thread;
+        });
   }
 
   private RetryStrategy createRetryStrategy() {
