@@ -1,8 +1,10 @@
 package com.quezap.infrastructure.adapter.repositories;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,15 +18,13 @@ import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
-import org.jspecify.annotations.Nullable;
-
 @Repository
 public class QuestionInMemoryRepository implements QuestionRepository {
   private final ConcurrentHashMap<QuestionId, Question> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable Question find(QuestionId id) {
-    return storage.get(id);
+  public Optional<Question> find(QuestionId id) {
+    return Optional.ofNullable(storage.get(id));
   }
 
   @Override
@@ -77,17 +77,18 @@ public class QuestionInMemoryRepository implements QuestionRepository {
   }
 
   private PageOf<Question> paginateEntities(Pagination pagination, List<Question> questions) {
-    final var totalItems = questions.size();
+    final var orderableList = new ArrayList<>(questions);
+    final var totalItems = orderableList.size();
     final var fromIndex = ((pagination.pageNumber() - 1) * pagination.pageSize());
 
     if (fromIndex >= totalItems) {
       return PageOf.empty(pagination);
     }
 
-    questions.sort(createdAtComparator());
+    orderableList.sort(createdAtComparator());
 
     final var toIndex = Math.min(fromIndex + pagination.pageSize(), totalItems);
-    final var pageItems = questions.subList((int) fromIndex, (int) toIndex);
+    final var pageItems = orderableList.subList((int) fromIndex, (int) toIndex);
 
     return PageOf.of(pagination, pageItems, (long) totalItems);
   }

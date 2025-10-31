@@ -1,8 +1,8 @@
 package com.quezap.domain.usecases.users;
 
-import java.util.Optional;
-
+import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.errors.users.UpdateUserPasswordError;
+import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
@@ -43,36 +43,49 @@ public sealed interface UpdateUserPassword {
 
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
-      final var userNotFoundException =
-          new DomainConstraintException(UpdateUserPasswordError.NO_SUCH_USER);
-      final UserId userId =
-          switch (usecaseInput) {
-            case Input.Id(UserId id, RawPassword pwd) -> id;
-            case Input.UserName(String name, RawPassword pwd) ->
-                Optional.ofNullable(userRepository.findByName(name))
-                    .map(User::getId)
-                    .orElseThrow(() -> userNotFoundException);
-          };
-      final var newPassword =
-          switch (usecaseInput) {
-            case Input.Id(UserId id, RawPassword pwd) -> pwd;
-            case Input.UserName(String name, RawPassword pwd) -> pwd;
-          };
-      final var user = userRepository.find(userId);
+      final UserId userId = getUserIdFromInput(usecaseInput);
+      final var newPassword = getPasswordFromInput(usecaseInput);
 
-      if (user == null) {
-        throw userNotFoundException;
-      }
+      userRepository
+          .find(userId)
+          .ifPresentOrElse(
+              user -> updateCredentialOf(user, newPassword),
+              DomainConstraintException.throwWith(DeleteUserError.NO_SUCH_USER));
 
-      final var credential =
-          Optional.ofNullable(credentialRepository.find(user.getCredential()))
-              .orElseThrow(() -> new IllegalDomainStateException("A user is missing credential"));
+      return new Output.PasswordUpdated();
+    }
+
+    private UserId getUserIdFromInput(Input usecaseInput) {
+      return switch (usecaseInput) {
+        case Input.Id input -> input.id();
+        case Input.UserName input ->
+            userRepository
+                .findByName(input.name())
+                .<UserId>map(User::getId)
+                .orElseThrow(DomainConstraintException.with(UpdateUserPasswordError.NO_SUCH_USER));
+      };
+    }
+
+    private RawPassword getPasswordFromInput(Input usecaseInput) {
+      return switch (usecaseInput) {
+        case Input.Id input -> input.newPassword();
+        case Input.UserName input -> input.newPassword();
+      };
+    }
+
+    private void updateCredentialOf(User user, RawPassword newPassword) {
+      credentialRepository
+          .find(user.getCredential())
+          .ifPresentOrElse(
+              cred -> updateAndPersistCredential(cred, newPassword),
+              IllegalDomainStateException.throwWith("A user is missing credential"));
+    }
+
+    private void updateAndPersistCredential(Credential credential, RawPassword newPassword) {
       final var hashedNewPassword = passwordHasher.hash(newPassword);
 
       credential.updatePassword(hashedNewPassword);
       credentialRepository.save(credential);
-
-      return new Output.PasswordUpdated();
     }
   }
 }

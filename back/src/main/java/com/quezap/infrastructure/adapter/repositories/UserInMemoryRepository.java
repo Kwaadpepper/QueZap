@@ -1,6 +1,8 @@
 package com.quezap.infrastructure.adapter.repositories;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
@@ -11,15 +13,13 @@ import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
-import org.jspecify.annotations.Nullable;
-
 @Repository
 public class UserInMemoryRepository implements UserRepository {
   private final ConcurrentHashMap<UserId, User> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable User find(UserId id) {
-    return storage.get(id);
+  public Optional<User> find(UserId id) {
+    return Optional.ofNullable(storage.get(id));
   }
 
   @Override
@@ -38,16 +38,13 @@ public class UserInMemoryRepository implements UserRepository {
   }
 
   @Override
-  public @Nullable User findByName(String name) {
-    return storage.values().stream()
-        .filter(user -> user.getName().equals(name))
-        .findFirst()
-        .orElse(null);
+  public Optional<User> findByName(String name) {
+    return storage.values().stream().filter(user -> user.getName().equals(name)).findFirst();
   }
 
   @Override
   public PageOf<User> findAll(Pagination pagination) {
-    final var users = storage.values().stream().toList();
+    final var users = new ArrayList<>(storage.values());
     final var fromIndex = ((pagination.pageNumber() - 1) * pagination.pageSize());
     final var totalItems = users.size();
 

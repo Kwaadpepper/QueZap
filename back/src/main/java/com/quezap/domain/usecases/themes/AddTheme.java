@@ -28,7 +28,7 @@ public sealed interface AddTheme {
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var themeName = usecaseInput.name();
 
-      if (themeRepository.findByName(themeName) != null) {
+      if (themeRepository.findByName(themeName).isPresent()) {
         throw new DomainConstraintException(AddThemeError.THEME_ALREADY_EXISTS);
       }
 

@@ -1,6 +1,9 @@
 package com.quezap.domain.usecases.sessions;
 
+import java.util.function.Consumer;
+
 import com.quezap.domain.errors.sessions.AddQuestionError;
+import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.domain.port.repositories.QuestionRepository;
@@ -10,6 +13,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.utils.EmptyConsumer;
 
 public sealed interface AddQuestion {
   record Input(SessionId session, QuestionSlide question) implements UseCaseInput {}
@@ -32,21 +36,27 @@ public sealed interface AddQuestion {
       final var questionSlide = usecaseInput.question();
       final var questionId = questionSlide.question();
       final var sessionId = usecaseInput.session();
-      final var session = sessionRepository.find(sessionId);
-      final var question = questionRepository.find(questionId);
 
-      if (session == null) {
-        throw new DomainConstraintException(AddQuestionError.NO_SUCH_SESSION);
-      }
+      questionRepository
+          .find(questionId)
+          .ifPresentOrElse(
+              EmptyConsumer.accept(),
+              DomainConstraintException.throwWith(AddQuestionError.NO_SUCH_QUESTION));
 
-      if (question == null) {
-        throw new DomainConstraintException(AddQuestionError.NO_SUCH_QUESTION);
-      }
-
-      session.addQuestion(questionSlide);
-      sessionRepository.save(session);
+      sessionRepository
+          .find(sessionId)
+          .ifPresentOrElse(
+              persistWith(questionSlide),
+              DomainConstraintException.throwWith(AddQuestionError.NO_SUCH_SESSION));
 
       return new Output.QuestionAddedToSession();
+    }
+
+    private Consumer<Session> persistWith(QuestionSlide questionSlide) {
+      return session -> {
+        session.addQuestion(questionSlide);
+        sessionRepository.save(session);
+      };
     }
   }
 }

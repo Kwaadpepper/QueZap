@@ -1,9 +1,5 @@
 package com.quezap.lib.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -11,6 +7,9 @@ import java.util.stream.Stream;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.quezap.mocks.MockEntity;
+
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -33,11 +33,11 @@ class FileVerifyingHelperTest {
   @Test
   @DisplayName("Should allow construction of the utility class (for coverage)")
   void constructorTest() {
-    // GIVEN
     // WHEN
     new FileVerifyingHelper();
+
     // THEN
-    // Just ensures no exception is thrown, typical for utility classes
+    Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
   }
 
   @Nested
@@ -52,14 +52,14 @@ class FileVerifyingHelperTest {
     @ValueSource(strings = {" ", "\t", "\n"})
     void shouldReturnFalseForNullOrBlankFilenames(String filename) {
       // GIVEN
-      final MultipartFile mockFile = mock(MultipartFile.class);
-      when(mockFile.getOriginalFilename()).thenReturn(filename);
+      final MultipartFile mockFile = MockEntity.mock(MultipartFile.class);
+      Mockito.when(mockFile.getOriginalFilename()).thenReturn(filename);
 
       // WHEN
       final boolean isValid = FileVerifyingHelper.fileNameIsValidAndMatchesExtension(mockFile);
 
       // THEN
-      assertThat(isValid).isFalse();
+      Assertions.assertThat(isValid).isFalse();
     }
 
     @Test
@@ -67,16 +67,16 @@ class FileVerifyingHelperTest {
     void shouldReturnFalseOnIoException() throws Exception {
       // GIVEN
       final String validFilename = "file.txt";
-      final MultipartFile mockFile = mock(MultipartFile.class);
-      when(mockFile.getOriginalFilename()).thenReturn(validFilename);
-      when(mockFile.getInputStream())
+      final MultipartFile mockFile = MockEntity.mock(MultipartFile.class);
+      Mockito.when(mockFile.getOriginalFilename()).thenReturn(validFilename);
+      Mockito.when(mockFile.getInputStream())
           .thenThrow(new RuntimeException("Simulated I/O Error")); // Simulate I/O error
 
       // WHEN
       final boolean isValid = FileVerifyingHelper.fileNameIsValidAndMatchesExtension(mockFile);
 
       // THEN
-      assertThat(isValid).isFalse();
+      Assertions.assertThat(isValid).isFalse();
     }
 
     // --- Success Path Example (Requires Tika integration or deep Mocking) ---
@@ -104,10 +104,10 @@ class FileVerifyingHelperTest {
           startxref
           174""";
 
-      final MultipartFile mockFile = mock(MultipartFile.class);
-      when(mockFile.getOriginalFilename()).thenReturn(filename);
-      when(mockFile.getContentType()).thenReturn(contentType);
-      when(mockFile.getInputStream())
+      final MultipartFile mockFile = MockEntity.mock(MultipartFile.class);
+      Mockito.when(mockFile.getOriginalFilename()).thenReturn(filename);
+      Mockito.when(mockFile.getContentType()).thenReturn(contentType);
+      Mockito.when(mockFile.getInputStream())
           .thenReturn(new ByteArrayInputStream(fileContent.getBytes(StandardCharsets.UTF_8)));
 
       // WHEN
@@ -116,7 +116,7 @@ class FileVerifyingHelperTest {
       // THEN
       // This test is highly dependent on Tika's behavior. Assuming a proper setup, it should pass.
       // For a true unit test, Tika's behavior would need to be stubbed/mocked, which is complex.
-      assertThat(isValid).isTrue();
+      Assertions.assertThat(isValid).isTrue();
     }
   }
 
@@ -166,7 +166,7 @@ class FileVerifyingHelperTest {
       final String result = FileVerifyingHelper.beautifyFileName(input);
 
       // THEN
-      assertThat(result).as(description).isEqualTo(expected);
+      Assertions.assertThat(result).as(description).isEqualTo(expected);
     }
   }
 
@@ -196,7 +196,7 @@ class FileVerifyingHelperTest {
       final String result = FileVerifyingHelper.sanitizeFileName(input);
 
       // THEN
-      assertThat(result)
+      Assertions.assertThat(result)
           .doesNotContain(
               "<", ">", ":", "\"", "/", "\\", "|", "?", "*", "#", "[", "]", "@", "!", "$", "&", "'",
               "(", ")", "+", ";", "=", "{", "}", "^", "~", "`", "´", "’", "ʼ")
@@ -207,7 +207,8 @@ class FileVerifyingHelperTest {
           .doesNotMatch("^\\d+-[\\.\\-].*");
 
       // 3. Check for max length (255 bytes limit)
-      assertThat(result.getBytes(StandardCharsets.UTF_8).length).isLessThanOrEqualTo(255);
+      Assertions.assertThat(result.getBytes(StandardCharsets.UTF_8).length)
+          .isLessThanOrEqualTo(255);
     }
 
     @Test
@@ -224,11 +225,12 @@ class FileVerifyingHelperTest {
 
       // THEN
       // 1. Check that the name has been truncated (255 bytes total limit)
-      assertThat(result.getBytes(StandardCharsets.UTF_8).length).isLessThanOrEqualTo(255);
+      Assertions.assertThat(result.getBytes(StandardCharsets.UTF_8).length)
+          .isLessThanOrEqualTo(255);
       // 2. Check that the extension is preserved
-      assertThat(result).endsWith(extension);
+      Assertions.assertThat(result).endsWith(extension);
       // 3. Check for UUID prefix
-      assertThat(result).matches("\\d+-[a-z\\-]+\\.pdf");
+      Assertions.assertThat(result).matches("\\d+-[a-z\\-]+\\.pdf");
     }
 
     @Test
@@ -242,7 +244,7 @@ class FileVerifyingHelperTest {
 
       // THEN
       // 1. Check that no dot is present at the end
-      assertThat(result)
+      Assertions.assertThat(result)
           .doesNotContainPattern("\\.$")
           // 2. Check for UUID prefix
           .matches("\\d+-[a-z\\-]+");
@@ -262,8 +264,8 @@ class FileVerifyingHelperTest {
       // THEN
       // The result should start with the UUID prefix (e.g., 1234567890-) and not the original
       // leading char.
-      assertThat(resultDot).matches("\\d+-hidden-file\\.txt");
-      assertThat(resultHyphen).matches("\\d+-start-file\\.txt");
+      Assertions.assertThat(resultDot).matches("\\d+-hidden-file\\.txt");
+      Assertions.assertThat(resultHyphen).matches("\\d+-start-file\\.txt");
     }
   }
 }

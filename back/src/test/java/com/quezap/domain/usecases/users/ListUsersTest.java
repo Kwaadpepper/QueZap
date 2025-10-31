@@ -11,6 +11,7 @@ import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
+import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class ListUsersTest {
   private final UserRepository userRepository;
 
   public ListUsersTest() {
-    userRepository = Mockito.mock(UserRepository.class);
+    userRepository = MockEntity.mock(UserRepository.class);
 
     handler = new ListUsers.Handler(userRepository);
   }
@@ -31,7 +32,7 @@ class ListUsersTest {
     // GIVEN
     var pageRequest = Pagination.ofPage(1L, 1L);
     var input = new ListUsers.Input(pageRequest);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
     var users =
         List.of(
             new User(

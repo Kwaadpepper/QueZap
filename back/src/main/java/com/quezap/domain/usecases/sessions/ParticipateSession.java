@@ -1,6 +1,7 @@
 package com.quezap.domain.usecases.sessions;
 
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
+import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.SessionCode;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.participations.ParticipantName;
@@ -10,6 +11,7 @@ import com.quezap.domain.port.services.ParticipationTokenGenerator;
 import com.quezap.domain.port.services.SessionCodeEncoder;
 import com.quezap.domain.port.services.UserNameSanitizer;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
@@ -41,31 +43,36 @@ public sealed interface ParticipateSession {
 
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
+
       final var sessionCode = usecaseInput.code();
       final var participantName = usecaseInput.name();
-      final var sanitizedUserName = userNameSanitizer.sanitize(participantName.value());
-
       final var sessionNumber = sessionCodeEncoder.decode(sessionCode);
-      final var session = sessionRepository.findByNumber(sessionNumber);
 
-      if (session == null) {
-        throw new DomainConstraintException(ParticipateSessionError.INVALID_CODE);
-      }
+      return sessionRepository
+          .findByNumber(sessionNumber)
+          .<Output>map(session -> addParticipantTo(session, participantName))
+          .orElseThrow(DomainConstraintException.with(ParticipateSessionError.INVALID_CODE));
+    }
 
-      // * Validate sanitized name
-      if (sanitizedUserName.isBlank() || !sanitizedUserName.equals(participantName.value())) {
-        throw new DomainConstraintException(ParticipateSessionError.NAME_REFUSED);
-      }
+    private Output addParticipantTo(Session session, ParticipantName participantName) {
 
       final var sessionId = session.getId();
       final var participationToken = participationTokenGenerator.generate(sessionId);
-      final var sessionParticipant = new Participant(participantName, 0, participationToken);
+      final var sanitizedUserName = sanitize(participantName);
+      final var participant = new Participant(sanitizedUserName, 0, participationToken);
 
-      session.addParticipant(sessionParticipant);
-
+      session.addParticipant(participant);
       sessionRepository.save(session);
 
       return new Output.Participation(participationToken);
+    }
+
+    private ParticipantName sanitize(ParticipantName name) {
+      try {
+        return new ParticipantName(userNameSanitizer.sanitize(name.value()));
+      } catch (IllegalDomainStateException _) {
+        throw new DomainConstraintException(ParticipateSessionError.NAME_REFUSED);
+      }
     }
   }
 }

@@ -1,7 +1,5 @@
 package com.quezap.domain.usecases.users;
 
-import java.util.Optional;
-
 import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
@@ -41,32 +39,42 @@ public sealed interface DeleteUser {
 
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
-      final var userNotFoundException = new DomainConstraintException(DeleteUserError.NO_SUCH_USER);
-      final UserId userId =
-          switch (usecaseInput) {
-            case Input.Id(UserId id) -> id;
-            case Input.UserName(String name) ->
-                Optional.ofNullable(userRepository.findByName(name))
-                    .map(User::getId)
-                    .orElseThrow(() -> userNotFoundException);
-          };
-      final var user = userRepository.find(userId);
+      final var userId = fromInput(usecaseInput);
 
-      if (user == null) {
-        throw userNotFoundException;
-      }
-
-      final var credential = credentialRepository.find(user.getCredential());
-
-      if (credential == null) {
-        logger.warn("User {} has no associated credential, removing user anyway.", userId.value());
-      } else {
-        credentialRepository.delete(credential);
-      }
-
-      userRepository.delete(user);
+      userRepository
+          .find(userId)
+          .ifPresentOrElse(
+              this::deleteCredentialAndUser,
+              DomainConstraintException.throwWith(DeleteUserError.NO_SUCH_USER));
 
       return new Output.UserDeleted();
+    }
+
+    private UserId fromInput(Input usecaseInput) {
+      return switch (usecaseInput) {
+        case Input.Id(var id) -> id;
+        case Input.UserName(var name) ->
+            userRepository
+                .findByName(name)
+                .<UserId>map(User::getId)
+                .orElseThrow(DomainConstraintException.with(DeleteUserError.NO_SUCH_USER));
+      };
+    }
+
+    private void deleteCredentialAndUser(User user) {
+      final var credentialId = user.getCredential();
+
+      credentialRepository
+          .find(credentialId)
+          .ifPresentOrElse(
+              credentialRepository::delete,
+              () ->
+                  logger.warn(
+                      "Credential {} not found when deleting user {}",
+                      credentialId.value(),
+                      user.getId().value()));
+
+      userRepository.delete(user);
     }
   }
 }

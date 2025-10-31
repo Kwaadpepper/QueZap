@@ -1,8 +1,12 @@
 package com.quezap.domain.usecases.sessions;
 
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
 import com.quezap.domain.errors.sessions.AnswerSessionError;
+import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.SessionCode;
-import com.quezap.domain.models.valueobjects.participations.ParticipantName;
+import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.participations.ParticipationToken;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.domain.port.services.SessionCodeEncoder;
@@ -11,8 +15,6 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
-
-import org.jspecify.annotations.Nullable;
 
 public interface AnswerQuestion {
   record Input(SessionCode code, ParticipationToken token, Integer slideIndex, Integer answerIndex)
@@ -34,32 +36,37 @@ public interface AnswerQuestion {
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var sessionCode = usecaseInput.code();
+      final var sessionNumber = sessionCodeEncoder.decode(sessionCode);
+      final var session = sessionRepository.findByNumber(sessionNumber);
+
+      session.ifPresentOrElse(
+          persistIfValid(usecaseInput),
+          DomainConstraintException.throwWith(AnswerSessionError.NO_SUCH_SESSION));
+
+      return new Output.AnswerAdded();
+    }
+
+    private Consumer<Session> persistIfValid(Input usecaseInput) {
       final var token = usecaseInput.token();
       final var slideIndex = usecaseInput.slideIndex();
       final var answerIndex = usecaseInput.answerIndex();
 
-      final var sessionNumber = sessionCodeEncoder.decode(sessionCode);
-      final var session = sessionRepository.findByNumber(sessionNumber);
+      return session -> {
+        final var participantName =
+            session.getParticipants().stream()
+                .filter(whereParticipantHasToken(token))
+                .map(Participant::name)
+                .findFirst()
+                .orElseThrow(
+                    DomainConstraintException.with(AnswerSessionError.INVALID_PARTICIPATION_TOKEN));
 
-      if (session == null) {
-        throw new DomainConstraintException(AnswerSessionError.NO_SUCH_SESSION);
-      }
+        session.addAnswer(participantName, slideIndex, answerIndex);
+        sessionRepository.save(session);
+      };
+    }
 
-      final @Nullable ParticipantName participantName =
-          session.getParticipants().stream()
-              .filter(p -> p.token().equals(token))
-              .map(p -> p.name())
-              .findFirst()
-              .orElse(null);
-
-      if (participantName == null) {
-        throw new DomainConstraintException(AnswerSessionError.INVALID_PARTICIPATION_TOKEN);
-      }
-
-      session.addAnswer(participantName, slideIndex, answerIndex);
-      sessionRepository.save(session);
-
-      return new Output.AnswerAdded();
+    private Predicate<Participant> whereParticipantHasToken(ParticipationToken token) {
+      return participant -> participant.token().equals(token);
     }
   }
 }

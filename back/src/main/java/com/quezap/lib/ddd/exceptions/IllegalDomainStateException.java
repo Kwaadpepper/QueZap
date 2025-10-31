@@ -25,4 +25,10 @@ public class IllegalDomainStateException extends RuntimeException {
   public @NonNull String getMessage() {
     return Objects.requireNonNull(super.getMessage());
   }
+
+  public static Runnable throwWith(String message) {
+    return () -> {
+      throw new IllegalDomainStateException(message);
+    };
+  }
 }

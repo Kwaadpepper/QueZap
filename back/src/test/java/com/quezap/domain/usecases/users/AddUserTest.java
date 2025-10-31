@@ -13,6 +13,7 @@ import com.quezap.domain.port.services.IdentifierHasher;
 import com.quezap.domain.port.services.PasswordHasher;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
+import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,10 +27,10 @@ class AddUserTest {
   private final PasswordHasher passwordHasher;
 
   public AddUserTest() {
-    credentialRepository = Mockito.mock(CredentialRepository.class);
-    userRepository = Mockito.mock(UserRepository.class);
-    identifierHasher = Mockito.mock(IdentifierHasher.class);
-    passwordHasher = Mockito.mock(PasswordHasher.class);
+    credentialRepository = MockEntity.mock(CredentialRepository.class);
+    userRepository = MockEntity.mock(UserRepository.class);
+    identifierHasher = MockEntity.mock(IdentifierHasher.class);
+    passwordHasher = MockEntity.mock(PasswordHasher.class);
 
     handler =
         new AddUser.Handler(userRepository, credentialRepository, identifierHasher, passwordHasher);
@@ -42,15 +43,15 @@ class AddUserTest {
     var identifier = new RawIdentifier("some-id");
     var password = new RawPassword("Some-password1!");
     final var input = new AddUser.Input(userName, identifier, password);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    final var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier))
         .thenReturn(new HashedIdentifier("hashedIdentifier"));
     Mockito.when(passwordHasher.hash(password)).thenReturn(new HashedPassword("$2a$10$a"));
-    Mockito.when(credentialRepository.findByIdentifier(Mockito.any(HashedIdentifier.class)))
-        .thenReturn(null);
-    Mockito.when(userRepository.findByName(userName)).thenReturn(null);
+    Mockito.when(credentialRepository.findByIdentifier(MockEntity.any(HashedIdentifier.class)))
+        .thenReturn(MockEntity.optional());
+    Mockito.when(userRepository.findByName(userName)).thenReturn(MockEntity.optional());
 
     handler.handle(input, unitOfWork);
 
@@ -66,12 +67,12 @@ class AddUserTest {
     var password = new RawPassword("Some-password1!");
     var hashedIdentifier = new HashedIdentifier("some-hashed-id");
     final var input = new AddUser.Input(userName, identifier, password);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier)).thenReturn(hashedIdentifier);
     Mockito.when(credentialRepository.findByIdentifier(hashedIdentifier))
-        .thenReturn(Mockito.mock(Credential.class));
+        .thenReturn(MockEntity.optional(Credential.class));
 
     // THEN
     Assertions.assertThatThrownBy(() -> handler.handle(input, unitOfWork))
@@ -87,12 +88,13 @@ class AddUserTest {
     var password = new RawPassword("Some-password1!");
     var hashedIdentifier = new HashedIdentifier("some-hashed-id");
     final var input = new AddUser.Input(userName, identifier, password);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(identifierHasher.hash(identifier)).thenReturn(hashedIdentifier);
-    Mockito.when(credentialRepository.findByIdentifier(hashedIdentifier)).thenReturn(null);
-    Mockito.when(userRepository.findByName(userName)).thenReturn(Mockito.mock(User.class));
+    Mockito.when(credentialRepository.findByIdentifier(hashedIdentifier))
+        .thenReturn(MockEntity.optional());
+    Mockito.when(userRepository.findByName(userName)).thenReturn(MockEntity.optional(User.class));
 
     // THEN
     Assertions.assertThatThrownBy(() -> handler.handle(input, unitOfWork))

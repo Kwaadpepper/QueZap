@@ -1,6 +1,7 @@
 package com.quezap.domain.usecases.themes;
 
 import com.quezap.domain.errors.themes.RenameThemeError;
+import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.ThemeRepository;
@@ -28,20 +29,23 @@ public sealed interface RenameTheme {
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var themeId = usecaseInput.id();
       final var newName = usecaseInput.newName();
-      final var theme = themeRepository.find(themeId);
 
-      if (theme == null) {
-        throw new DomainConstraintException(RenameThemeError.THEME_DOES_NOT_EXISTS);
-      }
-
-      if (themeRepository.findByName(newName) != null) {
+      if (themeRepository.findByName(newName).isPresent()) {
         throw new DomainConstraintException(RenameThemeError.THEME_NAME_ALREADY_EXISTS);
       }
 
-      theme.setName(newName);
-      themeRepository.save(theme);
+      themeRepository
+          .find(themeId)
+          .ifPresentOrElse(
+              theme -> renameAndPersist(theme, newName),
+              DomainConstraintException.throwWith(RenameThemeError.THEME_DOES_NOT_EXISTS));
 
       return new Output.ThemeRemoved();
+    }
+
+    private void renameAndPersist(Theme theme, ThemeName newName) {
+      theme.setName(newName);
+      themeRepository.save(theme);
     }
   }
 }

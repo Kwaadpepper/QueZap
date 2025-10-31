@@ -8,6 +8,7 @@ import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
+import com.quezap.mocks.MockEntity;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ class ListThemesTest {
   private final ListThemes.Handler listThemesHandler;
 
   public ListThemesTest() {
-    this.themeRepository = Mockito.mock(ThemeRepository.class);
+    this.themeRepository = MockEntity.mock(ThemeRepository.class);
     this.listThemesHandler = new ListThemes.Handler(themeRepository);
   }
 
@@ -27,7 +28,7 @@ class ListThemesTest {
     // WHEN
     var pagination = Pagination.firstPage();
     var input = new ListThemes.Input.PerPage(pagination);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     var themesPage = PageOf.of(pagination, List.<Theme>of(), 0L);
     Mockito.when(themeRepository.paginate(pagination)).thenReturn(themesPage);
@@ -45,7 +46,7 @@ class ListThemesTest {
     var pagination = Pagination.firstPage();
     var search = new SearchQuery("pasta");
     var input = new ListThemes.Input.Searching(pagination, search);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     var themesPage = PageOf.of(pagination, List.<Theme>of(), 0L);
     Mockito.when(themeRepository.paginateSearching(pagination, search)).thenReturn(themesPage);

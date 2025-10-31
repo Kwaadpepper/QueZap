@@ -12,8 +12,10 @@ import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.domain.port.services.QuestionPictureManager;
+import com.quezap.domain.usecases.questions.AddQuestion.Input;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
+import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,9 +28,9 @@ class AddQuizzQuestionTest {
   private final AddQuestion.Handler addQuestionHandler;
 
   public AddQuizzQuestionTest() {
-    this.questionRepository = Mockito.mock(QuestionRepository.class);
-    this.themeRepository = Mockito.mock(ThemeRepository.class);
-    this.pictureManager = Mockito.mock(QuestionPictureManager.class);
+    this.questionRepository = MockEntity.mock(QuestionRepository.class);
+    this.themeRepository = MockEntity.mock(ThemeRepository.class);
+    this.pictureManager = MockEntity.mock(QuestionPictureManager.class);
     this.addQuestionHandler =
         new AddQuestion.Handler(questionRepository, themeRepository, pictureManager);
   }
@@ -39,21 +41,21 @@ class AddQuizzQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData("Yes", null, true),
-            new AddQuestion.Input.AnswerData("No", null, false),
-            new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false));
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData("Yes", null, true),
+            new Input.AnswerData("No", null, false),
+            new Input.AnswerData("After waiting 3 minutes", null, false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(Mockito.any());
+    Mockito.verify(questionRepository).save(MockEntity.any());
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
 
@@ -63,22 +65,22 @@ class AddQuizzQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData("Yes", null, true),
-            new AddQuestion.Input.AnswerData("No", null, false),
-            new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false),
-            new AddQuestion.Input.AnswerData("D the D response", null, false));
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData("Yes", null, true),
+            new Input.AnswerData("No", null, false),
+            new Input.AnswerData("After waiting 3 minutes", null, false),
+            new Input.AnswerData("D the D response", null, false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(Mockito.any());
+    Mockito.verify(questionRepository).save(MockEntity.any());
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
 
@@ -86,24 +88,24 @@ class AddQuizzQuestionTest {
   void canAddQuizzQuestionWithPicture() {
     // GIVEN
     var value = "Will this test be working?";
-    var picture = new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG);
+    var picture = new PictureUploadData(MockEntity.mock(InputStream.class), 10L, PictureType.PNG);
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData("Yes", null, true),
-            new AddQuestion.Input.AnswerData("No", null, false),
-            new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false));
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData("Yes", null, true),
+            new Input.AnswerData("No", null, false),
+            new Input.AnswerData("After waiting 3 minutes", null, false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
-    Mockito.when(pictureManager.store(picture)).thenReturn(Mockito.mock(Picture.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
+    Mockito.when(pictureManager.store(picture)).thenReturn(MockEntity.mock(Picture.class));
 
     // WHEN
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(Mockito.any());
+    Mockito.verify(questionRepository).save(MockEntity.any());
     Mockito.verify(pictureManager).store(picture);
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
@@ -112,34 +114,34 @@ class AddQuizzQuestionTest {
   void canAddQuizzQuestionWithPicturesOnAnswers() {
     // GIVEN
     var value = "Will this test be working?";
-    var picture = new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG);
+    var picture = new PictureUploadData(MockEntity.mock(InputStream.class), 10L, PictureType.PNG);
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData(
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData(
                 "Yes",
-                new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG),
+                new PictureUploadData(MockEntity.mock(InputStream.class), 10L, PictureType.PNG),
                 true),
-            new AddQuestion.Input.AnswerData(
+            new Input.AnswerData(
                 "No",
-                new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG),
+                new PictureUploadData(MockEntity.mock(InputStream.class), 10L, PictureType.PNG),
                 false),
-            new AddQuestion.Input.AnswerData(
+            new Input.AnswerData(
                 "After waiting 3 minutes",
-                new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG),
+                new PictureUploadData(MockEntity.mock(InputStream.class), 10L, PictureType.PNG),
                 false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
-    Mockito.when(pictureManager.store(picture)).thenReturn(Mockito.mock(Picture.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
+    Mockito.when(pictureManager.store(picture)).thenReturn(MockEntity.mock(Picture.class));
 
     // WHEN
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(Mockito.any());
-    Mockito.verify(pictureManager, Mockito.times(4)).store(Mockito.any(PictureUploadData.class));
+    Mockito.verify(questionRepository).save(MockEntity.any());
+    Mockito.verify(pictureManager, Mockito.times(4)).store(MockEntity.any(PictureUploadData.class));
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
 
@@ -149,16 +151,16 @@ class AddQuizzQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData("Yes", null, true),
-            new AddQuestion.Input.AnswerData("No", null, false),
-            new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false),
-            new AddQuestion.Input.AnswerData("D the D response", null, false));
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData("Yes", null, true),
+            new Input.AnswerData("No", null, false),
+            new Input.AnswerData("After waiting 3 minutes", null, false),
+            new Input.AnswerData("D the D response", null, false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(null);
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional());
 
     // WHEN / THEN
     Assertions.assertThatExceptionOfType(DomainConstraintException.class)
@@ -173,15 +175,15 @@ class AddQuizzQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData("Yes", null, false),
-            new AddQuestion.Input.AnswerData("No", null, false),
-            new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false));
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData("Yes", null, false),
+            new Input.AnswerData("No", null, false),
+            new Input.AnswerData("After waiting 3 minutes", null, false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN / THEN
     Assertions.assertThatExceptionOfType(DomainConstraintException.class)
@@ -196,14 +198,13 @@ class AddQuizzQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData("Yes", null, true),
-            new AddQuestion.Input.AnswerData("No", null, false));
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData("Yes", null, true), new Input.AnswerData("No", null, false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN / THEN
     Assertions.assertThatExceptionOfType(DomainConstraintException.class)
@@ -218,17 +219,17 @@ class AddQuizzQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var answers =
-        Set.of(
-            new AddQuestion.Input.AnswerData("Yes", null, true),
-            new AddQuestion.Input.AnswerData("No", null, false),
-            new AddQuestion.Input.AnswerData("Maybe", null, false),
-            new AddQuestion.Input.AnswerData("After waiting 3 minutes", null, false),
-            new AddQuestion.Input.AnswerData("D the D response", null, false));
+        Set.<Input.AnswerData>of(
+            new Input.AnswerData("Yes", null, true),
+            new Input.AnswerData("No", null, false),
+            new Input.AnswerData("Maybe", null, false),
+            new Input.AnswerData("After waiting 3 minutes", null, false),
+            new Input.AnswerData("D the D response", null, false));
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Quizz(value, answers, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var input = new Input.Quizz(value, answers, picture, theme);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN / THEN
     Assertions.assertThatExceptionOfType(DomainConstraintException.class)

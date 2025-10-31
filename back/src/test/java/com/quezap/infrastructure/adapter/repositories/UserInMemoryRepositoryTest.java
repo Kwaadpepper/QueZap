@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.pagination.Pagination;
+import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,11 +25,12 @@ class UserInMemoryRepositoryTest {
   void canListUsers() {
     // GIVEN
     var pageRequest = Pagination.ofPage(1L, 10L);
-    var userList = List.of(Mockito.mock(User.class), Mockito.mock(User.class));
+    var userMocked = MockEntity.mock(User.class, Mockito.RETURNS_DEEP_STUBS);
+    var userList = List.of(userMocked, userMocked);
 
     userList.forEach(
         user -> {
-          Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
+          Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
           repository.save(user);
         });
 
@@ -36,16 +38,16 @@ class UserInMemoryRepositoryTest {
     var users = repository.findAll(pageRequest);
 
     // THEN
-    Assertions.assertThat(users.items().size()).isEqualTo(userList.size());
+    Assertions.assertThat(users.items()).hasSameSizeAs(userList);
   }
 
   @Test
   void canAddUser() {
     // GIVEN
-    var user = Mockito.mock(User.class);
+    var user = MockEntity.mock(User.class);
 
     // WHEN
-    Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
+    Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
 
     repository.save(user);
 
@@ -56,8 +58,8 @@ class UserInMemoryRepositoryTest {
   @Test
   void canRetrieveUserById() {
     // GIVEN
-    var user = Mockito.mock(User.class);
-    var id = Mockito.mock(UserId.class);
+    var user = MockEntity.mock(User.class);
+    var id = MockEntity.mock(UserId.class);
     Mockito.when(user.getId()).thenReturn(id);
     repository.save(user);
 
@@ -71,18 +73,18 @@ class UserInMemoryRepositoryTest {
   @Test
   void cannotRetrieveNonExistentUser() {
     // GIVEN
-    var nonExistentId = Mockito.mock(UserId.class);
+    var nonExistentId = MockEntity.mock(UserId.class);
     // WHEN
     var retrievedUser = repository.find(nonExistentId);
 
     // THEN
-    Assertions.assertThat(retrievedUser).isNull();
+    Assertions.assertThat(retrievedUser).isEmpty();
   }
 
   @Test
   void canDeleteUser() {
     // GIVEN
-    var user = Mockito.mock(User.class);
+    var user = MockEntity.mock(User.class);
     var id = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(user.getId()).thenReturn(id);
     repository.save(user);
@@ -92,14 +94,14 @@ class UserInMemoryRepositoryTest {
     var retrievedUser = repository.find(id);
 
     // THEN
-    Assertions.assertThat(retrievedUser).isNull();
+    Assertions.assertThat(retrievedUser).isEmpty();
   }
 
   @Test
   void deletingNonExistentUserDoesNotThrow() {
     // GIVEN
-    var user = Mockito.mock(User.class);
-    Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
+    var user = MockEntity.mock(User.class);
+    Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
 
     // WHEN & THEN
     Assertions.assertThatCode(() -> repository.delete(user)).doesNotThrowAnyException();
@@ -108,7 +110,7 @@ class UserInMemoryRepositoryTest {
   @Test
   void canUpdateUser() {
     // GIVEN
-    var user = Mockito.mock(User.class);
+    var user = MockEntity.mock(User.class);
     var id = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(user.getId()).thenReturn(id);
     repository.save(user);
@@ -124,8 +126,8 @@ class UserInMemoryRepositoryTest {
   @Test
   void updatingNonExistentUserDoesNotThrow() {
     // GIVEN
-    var user = Mockito.mock(User.class);
-    Mockito.when(user.getId()).thenReturn(Mockito.mock(UserId.class));
+    var user = MockEntity.mock(User.class);
+    Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
 
     // WHEN & THEN
     Assertions.assertThatCode(() -> repository.update(user)).doesNotThrowAnyException();

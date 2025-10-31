@@ -1,6 +1,7 @@
 package com.quezap.lib.ddd.exceptions;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.jspecify.annotations.NonNull;
 
@@ -29,5 +30,15 @@ public class DomainConstraintException extends RuntimeException {
   @Override
   public @NonNull String getMessage() {
     return Objects.requireNonNull(super.getMessage());
+  }
+
+  public static Runnable throwWith(DomainErrorCode error) {
+    return () -> {
+      throw new DomainConstraintException(error);
+    };
+  }
+
+  public static Supplier<DomainConstraintException> with(DomainErrorCode error) {
+    return () -> new DomainConstraintException(error);
   }
 }

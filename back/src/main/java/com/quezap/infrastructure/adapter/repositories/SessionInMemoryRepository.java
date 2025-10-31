@@ -1,5 +1,7 @@
 package com.quezap.infrastructure.adapter.repositories;
 
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
@@ -9,15 +11,13 @@ import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.port.repositories.SessionRepository;
 
-import org.jspecify.annotations.Nullable;
-
 @Repository
 public class SessionInMemoryRepository implements SessionRepository {
   private final ConcurrentHashMap<SessionId, Session> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable Session find(SessionId id) {
-    return storage.get(id);
+  public Optional<Session> find(SessionId id) {
+    return Optional.ofNullable(storage.get(id));
   }
 
   @Override
@@ -36,23 +36,23 @@ public class SessionInMemoryRepository implements SessionRepository {
   }
 
   @Override
-  public @Nullable Session findByNumber(SessionNumber number) {
+  public Optional<Session> findByNumber(SessionNumber number) {
     return storage.values().stream()
         .filter(session -> session.getNumber().equals(number))
-        .findFirst()
-        .orElse(null);
+        .findFirst();
   }
 
   @Override
-  public @Nullable Session latestByNumber() {
-    return storage.values().stream()
-        .max(
-            (a, b) -> {
-              final var s1Number = a.getNumber();
-              final var s2Number = b.getNumber();
+  public Optional<Session> latestByNumber() {
+    return storage.values().stream().max(numberComparator());
+  }
 
-              return s1Number.value().compareTo(s2Number.value());
-            })
-        .orElse(null);
+  private Comparator<Session> numberComparator() {
+    return (a, b) -> {
+      final var s1Number = a.getNumber();
+      final var s2Number = b.getNumber();
+
+      return s1Number.value().compareTo(s2Number.value());
+    };
   }
 }

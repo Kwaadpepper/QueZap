@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
+import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +23,7 @@ class CredentialInMemoryRepositoryTest {
   void canAddCredential() {
     // GIVEN
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"));
-    var credential = Mockito.mock(Credential.class);
+    var credential = MockEntity.mock(Credential.class);
 
     // WHEN
     Mockito.when(credential.getId()).thenReturn(credentialId);
@@ -37,7 +38,7 @@ class CredentialInMemoryRepositoryTest {
   void canRetrieveCredentialById() {
     // GIVEN
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"));
-    var credential = Mockito.mock(Credential.class);
+    var credential = MockEntity.mock(Credential.class);
     Mockito.when(credential.getId()).thenReturn(credentialId);
     repository.save(credential);
 
@@ -56,13 +57,13 @@ class CredentialInMemoryRepositoryTest {
     var retrievedCredential = repository.find(credentialId);
 
     // THEN
-    Assertions.assertThat(retrievedCredential).isNull();
+    Assertions.assertThat(retrievedCredential).isEmpty();
   }
 
   @Test
   void canDeleteCredential() {
     // GIVEN
-    var credential = Mockito.mock(Credential.class);
+    var credential = MockEntity.mock(Credential.class);
     var credentialId = new CredentialId(UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(credential.getId()).thenReturn(credentialId);
     repository.save(credential);
@@ -72,13 +73,13 @@ class CredentialInMemoryRepositoryTest {
     var retrievedCredential = repository.find(credentialId);
 
     // THEN
-    Assertions.assertThat(retrievedCredential).isNull();
+    Assertions.assertThat(retrievedCredential).isEmpty();
   }
 
   @Test
   void deletingNonExistentCredentialDoesNotThrow() {
     // GIVEN
-    var credential = Mockito.mock(Credential.class);
+    var credential = MockEntity.mock(Credential.class);
     var credentialId = new CredentialId(UUID.fromString("317f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(credential.getId()).thenReturn(credentialId);
 
@@ -89,7 +90,7 @@ class CredentialInMemoryRepositoryTest {
   @Test
   void canUpdateCredential() {
     // GIVEN
-    var credential = Mockito.mock(Credential.class);
+    var credential = MockEntity.mock(Credential.class);
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(credential.getId()).thenReturn(credentialId);
     repository.save(credential);
@@ -105,7 +106,7 @@ class CredentialInMemoryRepositoryTest {
   @Test
   void updatingNonExistentCredentialDoesNotThrow() {
     // GIVEN
-    var credential = Mockito.mock(Credential.class);
+    var credential = MockEntity.mock(Credential.class);
     var credentialId = new CredentialId(UUID.fromString("317f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(credential.getId()).thenReturn(credentialId);
 

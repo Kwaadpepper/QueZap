@@ -13,6 +13,7 @@ import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.domain.port.services.QuestionPictureManager;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
+import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,9 +26,9 @@ class AddAffirmationQuestionTest {
   private final AddQuestion.Handler addQuestionHandler;
 
   public AddAffirmationQuestionTest() {
-    this.questionRepository = Mockito.mock(QuestionRepository.class);
-    this.themeRepository = Mockito.mock(ThemeRepository.class);
-    this.pictureManager = Mockito.mock(QuestionPictureManager.class);
+    this.questionRepository = MockEntity.mock(QuestionRepository.class);
+    this.themeRepository = MockEntity.mock(ThemeRepository.class);
+    this.pictureManager = MockEntity.mock(QuestionPictureManager.class);
     this.addQuestionHandler =
         new AddQuestion.Handler(questionRepository, themeRepository, pictureManager);
   }
@@ -38,17 +39,17 @@ class AddAffirmationQuestionTest {
     var value = "Will this test be working?";
     PictureUploadData picture = null;
     var isTrue = true;
-    var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
-    var unitEvts = Mockito.mock(UnitOfWorkEvents.class);
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
+    var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, themeId);
+    var unitEvts = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+    Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN
     addQuestionHandler.handle(input, unitEvts);
 
     // THEN
-    Mockito.verify(questionRepository).save(Mockito.any());
+    Mockito.verify(questionRepository).save(MockEntity.any());
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
 
@@ -60,15 +61,15 @@ class AddAffirmationQuestionTest {
     var isTrue = false;
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(Mockito.any());
+    Mockito.verify(questionRepository).save(MockEntity.any());
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
 
@@ -76,20 +77,20 @@ class AddAffirmationQuestionTest {
   void canAddAffirmationQuestionWithPicture() {
     // GIVEN
     var value = "Will this test be working?";
-    var picture = new PictureUploadData(Mockito.mock(InputStream.class), 10L, PictureType.PNG);
+    var picture = new PictureUploadData(MockEntity.mock(InputStream.class), 10L, PictureType.PNG);
     var isTrue = true;
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(Mockito.mock(Theme.class));
-    Mockito.when(pictureManager.store(picture)).thenReturn(Mockito.mock(Picture.class));
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
+    Mockito.when(pictureManager.store(picture)).thenReturn(MockEntity.mock(Picture.class));
 
     // WHEN
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(Mockito.any());
+    Mockito.verify(questionRepository).save(MockEntity.any());
     Mockito.verify(pictureManager).store(picture);
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
@@ -102,9 +103,9 @@ class AddAffirmationQuestionTest {
     var isTrue = true;
     var theme = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new AddQuestion.Input.Affirmation(value, isTrue, picture, theme);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
-    Mockito.when(themeRepository.find(theme)).thenReturn(null);
+    Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional());
 
     // WHEN / THEN
     Assertions.assertThatExceptionOfType(DomainConstraintException.class)

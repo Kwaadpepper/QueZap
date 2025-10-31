@@ -12,10 +12,12 @@ import com.quezap.lib.ddd.usecases.UseCaseOutput;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
+import org.jspecify.annotations.NonNull;
+
 public sealed interface ListUsers {
   record Input(Pagination pagination) implements UseCaseInput {}
 
-  public record Output(PageOf<UserDto> page) implements UseCaseOutput {
+  public record Output(PageOf<@NonNull UserDto> page) implements UseCaseOutput {
     public record UserDto(
         UserId id, String name, ZonedDateTime createdAt, ZonedDateTime updatedAt) {}
   }

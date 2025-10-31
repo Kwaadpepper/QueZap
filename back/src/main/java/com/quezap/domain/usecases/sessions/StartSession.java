@@ -1,6 +1,7 @@
 package com.quezap.domain.usecases.sessions;
 
 import com.quezap.domain.errors.sessions.StartSessionError;
+import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.port.repositories.SessionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
@@ -26,16 +27,19 @@ public sealed interface StartSession {
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var sessionId = usecaseInput.id();
-      final var session = sessionRepository.find(sessionId);
 
-      if (session == null) {
-        throw new DomainConstraintException(StartSessionError.NO_SUCH_SESSION);
-      }
-
-      session.startSession();
-      sessionRepository.save(session);
+      sessionRepository
+          .find(sessionId)
+          .ifPresentOrElse(
+              this::startSession,
+              DomainConstraintException.throwWith(StartSessionError.NO_SUCH_SESSION));
 
       return new Output.Started();
+    }
+
+    private void startSession(Session session) {
+      session.startSession();
+      sessionRepository.save(session);
     }
   }
 }

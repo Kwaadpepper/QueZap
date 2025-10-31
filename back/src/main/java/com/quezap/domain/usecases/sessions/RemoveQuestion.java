@@ -1,6 +1,7 @@
 package com.quezap.domain.usecases.sessions;
 
 import com.quezap.domain.errors.sessions.RemoveQuestionError;
+import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.domain.port.repositories.QuestionRepository;
@@ -10,6 +11,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.utils.EmptyConsumer;
 
 public sealed interface RemoveQuestion {
   record Input(SessionId session, QuestionSlide question) implements UseCaseInput {}
@@ -29,24 +31,28 @@ public sealed interface RemoveQuestion {
 
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
+      final var sessionId = usecaseInput.session();
       final var questionSlide = usecaseInput.question();
       final var questionId = questionSlide.question();
-      final var sessionId = usecaseInput.session();
-      final var session = sessionRepository.find(sessionId);
-      final var question = questionRepository.find(questionId);
 
-      if (session == null) {
-        throw new DomainConstraintException(RemoveQuestionError.NO_SUCH_SESSION);
-      }
+      questionRepository
+          .find(questionId)
+          .ifPresentOrElse(
+              EmptyConsumer.accept(),
+              DomainConstraintException.throwWith(RemoveQuestionError.NO_SUCH_QUESTION));
 
-      if (question == null) {
-        throw new DomainConstraintException(RemoveQuestionError.NO_SUCH_QUESTION);
-      }
-
-      session.removeQuestion(questionSlide);
-      sessionRepository.save(session);
+      sessionRepository
+          .find(sessionId)
+          .ifPresentOrElse(
+              session -> removeQuestionFrom(session, questionSlide),
+              DomainConstraintException.throwWith(RemoveQuestionError.NO_SUCH_SESSION));
 
       return new Output.SessionAdded();
+    }
+
+    private void removeQuestionFrom(Session session, QuestionSlide questionSlide) {
+      session.removeQuestion(questionSlide);
+      sessionRepository.save(session);
     }
   }
 }

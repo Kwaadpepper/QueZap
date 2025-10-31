@@ -1,6 +1,7 @@
 package com.quezap.domain.usecases.questions;
 
 import com.quezap.domain.errors.questions.DeleteQuestionError;
+import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
@@ -26,17 +27,19 @@ public sealed interface RemoveQuestion {
     @Override
     public RemoveQuestion.Output handle(Input input, UnitOfWorkEvents unitOfWork) {
       final var questionId = input.questionId();
-      final var question = questionRepository.find(questionId);
 
-      if (question == null) {
-        throw new DomainConstraintException(DeleteQuestionError.QUESTION_NOT_FOUND);
-      }
-
-      question.delete();
-
-      questionRepository.delete(question);
+      questionRepository
+          .find(questionId)
+          .ifPresentOrElse(
+              this::remove,
+              DomainConstraintException.throwWith(DeleteQuestionError.QUESTION_NOT_FOUND));
 
       return new RemoveQuestion.Output.QuestionDeleted();
+    }
+
+    private void remove(Question question) {
+      question.delete();
+      questionRepository.delete(question);
     }
   }
 }

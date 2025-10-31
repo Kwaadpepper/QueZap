@@ -6,6 +6,7 @@ import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
+import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,7 @@ class RemoveQuestionTest {
   private final RemoveQuestion.Handler deleteQuestionHandler;
 
   public RemoveQuestionTest() {
-    this.questionRepository = Mockito.mock(QuestionRepository.class);
+    this.questionRepository = MockEntity.mock(QuestionRepository.class);
     this.deleteQuestionHandler = new RemoveQuestion.Handler(questionRepository);
   }
 
@@ -25,11 +26,11 @@ class RemoveQuestionTest {
     // GIVEN
     var questionId = QuestionId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new RemoveQuestion.Input(questionId);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    final var question = Mockito.mock(Question.class);
-    Mockito.when(questionRepository.find(questionId)).thenReturn(question);
+    final var question = MockEntity.mock(Question.class);
+    Mockito.when(questionRepository.find(questionId)).thenReturn(MockEntity.optional(question));
     deleteQuestionHandler.handle(input, unitOfWork);
 
     // THEN
@@ -43,10 +44,10 @@ class RemoveQuestionTest {
     // GIVEN
     var questionId = QuestionId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var input = new RemoveQuestion.Input(questionId);
-    var unitOfWork = Mockito.mock(UnitOfWorkEvents.class);
+    var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    Mockito.when(questionRepository.find(questionId)).thenReturn(null);
+    Mockito.when(questionRepository.find(questionId)).thenReturn(MockEntity.optional());
 
     // THEN
     Assertions.assertThatExceptionOfType(DomainConstraintException.class)

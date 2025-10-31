@@ -1,8 +1,10 @@
 package com.quezap.infrastructure.adapter.repositories;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
@@ -15,15 +17,13 @@ import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
-import org.jspecify.annotations.Nullable;
-
 @Repository
 public class ThemeInMemoryRepository implements ThemeRepository {
   private final ConcurrentHashMap<ThemeId, Theme> storage = new ConcurrentHashMap<>();
 
   @Override
-  public @Nullable Theme find(ThemeId id) {
-    return storage.get(id);
+  public Optional<Theme> find(ThemeId id) {
+    return Optional.ofNullable(storage.get(id));
   }
 
   @Override
@@ -42,11 +42,8 @@ public class ThemeInMemoryRepository implements ThemeRepository {
   }
 
   @Override
-  public @Nullable Theme findByName(ThemeName name) {
-    return storage.values().stream()
-        .filter(theme -> theme.getName().equals(name))
-        .findFirst()
-        .orElse(null);
+  public Optional<Theme> findByName(ThemeName name) {
+    return storage.values().stream().filter(theme -> theme.getName().equals(name)).findFirst();
   }
 
   @Override
@@ -67,17 +64,18 @@ public class ThemeInMemoryRepository implements ThemeRepository {
   }
 
   private PageOf<Theme> paginateEntities(Pagination pagination, List<Theme> themes) {
-    final var totalItems = themes.size();
+    final var orderableList = new ArrayList<>(themes);
+    final var totalItems = orderableList.size();
     final var fromIndex = ((pagination.pageNumber() - 1) * pagination.pageSize());
 
     if (fromIndex >= totalItems) {
       return PageOf.empty(pagination);
     }
 
-    themes.sort(createdAtComparator());
+    orderableList.sort(createdAtComparator());
 
     final var toIndex = Math.min(fromIndex + pagination.pageSize(), totalItems);
-    final var pageItems = themes.subList((int) fromIndex, (int) toIndex);
+    final var pageItems = orderableList.subList((int) fromIndex, (int) toIndex);
 
     return PageOf.of(pagination, pageItems, (long) totalItems);
   }

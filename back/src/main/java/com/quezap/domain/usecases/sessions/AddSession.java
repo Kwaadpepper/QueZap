@@ -1,6 +1,7 @@
 package com.quezap.domain.usecases.sessions;
 
 import com.quezap.domain.errors.sessions.AddSessionError;
+import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.entities.builders.SessionBuilder;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
@@ -14,6 +15,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.utils.EmptyConsumer;
 
 public sealed interface AddSession {
   record Input(SessionName name, UserId user) implements UseCaseInput {}
@@ -36,23 +38,28 @@ public sealed interface AddSession {
       final var sessionName = usecaseInput.name();
       final var userId = usecaseInput.user();
 
-      final var lastCreatedSession = sessionRepository.latestByNumber();
-      final var sessionNumber =
-          lastCreatedSession != null ? lastCreatedSession.getNumber() : new SessionNumber(1);
-      final var sessionBuilder = SessionBuilder.Builder.with(sessionName, sessionNumber, userId);
+      final var newSessionNumber = getNewSessionNumber();
+      final var sessionBuilder = SessionBuilder.Builder.with(sessionName, newSessionNumber, userId);
       final var session = sessionBuilder.build();
 
-      if (userRepository.find(userId) == null) {
-        throw new DomainConstraintException(AddSessionError.NO_SUCH_USER);
-      }
+      userRepository
+          .find(userId)
+          .ifPresentOrElse(
+              EmptyConsumer.accept(),
+              DomainConstraintException.throwWith(AddSessionError.NO_SUCH_USER));
 
-      if (sessionRepository.findByNumber(sessionNumber) != null) {
+      if (sessionRepository.findByNumber(newSessionNumber).isPresent()) {
         throw new IllegalDomainStateException("Generated session code is not unique");
       }
 
       sessionRepository.save(session);
 
       return new Output.SessionAdded(session.getId());
+    }
+
+    private SessionNumber getNewSessionNumber() {
+      final var lastCreatedSession = sessionRepository.latestByNumber();
+      return lastCreatedSession.<SessionNumber>map(Session::getNumber).orElse(new SessionNumber(1));
     }
   }
 }

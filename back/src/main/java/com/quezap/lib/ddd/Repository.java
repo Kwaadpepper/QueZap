@@ -1,6 +1,8 @@
 package com.quezap.lib.ddd;
 
-import org.jspecify.annotations.Nullable;
+import java.util.Optional;
+
+import org.jspecify.annotations.NonNull;
 
 /**
  * Generic repository interface for managing aggregate root entities.
@@ -17,26 +19,26 @@ public interface Repository<E extends AggregateRoot<I>, I extends EntityId> {
    * @param id the unique identifier of the entity to find
    * @return the entity corresponding to the given identifier, or {@code null} if not found
    */
-  @Nullable E find(I id);
+  Optional<E> find(@NonNull I id);
 
   /**
    * Persists the given entity to the repository.
    *
    * @param entity the entity to be saved
    */
-  void save(E entity);
+  void save(@NonNull E entity);
 
   /**
    * Updates the given entity in the repository.
    *
    * @param entity the entity to update
    */
-  void update(E entity);
+  void update(@NonNull E entity);
 
   /**
    * Deletes the specified entity from the repository.
    *
    * @param entity the entity to be deleted
    */
-  void delete(E entity);
+  void delete(@NonNull E entity);
 }

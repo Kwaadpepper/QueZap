@@ -32,19 +32,18 @@ public sealed interface RemoveTheme {
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var themeId = usecaseInput.id();
-      final var theme = themeRepository.find(themeId);
       final var pagination = Pagination.firstPage();
-      final var themeSet = Set.of(themeId);
-
-      if (theme == null) {
-        throw new DomainConstraintException(RemoveThemeError.THEME_DOES_NOT_EXISTS);
-      }
+      final var themeSet = Set.<ThemeId>of(themeId);
 
       if (questionRepository.paginateWithThemes(pagination, themeSet).totalItems() > 0) {
         throw new DomainConstraintException(RemoveThemeError.THEME_HAS_QUESTIONS);
       }
 
-      themeRepository.delete(theme);
+      themeRepository
+          .find(themeId)
+          .ifPresentOrElse(
+              themeRepository::delete,
+              DomainConstraintException.throwWith(RemoveThemeError.THEME_DOES_NOT_EXISTS));
 
       return new Output.ThemeRemoved();
     }

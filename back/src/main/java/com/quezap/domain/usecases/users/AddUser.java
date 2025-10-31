@@ -52,11 +52,11 @@ public sealed interface AddUser {
       final var hashedIdentifier = identifierHasher.hash(identifier);
       final var hashedPassword = passwordHasher.hash(rawPassword);
 
-      if (credentialRepository.findByIdentifier(hashedIdentifier) != null) {
+      if (credentialRepository.findByIdentifier(hashedIdentifier).isPresent()) {
         throw new DomainConstraintException(AddUserError.IDENTIFIER_ALREADY_TAKEN);
       }
 
-      if (userRepository.findByName(userName) != null) {
+      if (userRepository.findByName(userName).isPresent()) {
         throw new DomainConstraintException(AddUserError.USER_NAME_ALREADY_TAKEN);
       }
 

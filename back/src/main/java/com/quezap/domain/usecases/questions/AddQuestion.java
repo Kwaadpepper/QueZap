@@ -22,6 +22,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.utils.EmptyConsumer;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -83,16 +84,18 @@ public sealed interface AddQuestion {
       final var isTrue = input.isTrue();
       final var pictureBytes = input.picture();
       final var themeId = input.theme();
-      final var theme = themeRepository.find(themeId);
 
-      if (theme == null) {
-        throw new DomainConstraintException(AddQuestionError.THEME_DOES_NOT_EXISTS);
-      }
+      themeRepository
+          .find(themeId)
+          .ifPresentOrElse(
+              EmptyConsumer.accept(),
+              DomainConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
 
       final var picture = storePicture(pictureBytes, unitOfWork);
       final var answer = new Answer(isTrue ? "True" : "False", null, isTrue);
       final var question =
-          createQuestion(QuestionType.BOOLEAN, questionValue, picture, themeId, Set.of(answer));
+          createQuestion(
+              QuestionType.BOOLEAN, questionValue, picture, themeId, Set.<Answer>of(answer));
 
       questionRepository.save(question);
 
@@ -103,15 +106,16 @@ public sealed interface AddQuestion {
       final var questionValue = input.question();
       final var pictureBytes = input.picture();
       final var themeId = input.theme();
-      final var theme = themeRepository.find(themeId);
       final var answers =
           input.answers().stream()
-              .map(a -> answerDataMapper(a, unitOfWork))
+              .<Answer>map(a -> answerDataMapper(a, unitOfWork))
               .collect(Collectors.toSet());
 
-      if (theme == null) {
-        throw new DomainConstraintException(AddQuestionError.THEME_DOES_NOT_EXISTS);
-      }
+      themeRepository
+          .find(themeId)
+          .ifPresentOrElse(
+              EmptyConsumer.accept(),
+              DomainConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
 
       final var picture = storePicture(pictureBytes, unitOfWork);
       final var question =
@@ -126,15 +130,16 @@ public sealed interface AddQuestion {
       final var questionValue = input.question();
       final var pictureBytes = input.picture();
       final var themeId = input.theme();
-      final var theme = themeRepository.find(themeId);
       final var answers =
           input.answers().stream()
-              .map(a -> answerDataMapper(a, unitOfWork))
+              .<Answer>map(a -> answerDataMapper(a, unitOfWork))
               .collect(Collectors.toSet());
 
-      if (theme == null) {
-        throw new DomainConstraintException(AddQuestionError.THEME_DOES_NOT_EXISTS);
-      }
+      themeRepository
+          .find(themeId)
+          .ifPresentOrElse(
+              EmptyConsumer.accept(),
+              DomainConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
 
       final var picture = storePicture(pictureBytes, unitOfWork);
       final var question =
