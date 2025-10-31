@@ -52,7 +52,7 @@ public sealed interface AddSession {
         throw new IllegalDomainStateException("Generated session code is not unique");
       }
 
-      sessionRepository.save(session);
+      sessionRepository.persist(session);
 
       return new Output.SessionAdded(session.getId());
     }

@@ -55,7 +55,7 @@ public sealed interface AddQuestion {
     private Consumer<Session> persistWith(QuestionSlide questionSlide) {
       return session -> {
         session.addQuestion(questionSlide);
-        sessionRepository.save(session);
+        sessionRepository.persist(session);
       };
     }
   }

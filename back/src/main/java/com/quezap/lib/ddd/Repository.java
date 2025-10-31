@@ -26,14 +26,7 @@ public interface Repository<E extends AggregateRoot<I>, I extends EntityId> {
    *
    * @param entity the entity to be saved
    */
-  void save(@NonNull E entity);
-
-  /**
-   * Updates the given entity in the repository.
-   *
-   * @param entity the entity to update
-   */
-  void update(@NonNull E entity);
+  void persist(@NonNull E entity);
 
   /**
    * Deletes the specified entity from the repository.

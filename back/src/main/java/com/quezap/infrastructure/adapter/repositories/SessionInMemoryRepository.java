@@ -21,12 +21,7 @@ public class SessionInMemoryRepository implements SessionRepository {
   }
 
   @Override
-  public void save(Session entity) {
-    storage.put(entity.getId(), entity);
-  }
-
-  @Override
-  public void update(Session entity) {
+  public void persist(Session entity) {
     storage.put(entity.getId(), entity);
   }
 

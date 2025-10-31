@@ -23,12 +23,7 @@ public class UserInMemoryRepository implements UserRepository {
   }
 
   @Override
-  public void save(User entity) {
-    storage.put(entity.getId(), entity);
-  }
-
-  @Override
-  public void update(User entity) {
+  public void persist(User entity) {
     storage.put(entity.getId(), entity);
   }
 

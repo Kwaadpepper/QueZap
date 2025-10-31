@@ -52,7 +52,7 @@ public sealed interface RemoveQuestion {
 
     private void removeQuestionFrom(Session session, QuestionSlide questionSlide) {
       session.removeQuestion(questionSlide);
-      sessionRepository.save(session);
+      sessionRepository.persist(session);
     }
   }
 }

@@ -97,7 +97,7 @@ public sealed interface AddQuestion {
           createQuestion(
               QuestionType.BOOLEAN, questionValue, picture, themeId, Set.<Answer>of(answer));
 
-      questionRepository.save(question);
+      questionRepository.persist(question);
 
       return new Output(question.getId());
     }
@@ -121,7 +121,7 @@ public sealed interface AddQuestion {
       final var question =
           createQuestion(QuestionType.BINARY, questionValue, picture, themeId, answers);
 
-      questionRepository.save(question);
+      questionRepository.persist(question);
 
       return new Output(question.getId());
     }
@@ -145,7 +145,7 @@ public sealed interface AddQuestion {
       final var question =
           createQuestion(QuestionType.QUIZZ, questionValue, picture, themeId, answers);
 
-      questionRepository.save(question);
+      questionRepository.persist(question);
 
       return new Output(question.getId());
     }

@@ -20,12 +20,7 @@ public class CredentialInMemoryRepository implements CredentialRepository {
   }
 
   @Override
-  public void save(Credential entity) {
-    storage.put(entity.getId(), entity);
-  }
-
-  @Override
-  public void update(Credential entity) {
+  public void persist(Credential entity) {
     storage.put(entity.getId(), entity);
   }
 

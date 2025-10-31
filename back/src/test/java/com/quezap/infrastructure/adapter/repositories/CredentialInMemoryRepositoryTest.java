@@ -28,7 +28,7 @@ class CredentialInMemoryRepositoryTest {
     // WHEN
     Mockito.when(credential.getId()).thenReturn(credentialId);
 
-    repository.save(credential);
+    repository.persist(credential);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -40,7 +40,7 @@ class CredentialInMemoryRepositoryTest {
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"));
     var credential = MockEntity.mock(Credential.class);
     Mockito.when(credential.getId()).thenReturn(credentialId);
-    repository.save(credential);
+    repository.persist(credential);
 
     // WHEN
     var retrievedCredential = repository.find(credentialId);
@@ -66,7 +66,7 @@ class CredentialInMemoryRepositoryTest {
     var credential = MockEntity.mock(Credential.class);
     var credentialId = new CredentialId(UUID.fromString("117f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(credential.getId()).thenReturn(credentialId);
-    repository.save(credential);
+    repository.persist(credential);
 
     // WHEN
     repository.delete(credential);
@@ -85,32 +85,5 @@ class CredentialInMemoryRepositoryTest {
 
     // WHEN & THEN
     Assertions.assertThatCode(() -> repository.delete(credential)).doesNotThrowAnyException();
-  }
-
-  @Test
-  void canUpdateCredential() {
-    // GIVEN
-    var credential = MockEntity.mock(Credential.class);
-    var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
-    Mockito.when(credential.getId()).thenReturn(credentialId);
-    repository.save(credential);
-
-    // WHEN
-    repository.update(credential);
-    var retrievedCredential = repository.find(credentialId);
-
-    // THEN
-    Assertions.assertThat(retrievedCredential).isNotNull();
-  }
-
-  @Test
-  void updatingNonExistentCredentialDoesNotThrow() {
-    // GIVEN
-    var credential = MockEntity.mock(Credential.class);
-    var credentialId = new CredentialId(UUID.fromString("317f5a80-7e6d-7e6e-0000-000000000000"));
-    Mockito.when(credential.getId()).thenReturn(credentialId);
-
-    // WHEN & THEN
-    Assertions.assertThatCode(() -> repository.update(credential)).doesNotThrowAnyException();
   }
 }

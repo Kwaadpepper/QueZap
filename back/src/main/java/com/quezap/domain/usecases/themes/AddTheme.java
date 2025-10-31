@@ -34,7 +34,7 @@ public sealed interface AddTheme {
 
       final var theme = new Theme(themeName);
 
-      themeRepository.save(theme);
+      themeRepository.persist(theme);
 
       return new Output(theme.getId());
     }

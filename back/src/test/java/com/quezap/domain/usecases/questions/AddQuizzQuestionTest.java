@@ -55,7 +55,7 @@ class AddQuizzQuestionTest {
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(MockEntity.any());
+    Mockito.verify(questionRepository).persist(MockEntity.any());
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
 
@@ -80,7 +80,7 @@ class AddQuizzQuestionTest {
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(MockEntity.any());
+    Mockito.verify(questionRepository).persist(MockEntity.any());
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
 
@@ -105,7 +105,7 @@ class AddQuizzQuestionTest {
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(MockEntity.any());
+    Mockito.verify(questionRepository).persist(MockEntity.any());
     Mockito.verify(pictureManager).store(picture);
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }
@@ -140,7 +140,7 @@ class AddQuizzQuestionTest {
     addQuestionHandler.handle(input, unitOfWork);
 
     // THEN
-    Mockito.verify(questionRepository).save(MockEntity.any());
+    Mockito.verify(questionRepository).persist(MockEntity.any());
     Mockito.verify(pictureManager, Mockito.times(4)).store(MockEntity.any(PictureUploadData.class));
     Assertions.assertThatNoException().isThrownBy(() -> {});
   }

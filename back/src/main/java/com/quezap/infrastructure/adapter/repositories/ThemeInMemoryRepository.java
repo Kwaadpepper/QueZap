@@ -27,12 +27,7 @@ public class ThemeInMemoryRepository implements ThemeRepository {
   }
 
   @Override
-  public void save(Theme entity) {
-    storage.put(entity.getId(), entity);
-  }
-
-  @Override
-  public void update(Theme entity) {
+  public void persist(Theme entity) {
     storage.put(entity.getId(), entity);
   }
 

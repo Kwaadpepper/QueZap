@@ -39,7 +39,7 @@ public sealed interface StartSession {
 
     private void startSession(Session session) {
       session.startSession();
-      sessionRepository.save(session);
+      sessionRepository.persist(session);
     }
   }
 }

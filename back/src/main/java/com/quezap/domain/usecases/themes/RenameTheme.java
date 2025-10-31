@@ -45,7 +45,7 @@ public sealed interface RenameTheme {
 
     private void renameAndPersist(Theme theme, ThemeName newName) {
       theme.setName(newName);
-      themeRepository.save(theme);
+      themeRepository.persist(theme);
     }
   }
 }

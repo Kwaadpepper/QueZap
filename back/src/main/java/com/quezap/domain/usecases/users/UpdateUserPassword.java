@@ -85,7 +85,7 @@ public sealed interface UpdateUserPassword {
       final var hashedNewPassword = passwordHasher.hash(newPassword);
 
       credential.updatePassword(hashedNewPassword);
-      credentialRepository.save(credential);
+      credentialRepository.persist(credential);
     }
   }
 }

@@ -65,8 +65,8 @@ public sealed interface AddUser {
               hashedPassword, hashedIdentifier, null, ZonedDateTime.now(ZoneId.of("UTC")));
       final var user = new User(userName, credential.getId(), ZonedDateTime.now(ZoneId.of("UTC")));
 
-      credentialRepository.save(credential);
-      userRepository.save(user);
+      credentialRepository.persist(credential);
+      userRepository.persist(user);
 
       return new Output.UserAdded(user.getId());
     }

@@ -62,7 +62,7 @@ public sealed interface ParticipateSession {
       final var participant = new Participant(sanitizedUserName, 0, participationToken);
 
       session.addParticipant(participant);
-      sessionRepository.save(session);
+      sessionRepository.persist(session);
 
       return new Output.Participation(participationToken);
     }

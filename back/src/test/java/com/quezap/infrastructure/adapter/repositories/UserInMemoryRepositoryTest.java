@@ -31,7 +31,7 @@ class UserInMemoryRepositoryTest {
     userList.forEach(
         user -> {
           Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
-          repository.save(user);
+          repository.persist(user);
         });
 
     // WHEN
@@ -49,7 +49,7 @@ class UserInMemoryRepositoryTest {
     // WHEN
     Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
 
-    repository.save(user);
+    repository.persist(user);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -61,7 +61,7 @@ class UserInMemoryRepositoryTest {
     var user = MockEntity.mock(User.class);
     var id = MockEntity.mock(UserId.class);
     Mockito.when(user.getId()).thenReturn(id);
-    repository.save(user);
+    repository.persist(user);
 
     // WHEN
     var retrievedUser = repository.find(id);
@@ -87,7 +87,7 @@ class UserInMemoryRepositoryTest {
     var user = MockEntity.mock(User.class);
     var id = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     Mockito.when(user.getId()).thenReturn(id);
-    repository.save(user);
+    repository.persist(user);
 
     // WHEN
     repository.delete(user);
@@ -105,31 +105,5 @@ class UserInMemoryRepositoryTest {
 
     // WHEN & THEN
     Assertions.assertThatCode(() -> repository.delete(user)).doesNotThrowAnyException();
-  }
-
-  @Test
-  void canUpdateUser() {
-    // GIVEN
-    var user = MockEntity.mock(User.class);
-    var id = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
-    Mockito.when(user.getId()).thenReturn(id);
-    repository.save(user);
-
-    // WHEN
-    repository.update(user);
-    var retrievedUser = repository.find(id);
-
-    // THEN
-    Assertions.assertThat(retrievedUser).isNotNull();
-  }
-
-  @Test
-  void updatingNonExistentUserDoesNotThrow() {
-    // GIVEN
-    var user = MockEntity.mock(User.class);
-    Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
-
-    // WHEN & THEN
-    Assertions.assertThatCode(() -> repository.update(user)).doesNotThrowAnyException();
   }
 }

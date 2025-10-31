@@ -61,7 +61,7 @@ public interface AnswerQuestion {
                     DomainConstraintException.with(AnswerSessionError.INVALID_PARTICIPATION_TOKEN));
 
         session.addAnswer(participantName, slideIndex, answerIndex);
-        sessionRepository.save(session);
+        sessionRepository.persist(session);
       };
     }
 

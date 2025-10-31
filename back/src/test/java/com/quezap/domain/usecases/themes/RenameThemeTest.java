@@ -36,7 +36,7 @@ class RenameThemeTest {
     renameThemeHandler.handle(renameThemeInput, unitOfWork);
 
     // THEN
-    Mockito.verify(themeRepository).save(MockEntity.any(Theme.class));
+    Mockito.verify(themeRepository).persist(MockEntity.any(Theme.class));
     Assertions.assertDoesNotThrow(() -> {});
   }
 

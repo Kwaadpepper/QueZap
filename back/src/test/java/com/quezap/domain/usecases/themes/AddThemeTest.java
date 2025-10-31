@@ -31,7 +31,7 @@ class AddThemeTest {
     addThemeHandler.handle(addThemeInput, unitOfWork);
 
     // THEN
-    Mockito.verify(themeRepository).save(MockEntity.any(Theme.class));
+    Mockito.verify(themeRepository).persist(MockEntity.any(Theme.class));
     Assertions.assertDoesNotThrow(() -> {});
   }
 

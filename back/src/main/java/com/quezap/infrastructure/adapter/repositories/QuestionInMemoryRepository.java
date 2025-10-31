@@ -28,12 +28,7 @@ public class QuestionInMemoryRepository implements QuestionRepository {
   }
 
   @Override
-  public void save(Question entity) {
-    storage.put(entity.getId(), entity);
-  }
-
-  @Override
-  public void update(Question entity) {
+  public void persist(Question entity) {
     storage.put(entity.getId(), entity);
   }
 
