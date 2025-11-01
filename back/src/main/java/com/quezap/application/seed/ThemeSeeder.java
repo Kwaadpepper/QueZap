@@ -2,7 +2,8 @@ package com.quezap.application.seed;
 
 import org.springframework.stereotype.Component;
 
-import com.quezap.application.usecases.themes.AddTheme;
+import com.quezap.application.ports.themes.AddTheme;
+import com.quezap.application.ports.themes.AddTheme.AddThemeUseCase;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
@@ -11,11 +12,11 @@ public class ThemeSeeder implements Seeder {
   private static final int NUMBER_OF_THEMES = 10;
 
   private final UseCaseExecutor executor;
-  private final AddTheme.Handler handler;
+  private final AddThemeUseCase usecase;
 
-  public ThemeSeeder(UseCaseExecutor executor, AddTheme.Handler handler) {
+  public ThemeSeeder(UseCaseExecutor executor, AddThemeUseCase usecase) {
     this.executor = executor;
-    this.handler = handler;
+    this.usecase = usecase;
   }
 
   @Override
@@ -24,7 +25,7 @@ public class ThemeSeeder implements Seeder {
       final var themeName = new ThemeName("Theme " + i);
       final var input = new AddTheme.Input(themeName);
 
-      executor.execute(handler, input);
+      executor.execute(usecase, input);
     }
   }
 }

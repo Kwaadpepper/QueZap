@@ -6,7 +6,8 @@ import java.util.random.RandomGenerator;
 
 import org.springframework.stereotype.Component;
 
-import com.quezap.application.usecases.questions.AddQuestion;
+import com.quezap.application.ports.questions.AddQuestion;
+import com.quezap.application.ports.questions.AddQuestion.AddQuestionUseCase;
 import com.quezap.domain.ports.directories.ThemeDirectory;
 import com.quezap.domain.ports.directories.views.ThemeView;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
@@ -17,14 +18,14 @@ public class QuestionSeeder implements Seeder {
   private static final int NUMBER_OF_QUESTIONS_OF_ANY_TYPE = 10;
 
   private final UseCaseExecutor executor;
-  private final AddQuestion.Handler handler;
+  private final AddQuestionUseCase usecase;
 
   private final ThemeDirectory themeDirectory;
 
   public QuestionSeeder(
-      UseCaseExecutor executor, AddQuestion.Handler handler, ThemeDirectory themeDirectory) {
+      UseCaseExecutor executor, AddQuestionUseCase usecase, ThemeDirectory themeDirectory) {
     this.executor = executor;
-    this.handler = handler;
+    this.usecase = usecase;
     this.themeDirectory = themeDirectory;
   }
 
@@ -48,7 +49,7 @@ public class QuestionSeeder implements Seeder {
       final var isTrue = randomGen.nextBoolean();
       final var input = new AddQuestion.Input.Affirmation(question, isTrue, null, randomThemeId);
 
-      executor.execute(handler, input);
+      executor.execute(usecase, input);
     }
   }
 
@@ -69,7 +70,7 @@ public class QuestionSeeder implements Seeder {
               new AddQuestion.Input.AnswerData("No", null, !responseTruth));
 
       final var input = new AddQuestion.Input.Binary(question, answers, null, randomThemeId);
-      executor.execute(handler, input);
+      executor.execute(usecase, input);
     }
   }
 
@@ -90,7 +91,7 @@ public class QuestionSeeder implements Seeder {
               new AddQuestion.Input.AnswerData("Answer 3", null, responseTruth == 2),
               new AddQuestion.Input.AnswerData("Answer 4", null, responseTruth == 3));
       final var input = new AddQuestion.Input.Quizz(question, answers, null, randomThemeId);
-      executor.execute(handler, input);
+      executor.execute(usecase, input);
     }
   }
 }

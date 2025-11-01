@@ -3,7 +3,8 @@ package com.quezap.interfaces.api.v1.routes.questions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.quezap.application.usecases.questions.ListQuestions;
+import com.quezap.application.ports.questions.ListQuestions;
+import com.quezap.application.ports.questions.ListQuestions.ListQuestionsUseCase;
 import com.quezap.interfaces.api.v1.dto.request.PaginationDto;
 import com.quezap.interfaces.api.v1.dto.request.questions.FindQuestionsDto;
 import com.quezap.interfaces.api.v1.dto.response.PageOfDto;
@@ -16,13 +17,13 @@ import jakarta.validation.Valid;
 @RestController
 public class FindQuestionsController {
   private final UseCaseExecutor executor;
-  private final ListQuestions.Handler handler;
+  private final ListQuestionsUseCase usecase;
   private final PaginationMapper paginationMapper;
 
   FindQuestionsController(
-      UseCaseExecutor executor, ListQuestions.Handler handler, PaginationMapper paginationMapper) {
+      UseCaseExecutor executor, ListQuestionsUseCase usecase, PaginationMapper paginationMapper) {
     this.executor = executor;
-    this.handler = handler;
+    this.usecase = usecase;
     this.paginationMapper = paginationMapper;
   }
 
@@ -30,7 +31,7 @@ public class FindQuestionsController {
   PageOfDto<QuestionShortInfoDto> find(
       @Valid PaginationDto paginationDto, @Valid FindQuestionsDto queryDto) {
     final var input = toInput(paginationDto, queryDto);
-    final var output = executor.execute(handler, input);
+    final var output = executor.execute(usecase, input);
 
     return paginationMapper.fromDomain(output.value(), this::toDto);
   }

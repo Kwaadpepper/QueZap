@@ -10,9 +10,12 @@ import org.springframework.shell.command.CommandRegistration;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
-import com.quezap.application.usecases.users.AddUser;
-import com.quezap.application.usecases.users.DeleteUser;
-import com.quezap.application.usecases.users.ListUsers;
+import com.quezap.application.ports.users.AddUser;
+import com.quezap.application.ports.users.AddUser.AddUserUseCase;
+import com.quezap.application.ports.users.DeleteUser;
+import com.quezap.application.ports.users.DeleteUser.DeleteUserUseCase;
+import com.quezap.application.ports.users.ListUsers;
+import com.quezap.application.ports.users.ListUsers.ListUsersUseCase;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
@@ -26,21 +29,21 @@ import org.jline.reader.LineReader;
 @Command(command = "users", description = "User management commands")
 public class UserCommands {
   private final UseCaseExecutor executor;
-  private final ListUsers.Handler listUsersHandler;
-  private final AddUser.Handler addUserHandler;
-  private final DeleteUser.Handler deleteUserHandler;
+  private final ListUsersUseCase listUsersUsecase;
+  private final AddUserUseCase addUserUsecase;
+  private final DeleteUserUseCase deleteUserUsecase;
 
   @Autowired @Lazy private LineReader lineReader;
 
   public UserCommands(
       UseCaseExecutor executor,
-      ListUsers.Handler listUsersHandler,
-      AddUser.Handler addUserHandler,
-      DeleteUser.Handler deleteUserHandler) {
+      ListUsersUseCase listUsersUsecase,
+      AddUserUseCase addUserUsecase,
+      DeleteUserUseCase deleteUserUsecase) {
     this.executor = executor;
-    this.listUsersHandler = listUsersHandler;
-    this.addUserHandler = addUserHandler;
-    this.deleteUserHandler = deleteUserHandler;
+    this.listUsersUsecase = listUsersUsecase;
+    this.addUserUsecase = addUserUsecase;
+    this.deleteUserUsecase = deleteUserUsecase;
   }
 
   @Command(command = "list", description = "list users")
@@ -54,7 +57,7 @@ public class UserCommands {
     do {
       final var pageRequest = Pagination.ofPage(pageNumber++, perPage);
       final var input = new ListUsers.Input(pageRequest);
-      final var result = executor.execute(listUsersHandler, input);
+      final var result = executor.execute(listUsersUsecase, input);
       final var paginatedUsers = result.page();
 
       pageUsers = paginatedUsers.items();
@@ -85,7 +88,7 @@ public class UserCommands {
       final var password = new RawPassword(readPassword("Mot de passe : "));
       final var input = new AddUser.Input(name, identifier, password);
 
-      executor.execute(addUserHandler, input);
+      executor.execute(addUserUsecase, input);
 
       return "Done";
     } catch (IllegalDomainStateException e) {
@@ -106,11 +109,11 @@ public class UserCommands {
         final var newUserId = new UserId(UUID.fromString(loginOrId));
         final var input = new DeleteUser.Input.Id(newUserId);
 
-        executor.execute(deleteUserHandler, input);
+        executor.execute(deleteUserUsecase, input);
       } else {
         final var input = new DeleteUser.Input.UserName(loginOrId);
 
-        executor.execute(deleteUserHandler, input);
+        executor.execute(deleteUserUsecase, input);
       }
 
       return "Done";

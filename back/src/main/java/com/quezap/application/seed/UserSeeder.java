@@ -2,7 +2,8 @@ package com.quezap.application.seed;
 
 import org.springframework.stereotype.Component;
 
-import com.quezap.application.usecases.users.AddUser;
+import com.quezap.application.ports.users.AddUser;
+import com.quezap.application.ports.users.AddUser.AddUserUseCase;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
@@ -12,11 +13,11 @@ public class UserSeeder implements Seeder {
   private static final int NUMBER_OF_USERS = 10;
 
   private final UseCaseExecutor executor;
-  private final AddUser.Handler handler;
+  private final AddUserUseCase usecase;
 
-  public UserSeeder(UseCaseExecutor executor, AddUser.Handler handler) {
+  public UserSeeder(UseCaseExecutor executor, AddUserUseCase usecase) {
     this.executor = executor;
-    this.handler = handler;
+    this.usecase = usecase;
   }
 
   @Override
@@ -27,7 +28,7 @@ public class UserSeeder implements Seeder {
       final var password = new RawPassword("123Password." + i);
       final var input = new AddUser.Input(username, identifier, password);
 
-      executor.execute(handler, input);
+      executor.execute(usecase, input);
     }
   }
 }

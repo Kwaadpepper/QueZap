@@ -9,7 +9,8 @@ import java.util.function.Function;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.quezap.application.usecases.questions.AddQuestion;
+import com.quezap.application.ports.questions.AddQuestion;
+import com.quezap.application.ports.questions.AddQuestion.AddQuestionUseCase;
 import com.quezap.interfaces.api.v1.dto.internal.AnswerWithStream;
 import com.quezap.interfaces.api.v1.dto.request.questions.AddQuestionDto.AffirmationDto;
 import com.quezap.interfaces.api.v1.dto.request.questions.AddQuestionDto.AnswerDto;
@@ -28,13 +29,13 @@ public class AddQuestionController {
   private static final String IO_ERROR_MESSAGE = "Failed to process uploaded file";
 
   private final UseCaseExecutor executor;
-  private final AddQuestion.Handler handler;
+  private final AddQuestionUseCase usecase;
   private final QuestionMapper mapper;
 
   AddQuestionController(
-      UseCaseExecutor executor, AddQuestion.Handler handler, QuestionMapper mapper) {
+      UseCaseExecutor executor, AddQuestionUseCase usecase, QuestionMapper mapper) {
     this.executor = executor;
-    this.handler = handler;
+    this.usecase = usecase;
     this.mapper = mapper;
   }
 
@@ -51,7 +52,7 @@ public class AddQuestionController {
       final var pictureData = mapper.toPictureUploadData(pictureStream, picture);
 
       final var input = new AddQuestion.Input.Affirmation(question, isTrue, pictureData, themeId);
-      final var output = executor.execute(handler, input);
+      final var output = executor.execute(usecase, input);
 
       return mapper.toDto(output);
 
@@ -78,7 +79,7 @@ public class AddQuestionController {
             final var input =
                 new AddQuestion.Input.Binary(
                     question, answerDataList, questionPictureData, themeId);
-            final var output = executor.execute(handler, input);
+            final var output = executor.execute(usecase, input);
 
             return mapper.toDto(output);
           });
@@ -105,7 +106,7 @@ public class AddQuestionController {
           answerDataList -> {
             final var input =
                 new AddQuestion.Input.Quizz(question, answerDataList, questionPictureData, themeId);
-            final var output = executor.execute(handler, input);
+            final var output = executor.execute(usecase, input);
 
             return mapper.toDto(output);
           });
