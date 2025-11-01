@@ -3,7 +3,7 @@ package com.quezap.application.usecases.questions;
 import com.quezap.domain.errors.questions.DeleteQuestionError;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
-import com.quezap.domain.port.repositories.QuestionRepository;
+import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.mocks.MockEntity;

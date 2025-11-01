@@ -3,7 +3,7 @@ package com.quezap.application.usecases.sessions;
 import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
-import com.quezap.domain.port.repositories.SessionRepository;
+import com.quezap.domain.ports.repositories.SessionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;

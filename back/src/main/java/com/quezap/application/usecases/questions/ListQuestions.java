@@ -6,8 +6,8 @@ import com.quezap.application.usecases.questions.ListQuestions.Output.QuestionDt
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.port.directories.QuestionDirectory;
-import com.quezap.domain.port.directories.views.QuestionView;
+import com.quezap.domain.ports.directories.QuestionDirectory;
+import com.quezap.domain.ports.directories.views.QuestionView;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;

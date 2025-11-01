@@ -4,7 +4,7 @@ import com.quezap.domain.errors.themes.RenameThemeError;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.port.repositories.ThemeRepository;
+import com.quezap.domain.ports.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;

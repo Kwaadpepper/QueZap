@@ -7,11 +7,11 @@ import com.quezap.application.usecases.users.AddUser;
 import com.quezap.application.usecases.users.DeleteUser;
 import com.quezap.application.usecases.users.ListUsers;
 import com.quezap.application.usecases.users.UpdateUserPassword;
-import com.quezap.domain.port.directories.UserDirectory;
-import com.quezap.domain.port.repositories.CredentialRepository;
-import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.domain.port.services.IdentifierHasher;
-import com.quezap.domain.port.services.PasswordHasher;
+import com.quezap.domain.ports.directories.UserDirectory;
+import com.quezap.domain.ports.repositories.CredentialRepository;
+import com.quezap.domain.ports.repositories.UserRepository;
+import com.quezap.domain.ports.services.IdentifierHasher;
+import com.quezap.domain.ports.services.PasswordHasher;
 
 @Configuration
 public class UserDi {

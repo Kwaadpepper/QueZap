@@ -8,9 +8,9 @@ import com.quezap.domain.models.valueobjects.auth.HashedPassword;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.domain.port.repositories.CredentialRepository;
-import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.domain.port.services.PasswordHasher;
+import com.quezap.domain.ports.repositories.CredentialRepository;
+import com.quezap.domain.ports.repositories.UserRepository;
+import com.quezap.domain.ports.services.PasswordHasher;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.mocks.MockEntity;
 

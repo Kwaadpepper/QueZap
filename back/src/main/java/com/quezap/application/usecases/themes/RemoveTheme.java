@@ -4,8 +4,8 @@ import java.util.Set;
 
 import com.quezap.domain.errors.themes.RemoveThemeError;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.port.repositories.QuestionRepository;
-import com.quezap.domain.port.repositories.ThemeRepository;
+import com.quezap.domain.ports.repositories.QuestionRepository;
+import com.quezap.domain.ports.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;

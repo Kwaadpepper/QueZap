@@ -16,7 +16,7 @@ import com.quezap.domain.models.valueobjects.Sha256Hash;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
-import com.quezap.domain.port.services.QuestionPictureManager;
+import com.quezap.domain.ports.services.QuestionPictureManager;
 import com.quezap.lib.utils.UuidV7;
 
 import org.slf4j.Logger;

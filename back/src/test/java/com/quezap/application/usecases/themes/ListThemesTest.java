@@ -3,8 +3,8 @@ package com.quezap.application.usecases.themes;
 import java.util.List;
 
 import com.quezap.domain.models.valueobjects.SearchQuery;
-import com.quezap.domain.port.directories.ThemeDirectory;
-import com.quezap.domain.port.directories.views.ThemeView;
+import com.quezap.domain.ports.directories.ThemeDirectory;
+import com.quezap.domain.ports.directories.views.ThemeView;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;

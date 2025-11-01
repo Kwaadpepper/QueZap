@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.domain.port.directories.UserDirectory;
-import com.quezap.domain.port.directories.views.UserView;
+import com.quezap.domain.ports.directories.UserDirectory;
+import com.quezap.domain.ports.directories.views.UserView;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.pagination.PageOf;

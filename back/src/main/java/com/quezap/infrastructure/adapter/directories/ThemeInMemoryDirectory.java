@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.SearchQuery;
-import com.quezap.domain.port.directories.ThemeDirectory;
-import com.quezap.domain.port.directories.views.ThemeView;
+import com.quezap.domain.ports.directories.ThemeDirectory;
+import com.quezap.domain.ports.directories.views.ThemeView;
 import com.quezap.infrastructure.adapter.spi.DataSource;
 import com.quezap.infrastructure.anotations.Directory;
 import com.quezap.lib.pagination.PageOf;

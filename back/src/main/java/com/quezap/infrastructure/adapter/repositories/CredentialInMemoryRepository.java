@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
-import com.quezap.domain.port.repositories.CredentialRepository;
+import com.quezap.domain.ports.repositories.CredentialRepository;
 
 @Repository("credentialInMemoryRepository")
 public class CredentialInMemoryRepository implements CredentialRepository {

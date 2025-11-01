@@ -4,7 +4,7 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
 import com.quezap.domain.models.valueobjects.auth.PasswordCandidate;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
-import com.quezap.domain.port.services.PasswordHasher;
+import com.quezap.domain.ports.services.PasswordHasher;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

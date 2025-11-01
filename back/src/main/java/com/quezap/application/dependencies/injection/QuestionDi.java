@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Configuration;
 import com.quezap.application.usecases.questions.AddQuestion;
 import com.quezap.application.usecases.questions.ListQuestions;
 import com.quezap.application.usecases.questions.RemoveQuestion;
-import com.quezap.domain.port.directories.QuestionDirectory;
-import com.quezap.domain.port.repositories.QuestionRepository;
-import com.quezap.domain.port.repositories.ThemeRepository;
-import com.quezap.domain.port.services.QuestionPictureManager;
+import com.quezap.domain.ports.directories.QuestionDirectory;
+import com.quezap.domain.ports.repositories.QuestionRepository;
+import com.quezap.domain.ports.repositories.ThemeRepository;
+import com.quezap.domain.ports.services.QuestionPictureManager;
 
 @Configuration
 public class QuestionDi {

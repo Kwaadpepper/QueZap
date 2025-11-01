@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
-import com.quezap.domain.port.repositories.SessionRepository;
+import com.quezap.domain.ports.repositories.SessionRepository;
 
 @Repository("sessionInMemoryRepository")
 public class SessionInMemoryRepository implements SessionRepository {

@@ -1,4 +1,4 @@
-package com.quezap.domain.port.repositories;
+package com.quezap.domain.ports.repositories;
 
 import java.util.Optional;
 

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.port.repositories.QuestionRepository;
+import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.infrastructure.adapter.spi.DataSource;
 
 @Repository("questionInMemoryRepository")

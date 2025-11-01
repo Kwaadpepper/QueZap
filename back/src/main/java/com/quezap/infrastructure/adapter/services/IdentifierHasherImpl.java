@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
-import com.quezap.domain.port.services.IdentifierHasher;
+import com.quezap.domain.ports.services.IdentifierHasher;
 
 @Service
 public class IdentifierHasherImpl implements IdentifierHasher {

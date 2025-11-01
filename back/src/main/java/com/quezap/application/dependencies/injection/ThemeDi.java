@@ -7,9 +7,9 @@ import com.quezap.application.usecases.themes.AddTheme;
 import com.quezap.application.usecases.themes.ListThemes;
 import com.quezap.application.usecases.themes.RemoveTheme;
 import com.quezap.application.usecases.themes.RenameTheme;
-import com.quezap.domain.port.directories.ThemeDirectory;
-import com.quezap.domain.port.repositories.QuestionRepository;
-import com.quezap.domain.port.repositories.ThemeRepository;
+import com.quezap.domain.ports.directories.ThemeDirectory;
+import com.quezap.domain.ports.repositories.QuestionRepository;
+import com.quezap.domain.ports.repositories.ThemeRepository;
 
 @Configuration
 public class ThemeDi {

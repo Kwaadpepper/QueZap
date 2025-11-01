@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.quezap.domain.events.questions.QuestionDeleted;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
-import com.quezap.domain.port.services.QuestionPictureManager;
+import com.quezap.domain.ports.services.QuestionPictureManager;
 import com.quezap.lib.ddd.events.DomainEventListener;
 
 import org.slf4j.Logger;

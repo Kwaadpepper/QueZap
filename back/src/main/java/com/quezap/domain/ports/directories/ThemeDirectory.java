@@ -1,7 +1,7 @@
-package com.quezap.domain.port.directories;
+package com.quezap.domain.ports.directories;
 
 import com.quezap.domain.models.valueobjects.SearchQuery;
-import com.quezap.domain.port.directories.views.ThemeView;
+import com.quezap.domain.ports.directories.views.ThemeView;
 import com.quezap.lib.ddd.directories.Directory;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;

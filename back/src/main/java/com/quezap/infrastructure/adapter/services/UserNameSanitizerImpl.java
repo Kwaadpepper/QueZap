@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.quezap.application.config.ProfanityConfig;
-import com.quezap.domain.port.services.UserNameSanitizer;
+import com.quezap.domain.ports.services.UserNameSanitizer;
 
 import com.modernmt.text.profanity.ProfanityFilter;
 import com.modernmt.text.profanity.dictionary.Dictionary;

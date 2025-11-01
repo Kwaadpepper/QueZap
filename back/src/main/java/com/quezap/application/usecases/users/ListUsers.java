@@ -1,8 +1,8 @@
 package com.quezap.application.usecases.users;
 
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.domain.port.directories.UserDirectory;
-import com.quezap.domain.port.directories.views.UserView;
+import com.quezap.domain.ports.directories.UserDirectory;
+import com.quezap.domain.ports.directories.views.UserView;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;

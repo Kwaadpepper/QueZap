@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import com.quezap.domain.models.valueobjects.auth.HashedPassword;
 import com.quezap.domain.models.valueobjects.auth.PasswordCandidate;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
-import com.quezap.domain.port.services.PasswordHasher;
+import com.quezap.domain.ports.services.PasswordHasher;
 
 @Service
 public class PasswordHasherImpl implements PasswordHasher {

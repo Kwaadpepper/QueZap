@@ -1,4 +1,4 @@
-package com.quezap.domain.port.directories.views;
+package com.quezap.domain.ports.directories.views;
 
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;

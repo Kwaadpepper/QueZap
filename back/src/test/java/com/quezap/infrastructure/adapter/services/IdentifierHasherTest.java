@@ -1,7 +1,7 @@
 package com.quezap.infrastructure.adapter.services;
 
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
-import com.quezap.domain.port.services.IdentifierHasher;
+import com.quezap.domain.ports.services.IdentifierHasher;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

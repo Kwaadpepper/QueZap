@@ -7,8 +7,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.quezap.domain.models.entities.User;
-import com.quezap.domain.port.directories.UserDirectory;
-import com.quezap.domain.port.directories.views.UserView;
+import com.quezap.domain.ports.directories.UserDirectory;
+import com.quezap.domain.ports.directories.views.UserView;
 import com.quezap.infrastructure.adapter.spi.DataSource;
 import com.quezap.infrastructure.anotations.Directory;
 import com.quezap.lib.pagination.PageOf;
