@@ -5,20 +5,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.application.ports.themes.AddTheme;
-import com.quezap.application.ports.themes.AddTheme.AddThemeUseCase;
+import com.quezap.application.ports.themes.AddTheme.AddThemeUsecase;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.interfaces.api.v1.dto.request.themes.CreateThemeRequest;
 import com.quezap.interfaces.api.v1.dto.response.themes.ThemeIdDto;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class AddThemeController {
-  private final UseCaseExecutor executor;
-  private final AddThemeUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final AddThemeUsecase usecase;
 
-  AddThemeController(UseCaseExecutor executor, AddThemeUseCase usecase) {
+  AddThemeController(UsecaseExecutor executor, AddThemeUsecase usecase) {
     this.executor = executor;
     this.usecase = usecase;
   }

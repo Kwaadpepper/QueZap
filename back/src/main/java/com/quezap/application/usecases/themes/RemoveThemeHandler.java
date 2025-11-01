@@ -5,7 +5,7 @@ import java.util.Set;
 import com.quezap.application.anotations.Usecase;
 import com.quezap.application.ports.themes.RemoveTheme.Input;
 import com.quezap.application.ports.themes.RemoveTheme.Output;
-import com.quezap.application.ports.themes.RemoveTheme.RemoveThemeUseCase;
+import com.quezap.application.ports.themes.RemoveTheme.RemoveThemeUsecase;
 import com.quezap.domain.errors.themes.RemoveThemeError;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.ports.repositories.QuestionRepository;
@@ -14,7 +14,7 @@ import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-final class RemoveThemeHandler implements RemoveThemeUseCase {
+final class RemoveThemeHandler implements RemoveThemeUsecase {
   private final ThemeRepository themeRepository;
   private final QuestionRepository questionRepository;
 

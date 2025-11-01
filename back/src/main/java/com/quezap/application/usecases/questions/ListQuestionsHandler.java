@@ -2,14 +2,14 @@ package com.quezap.application.usecases.questions;
 
 import com.quezap.application.anotations.Usecase;
 import com.quezap.application.ports.questions.ListQuestions.Input;
-import com.quezap.application.ports.questions.ListQuestions.ListQuestionsUseCase;
+import com.quezap.application.ports.questions.ListQuestions.ListQuestionsUsecase;
 import com.quezap.application.ports.questions.ListQuestions.Output;
 import com.quezap.domain.ports.directories.QuestionDirectory;
 import com.quezap.domain.ports.directories.views.QuestionView;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-final class ListQuestionsHandler implements ListQuestionsUseCase {
+final class ListQuestionsHandler implements ListQuestionsUsecase {
   private final QuestionDirectory questionDirectory;
 
   public ListQuestionsHandler(QuestionDirectory questionRepository) {

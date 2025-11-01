@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.application.ports.questions.AddQuestion;
-import com.quezap.application.ports.questions.AddQuestion.AddQuestionUseCase;
+import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
 import com.quezap.interfaces.api.v1.dto.internal.AnswerWithStream;
 import com.quezap.interfaces.api.v1.dto.request.questions.AddQuestionDto.AffirmationDto;
 import com.quezap.interfaces.api.v1.dto.request.questions.AddQuestionDto.AnswerDto;
@@ -20,7 +20,7 @@ import com.quezap.interfaces.api.v1.dto.response.questions.QuestionIdDto;
 import com.quezap.interfaces.api.v1.exceptions.ServerException;
 import com.quezap.interfaces.api.v1.helpers.PictureStreamHelper;
 import com.quezap.interfaces.api.v1.mappers.QuestionMapper;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
 
@@ -28,12 +28,12 @@ import jakarta.validation.Valid;
 public class AddQuestionController {
   private static final String IO_ERROR_MESSAGE = "Failed to process uploaded file";
 
-  private final UseCaseExecutor executor;
-  private final AddQuestionUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final AddQuestionUsecase usecase;
   private final QuestionMapper mapper;
 
   AddQuestionController(
-      UseCaseExecutor executor, AddQuestionUseCase usecase, QuestionMapper mapper) {
+      UsecaseExecutor executor, AddQuestionUsecase usecase, QuestionMapper mapper) {
     this.executor = executor;
     this.usecase = usecase;
     this.mapper = mapper;

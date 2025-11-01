@@ -7,23 +7,23 @@ import java.util.random.RandomGenerator;
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.ports.questions.AddQuestion;
-import com.quezap.application.ports.questions.AddQuestion.AddQuestionUseCase;
+import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
 import com.quezap.domain.ports.directories.ThemeDirectory;
 import com.quezap.domain.ports.directories.views.ThemeView;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 
 @Component
 public class QuestionSeeder implements Seeder {
   private static final int NUMBER_OF_QUESTIONS_OF_ANY_TYPE = 10;
 
-  private final UseCaseExecutor executor;
-  private final AddQuestionUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final AddQuestionUsecase usecase;
 
   private final ThemeDirectory themeDirectory;
 
   public QuestionSeeder(
-      UseCaseExecutor executor, AddQuestionUseCase usecase, ThemeDirectory themeDirectory) {
+      UsecaseExecutor executor, AddQuestionUsecase usecase, ThemeDirectory themeDirectory) {
     this.executor = executor;
     this.usecase = usecase;
     this.themeDirectory = themeDirectory;

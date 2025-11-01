@@ -21,7 +21,7 @@ import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import com.quezap.infrastructure.adapter.spi.DataSource;
 import com.quezap.lib.ddd.repositories.Repository;
-import com.quezap.lib.ddd.usecases.UseCaseHandler;
+import com.quezap.lib.ddd.usecases.UsecaseHandler;
 
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import jakarta.validation.ConstraintValidator;
@@ -74,8 +74,8 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
     findAndRegisterForReflection(
         hints,
         BASE_PACKAGE,
-        UseCaseHandler.class,
-        "Hint reflection for UseCaseHandler:",
+        UsecaseHandler.class,
+        "Hint reflection for UsecaseHandler:",
         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
         MemberCategory.INVOKE_DECLARED_METHODS);
 

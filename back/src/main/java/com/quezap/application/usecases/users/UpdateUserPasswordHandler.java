@@ -3,7 +3,7 @@ package com.quezap.application.usecases.users;
 import com.quezap.application.anotations.Usecase;
 import com.quezap.application.ports.users.UpdateUserPassword.Input;
 import com.quezap.application.ports.users.UpdateUserPassword.Output;
-import com.quezap.application.ports.users.UpdateUserPassword.UpdateUserPasswordUseCase;
+import com.quezap.application.ports.users.UpdateUserPassword.UpdateUserPasswordUsecase;
 import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.errors.users.UpdateUserPasswordError;
 import com.quezap.domain.models.entities.Credential;
@@ -18,7 +18,7 @@ import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-final class UpdateUserPasswordHandler implements UpdateUserPasswordUseCase {
+final class UpdateUserPasswordHandler implements UpdateUserPasswordUsecase {
   private final UserRepository userRepository;
   private final CredentialRepository credentialRepository;
   private final PasswordHasher passwordHasher;

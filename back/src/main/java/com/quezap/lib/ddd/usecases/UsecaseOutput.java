@@ -1,3 +1,3 @@
 package com.quezap.lib.ddd.usecases;
 
-public interface UseCaseOutput {}
+public interface UsecaseOutput {}

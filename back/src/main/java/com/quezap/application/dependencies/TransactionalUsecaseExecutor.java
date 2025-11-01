@@ -11,23 +11,23 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
-import com.quezap.lib.ddd.usecases.UseCaseHandler;
-import com.quezap.lib.ddd.usecases.UseCaseInput;
-import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseHandler;
+import com.quezap.lib.ddd.usecases.UsecaseInput;
+import com.quezap.lib.ddd.usecases.UsecaseOutput;
 
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
-public class TransactionalUseCaseExecutor implements UseCaseExecutor {
-  private final Logger logger = LoggerFactory.getLogger(TransactionalUseCaseExecutor.class);
+public class TransactionalUsecaseExecutor implements UsecaseExecutor {
+  private final Logger logger = LoggerFactory.getLogger(TransactionalUsecaseExecutor.class);
 
   @Override
   @Transactional
-  public <I extends UseCaseInput, O extends UseCaseOutput> O execute(
-      UseCaseHandler<I, O> useCaseHandler, @NonNull I usecaseInput) {
+  public <I extends UsecaseInput, O extends UsecaseOutput> O execute(
+      UsecaseHandler<I, O> useCaseHandler, @NonNull I usecaseInput) {
 
     final var useCaseName = AopUtils.getTargetClass(useCaseHandler).getCanonicalName();
     final var unitOfWork = new TransactionalUnitOfWork(logger, useCaseName);
@@ -103,7 +103,7 @@ public class TransactionalUseCaseExecutor implements UseCaseExecutor {
     }
 
     private void log(String message, Level level, Object... args) {
-      final var prefixedMessage = "[UseCase: %s] %s".formatted(useCaseName, message);
+      final var prefixedMessage = "[Usecase: %s] %s".formatted(useCaseName, message);
       switch (level) {
         case INFO -> logger.info(prefixedMessage, args);
         case WARN -> logger.warn(prefixedMessage, args);

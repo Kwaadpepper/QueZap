@@ -3,7 +3,7 @@ package com.quezap.application.usecases.questions;
 import com.quezap.application.anotations.Usecase;
 import com.quezap.application.ports.questions.RemoveQuestion.Input;
 import com.quezap.application.ports.questions.RemoveQuestion.Output;
-import com.quezap.application.ports.questions.RemoveQuestion.RemoveQuestionUseCase;
+import com.quezap.application.ports.questions.RemoveQuestion.RemoveQuestionUsecase;
 import com.quezap.domain.errors.questions.DeleteQuestionError;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.ports.repositories.QuestionRepository;
@@ -11,7 +11,7 @@ import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-final class RemoveQuestionHandler implements RemoveQuestionUseCase {
+final class RemoveQuestionHandler implements RemoveQuestionUsecase {
   private final QuestionRepository questionRepository;
 
   public RemoveQuestionHandler(QuestionRepository questionRepository) {

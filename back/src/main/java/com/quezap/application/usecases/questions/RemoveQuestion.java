@@ -6,18 +6,18 @@ import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
-import com.quezap.lib.ddd.usecases.UseCaseHandler;
-import com.quezap.lib.ddd.usecases.UseCaseInput;
-import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.ddd.usecases.UsecaseHandler;
+import com.quezap.lib.ddd.usecases.UsecaseInput;
+import com.quezap.lib.ddd.usecases.UsecaseOutput;
 
 public sealed interface RemoveQuestion {
-  record Input(QuestionId questionId) implements UseCaseInput {}
+  record Input(QuestionId questionId) implements UsecaseInput {}
 
-  sealed interface Output extends UseCaseOutput {
+  sealed interface Output extends UsecaseOutput {
     record QuestionDeleted() implements Output {}
   }
 
-  public static final class Handler implements UseCaseHandler<Input, Output>, RemoveQuestion {
+  public static final class Handler implements UsecaseHandler<Input, Output>, RemoveQuestion {
     private final QuestionRepository questionRepository;
 
     public Handler(QuestionRepository questionRepository) {

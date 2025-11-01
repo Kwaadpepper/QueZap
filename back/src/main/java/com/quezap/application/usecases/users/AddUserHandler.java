@@ -1,7 +1,7 @@
 package com.quezap.application.usecases.users;
 
 import com.quezap.application.anotations.Usecase;
-import com.quezap.application.ports.users.AddUser.AddUserUseCase;
+import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.AddUser.Input;
 import com.quezap.application.ports.users.AddUser.Output;
 import com.quezap.domain.errors.users.AddUserError;
@@ -15,7 +15,7 @@ import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-final class AddUserHandler implements AddUserUseCase {
+final class AddUserHandler implements AddUserUsecase {
   private final UserRepository userRepository;
   private final CredentialRepository credentialRepository;
   private final IdentifierHasher identifierHasher;

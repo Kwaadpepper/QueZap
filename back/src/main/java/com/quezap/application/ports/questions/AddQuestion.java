@@ -5,15 +5,15 @@ import java.util.Set;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
-import com.quezap.lib.ddd.usecases.UseCaseHandler;
-import com.quezap.lib.ddd.usecases.UseCaseInput;
-import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.ddd.usecases.UsecaseHandler;
+import com.quezap.lib.ddd.usecases.UsecaseInput;
+import com.quezap.lib.ddd.usecases.UsecaseOutput;
 
 import org.jspecify.annotations.Nullable;
 
 public interface AddQuestion {
 
-  sealed interface Input extends UseCaseInput {
+  sealed interface Input extends UsecaseInput {
     record Affirmation(
         String question, boolean isTrue, @Nullable PictureUploadData picture, ThemeId theme)
         implements Input {}
@@ -36,8 +36,8 @@ public interface AddQuestion {
         String answerText, @Nullable PictureUploadData picture, boolean isCorrect) {}
   }
 
-  record Output(QuestionId id) implements UseCaseOutput {}
+  record Output(QuestionId id) implements UsecaseOutput {}
 
-  public interface AddQuestionUseCase
-      extends UseCaseHandler<AddQuestion.Input, AddQuestion.Output> {}
+  public interface AddQuestionUsecase
+      extends UsecaseHandler<AddQuestion.Input, AddQuestion.Output> {}
 }

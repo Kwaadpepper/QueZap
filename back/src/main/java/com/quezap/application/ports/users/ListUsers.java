@@ -1,9 +1,9 @@
 package com.quezap.application.ports.users;
 
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.lib.ddd.usecases.UseCaseHandler;
-import com.quezap.lib.ddd.usecases.UseCaseInput;
-import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.ddd.usecases.UsecaseHandler;
+import com.quezap.lib.ddd.usecases.UsecaseInput;
+import com.quezap.lib.ddd.usecases.UsecaseOutput;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
@@ -11,12 +11,12 @@ import com.quezap.lib.pagination.Pagination;
 import org.jspecify.annotations.NonNull;
 
 public interface ListUsers {
-  record Input(Pagination pagination) implements UseCaseInput {}
+  record Input(Pagination pagination) implements UsecaseInput {}
 
-  record Output(PageOf<@NonNull UserDto> page) implements UseCaseOutput {
+  record Output(PageOf<@NonNull UserDto> page) implements UsecaseOutput {
     public record UserDto(
         UserId id, String name, TimelinePoint createdAt, TimelinePoint updatedAt) {}
   }
 
-  public interface ListUsersUseCase extends UseCaseHandler<ListUsers.Input, ListUsers.Output> {}
+  public interface ListUsersUsecase extends UsecaseHandler<ListUsers.Input, ListUsers.Output> {}
 }

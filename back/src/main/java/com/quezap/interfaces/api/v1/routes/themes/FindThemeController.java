@@ -10,18 +10,18 @@ import com.quezap.interfaces.api.v1.dto.request.themes.FindThemesDto;
 import com.quezap.interfaces.api.v1.dto.response.PageOfDto;
 import com.quezap.interfaces.api.v1.dto.response.themes.ThemeDto;
 import com.quezap.interfaces.api.v1.mappers.PaginationMapper;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class FindThemeController {
-  private final UseCaseExecutor executor;
+  private final UsecaseExecutor executor;
   private final ListThemesUsecase usecase;
   private final PaginationMapper paginationMapper;
 
   FindThemeController(
-      UseCaseExecutor executor, ListThemesUsecase usecase, PaginationMapper paginationMapper) {
+      UsecaseExecutor executor, ListThemesUsecase usecase, PaginationMapper paginationMapper) {
     this.executor = executor;
     this.usecase = usecase;
     this.paginationMapper = paginationMapper;

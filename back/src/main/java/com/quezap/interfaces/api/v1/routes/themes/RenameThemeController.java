@@ -6,19 +6,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.application.ports.themes.RenameTheme;
-import com.quezap.application.ports.themes.RenameTheme.RenameThemeUseCase;
+import com.quezap.application.ports.themes.RenameTheme.RenameThemeUsecase;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.interfaces.api.v1.dto.request.themes.RenameThemeRequest;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class RenameThemeController {
-  private final UseCaseExecutor executor;
-  private final RenameThemeUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final RenameThemeUsecase usecase;
 
-  RenameThemeController(UseCaseExecutor executor, RenameThemeUseCase usecase) {
+  RenameThemeController(UsecaseExecutor executor, RenameThemeUsecase usecase) {
     this.executor = executor;
     this.usecase = usecase;
   }

@@ -3,7 +3,7 @@ package com.quezap.application.usecases.sessions;
 import java.util.function.Consumer;
 
 import com.quezap.application.anotations.Usecase;
-import com.quezap.application.ports.sessions.AddQuestionToSession.AddQuestionToSessionUseCase;
+import com.quezap.application.ports.sessions.AddQuestionToSession.AddQuestionToSessionUsecase;
 import com.quezap.application.ports.sessions.AddQuestionToSession.Input;
 import com.quezap.application.ports.sessions.AddQuestionToSession.Output;
 import com.quezap.domain.errors.sessions.AddQuestionError;
@@ -15,7 +15,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.utils.EmptyConsumer;
 
 @Usecase
-public final class AddQuestionToSessionHandler implements AddQuestionToSessionUseCase {
+public final class AddQuestionToSessionHandler implements AddQuestionToSessionUsecase {
   private final SessionRepository sessionRepository;
   private final QuestionRepository questionRepository;
 

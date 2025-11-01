@@ -4,24 +4,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.application.ports.questions.ListQuestions;
-import com.quezap.application.ports.questions.ListQuestions.ListQuestionsUseCase;
+import com.quezap.application.ports.questions.ListQuestions.ListQuestionsUsecase;
 import com.quezap.interfaces.api.v1.dto.request.PaginationDto;
 import com.quezap.interfaces.api.v1.dto.request.questions.FindQuestionsDto;
 import com.quezap.interfaces.api.v1.dto.response.PageOfDto;
 import com.quezap.interfaces.api.v1.dto.response.questions.QuestionShortInfoDto;
 import com.quezap.interfaces.api.v1.mappers.PaginationMapper;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class FindQuestionsController {
-  private final UseCaseExecutor executor;
-  private final ListQuestionsUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final ListQuestionsUsecase usecase;
   private final PaginationMapper paginationMapper;
 
   FindQuestionsController(
-      UseCaseExecutor executor, ListQuestionsUseCase usecase, PaginationMapper paginationMapper) {
+      UsecaseExecutor executor, ListQuestionsUsecase usecase, PaginationMapper paginationMapper) {
     this.executor = executor;
     this.usecase = usecase;
     this.paginationMapper = paginationMapper;

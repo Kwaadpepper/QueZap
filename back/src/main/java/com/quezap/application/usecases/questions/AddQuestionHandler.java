@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.quezap.application.anotations.Usecase;
-import com.quezap.application.ports.questions.AddQuestion.AddQuestionUseCase;
+import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
 import com.quezap.application.ports.questions.AddQuestion.Input;
 import com.quezap.application.ports.questions.AddQuestion.Output;
 import com.quezap.domain.errors.questions.AddQuestionError;
@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Usecase
-final class AddQuestionHandler implements AddQuestionUseCase {
+final class AddQuestionHandler implements AddQuestionUsecase {
   private static final Logger logger = LoggerFactory.getLogger(AddQuestionHandler.class);
   private final QuestionRepository questionRepository;
   private final ThemeRepository themeRepository;

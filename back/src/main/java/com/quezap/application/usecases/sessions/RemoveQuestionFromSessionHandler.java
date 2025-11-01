@@ -3,7 +3,7 @@ package com.quezap.application.usecases.sessions;
 import com.quezap.application.anotations.Usecase;
 import com.quezap.application.ports.sessions.RemoveQuestionFromSession.Input;
 import com.quezap.application.ports.sessions.RemoveQuestionFromSession.Output;
-import com.quezap.application.ports.sessions.RemoveQuestionFromSession.RemoveQuestionFromSessionUseCase;
+import com.quezap.application.ports.sessions.RemoveQuestionFromSession.RemoveQuestionFromSessionUsecase;
 import com.quezap.domain.errors.sessions.RemoveQuestionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.ports.repositories.QuestionRepository;
@@ -13,7 +13,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.utils.EmptyConsumer;
 
 @Usecase
-public final class RemoveQuestionFromSessionHandler implements RemoveQuestionFromSessionUseCase {
+public final class RemoveQuestionFromSessionHandler implements RemoveQuestionFromSessionUsecase {
   private final SessionRepository sessionRepository;
   private final QuestionRepository questionRepository;
 

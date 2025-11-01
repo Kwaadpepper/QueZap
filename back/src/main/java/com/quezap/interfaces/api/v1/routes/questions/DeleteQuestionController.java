@@ -5,16 +5,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quezap.application.ports.questions.RemoveQuestion;
-import com.quezap.application.ports.questions.RemoveQuestion.RemoveQuestionUseCase;
+import com.quezap.application.ports.questions.RemoveQuestion.RemoveQuestionUsecase;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 @RestController
 public class DeleteQuestionController {
-  private final UseCaseExecutor executor;
-  private final RemoveQuestionUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final RemoveQuestionUsecase usecase;
 
-  DeleteQuestionController(UseCaseExecutor executor, RemoveQuestionUseCase usecase) {
+  DeleteQuestionController(UsecaseExecutor executor, RemoveQuestionUsecase usecase) {
     this.executor = executor;
     this.usecase = usecase;
   }

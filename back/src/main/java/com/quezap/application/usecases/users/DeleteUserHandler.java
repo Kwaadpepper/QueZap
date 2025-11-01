@@ -1,7 +1,7 @@
 package com.quezap.application.usecases.users;
 
 import com.quezap.application.anotations.Usecase;
-import com.quezap.application.ports.users.DeleteUser.DeleteUserUseCase;
+import com.quezap.application.ports.users.DeleteUser.DeleteUserUsecase;
 import com.quezap.application.ports.users.DeleteUser.Input;
 import com.quezap.application.ports.users.DeleteUser.Output;
 import com.quezap.domain.errors.users.DeleteUserError;
@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Usecase
-final class DeleteUserHandler implements DeleteUserUseCase {
+final class DeleteUserHandler implements DeleteUserUsecase {
   private static final Logger logger = LoggerFactory.getLogger(DeleteUserHandler.class);
 
   private final UserRepository userRepository;

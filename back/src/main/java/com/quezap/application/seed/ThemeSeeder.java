@@ -3,18 +3,18 @@ package com.quezap.application.seed;
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.ports.themes.AddTheme;
-import com.quezap.application.ports.themes.AddTheme.AddThemeUseCase;
+import com.quezap.application.ports.themes.AddTheme.AddThemeUsecase;
 import com.quezap.domain.models.valueobjects.ThemeName;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 @Component
 public class ThemeSeeder implements Seeder {
   private static final int NUMBER_OF_THEMES = 10;
 
-  private final UseCaseExecutor executor;
-  private final AddThemeUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final AddThemeUsecase usecase;
 
-  public ThemeSeeder(UseCaseExecutor executor, AddThemeUseCase usecase) {
+  public ThemeSeeder(UsecaseExecutor executor, AddThemeUsecase usecase) {
     this.executor = executor;
     this.usecase = usecase;
   }

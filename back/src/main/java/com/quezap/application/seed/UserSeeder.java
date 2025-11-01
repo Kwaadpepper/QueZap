@@ -3,19 +3,19 @@ package com.quezap.application.seed;
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.ports.users.AddUser;
-import com.quezap.application.ports.users.AddUser.AddUserUseCase;
+import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 @Component
 public class UserSeeder implements Seeder {
   private static final int NUMBER_OF_USERS = 10;
 
-  private final UseCaseExecutor executor;
-  private final AddUserUseCase usecase;
+  private final UsecaseExecutor executor;
+  private final AddUserUsecase usecase;
 
-  public UserSeeder(UseCaseExecutor executor, AddUserUseCase usecase) {
+  public UserSeeder(UsecaseExecutor executor, AddUserUsecase usecase) {
     this.executor = executor;
     this.usecase = usecase;
   }

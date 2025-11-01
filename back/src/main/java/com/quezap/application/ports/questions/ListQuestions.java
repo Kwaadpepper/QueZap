@@ -5,15 +5,15 @@ import java.util.Set;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.lib.ddd.usecases.UseCaseHandler;
-import com.quezap.lib.ddd.usecases.UseCaseInput;
-import com.quezap.lib.ddd.usecases.UseCaseOutput;
+import com.quezap.lib.ddd.usecases.UsecaseHandler;
+import com.quezap.lib.ddd.usecases.UsecaseInput;
+import com.quezap.lib.ddd.usecases.UsecaseOutput;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
 public interface ListQuestions {
-  sealed interface Input extends UseCaseInput {
+  sealed interface Input extends UsecaseInput {
     record PerPage(Pagination page) implements Input {}
 
     record WithThemes(Pagination page, Set<ThemeId> themes) implements Input {}
@@ -41,10 +41,10 @@ public interface ListQuestions {
     }
   }
 
-  record Output(PageOf<QuestionDto> value) implements UseCaseOutput {
+  record Output(PageOf<QuestionDto> value) implements UsecaseOutput {
     public record QuestionDto(QuestionId id, String question, TimelinePoint createdAt) {}
   }
 
-  public interface ListQuestionsUseCase
-      extends UseCaseHandler<ListQuestions.Input, ListQuestions.Output> {}
+  public interface ListQuestionsUsecase
+      extends UsecaseHandler<ListQuestions.Input, ListQuestions.Output> {}
 }

@@ -1,7 +1,7 @@
 package com.quezap.application.usecases.sessions;
 
 import com.quezap.application.anotations.Usecase;
-import com.quezap.application.ports.sessions.AddSession.AddSessionUseCase;
+import com.quezap.application.ports.sessions.AddSession.AddSessionUsecase;
 import com.quezap.application.ports.sessions.AddSession.Input;
 import com.quezap.application.ports.sessions.AddSession.Output;
 import com.quezap.domain.errors.sessions.AddSessionError;
@@ -16,7 +16,7 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.utils.EmptyConsumer;
 
 @Usecase
-public final class AddSessionHandler implements AddSessionUseCase {
+public final class AddSessionHandler implements AddSessionUsecase {
   private final SessionRepository sessionRepository;
   private final UserRepository userRepository;
 

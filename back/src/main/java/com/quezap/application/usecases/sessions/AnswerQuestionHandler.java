@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import com.quezap.application.anotations.Usecase;
-import com.quezap.application.ports.sessions.AnswerQuestion.AnswerQuestionUseCase;
+import com.quezap.application.ports.sessions.AnswerQuestion.AnswerQuestionUsecase;
 import com.quezap.application.ports.sessions.AnswerQuestion.Input;
 import com.quezap.application.ports.sessions.AnswerQuestion.Output;
 import com.quezap.domain.errors.sessions.AnswerSessionError;
@@ -17,7 +17,7 @@ import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-public final class AnswerQuestionHandler implements AnswerQuestionUseCase {
+public final class AnswerQuestionHandler implements AnswerQuestionUsecase {
   private final SessionRepository sessionRepository;
   private final SessionCodeEncoder sessionCodeEncoder;
 

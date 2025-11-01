@@ -2,7 +2,7 @@ package com.quezap.lib.ddd.usecases;
 
 import org.jspecify.annotations.NonNull;
 
-public interface UseCaseHandler<I extends UseCaseInput, O extends UseCaseOutput> {
+public interface UsecaseHandler<I extends UsecaseInput, O extends UsecaseOutput> {
   /**
    * Executes the use case with the provided input.
    *

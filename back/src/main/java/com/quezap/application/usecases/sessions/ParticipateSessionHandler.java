@@ -3,7 +3,7 @@ package com.quezap.application.usecases.sessions;
 import com.quezap.application.anotations.Usecase;
 import com.quezap.application.ports.sessions.ParticipateSession.Input;
 import com.quezap.application.ports.sessions.ParticipateSession.Output;
-import com.quezap.application.ports.sessions.ParticipateSession.ParticipateSessionUseCase;
+import com.quezap.application.ports.sessions.ParticipateSession.ParticipateSessionUsecase;
 import com.quezap.domain.errors.sessions.ParticipateSessionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.participations.Participant;
@@ -17,7 +17,7 @@ import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-public final class ParticipateSessionHandler implements ParticipateSessionUseCase {
+public final class ParticipateSessionHandler implements ParticipateSessionUsecase {
   private final SessionRepository sessionRepository;
   private final ParticipationTokenGenerator participationTokenGenerator;
   private final UserNameSanitizer userNameSanitizer;

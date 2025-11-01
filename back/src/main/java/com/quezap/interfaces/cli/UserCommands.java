@@ -11,35 +11,35 @@ import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
 import com.quezap.application.ports.users.AddUser;
-import com.quezap.application.ports.users.AddUser.AddUserUseCase;
+import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.DeleteUser;
-import com.quezap.application.ports.users.DeleteUser.DeleteUserUseCase;
+import com.quezap.application.ports.users.DeleteUser.DeleteUserUsecase;
 import com.quezap.application.ports.users.ListUsers;
-import com.quezap.application.ports.users.ListUsers.ListUsersUseCase;
+import com.quezap.application.ports.users.ListUsers.ListUsersUsecase;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
-import com.quezap.lib.ddd.usecases.UseCaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 
 import org.jline.reader.LineReader;
 
 @Command(command = "users", description = "User management commands")
 public class UserCommands {
-  private final UseCaseExecutor executor;
-  private final ListUsersUseCase listUsersUsecase;
-  private final AddUserUseCase addUserUsecase;
-  private final DeleteUserUseCase deleteUserUsecase;
+  private final UsecaseExecutor executor;
+  private final ListUsersUsecase listUsersUsecase;
+  private final AddUserUsecase addUserUsecase;
+  private final DeleteUserUsecase deleteUserUsecase;
 
   @Autowired @Lazy private LineReader lineReader;
 
   public UserCommands(
-      UseCaseExecutor executor,
-      ListUsersUseCase listUsersUsecase,
-      AddUserUseCase addUserUsecase,
-      DeleteUserUseCase deleteUserUsecase) {
+      UsecaseExecutor executor,
+      ListUsersUsecase listUsersUsecase,
+      AddUserUsecase addUserUsecase,
+      DeleteUserUsecase deleteUserUsecase) {
     this.executor = executor;
     this.listUsersUsecase = listUsersUsecase;
     this.addUserUsecase = addUserUsecase;

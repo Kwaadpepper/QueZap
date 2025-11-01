@@ -3,7 +3,7 @@ package com.quezap.application.usecases.themes;
 import com.quezap.application.anotations.Usecase;
 import com.quezap.application.ports.themes.RenameTheme.Input;
 import com.quezap.application.ports.themes.RenameTheme.Output;
-import com.quezap.application.ports.themes.RenameTheme.RenameThemeUseCase;
+import com.quezap.application.ports.themes.RenameTheme.RenameThemeUsecase;
 import com.quezap.domain.errors.themes.RenameThemeError;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
@@ -12,7 +12,7 @@ import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
-final class RenameThemeHandler implements RenameThemeUseCase {
+final class RenameThemeHandler implements RenameThemeUsecase {
   private final ThemeRepository themeRepository;
 
   public RenameThemeHandler(ThemeRepository themeRepository) {
