@@ -3,6 +3,8 @@ package com.quezap.infrastructure.dependencies;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Role;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -20,6 +22,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 @Component
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public final class AuditAndEventInterceptor implements RepositoryMethodInterceptor {
   private final DomainEventPublisher publisher;
 
