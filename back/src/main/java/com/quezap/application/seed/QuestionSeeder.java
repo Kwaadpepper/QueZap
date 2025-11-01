@@ -6,9 +6,9 @@ import java.util.random.RandomGenerator;
 
 import org.springframework.stereotype.Component;
 
+import com.quezap.application.usecases.questions.AddQuestion;
 import com.quezap.domain.port.directories.ThemeDirectory;
 import com.quezap.domain.port.directories.views.ThemeView;
-import com.quezap.domain.usecases.questions.AddQuestion;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 

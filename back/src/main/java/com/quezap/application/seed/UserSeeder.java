@@ -2,9 +2,9 @@ package com.quezap.application.seed;
 
 import org.springframework.stereotype.Component;
 
+import com.quezap.application.usecases.users.AddUser;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
-import com.quezap.domain.usecases.users.AddUser;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
 @Component

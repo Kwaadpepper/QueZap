@@ -10,12 +10,12 @@ import org.springframework.shell.command.CommandRegistration;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
+import com.quezap.application.usecases.users.AddUser;
+import com.quezap.application.usecases.users.DeleteUser;
+import com.quezap.application.usecases.users.ListUsers;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.domain.usecases.users.AddUser;
-import com.quezap.domain.usecases.users.DeleteUser;
-import com.quezap.domain.usecases.users.ListUsers;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;

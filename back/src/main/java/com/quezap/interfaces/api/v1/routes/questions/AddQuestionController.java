@@ -9,7 +9,7 @@ import java.util.function.Function;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.quezap.domain.usecases.questions.AddQuestion;
+import com.quezap.application.usecases.questions.AddQuestion;
 import com.quezap.interfaces.api.v1.dto.internal.AnswerWithStream;
 import com.quezap.interfaces.api.v1.dto.request.questions.AddQuestionDto.AffirmationDto;
 import com.quezap.interfaces.api.v1.dto.request.questions.AddQuestionDto.AnswerDto;

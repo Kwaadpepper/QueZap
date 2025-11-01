@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.quezap.application.usecases.themes.AddTheme;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.usecases.themes.AddTheme;
 import com.quezap.interfaces.api.v1.dto.request.themes.CreateThemeRequest;
 import com.quezap.interfaces.api.v1.dto.response.themes.ThemeIdDto;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;

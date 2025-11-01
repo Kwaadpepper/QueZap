@@ -3,15 +3,15 @@ package com.quezap.application.dependencies.injection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.quezap.application.usecases.users.AddUser;
+import com.quezap.application.usecases.users.DeleteUser;
+import com.quezap.application.usecases.users.ListUsers;
+import com.quezap.application.usecases.users.UpdateUserPassword;
 import com.quezap.domain.port.directories.UserDirectory;
 import com.quezap.domain.port.repositories.CredentialRepository;
 import com.quezap.domain.port.repositories.UserRepository;
 import com.quezap.domain.port.services.IdentifierHasher;
 import com.quezap.domain.port.services.PasswordHasher;
-import com.quezap.domain.usecases.users.AddUser;
-import com.quezap.domain.usecases.users.DeleteUser;
-import com.quezap.domain.usecases.users.ListUsers;
-import com.quezap.domain.usecases.users.UpdateUserPassword;
 
 @Configuration
 public class UserDi {

@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.quezap.application.usecases.themes.RenameTheme;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.usecases.themes.RenameTheme;
 import com.quezap.interfaces.api.v1.dto.request.themes.RenameThemeRequest;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 

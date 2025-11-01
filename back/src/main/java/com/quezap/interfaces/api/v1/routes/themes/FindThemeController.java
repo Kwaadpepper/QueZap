@@ -3,7 +3,7 @@ package com.quezap.interfaces.api.v1.routes.themes;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.quezap.domain.usecases.themes.ListThemes;
+import com.quezap.application.usecases.themes.ListThemes;
 import com.quezap.interfaces.api.v1.dto.request.PaginationDto;
 import com.quezap.interfaces.api.v1.dto.request.themes.FindThemesDto;
 import com.quezap.interfaces.api.v1.dto.response.PageOfDto;

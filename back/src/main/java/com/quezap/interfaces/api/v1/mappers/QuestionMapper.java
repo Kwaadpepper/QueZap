@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.quezap.application.services.PictureMetadataValidatorService;
+import com.quezap.application.usecases.questions.AddQuestion;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
-import com.quezap.domain.usecases.questions.AddQuestion;
 import com.quezap.interfaces.api.v1.dto.internal.AnswerWithStream;
 import com.quezap.interfaces.api.v1.dto.response.questions.QuestionIdDto;
 

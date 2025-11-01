@@ -3,7 +3,7 @@ package com.quezap.interfaces.api.v1.routes.questions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.quezap.domain.usecases.questions.ListQuestions;
+import com.quezap.application.usecases.questions.ListQuestions;
 import com.quezap.interfaces.api.v1.dto.request.PaginationDto;
 import com.quezap.interfaces.api.v1.dto.request.questions.FindQuestionsDto;
 import com.quezap.interfaces.api.v1.dto.response.PageOfDto;

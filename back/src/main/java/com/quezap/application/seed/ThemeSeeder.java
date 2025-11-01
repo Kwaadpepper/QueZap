@@ -2,8 +2,8 @@ package com.quezap.application.seed;
 
 import org.springframework.stereotype.Component;
 
+import com.quezap.application.usecases.themes.AddTheme;
 import com.quezap.domain.models.valueobjects.ThemeName;
-import com.quezap.domain.usecases.themes.AddTheme;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
 @Component

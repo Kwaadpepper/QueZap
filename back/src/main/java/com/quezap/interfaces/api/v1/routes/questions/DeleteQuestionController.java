@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.quezap.application.usecases.questions.RemoveQuestion;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
-import com.quezap.domain.usecases.questions.RemoveQuestion;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 
 @RestController
