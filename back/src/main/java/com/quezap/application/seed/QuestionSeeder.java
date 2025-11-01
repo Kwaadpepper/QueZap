@@ -6,8 +6,8 @@ import java.util.random.RandomGenerator;
 
 import org.springframework.stereotype.Component;
 
-import com.quezap.domain.models.entities.Theme;
-import com.quezap.domain.port.repositories.ThemeRepository;
+import com.quezap.domain.port.directories.ThemeDirectory;
+import com.quezap.domain.port.directories.views.ThemeView;
 import com.quezap.domain.usecases.questions.AddQuestion;
 import com.quezap.lib.ddd.usecases.UseCaseExecutor;
 import com.quezap.lib.pagination.Pagination;
@@ -19,13 +19,13 @@ public class QuestionSeeder implements Seeder {
   private final UseCaseExecutor executor;
   private final AddQuestion.Handler handler;
 
-  private final ThemeRepository themeRepository;
+  private final ThemeDirectory themeDirectory;
 
   public QuestionSeeder(
-      UseCaseExecutor executor, AddQuestion.Handler handler, ThemeRepository themeRepository) {
+      UseCaseExecutor executor, AddQuestion.Handler handler, ThemeDirectory themeDirectory) {
     this.executor = executor;
     this.handler = handler;
-    this.themeRepository = themeRepository;
+    this.themeDirectory = themeDirectory;
   }
 
   @Override
@@ -38,8 +38,8 @@ public class QuestionSeeder implements Seeder {
   private void seedAffirmationQuestions() {
     final var randomGen = RandomGenerator.getDefault();
     final var themes =
-        themeRepository.paginate(Pagination.firstPage(50L)).items().stream()
-            .map(Theme::getId)
+        themeDirectory.paginate(Pagination.firstPage(50L)).items().stream()
+            .map(ThemeView::id)
             .toList();
 
     for (int i = 1; i <= NUMBER_OF_QUESTIONS_OF_ANY_TYPE; i++) {
@@ -55,8 +55,8 @@ public class QuestionSeeder implements Seeder {
   private void seedBinaryQuestions() {
     final var randomGen = RandomGenerator.getDefault();
     final var themes =
-        themeRepository.paginate(Pagination.firstPage(50L)).items().stream()
-            .map(Theme::getId)
+        themeDirectory.paginate(Pagination.firstPage(50L)).items().stream()
+            .map(ThemeView::id)
             .toList();
 
     for (int i = 1; i <= NUMBER_OF_QUESTIONS_OF_ANY_TYPE; i++) {
@@ -76,8 +76,8 @@ public class QuestionSeeder implements Seeder {
   private void seedQuizzQuestions() {
     final var randomGen = RandomGenerator.getDefault();
     final var themes =
-        themeRepository.paginate(Pagination.firstPage(50L)).items().stream()
-            .map(Theme::getId)
+        themeDirectory.paginate(Pagination.firstPage(50L)).items().stream()
+            .map(ThemeView::id)
             .toList();
     for (int i = 1; i <= NUMBER_OF_QUESTIONS_OF_ANY_TYPE; i++) {
       final var randomThemeId = themes.get(Random.from(randomGen).nextInt(themes.size()));

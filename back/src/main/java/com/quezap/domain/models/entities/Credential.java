@@ -1,7 +1,6 @@
 package com.quezap.domain.models.entities;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.auth.HashedPassword;
@@ -29,12 +28,12 @@ public class Credential extends AggregateRoot<CredentialId> implements TracksUpd
   }
 
   protected Credential(
-      UUID id,
+      CredentialId id,
       HashedPassword hashedPassword,
       HashedIdentifier hashedIdentifier,
       @Nullable TimelinePoint lastConnectionAt,
       TimelinePoint updatedAt) {
-    super(id);
+    super(id.value());
     this.hashedPassword = hashedPassword;
     this.hashedIdentifier = hashedIdentifier;
     this.lastConnectionAt = lastConnectionAt;
@@ -42,7 +41,7 @@ public class Credential extends AggregateRoot<CredentialId> implements TracksUpd
   }
 
   public static Credential hydrate(
-      UUID id,
+      CredentialId id,
       HashedPassword hashedPassword,
       HashedIdentifier hashedIdentifier,
       @Nullable TimelinePoint lastConnectionAt,

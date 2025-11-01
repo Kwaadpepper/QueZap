@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
+import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
@@ -46,7 +47,7 @@ class SessionTest {
   @Test
   void canHydrate() {
     // GIVEN
-    var id = UUID.fromString("017f5a80-7e6d-7e6c-0000-000000000000");
+    var id = new SessionId(UUID.fromString("017f5a80-7e6d-7e6c-0000-000000000000"));
     var label = new SessionName("Session 1");
     var sessionCode = new SessionNumber(2);
     var currentSlideIndex = 0;
@@ -130,7 +131,7 @@ class SessionTest {
   @Test
   void cannotInstantiateWithInvalidDates() {
     // GIVEN
-    var id = UUID.fromString("017f5a80-7e6d-7e6c-0000-000000000000");
+    var id = new SessionId(UUID.fromString("017f5a80-7e6d-7e6c-0000-000000000000"));
     var label = new SessionName("Session 1");
     var sessionCode = new SessionNumber(2);
     var currentSlideIndex = 0;

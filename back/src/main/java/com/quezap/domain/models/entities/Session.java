@@ -3,7 +3,6 @@ package com.quezap.domain.models.entities;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import com.quezap.domain.errors.sessions.AddQuestionError;
 import com.quezap.domain.errors.sessions.AnswerSessionError;
@@ -82,7 +81,7 @@ public class Session extends AggregateRoot<SessionId> {
   }
 
   protected Session(
-      UUID id,
+      SessionId id,
       SessionName name,
       SessionNumber number,
       Integer currentSlideIndex,
@@ -92,7 +91,7 @@ public class Session extends AggregateRoot<SessionId> {
       UserId author,
       @Nullable TimelinePoint startedAt,
       @Nullable TimelinePoint endedAt) {
-    super(id);
+    super(id.value());
     validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
     this.number = number;
@@ -106,7 +105,7 @@ public class Session extends AggregateRoot<SessionId> {
   }
 
   public static Session hydrate(
-      UUID id,
+      SessionId id,
       SessionName name,
       SessionNumber number,
       Integer currentSlideIndex,

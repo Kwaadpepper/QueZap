@@ -1,17 +1,13 @@
 package com.quezap.domain.usecases.themes;
 
-import java.util.List;
 import java.util.Set;
 
-import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
 import com.quezap.domain.port.repositories.ThemeRepository;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
-import com.quezap.lib.pagination.PageOf;
-import com.quezap.lib.pagination.Pagination;
 import com.quezap.mocks.MockEntity;
 
 import org.junit.jupiter.api.Assertions;
@@ -37,10 +33,8 @@ class RemoveThemeTest {
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional(Theme.class));
-    Mockito.when(
-            questionRepository.paginateWithThemes(
-                MockEntity.any(Pagination.class), MockEntity.eq(Set.<ThemeId>of(themeId))))
-        .thenReturn(PageOf.empty(MockEntity.mock(Pagination.class)));
+    Mockito.when(questionRepository.countWithThemes(MockEntity.eq(Set.<ThemeId>of(themeId))))
+        .thenReturn(0L);
 
     // WHEN
     removeThemeHandler.handle(removeThemeInput, unitOfWork);
@@ -58,10 +52,8 @@ class RemoveThemeTest {
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional());
-    Mockito.when(
-            questionRepository.paginateWithThemes(
-                MockEntity.any(Pagination.class), MockEntity.eq(Set.<ThemeId>of(themeId))))
-        .thenReturn(PageOf.empty(MockEntity.mock(Pagination.class)));
+    Mockito.when(questionRepository.countWithThemes(MockEntity.eq(Set.<ThemeId>of(themeId))))
+        .thenReturn(0L);
 
     // WHEN / THEN
     Assertions.assertThrows(
@@ -78,11 +70,8 @@ class RemoveThemeTest {
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional(Theme.class));
 
-    var mockedQuestion = MockEntity.mock(Question.class);
-    Mockito.when(
-            questionRepository.paginateWithThemes(
-                MockEntity.any(Pagination.class), MockEntity.eq(Set.<ThemeId>of(themeId))))
-        .thenReturn(PageOf.of(Pagination.ofIndexes(0L, 1L), List.of(mockedQuestion), 1L));
+    Mockito.when(questionRepository.countWithThemes(MockEntity.eq(Set.<ThemeId>of(themeId))))
+        .thenReturn(1L);
 
     // WHEN / THEN
     Assertions.assertThrows(

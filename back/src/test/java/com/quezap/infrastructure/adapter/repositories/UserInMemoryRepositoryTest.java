@@ -1,11 +1,9 @@
 package com.quezap.infrastructure.adapter.repositories;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.lib.pagination.Pagination;
 import com.quezap.mocks.MockEntity;
 
 import org.assertj.core.api.Assertions;
@@ -19,26 +17,6 @@ class UserInMemoryRepositoryTest {
   @BeforeEach
   void setUp() {
     repository = new UserInMemoryRepository();
-  }
-
-  @Test
-  void canListUsers() {
-    // GIVEN
-    var pageRequest = Pagination.ofPage(1L, 10L);
-    var userMocked = MockEntity.mock(User.class, Mockito.RETURNS_DEEP_STUBS);
-    var userList = List.of(userMocked, userMocked);
-
-    userList.forEach(
-        user -> {
-          Mockito.when(user.getId()).thenReturn(MockEntity.mock(UserId.class));
-          repository.persist(user);
-        });
-
-    // WHEN
-    var users = repository.findAll(pageRequest);
-
-    // THEN
-    Assertions.assertThat(users.items()).hasSameSizeAs(userList);
   }
 
   @Test

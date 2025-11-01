@@ -3,7 +3,6 @@ package com.quezap.domain.models.entities;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Predicate;
 
 import com.quezap.domain.events.questions.QuestionDeleted;
@@ -111,14 +110,14 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
   }
 
   protected Question(
-      UUID id,
+      QuestionId id,
       QuestionType type,
       String value,
       @Nullable Picture picture,
       ThemeId theme,
       Set<Answer> answers,
       TimelinePoint updatedAt) {
-    super(id);
+    super(id.value());
     validateCommonInvariants(type, value, answers);
     this.type = type;
     this.value = value;
@@ -129,7 +128,7 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
   }
 
   public static Question hydrate(
-      UUID id,
+      QuestionId id,
       QuestionType type,
       String value,
       @Nullable Picture picture,

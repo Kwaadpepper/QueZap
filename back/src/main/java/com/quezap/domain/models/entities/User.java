@@ -1,7 +1,6 @@
 package com.quezap.domain.models.entities;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
@@ -33,8 +32,8 @@ public class User extends AggregateRoot<UserId> implements TracksUpdatedAt {
     this.updatedAt = TimelinePoint.now();
   }
 
-  protected User(UUID id, String name, CredentialId credential, TimelinePoint updatedAt) {
-    super(id);
+  protected User(UserId id, String name, CredentialId credential, TimelinePoint updatedAt) {
+    super(id.value());
     validateCommonInvariants(name);
     this.name = name;
     this.credential = credential;
@@ -42,7 +41,7 @@ public class User extends AggregateRoot<UserId> implements TracksUpdatedAt {
   }
 
   public static User hydrate(
-      UUID id, String name, CredentialId credential, TimelinePoint updatedAt) {
+      UserId id, String name, CredentialId credential, TimelinePoint updatedAt) {
     return new User(id, name, credential, updatedAt);
   }
 

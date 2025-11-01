@@ -4,6 +4,7 @@ import java.time.temporal.ChronoUnit;
 
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.auth.HashedPassword;
+import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.UuidV7;
 
@@ -31,7 +32,7 @@ class CredentialTest {
     var hashedIdentifier = new HashedIdentifier("john.doe");
     var lastConnectionAt = TimelinePoint.now().minus(1, ChronoUnit.DAYS);
     var updatedAt = TimelinePoint.now();
-    var id = UuidV7.randomUuid();
+    var id = new CredentialId(UuidV7.randomUuid());
 
     // WHEN
     Credential.hydrate(id, hashedPassword, hashedIdentifier, lastConnectionAt, updatedAt);

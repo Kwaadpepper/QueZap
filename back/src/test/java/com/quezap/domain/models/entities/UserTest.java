@@ -3,6 +3,7 @@ package com.quezap.domain.models.entities;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.UuidV7;
@@ -30,7 +31,7 @@ class UserTest {
     var name = "some-name";
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6a-0000-000000000000"));
     var utc = TimelinePoint.now();
-    var id = UuidV7.randomUuid();
+    var id = new UserId(UuidV7.randomUuid());
 
     // WHEN
     User.hydrate(id, name, credentialId, utc);

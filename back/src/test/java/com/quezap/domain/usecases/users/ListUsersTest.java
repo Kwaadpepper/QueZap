@@ -3,10 +3,11 @@ package com.quezap.domain.usecases.users;
 import java.util.List;
 import java.util.UUID;
 
-import com.quezap.domain.models.entities.User;
-import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
-import com.quezap.domain.port.repositories.UserRepository;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
+import com.quezap.domain.port.directories.UserDirectory;
+import com.quezap.domain.port.directories.views.UserView;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 import com.quezap.mocks.MockEntity;
@@ -17,12 +18,11 @@ import org.mockito.Mockito;
 
 class ListUsersTest {
   private final ListUsers.Handler handler;
-  private final UserRepository userRepository;
+  private final UserDirectory userDirectory;
 
   public ListUsersTest() {
-    userRepository = MockEntity.mock(UserRepository.class);
-
-    handler = new ListUsers.Handler(userRepository);
+    userDirectory = MockEntity.mock(UserDirectory.class);
+    handler = new ListUsers.Handler(userDirectory);
   }
 
   @Test
@@ -32,14 +32,16 @@ class ListUsersTest {
     var input = new ListUsers.Input(pageRequest);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
     var users =
-        List.of(
-            new User(
+        List.<UserView>of(
+            new UserView(
+                new UserId(UUID.fromString("017f5a81-7e6d-7e6e-0000-000000000000")),
                 "some-name",
-                new CredentialId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"))));
+                TimelinePoint.now(),
+                TimelinePoint.now()));
 
     // WHEN
-    Mockito.when(userRepository.findAll(pageRequest))
-        .thenReturn(new PageOf<User>(pageRequest, users, 1L));
+    Mockito.when(userDirectory.paginate(pageRequest))
+        .thenReturn(new PageOf<UserView>(pageRequest, users, 1L));
     handler.handle(input, unitOfWork);
 
     // THEN

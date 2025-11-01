@@ -11,7 +11,6 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 import com.quezap.lib.ddd.usecases.UseCaseInput;
 import com.quezap.lib.ddd.usecases.UseCaseOutput;
-import com.quezap.lib.pagination.Pagination;
 
 public sealed interface RemoveTheme {
   record Input(ThemeId id) implements UseCaseInput {}
@@ -32,10 +31,9 @@ public sealed interface RemoveTheme {
     @Override
     public Output handle(Input usecaseInput, UnitOfWorkEvents unitOfWork) {
       final var themeId = usecaseInput.id();
-      final var pagination = Pagination.firstPage();
       final var themeSet = Set.<ThemeId>of(themeId);
 
-      if (questionRepository.paginateWithThemes(pagination, themeSet).totalItems() > 0) {
+      if (questionRepository.countWithThemes(themeSet) > 0L) {
         throw new DomainConstraintException(RemoveThemeError.THEME_HAS_QUESTIONS);
       }
 

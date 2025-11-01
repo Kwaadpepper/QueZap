@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Sha256Hash;
+import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
@@ -92,7 +93,7 @@ class QuestionTest {
             new Answer("London", null, false),
             new Answer("Berlin", null, false),
             new Answer("Madrid", null, false));
-    var id = UuidV7.randomUuid();
+    var id = new QuestionId(UuidV7.randomUuid());
     var updatedAt = TimelinePoint.now();
 
     // WHEN

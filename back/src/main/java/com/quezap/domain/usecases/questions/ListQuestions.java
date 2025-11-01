@@ -2,11 +2,11 @@ package com.quezap.domain.usecases.questions;
 
 import java.util.Set;
 
-import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.port.repositories.QuestionRepository;
+import com.quezap.domain.port.directories.QuestionDirectory;
+import com.quezap.domain.port.directories.views.QuestionView;
 import com.quezap.domain.usecases.questions.ListQuestions.Output.QuestionDto;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
@@ -52,10 +52,10 @@ public sealed interface ListQuestions {
   // * HANDLER
 
   final class Handler implements UseCaseHandler<Input, Output>, ListQuestions {
-    private final QuestionRepository questionRepository;
+    private final QuestionDirectory questionDirectory;
 
-    public Handler(QuestionRepository questionRepository) {
-      this.questionRepository = questionRepository;
+    public Handler(QuestionDirectory questionRepository) {
+      this.questionDirectory = questionRepository;
     }
 
     @Override
@@ -70,7 +70,7 @@ public sealed interface ListQuestions {
 
     private Output listPerPage(Input.PerPage input) {
       final var page = input.page();
-      final var questionPage = questionRepository.paginate(page);
+      final var questionPage = questionDirectory.paginate(page);
 
       return new Output(questionPage.<QuestionDto>map(this::toDto));
     }
@@ -78,7 +78,7 @@ public sealed interface ListQuestions {
     private Output listWithThemes(Input.WithThemes input) {
       final var page = input.page();
       final var themes = input.themes();
-      final var questionPage = questionRepository.paginateWithThemes(page, themes);
+      final var questionPage = questionDirectory.paginateWithThemes(page, themes);
 
       return new Output(questionPage.<QuestionDto>map(this::toDto));
     }
@@ -86,7 +86,7 @@ public sealed interface ListQuestions {
     private Output listSearching(Input.Searching input) {
       final var page = input.page();
       final var search = input.search();
-      final var questionPage = questionRepository.paginateSearching(page, search);
+      final var questionPage = questionDirectory.paginateSearching(page, search);
 
       return new Output(questionPage.<QuestionDto>map(this::toDto));
     }
@@ -95,13 +95,13 @@ public sealed interface ListQuestions {
       final var page = input.page();
       final var search = input.search();
       final var themes = input.themes();
-      final var questionPage = questionRepository.paginateSearchingWithThemes(page, search, themes);
+      final var questionPage = questionDirectory.paginateSearchingWithThemes(page, search, themes);
 
       return new Output(questionPage.<QuestionDto>map(this::toDto));
     }
 
-    private QuestionDto toDto(Question question) {
-      return new QuestionDto(question.getId(), question.getValue(), question.getCreatedAt());
+    private QuestionDto toDto(QuestionView question) {
+      return new QuestionDto(question.id(), question.question(), question.createdAt());
     }
   }
 }

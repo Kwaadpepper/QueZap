@@ -1,17 +1,15 @@
 package com.quezap.infrastructure.adapter.repositories;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.lib.pagination.PageOf;
-import com.quezap.lib.pagination.Pagination;
 
 @Repository
 public class UserInMemoryRepository implements UserRepository {
@@ -37,25 +35,11 @@ public class UserInMemoryRepository implements UserRepository {
     return storage.values().stream().filter(user -> user.getName().equals(name)).findFirst();
   }
 
-  @Override
-  public PageOf<User> findAll(Pagination pagination) {
-    final var users = new ArrayList<>(storage.values());
-    final var fromIndex = ((pagination.pageNumber() - 1) * pagination.pageSize());
-    final var totalItems = users.size();
-
-    if (fromIndex >= totalItems) {
-      return PageOf.empty(pagination);
-    }
-
-    users.sort(createdAtComparator());
-
-    final var toIndex = Math.min(fromIndex + pagination.pageSize(), totalItems);
-    final var pageItems = users.subList((int) fromIndex, (int) toIndex);
-
-    return PageOf.of(pagination, pageItems, (long) totalItems);
+  public <T> List<T> mapWith(Function<User, T> mapper) {
+    return storage.values().stream().map(theme -> mapper.apply(clone(theme))).toList();
   }
 
-  private Comparator<User> createdAtComparator() {
-    return Comparator.comparing(User::getCreatedAt);
+  private User clone(User user) {
+    return User.hydrate(user.getId(), user.getName(), user.getCredential(), user.getCreatedAt());
   }
 }

@@ -1,7 +1,6 @@
 package com.quezap.domain.models.entities;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
@@ -18,12 +17,12 @@ public class Theme extends AggregateRoot<ThemeId> {
     this.value = name;
   }
 
-  protected Theme(UUID id, ThemeName name) {
-    super(id);
+  protected Theme(ThemeId id, ThemeName name) {
+    super(id.value());
     this.value = name;
   }
 
-  public static Theme hydrate(UUID id, ThemeName name) {
+  public static Theme hydrate(ThemeId id, ThemeName name) {
     return new Theme(id, name);
   }
 

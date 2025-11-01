@@ -3,10 +3,10 @@ package com.quezap.domain.usecases.questions;
 import java.util.List;
 import java.util.Set;
 
-import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
-import com.quezap.domain.port.repositories.QuestionRepository;
+import com.quezap.domain.port.directories.QuestionDirectory;
+import com.quezap.domain.port.directories.views.QuestionView;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
@@ -17,12 +17,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 class ListQuestionTest {
-  private final QuestionRepository questionRepository;
+  private final QuestionDirectory questionDirectory;
   private final ListQuestions.Handler listQuestionsHandler;
 
   public ListQuestionTest() {
-    this.questionRepository = MockEntity.mock(QuestionRepository.class);
-    this.listQuestionsHandler = new ListQuestions.Handler(questionRepository);
+    this.questionDirectory = MockEntity.mock(QuestionDirectory.class);
+    this.listQuestionsHandler = new ListQuestions.Handler(questionDirectory);
   }
 
   @Test
@@ -31,9 +31,9 @@ class ListQuestionTest {
     var pagination = Pagination.firstPage();
     var input = new ListQuestions.Input.PerPage(pagination);
 
-    var questions = List.of(MockEntity.mock(Question.class));
+    var questions = List.of(MockEntity.mock(QuestionView.class));
     var questionPage = PageOf.of(pagination, questions, 1L);
-    Mockito.when(questionRepository.paginate(pagination)).thenReturn(questionPage);
+    Mockito.when(questionDirectory.paginate(pagination)).thenReturn(questionPage);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
@@ -50,9 +50,9 @@ class ListQuestionTest {
     var searchTerm = new SearchQuery("term");
     var input = new ListQuestions.Input.Searching(pagination, searchTerm);
 
-    var questions = List.of(MockEntity.mock(Question.class));
+    var questions = List.of(MockEntity.mock(QuestionView.class));
     var questionPage = PageOf.of(pagination, questions, 1L);
-    Mockito.when(questionRepository.paginateSearching(pagination, searchTerm))
+    Mockito.when(questionDirectory.paginateSearching(pagination, searchTerm))
         .thenReturn(questionPage);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
@@ -71,9 +71,9 @@ class ListQuestionTest {
     var themeIds = Set.of(theme);
     var input = new ListQuestions.Input.WithThemes(pagination, themeIds);
 
-    var questions = List.of(MockEntity.mock(Question.class));
+    var questions = List.of(MockEntity.mock(QuestionView.class));
     var questionPage = PageOf.of(pagination, questions, 1L);
-    Mockito.when(questionRepository.paginateWithThemes(pagination, themeIds))
+    Mockito.when(questionDirectory.paginateWithThemes(pagination, themeIds))
         .thenReturn(questionPage);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
@@ -93,9 +93,9 @@ class ListQuestionTest {
     var themeIds = Set.of(theme);
     var input = new ListQuestions.Input.SearchingWithThemes(pagination, searchTerm, themeIds);
 
-    var questions = List.of(MockEntity.mock(Question.class));
+    var questions = List.of(MockEntity.mock(QuestionView.class));
     var questionPage = PageOf.of(pagination, questions, 1L);
-    Mockito.when(questionRepository.paginateSearchingWithThemes(pagination, searchTerm, themeIds))
+    Mockito.when(questionDirectory.paginateSearchingWithThemes(pagination, searchTerm, themeIds))
         .thenReturn(questionPage);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
