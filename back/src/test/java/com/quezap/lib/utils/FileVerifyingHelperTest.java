@@ -183,7 +183,13 @@ class FileVerifyingHelperTest {
         strings = {
           "file<>:\"/\\|?*#[]@!$&'()+;=^{}~`´’'ʼ.txt", // Reserved, URI reserved, URL unsafe, and
           // control chars (if present)
-          "file\u0000\u001F\u007F\u00A0\u00AD.txt", // Control and non-printing chars
+          "file"
+              + ((char) 0)
+              + ((char) 31)
+              + ((char) 127)
+              + ((char) 160)
+              + ((char) 173)
+              + ".txt", // Control and non-printing chars
           "file-name.test.pdf" // Ajout de ce cas pour s'assurer que .pdf est supporté
         })
     void shouldRemoveUnsafeCharactersAndAppendUuid(String input) {
@@ -225,12 +231,12 @@ class FileVerifyingHelperTest {
 
       // THEN
       // 1. Check that the name has been truncated (255 bytes total limit)
-      Assertions.assertThat(result.getBytes(StandardCharsets.UTF_8).length)
-          .isLessThanOrEqualTo(255);
+      Assertions.assertThat(result.getBytes(StandardCharsets.UTF_8)).hasSizeLessThanOrEqualTo(255);
       // 2. Check that the extension is preserved
-      Assertions.assertThat(result).endsWith(extension);
-      // 3. Check for UUID prefix
-      Assertions.assertThat(result).matches("\\d+-[a-z\\-]+\\.pdf");
+      Assertions.assertThat(result)
+          .endsWith(extension)
+          // 3. Check for UUID prefix
+          .matches("\\d+-[a-z\\-]+\\.pdf");
     }
 
     @Test
