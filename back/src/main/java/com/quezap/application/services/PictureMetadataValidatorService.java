@@ -5,7 +5,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.quezap.application.api.v1.exceptions.InvalidFileException;
+import com.quezap.interfaces.api.v1.exceptions.InvalidFileException;
 import com.quezap.lib.utils.FileVerifyingHelper;
 
 @Service

@@ -1,7 +1,7 @@
 package com.quezap.application.config.jackson;
 
-import com.quezap.application.api.v1.deserializers.ThemeNameDeserializer;
 import com.quezap.domain.models.valueobjects.ThemeName;
+import com.quezap.interfaces.api.v1.deserializers.ThemeNameDeserializer;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.shell.command.annotation.CommandScan;
 
 import com.quezap.aot.QuezapRuntimeHints;
-import com.quezap.application.api.v1.validation.PaginationValidator;
+import com.quezap.interfaces.api.v1.validation.PaginationValidator;
 
 import org.jspecify.annotations.Nullable;
 
