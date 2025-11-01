@@ -135,12 +135,12 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
               try {
                 final var implementClass = Class.forName(beanDef.getBeanClassName());
 
-                // Skip if it's one of the base interfaces
+                // * Skip if it's one of the base interfaces
                 if (interfaceSet.stream().anyMatch(implementClass::equals)) {
                   return;
                 }
 
-                // Extract only the interfaces from the implementation class
+                // * Extract only the interfaces from the implementation class
                 final var implementedInterfaces =
                     extractImplementedInterfaces(implementClass, interfaceSet);
 
@@ -167,10 +167,10 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
 
     // * Get all interfaces implemented by the class (including inherited ones)
     for (final var implemented : clazz.getInterfaces()) {
-      targetInterfaces.stream()
-          .filter(target -> target.isAssignableFrom(implemented))
-          .findFirst()
-          .ifPresent(result::add);
+      // * Check if the implemented interface matches any of the target interfaces
+      if (targetInterfaces.stream().anyMatch(target -> target.isAssignableFrom(implemented))) {
+        result.add(implemented);
+      }
     }
 
     return result;
