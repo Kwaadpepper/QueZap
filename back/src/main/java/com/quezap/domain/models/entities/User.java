@@ -9,10 +9,8 @@ import com.quezap.lib.ddd.TracksUpdatedAt;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.Domain;
 
-import jakarta.persistence.Entity;
 import org.jspecify.annotations.Nullable;
 
-@Entity
 public class User extends AggregateRoot<UserId> implements TracksUpdatedAt {
   private String name;
 
