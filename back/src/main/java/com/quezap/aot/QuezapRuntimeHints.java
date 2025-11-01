@@ -3,6 +3,7 @@ package com.quezap.aot;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.aop.SpringProxy;
@@ -154,14 +155,14 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
 
                 logger.info("Hint proxy for {}: {}", implementClass.getSimpleName(), classNames);
                 registerProxy(hints, implementedInterfaces);
-              } catch (ClassNotFoundException _) {
-                logger.error("Could not load class: {}", beanDef.getBeanClassName());
+              } catch (ClassNotFoundException e) {
+                throw new AotHintException(e);
               }
             });
   }
 
   private List<Class<?>> extractImplementedInterfaces(
-      Class<?> clazz, HashSet<Class<?>> targetInterfaces) {
+      Class<?> clazz, Set<Class<?>> targetInterfaces) {
     final var result = new ArrayList<Class<?>>();
 
     // * Get all interfaces implemented by the class (including inherited ones)
