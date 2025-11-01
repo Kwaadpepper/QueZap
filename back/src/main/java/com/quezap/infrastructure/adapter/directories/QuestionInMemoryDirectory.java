@@ -14,7 +14,7 @@ import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.ports.directories.QuestionDirectory;
 import com.quezap.domain.ports.directories.views.QuestionView;
 import com.quezap.infrastructure.adapter.spi.DataSource;
-import com.quezap.infrastructure.anotations.Directory;
+import com.quezap.infrastructure.annotations.Directory;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 

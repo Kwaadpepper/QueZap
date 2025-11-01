@@ -10,7 +10,7 @@ import com.quezap.domain.models.entities.User;
 import com.quezap.domain.ports.directories.UserDirectory;
 import com.quezap.domain.ports.directories.views.UserView;
 import com.quezap.infrastructure.adapter.spi.DataSource;
-import com.quezap.infrastructure.anotations.Directory;
+import com.quezap.infrastructure.annotations.Directory;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 

@@ -1,6 +1,6 @@
 package com.quezap.application.usecases.sessions;
 
-import com.quezap.application.anotations.Usecase;
+import com.quezap.application.annotations.Usecase;
 import com.quezap.application.ports.sessions.ParticipateSession.Input;
 import com.quezap.application.ports.sessions.ParticipateSession.Output;
 import com.quezap.application.ports.sessions.ParticipateSession.ParticipateSessionUsecase;

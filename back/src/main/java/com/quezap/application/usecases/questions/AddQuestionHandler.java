@@ -3,7 +3,7 @@ package com.quezap.application.usecases.questions;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.quezap.application.anotations.Usecase;
+import com.quezap.application.annotations.Usecase;
 import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
 import com.quezap.application.ports.questions.AddQuestion.Input;
 import com.quezap.application.ports.questions.AddQuestion.Output;

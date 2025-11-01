@@ -1,4 +1,4 @@
-package com.quezap.application.anotations;
+package com.quezap.application.annotations;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

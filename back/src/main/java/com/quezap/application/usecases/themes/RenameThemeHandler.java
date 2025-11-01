@@ -1,6 +1,6 @@
 package com.quezap.application.usecases.themes;
 
-import com.quezap.application.anotations.Usecase;
+import com.quezap.application.annotations.Usecase;
 import com.quezap.application.ports.themes.RenameTheme.Input;
 import com.quezap.application.ports.themes.RenameTheme.Output;
 import com.quezap.application.ports.themes.RenameTheme.RenameThemeUsecase;

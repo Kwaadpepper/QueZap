@@ -2,7 +2,7 @@ package com.quezap.application.usecases.sessions;
 
 import java.util.function.Consumer;
 
-import com.quezap.application.anotations.Usecase;
+import com.quezap.application.annotations.Usecase;
 import com.quezap.application.ports.sessions.AddQuestionToSession.AddQuestionToSessionUsecase;
 import com.quezap.application.ports.sessions.AddQuestionToSession.Input;
 import com.quezap.application.ports.sessions.AddQuestionToSession.Output;

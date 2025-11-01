@@ -12,7 +12,7 @@ import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.ports.directories.ThemeDirectory;
 import com.quezap.domain.ports.directories.views.ThemeView;
 import com.quezap.infrastructure.adapter.spi.DataSource;
-import com.quezap.infrastructure.anotations.Directory;
+import com.quezap.infrastructure.annotations.Directory;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 

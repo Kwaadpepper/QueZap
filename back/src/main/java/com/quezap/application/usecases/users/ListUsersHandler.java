@@ -1,6 +1,6 @@
 package com.quezap.application.usecases.users;
 
-import com.quezap.application.anotations.Usecase;
+import com.quezap.application.annotations.Usecase;
 import com.quezap.application.ports.users.ListUsers;
 import com.quezap.application.ports.users.ListUsers.Input;
 import com.quezap.application.ports.users.ListUsers.ListUsersUsecase;

@@ -1,6 +1,6 @@
 package com.quezap.application.usecases.questions;
 
-import com.quezap.application.anotations.Usecase;
+import com.quezap.application.annotations.Usecase;
 import com.quezap.application.ports.questions.RemoveQuestion.Input;
 import com.quezap.application.ports.questions.RemoveQuestion.Output;
 import com.quezap.application.ports.questions.RemoveQuestion.RemoveQuestionUsecase;
