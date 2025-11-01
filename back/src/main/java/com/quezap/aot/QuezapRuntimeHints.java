@@ -1,13 +1,24 @@
 package com.quezap.aot;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.aop.SpringProxy;
+import org.springframework.aop.framework.Advised;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.cglib.proxy.Factory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.DecoratingProxy;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
+import com.quezap.infrastructure.adapter.spi.DataSource;
+import com.quezap.lib.ddd.repositories.Repository;
 import com.quezap.lib.ddd.usecases.UseCaseHandler;
 
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -31,7 +42,7 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
 
     logger.info("Starting registration of custom AOT hints...");
 
-    logger.info("Registering hints for Apache Tika resources");
+    logger.info("Hints for Apache Tika resources");
     hints
         .resources()
         .registerPattern("org/apache/tika/mime/tika-mimetypes.xml")
@@ -41,28 +52,28 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
         hints,
         BASE_PACKAGE,
         ConstraintValidator.class,
-        "Registering hint for PaginationValidator:",
+        "Hint reflection for PaginationValidator:",
         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 
     findAndRegisterForReflection(
         hints,
         BASE_PACKAGE,
         Converter.class,
-        "Registering hint for Converter:",
+        "Hint reflection for Converter:",
         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 
     findAndRegisterForReflection(
         hints,
         BASE_PACKAGE,
         JsonDeserializer.class,
-        "Registering hint for JsonDeserializer:",
+        "Hint reflection for JsonDeserializer:",
         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 
     findAndRegisterForReflection(
         hints,
         BASE_PACKAGE,
         UseCaseHandler.class,
-        "Registering hint for UseCaseHandler:",
+        "Hint reflection for UseCaseHandler:",
         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
         MemberCategory.INVOKE_DECLARED_METHODS);
 
@@ -70,32 +81,27 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
         hints,
         BASE_PACKAGE,
         Record.class,
-        "Registering hint for Record:",
+        "Hint reflection for Record:",
         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
         MemberCategory.INVOKE_DECLARED_METHODS,
         MemberCategory.DECLARED_FIELDS);
 
+    registerJdkProxyWithSpringAop(hints, BASE_PACKAGE, DataSource.class, Repository.class);
+
     logger.info("Finished registration of custom AOT hints.");
   }
 
-  /**
-   * Find and register classes for AOT reflection based on a parent type.
-   *
-   * @param hints The RuntimeHints instance.
-   * @param basePackage The base package to scan.
-   * @param superType The parent type (class or interface) to look for.
-   * @param logMessage The log message to display for each found class.
-   * @param memberCategories The member categories to register for reflection.
-   */
   private void findAndRegisterForReflection(
       RuntimeHints hints,
       String basePackage,
       Class<?> superType,
       String logMessage,
       MemberCategory... memberCategories) {
-    final var scanner = new ClassPathScanningCandidateComponentProvider(false);
-    scanner.addIncludeFilter(new AssignableTypeFilter(superType));
 
+    final var typeFilter = new AssignableTypeFilter(superType);
+    final var scanner = new ClassPathScanningCandidateComponentProvider(false);
+
+    scanner.addIncludeFilter(typeFilter);
     scanner
         .findCandidateComponents(basePackage)
         .forEach(
@@ -106,8 +112,84 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
                     .reflection()
                     .registerType(Class.forName(beanDef.getBeanClassName()), memberCategories);
               } catch (ClassNotFoundException e) {
-                logger.error("Could not find class for hint: {}", beanDef.getBeanClassName(), e);
+                throw new AotHintException(e);
               }
             });
+  }
+
+  private void registerJdkProxyWithSpringAop(
+      RuntimeHints hints, String basePackage, Class<?> withInterface, Class<?>... withInterfaces) {
+    final var scanner = new ClassPathScanningCandidateComponentProvider(false);
+    final var interfaceSet = new HashSet<Class<?>>();
+    interfaceSet.add(withInterface);
+    interfaceSet.addAll(List.of(withInterfaces));
+
+    // * Add filters for all interfaces
+    interfaceSet.forEach(iClass -> scanner.addIncludeFilter(new AssignableTypeFilter(iClass)));
+
+    scanner
+        .findCandidateComponents(basePackage)
+        .forEach(
+            beanDef -> {
+              try {
+                final var implementClass = Class.forName(beanDef.getBeanClassName());
+
+                // Skip if it's one of the base interfaces
+                if (interfaceSet.stream().anyMatch(implementClass::equals)) {
+                  return;
+                }
+
+                // Extract only the interfaces from the implementation class
+                final var implementedInterfaces =
+                    extractImplementedInterfaces(implementClass, interfaceSet);
+
+                if (implementedInterfaces.isEmpty()) {
+                  return;
+                }
+
+                final var classNames =
+                    implementedInterfaces.stream()
+                        .map(Class::getSimpleName)
+                        .collect(Collectors.joining(" + "));
+
+                logger.info("Hint proxy for {}: {}", implementClass.getSimpleName(), classNames);
+                registerProxy(hints, implementedInterfaces);
+              } catch (ClassNotFoundException _) {
+                logger.error("Could not load class: {}", beanDef.getBeanClassName());
+              }
+            });
+  }
+
+  private List<Class<?>> extractImplementedInterfaces(
+      Class<?> clazz, HashSet<Class<?>> targetInterfaces) {
+    final var result = new ArrayList<Class<?>>();
+
+    // * Get all interfaces implemented by the class (including inherited ones)
+    for (final var implemented : clazz.getInterfaces()) {
+      targetInterfaces.stream()
+          .filter(target -> target.isAssignableFrom(implemented))
+          .findFirst()
+          .ifPresent(result::add);
+    }
+
+    return result;
+  }
+
+  private void registerProxy(RuntimeHints hints, List<Class<?>> classes) {
+    final var proxyInterfaces = new ArrayList<Class<?>>();
+
+    proxyInterfaces.add(SpringProxy.class);
+    proxyInterfaces.add(Advised.class);
+    proxyInterfaces.add(Factory.class);
+    proxyInterfaces.addAll(classes);
+    proxyInterfaces.add(DecoratingProxy.class);
+
+    hints.proxies().registerJdkProxy(proxyInterfaces.toArray(new Class<?>[0]));
+  }
+
+  private static class AotHintException extends RuntimeException {
+    public AotHintException(Exception e) {
+      super(e);
+    }
   }
 }
