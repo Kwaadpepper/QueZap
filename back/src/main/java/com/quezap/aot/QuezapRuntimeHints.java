@@ -129,7 +129,8 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
     withInterfaceSet.addAll(List.of(withInterfaces));
 
     // * Add filters for all interfaces
-    withInterfaceSet.forEach(iClass -> scanner.addIncludeFilter(new AssignableTypeFilter(iClass)));
+    withInterfaceSet.forEach(
+        interfaceClass -> scanner.addIncludeFilter(new AssignableTypeFilter(interfaceClass)));
 
     scanner
         .findCandidateComponents(basePackage)
