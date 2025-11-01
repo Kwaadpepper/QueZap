@@ -52,7 +52,8 @@ public class User extends AggregateRoot<UserId> implements TracksUpdatedAt {
     return name;
   }
 
-  public void setName(String name) {
+  public void rename(String name) {
+    validateCommonInvariants(name);
     this.name = name;
   }
 
