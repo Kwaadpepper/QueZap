@@ -1,4 +1,4 @@
-package com.quezap.application.event.questions;
+package com.quezap.application.event.listeners;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
