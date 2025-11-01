@@ -3,7 +3,6 @@ package com.quezap.infrastructure.adapter.repositories;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import org.springframework.stereotype.Repository;
 
@@ -11,10 +10,10 @@ import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.ThemeRepository;
-import com.quezap.infrastructure.adapter.spi.ThemeDataSource;
+import com.quezap.infrastructure.adapter.spi.DataSource;
 
 @Repository("themeInMemoryRepository")
-public class ThemeInMemoryRepository implements ThemeRepository, ThemeDataSource {
+public class ThemeInMemoryRepository implements ThemeRepository, DataSource<Theme> {
   private final ConcurrentHashMap<ThemeId, Theme> storage = new ConcurrentHashMap<>();
 
   @Override
@@ -38,8 +37,8 @@ public class ThemeInMemoryRepository implements ThemeRepository, ThemeDataSource
   }
 
   @Override
-  public <T> List<T> mapAll(Function<Theme, T> mapper) {
-    return storage.values().stream().map(theme -> mapper.apply(clone(theme))).toList();
+  public List<Theme> getAll() {
+    return storage.values().stream().<Theme>map(this::clone).toList();
   }
 
   private Theme clone(Theme theme) {

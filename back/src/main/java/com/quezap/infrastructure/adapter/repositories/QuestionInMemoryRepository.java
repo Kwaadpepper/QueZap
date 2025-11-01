@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import org.springframework.stereotype.Repository;
 
@@ -12,10 +11,10 @@ import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
-import com.quezap.infrastructure.adapter.spi.QuestionDataSource;
+import com.quezap.infrastructure.adapter.spi.DataSource;
 
 @Repository("questionInMemoryRepository")
-public class QuestionInMemoryRepository implements QuestionRepository, QuestionDataSource {
+public class QuestionInMemoryRepository implements QuestionRepository, DataSource<Question> {
   private final ConcurrentHashMap<QuestionId, Question> storage = new ConcurrentHashMap<>();
 
   @Override
@@ -41,8 +40,8 @@ public class QuestionInMemoryRepository implements QuestionRepository, QuestionD
   }
 
   @Override
-  public <T> List<T> mapAll(Function<Question, T> mapper) {
-    return storage.values().stream().map(question -> mapper.apply(clone(question))).toList();
+  public List<Question> getAll() {
+    return storage.values().stream().<Question>map(this::clone).toList();
   }
 
   private Question clone(Question question) {

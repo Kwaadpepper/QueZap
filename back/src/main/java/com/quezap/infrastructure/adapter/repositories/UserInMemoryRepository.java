@@ -3,17 +3,16 @@ package com.quezap.infrastructure.adapter.repositories;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
-import com.quezap.infrastructure.adapter.spi.UserDataSource;
+import com.quezap.infrastructure.adapter.spi.DataSource;
 
 @Repository("userInMemoryRepository")
-public class UserInMemoryRepository implements UserRepository, UserDataSource {
+public class UserInMemoryRepository implements UserRepository, DataSource<User> {
   private final ConcurrentHashMap<UserId, User> storage = new ConcurrentHashMap<>();
 
   @Override
@@ -37,8 +36,8 @@ public class UserInMemoryRepository implements UserRepository, UserDataSource {
   }
 
   @Override
-  public <T> List<T> mapAll(Function<User, T> mapper) {
-    return storage.values().stream().map(theme -> mapper.apply(clone(theme))).toList();
+  public List<User> getAll() {
+    return storage.values().stream().<User>map(this::clone).toList();
   }
 
   private User clone(User user) {

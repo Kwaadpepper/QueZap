@@ -8,32 +8,35 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.directories.QuestionDirectory;
 import com.quezap.domain.port.directories.views.QuestionView;
-import com.quezap.infrastructure.adapter.spi.QuestionDataSource;
+import com.quezap.infrastructure.adapter.spi.DataSource;
 import com.quezap.infrastructure.anotations.Directory;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
 @Directory
 public class QuestionInMemoryDirectory implements QuestionDirectory {
-  private final QuestionDataSource questionDataSource;
+  private final DataSource<Question> questionDataSource;
 
   public QuestionInMemoryDirectory(
-      @Qualifier("questionInMemoryRepository") QuestionDataSource questionDataSource) {
+      @Qualifier("questionInMemoryRepository") DataSource<Question> questionDataSource) {
     this.questionDataSource = questionDataSource;
   }
 
   private List<QuestionView> getAllQuestions() {
-    return questionDataSource.<QuestionView>mapAll(
-        question ->
-            new QuestionView(
-                question.getId(),
-                question.getValue(),
-                question.getTheme(),
-                question.getCreatedAt()));
+    return questionDataSource.getAll().stream()
+        .<QuestionView>map(
+            question ->
+                new QuestionView(
+                    question.getId(),
+                    question.getValue(),
+                    question.getTheme(),
+                    question.getCreatedAt()))
+        .toList();
   }
 
   @Override
