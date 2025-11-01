@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
 
-public class IllegalDomainStateException extends RuntimeException {
+public class IllegalDomainStateException extends IllegalStateException {
   public IllegalDomainStateException(String message) {
     super(message);
   }
