@@ -1,4 +1,4 @@
-package com.quezap.application.config;
+package com.quezap.infrastructure.adapter.services.config;
 
 import java.net.URI;
 import java.util.Objects;
