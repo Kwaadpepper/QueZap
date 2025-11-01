@@ -2,6 +2,9 @@ package com.quezap.application.usecases.users;
 
 import java.util.UUID;
 
+import com.quezap.application.ports.users.UpdateUserPassword;
+import com.quezap.application.ports.users.UpdateUserPassword.Input;
+import com.quezap.application.ports.users.UpdateUserPassword.UpdateUserPasswordUsecase;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.HashedPassword;
@@ -19,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 class UpdatePasswordTest {
-  private final UpdateUserPassword.Handler handler;
+  private final UpdateUserPasswordUsecase usecase;
   private final UserRepository userRepository;
   private final CredentialRepository credentialRepository;
   private final PasswordHasher passwordHasher;
@@ -28,7 +31,7 @@ class UpdatePasswordTest {
     userRepository = MockEntity.mock(UserRepository.class);
     credentialRepository = MockEntity.mock(CredentialRepository.class);
     passwordHasher = MockEntity.mock(PasswordHasher.class);
-    handler = new UpdateUserPassword.Handler(userRepository, credentialRepository, passwordHasher);
+    usecase = new UpdateUserPasswordHandler(userRepository, credentialRepository, passwordHasher);
   }
 
   @Test
@@ -37,7 +40,7 @@ class UpdatePasswordTest {
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"));
     var newPassword = new RawPassword("P4assw0rd.");
-    final var input = new UpdateUserPassword.Input.Id(userId, newPassword);
+    final var input = new Input.Id(userId, newPassword);
     final var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
@@ -49,7 +52,7 @@ class UpdatePasswordTest {
     Mockito.when(passwordHasher.hash(newPassword))
         .thenReturn(MockEntity.mock(HashedPassword.class));
 
-    handler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -62,7 +65,7 @@ class UpdatePasswordTest {
     var credentialId = new CredentialId(UUID.fromString("017f5a80-7e6d-7e6f-0000-000000000000"));
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     var newPassword = new RawPassword("P4assw0rd.");
-    final var input = new UpdateUserPassword.Input.UserName(userName, newPassword);
+    final var input = new Input.UserName(userName, newPassword);
     final var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
@@ -76,7 +79,7 @@ class UpdatePasswordTest {
     Mockito.when(passwordHasher.hash(newPassword))
         .thenReturn(MockEntity.mock(HashedPassword.class));
 
-    handler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -87,12 +90,12 @@ class UpdatePasswordTest {
     // GIVEN
     var userId = new UserId(UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000"));
     var newPassword = new RawPassword("P4assw0rd.");
-    final var input = new UpdateUserPassword.Input.Id(userId, newPassword);
+    final var input = new Input.Id(userId, newPassword);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
     Mockito.when(userRepository.find(userId)).thenReturn(MockEntity.optional());
-    var thrown = Assertions.catchThrowable(() -> handler.handle(input, unitOfWork));
+    var thrown = Assertions.catchThrowable(() -> usecase.handle(input, unitOfWork));
 
     // THEN
     Assertions.assertThat(thrown).isInstanceOf(Exception.class);
@@ -108,7 +111,7 @@ class UpdatePasswordTest {
 
     // WHEN
     Mockito.when(userRepository.findByName(userName)).thenReturn(MockEntity.optional());
-    var thrown = Assertions.catchThrowable(() -> handler.handle(input, unitOfWork));
+    var thrown = Assertions.catchThrowable(() -> usecase.handle(input, unitOfWork));
 
     // THEN
     Assertions.assertThat(thrown).isInstanceOf(Exception.class);

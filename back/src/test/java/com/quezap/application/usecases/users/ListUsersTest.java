@@ -3,6 +3,8 @@ package com.quezap.application.usecases.users;
 import java.util.List;
 import java.util.UUID;
 
+import com.quezap.application.ports.users.ListUsers.Input;
+import com.quezap.application.ports.users.ListUsers.ListUsersUsecase;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.ports.directories.UserDirectory;
 import com.quezap.domain.ports.directories.views.UserView;
@@ -17,19 +19,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 class ListUsersTest {
-  private final ListUsers.Handler handler;
+  private final ListUsersUsecase usecase;
   private final UserDirectory userDirectory;
 
   public ListUsersTest() {
     userDirectory = MockEntity.mock(UserDirectory.class);
-    handler = new ListUsers.Handler(userDirectory);
+    usecase = new ListUsersHandler(userDirectory);
   }
 
   @Test
   void canListUsers() {
     // GIVEN
     var pageRequest = Pagination.ofPage(1L, 1L);
-    var input = new ListUsers.Input(pageRequest);
+    var input = new Input(pageRequest);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
     var users =
         List.<UserView>of(
@@ -42,7 +44,7 @@ class ListUsersTest {
     // WHEN
     Mockito.when(userDirectory.paginate(pageRequest))
         .thenReturn(new PageOf<UserView>(pageRequest, users, 1L));
-    handler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();

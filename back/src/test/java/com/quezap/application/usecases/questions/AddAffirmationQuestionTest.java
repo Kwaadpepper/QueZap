@@ -2,6 +2,8 @@ package com.quezap.application.usecases.questions;
 
 import java.io.InputStream;
 
+import com.quezap.application.ports.questions.AddQuestion;
+import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
 import com.quezap.domain.errors.questions.AddQuestionError;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
@@ -23,14 +25,13 @@ class AddAffirmationQuestionTest {
   private final QuestionRepository questionRepository;
   private final ThemeRepository themeRepository;
   private final QuestionPictureManager pictureManager;
-  private final AddQuestion.Handler addQuestionHandler;
+  private final AddQuestionUsecase usecase;
 
   public AddAffirmationQuestionTest() {
     this.questionRepository = MockEntity.mock(QuestionRepository.class);
     this.themeRepository = MockEntity.mock(ThemeRepository.class);
     this.pictureManager = MockEntity.mock(QuestionPictureManager.class);
-    this.addQuestionHandler =
-        new AddQuestion.Handler(questionRepository, themeRepository, pictureManager);
+    this.usecase = new AddQuestionHandler(questionRepository, themeRepository, pictureManager);
   }
 
   @Test
@@ -46,7 +47,7 @@ class AddAffirmationQuestionTest {
     Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN
-    addQuestionHandler.handle(input, unitEvts);
+    usecase.handle(input, unitEvts);
 
     // THEN
     Mockito.verify(questionRepository).persist(MockEntity.any());
@@ -66,7 +67,7 @@ class AddAffirmationQuestionTest {
     Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN
-    addQuestionHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Mockito.verify(questionRepository).persist(MockEntity.any());
@@ -87,7 +88,7 @@ class AddAffirmationQuestionTest {
     Mockito.when(pictureManager.store(picture)).thenReturn(MockEntity.mock(Picture.class));
 
     // WHEN
-    addQuestionHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Mockito.verify(questionRepository).persist(MockEntity.any());
@@ -109,7 +110,7 @@ class AddAffirmationQuestionTest {
 
     // WHEN / THEN
     Assertions.assertThatExceptionOfType(DomainConstraintException.class)
-        .isThrownBy(() -> addQuestionHandler.handle(input, unitOfWork))
+        .isThrownBy(() -> usecase.handle(input, unitOfWork))
         .extracting(DomainConstraintException::getCode)
         .isEqualTo(AddQuestionError.THEME_DOES_NOT_EXISTS.getCode());
   }

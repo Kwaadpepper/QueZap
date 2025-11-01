@@ -1,5 +1,7 @@
 package com.quezap.application.usecases.users;
 
+import com.quezap.application.ports.users.AddUser.AddUserUsecase;
+import com.quezap.application.ports.users.AddUser.Input;
 import com.quezap.domain.errors.users.AddUserError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
@@ -20,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 class AddUserTest {
-  private final AddUser.Handler handler;
+  private final AddUserUsecase usecase;
   private final CredentialRepository credentialRepository;
   private final UserRepository userRepository;
   private final IdentifierHasher identifierHasher;
@@ -32,8 +34,8 @@ class AddUserTest {
     identifierHasher = MockEntity.mock(IdentifierHasher.class);
     passwordHasher = MockEntity.mock(PasswordHasher.class);
 
-    handler =
-        new AddUser.Handler(userRepository, credentialRepository, identifierHasher, passwordHasher);
+    usecase =
+        new AddUserHandler(userRepository, credentialRepository, identifierHasher, passwordHasher);
   }
 
   @Test
@@ -42,7 +44,7 @@ class AddUserTest {
     var userName = "some-username";
     var identifier = new RawIdentifier("some-id");
     var password = new RawPassword("Some-password1!");
-    final var input = new AddUser.Input(userName, identifier, password);
+    final var input = new Input(userName, identifier, password);
     final var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
@@ -53,7 +55,7 @@ class AddUserTest {
         .thenReturn(MockEntity.optional());
     Mockito.when(userRepository.findByName(userName)).thenReturn(MockEntity.optional());
 
-    handler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
@@ -66,7 +68,7 @@ class AddUserTest {
     var identifier = new RawIdentifier("some-id");
     var password = new RawPassword("Some-password1!");
     var hashedIdentifier = new HashedIdentifier("some-hashed-id");
-    final var input = new AddUser.Input(userName, identifier, password);
+    final var input = new Input(userName, identifier, password);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
@@ -75,7 +77,7 @@ class AddUserTest {
         .thenReturn(MockEntity.optional(Credential.class));
 
     // THEN
-    Assertions.assertThatThrownBy(() -> handler.handle(input, unitOfWork))
+    Assertions.assertThatThrownBy(() -> usecase.handle(input, unitOfWork))
         .isInstanceOf(DomainConstraintException.class)
         .hasMessage(AddUserError.IDENTIFIER_ALREADY_TAKEN.getMessage());
   }
@@ -87,7 +89,7 @@ class AddUserTest {
     var identifier = new RawIdentifier("some-id");
     var password = new RawPassword("Some-password1!");
     var hashedIdentifier = new HashedIdentifier("some-hashed-id");
-    final var input = new AddUser.Input(userName, identifier, password);
+    final var input = new Input(userName, identifier, password);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
@@ -97,7 +99,7 @@ class AddUserTest {
     Mockito.when(userRepository.findByName(userName)).thenReturn(MockEntity.optional(User.class));
 
     // THEN
-    Assertions.assertThatThrownBy(() -> handler.handle(input, unitOfWork))
+    Assertions.assertThatThrownBy(() -> usecase.handle(input, unitOfWork))
         .isInstanceOf(DomainConstraintException.class)
         .hasMessage(AddUserError.USER_NAME_ALREADY_TAKEN.getMessage());
   }

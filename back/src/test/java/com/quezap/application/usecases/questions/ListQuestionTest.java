@@ -3,6 +3,8 @@ package com.quezap.application.usecases.questions;
 import java.util.List;
 import java.util.Set;
 
+import com.quezap.application.ports.questions.ListQuestions;
+import com.quezap.application.ports.questions.ListQuestions.ListQuestionsUsecase;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.ports.directories.QuestionDirectory;
@@ -18,11 +20,11 @@ import org.mockito.Mockito;
 
 class ListQuestionTest {
   private final QuestionDirectory questionDirectory;
-  private final ListQuestions.Handler listQuestionsHandler;
+  private final ListQuestionsUsecase usecase;
 
   public ListQuestionTest() {
     this.questionDirectory = MockEntity.mock(QuestionDirectory.class);
-    this.listQuestionsHandler = new ListQuestions.Handler(questionDirectory);
+    this.usecase = new ListQuestionsHandler(questionDirectory);
   }
 
   @Test
@@ -37,7 +39,7 @@ class ListQuestionTest {
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});
@@ -57,7 +59,7 @@ class ListQuestionTest {
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});
@@ -78,7 +80,7 @@ class ListQuestionTest {
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});
@@ -100,7 +102,7 @@ class ListQuestionTest {
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    listQuestionsHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertThatNoException().isThrownBy(() -> {});

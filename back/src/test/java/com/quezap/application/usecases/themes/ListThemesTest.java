@@ -2,6 +2,8 @@ package com.quezap.application.usecases.themes;
 
 import java.util.List;
 
+import com.quezap.application.ports.themes.ListThemes.Input;
+import com.quezap.application.ports.themes.ListThemes.ListThemesUsecase;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.ports.directories.ThemeDirectory;
 import com.quezap.domain.ports.directories.views.ThemeView;
@@ -16,25 +18,25 @@ import org.mockito.Mockito;
 
 class ListThemesTest {
   private final ThemeDirectory themeDirectory;
-  private final ListThemes.Handler listThemesHandler;
+  private final ListThemesUsecase usecase;
 
   public ListThemesTest() {
     this.themeDirectory = MockEntity.mock(ThemeDirectory.class);
-    this.listThemesHandler = new ListThemes.Handler(themeDirectory);
+    this.usecase = new ListThemesHandler(themeDirectory);
   }
 
   @Test
   void canListThemes() {
     // WHEN
     var pagination = Pagination.firstPage();
-    var input = new ListThemes.Input.PerPage(pagination);
+    var input = new Input.PerPage(pagination);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     var themesPage = PageOf.of(pagination, List.<ThemeView>of(), 0L);
     Mockito.when(themeDirectory.paginate(pagination)).thenReturn(themesPage);
 
     // WHEN
-    listThemesHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});
@@ -45,14 +47,14 @@ class ListThemesTest {
     // WHEN
     var pagination = Pagination.firstPage();
     var search = new SearchQuery("pasta");
-    var input = new ListThemes.Input.Searching(pagination, search);
+    var input = new Input.Searching(pagination, search);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     var themesPage = PageOf.of(pagination, List.<ThemeView>of(), 0L);
     Mockito.when(themeDirectory.paginateSearching(pagination, search)).thenReturn(themesPage);
 
     // WHEN
-    listThemesHandler.handle(input, unitOfWork);
+    usecase.handle(input, unitOfWork);
 
     // THEN
     Assertions.assertDoesNotThrow(() -> {});

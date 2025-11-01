@@ -2,6 +2,8 @@ package com.quezap.application.usecases.themes;
 
 import java.util.Set;
 
+import com.quezap.application.ports.themes.RemoveTheme.Input;
+import com.quezap.application.ports.themes.RemoveTheme.RemoveThemeUsecase;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.ports.repositories.QuestionRepository;
@@ -17,19 +19,19 @@ import org.mockito.Mockito;
 class RemoveThemeTest {
   private final ThemeRepository themeRepository;
   private final QuestionRepository questionRepository;
-  private final RemoveTheme.Handler removeThemeHandler;
+  private final RemoveThemeUsecase usecase;
 
   public RemoveThemeTest() {
     this.themeRepository = MockEntity.mock(ThemeRepository.class);
     this.questionRepository = MockEntity.mock(QuestionRepository.class);
-    this.removeThemeHandler = new RemoveTheme.Handler(themeRepository, questionRepository);
+    this.usecase = new RemoveThemeHandler(themeRepository, questionRepository);
   }
 
   @Test
   void canRemoveTheme() {
     // GIVEN
     var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var removeThemeInput = new RemoveTheme.Input(themeId);
+    var removeThemeInput = new Input(themeId);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional(Theme.class));
@@ -37,7 +39,7 @@ class RemoveThemeTest {
         .thenReturn(0L);
 
     // WHEN
-    removeThemeHandler.handle(removeThemeInput, unitOfWork);
+    usecase.handle(removeThemeInput, unitOfWork);
 
     // THEN
     Mockito.verify(themeRepository).delete(MockEntity.any(Theme.class));
@@ -48,7 +50,7 @@ class RemoveThemeTest {
   void cannotRemoveNonExistingTheme() {
     // GIVEN
     var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var removeThemeInput = new RemoveTheme.Input(themeId);
+    var removeThemeInput = new Input(themeId);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional());
@@ -57,15 +59,14 @@ class RemoveThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class,
-        () -> removeThemeHandler.handle(removeThemeInput, unitOfWork));
+        DomainConstraintException.class, () -> usecase.handle(removeThemeInput, unitOfWork));
   }
 
   @Test
   void cannotRemoveThemeWithQuestions() {
     // GIVEN
     var themeId = ThemeId.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
-    var removeThemeInput = new RemoveTheme.Input(themeId);
+    var removeThemeInput = new Input(themeId);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.find(themeId)).thenReturn(MockEntity.optional(Theme.class));
@@ -75,7 +76,6 @@ class RemoveThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class,
-        () -> removeThemeHandler.handle(removeThemeInput, unitOfWork));
+        DomainConstraintException.class, () -> usecase.handle(removeThemeInput, unitOfWork));
   }
 }

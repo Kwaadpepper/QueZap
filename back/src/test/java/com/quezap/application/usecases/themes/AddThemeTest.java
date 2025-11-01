@@ -1,5 +1,7 @@
 package com.quezap.application.usecases.themes;
 
+import com.quezap.application.ports.themes.AddTheme.AddThemeUsecase;
+import com.quezap.application.ports.themes.AddTheme.Input;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.ports.repositories.ThemeRepository;
@@ -13,22 +15,22 @@ import org.mockito.Mockito;
 
 class AddThemeTest {
   private final ThemeRepository themeRepository;
-  private final AddTheme.Handler addThemeHandler;
+  private final AddThemeUsecase usecase;
 
   public AddThemeTest() {
     this.themeRepository = MockEntity.mock(ThemeRepository.class);
-    this.addThemeHandler = new AddTheme.Handler(themeRepository);
+    this.usecase = new AddThemeHandler(themeRepository);
   }
 
   @Test
   void canAddTheme() {
     // GIVEN
     var themeName = new ThemeName("New Theme");
-    var addThemeInput = new AddTheme.Input(themeName);
+    var addThemeInput = new Input(themeName);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     // WHEN
-    addThemeHandler.handle(addThemeInput, unitOfWork);
+    usecase.handle(addThemeInput, unitOfWork);
 
     // THEN
     Mockito.verify(themeRepository).persist(MockEntity.any(Theme.class));
@@ -39,7 +41,7 @@ class AddThemeTest {
   void cannotAddDuplicateTheme() {
     // GIVEN
     var themeName = new ThemeName("Existing Theme");
-    var addThemeInput = new AddTheme.Input(themeName);
+    var addThemeInput = new Input(themeName);
     var unitOfWork = MockEntity.mock(UnitOfWorkEvents.class);
 
     Mockito.when(themeRepository.findByName(themeName))
@@ -49,7 +51,7 @@ class AddThemeTest {
     Assertions.assertThrows(
         DomainConstraintException.class,
         () -> {
-          addThemeHandler.handle(addThemeInput, unitOfWork);
+          usecase.handle(addThemeInput, unitOfWork);
         });
   }
 }
