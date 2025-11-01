@@ -11,9 +11,10 @@ import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.ThemeRepository;
+import com.quezap.infrastructure.adapter.spi.ThemeDataSource;
 
-@Repository
-public class ThemeInMemoryRepository implements ThemeRepository {
+@Repository("themeInMemoryRepository")
+public class ThemeInMemoryRepository implements ThemeRepository, ThemeDataSource {
   private final ConcurrentHashMap<ThemeId, Theme> storage = new ConcurrentHashMap<>();
 
   @Override
@@ -36,7 +37,8 @@ public class ThemeInMemoryRepository implements ThemeRepository {
     return storage.values().stream().filter(theme -> theme.getName().equals(name)).findFirst();
   }
 
-  public <T> List<T> mapWith(Function<Theme, T> mapper) {
+  @Override
+  public <T> List<T> mapAll(Function<Theme, T> mapper) {
     return storage.values().stream().map(theme -> mapper.apply(clone(theme))).toList();
   }
 

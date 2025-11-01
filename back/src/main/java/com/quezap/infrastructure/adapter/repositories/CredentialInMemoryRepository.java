@@ -10,7 +10,7 @@ import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.port.repositories.CredentialRepository;
 
-@Repository
+@Repository("credentialInMemoryRepository")
 public class CredentialInMemoryRepository implements CredentialRepository {
   private final ConcurrentHashMap<CredentialId, Credential> storage = new ConcurrentHashMap<>();
 

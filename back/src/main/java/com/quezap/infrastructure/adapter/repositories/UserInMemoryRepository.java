@@ -10,9 +10,10 @@ import org.springframework.stereotype.Repository;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.port.repositories.UserRepository;
+import com.quezap.infrastructure.adapter.spi.UserDataSource;
 
-@Repository
-public class UserInMemoryRepository implements UserRepository {
+@Repository("userInMemoryRepository")
+public class UserInMemoryRepository implements UserRepository, UserDataSource {
   private final ConcurrentHashMap<UserId, User> storage = new ConcurrentHashMap<>();
 
   @Override
@@ -35,7 +36,8 @@ public class UserInMemoryRepository implements UserRepository {
     return storage.values().stream().filter(user -> user.getName().equals(name)).findFirst();
   }
 
-  public <T> List<T> mapWith(Function<User, T> mapper) {
+  @Override
+  public <T> List<T> mapAll(Function<User, T> mapper) {
     return storage.values().stream().map(theme -> mapper.apply(clone(theme))).toList();
   }
 

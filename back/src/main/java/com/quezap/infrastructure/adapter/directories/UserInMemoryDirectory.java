@@ -4,23 +4,25 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import com.quezap.domain.port.directories.UserDirectory;
 import com.quezap.domain.port.directories.views.UserView;
-import com.quezap.infrastructure.adapter.repositories.UserInMemoryRepository;
+import com.quezap.infrastructure.adapter.spi.UserDataSource;
 import com.quezap.infrastructure.anotations.Directory;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
 @Directory
 public class UserInMemoryDirectory implements UserDirectory {
-  private final UserInMemoryRepository userRepository;
+  private final UserDataSource userDataSource;
 
-  public UserInMemoryDirectory(UserInMemoryRepository userRepository) {
-    this.userRepository = userRepository;
+  public UserInMemoryDirectory(@Qualifier("userInMemoryRepository") UserDataSource userDataSource) {
+    this.userDataSource = userDataSource;
   }
 
   private List<UserView> getAllUsers() {
-    return userRepository.<UserView>mapWith(
+    return userDataSource.<UserView>mapAll(
         user ->
             new UserView(user.getId(), user.getName(), user.getCreatedAt(), user.getUpdatedAt()));
   }

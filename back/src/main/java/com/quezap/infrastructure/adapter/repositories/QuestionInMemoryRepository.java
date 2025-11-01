@@ -12,9 +12,10 @@ import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.port.repositories.QuestionRepository;
+import com.quezap.infrastructure.adapter.spi.QuestionDataSource;
 
-@Repository
-public class QuestionInMemoryRepository implements QuestionRepository {
+@Repository("questionInMemoryRepository")
+public class QuestionInMemoryRepository implements QuestionRepository, QuestionDataSource {
   private final ConcurrentHashMap<QuestionId, Question> storage = new ConcurrentHashMap<>();
 
   @Override
@@ -39,7 +40,8 @@ public class QuestionInMemoryRepository implements QuestionRepository {
     storage.remove(entity.getId());
   }
 
-  public <T> List<T> mapWith(Function<Question, T> mapper) {
+  @Override
+  public <T> List<T> mapAll(Function<Question, T> mapper) {
     return storage.values().stream().map(question -> mapper.apply(clone(question))).toList();
   }
 

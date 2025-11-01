@@ -11,7 +11,7 @@ import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
 import com.quezap.domain.port.repositories.SessionRepository;
 
-@Repository
+@Repository("sessionInMemoryRepository")
 public class SessionInMemoryRepository implements SessionRepository {
   private final ConcurrentHashMap<SessionId, Session> storage = new ConcurrentHashMap<>();
 

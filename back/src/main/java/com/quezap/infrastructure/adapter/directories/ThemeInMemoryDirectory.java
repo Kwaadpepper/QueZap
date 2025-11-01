@@ -5,24 +5,27 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.port.directories.ThemeDirectory;
 import com.quezap.domain.port.directories.views.ThemeView;
-import com.quezap.infrastructure.adapter.repositories.ThemeInMemoryRepository;
+import com.quezap.infrastructure.adapter.spi.ThemeDataSource;
 import com.quezap.infrastructure.anotations.Directory;
 import com.quezap.lib.pagination.PageOf;
 import com.quezap.lib.pagination.Pagination;
 
 @Directory
 public class ThemeInMemoryDirectory implements ThemeDirectory {
-  private final ThemeInMemoryRepository themeRepository;
+  private final ThemeDataSource themeDataSource;
 
-  public ThemeInMemoryDirectory(ThemeInMemoryRepository themeRepository) {
-    this.themeRepository = themeRepository;
+  public ThemeInMemoryDirectory(
+      @Qualifier("themeInMemoryRepository") ThemeDataSource themeDataSource) {
+    this.themeDataSource = themeDataSource;
   }
 
   private List<ThemeView> getAllThemes() {
-    return themeRepository.<ThemeView>mapWith(
+    return themeDataSource.<ThemeView>mapAll(
         theme -> new ThemeView(theme.getId(), theme.getName(), theme.getCreatedAt()));
   }
 
