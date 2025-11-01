@@ -11,6 +11,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.cglib.proxy.Factory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ImportRuntimeHints;
@@ -87,7 +88,7 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
         MemberCategory.INVOKE_DECLARED_METHODS,
         MemberCategory.DECLARED_FIELDS);
 
-    registerJdkProxyWithSpringAop(hints, BASE_PACKAGE, DataSource.class, Repository.class);
+    findAndRegisterForSpringAopProxy(hints, BASE_PACKAGE, DataSource.class, Repository.class);
 
     logger.info("Finished registration of custom AOT hints.");
   }
@@ -118,47 +119,51 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
             });
   }
 
-  private void registerJdkProxyWithSpringAop(
+  private void findAndRegisterForSpringAopProxy(
       RuntimeHints hints, String basePackage, Class<?> withInterface, Class<?>... withInterfaces) {
+
     final var scanner = new ClassPathScanningCandidateComponentProvider(false);
-    final var interfaceSet = new HashSet<Class<?>>();
-    interfaceSet.add(withInterface);
-    interfaceSet.addAll(List.of(withInterfaces));
+    final var withInterfaceSet = new HashSet<Class<?>>();
+
+    withInterfaceSet.add(withInterface);
+    withInterfaceSet.addAll(List.of(withInterfaces));
 
     // * Add filters for all interfaces
-    interfaceSet.forEach(iClass -> scanner.addIncludeFilter(new AssignableTypeFilter(iClass)));
+    withInterfaceSet.forEach(iClass -> scanner.addIncludeFilter(new AssignableTypeFilter(iClass)));
 
     scanner
         .findCandidateComponents(basePackage)
-        .forEach(
-            beanDef -> {
-              try {
-                final var implementClass = Class.forName(beanDef.getBeanClassName());
+        .forEach(beanDef -> registerProxy(hints, beanDef, withInterfaceSet));
+  }
 
-                // * Skip if it's one of the base interfaces
-                if (interfaceSet.stream().anyMatch(implementClass::equals)) {
-                  return;
-                }
+  private void registerProxy(
+      RuntimeHints hints, BeanDefinition beanDef, Set<Class<?>> withInterfaceSet) {
+    try {
+      final var implementClass = Class.forName(beanDef.getBeanClassName());
 
-                // * Extract only the interfaces from the implementation class
-                final var implementedInterfaces =
-                    extractImplementedInterfaces(implementClass, interfaceSet);
+      // * Skip if it's one of the base interfaces
+      if (withInterfaceSet.stream().anyMatch(implementClass::equals)) {
+        return;
+      }
 
-                if (implementedInterfaces.isEmpty()) {
-                  return;
-                }
+      // * Extract only the interfaces from the implementation class
+      final var implementedInterfaces =
+          extractImplementedInterfaces(implementClass, withInterfaceSet);
 
-                final var classNames =
-                    implementedInterfaces.stream()
-                        .map(Class::getSimpleName)
-                        .collect(Collectors.joining(" + "));
+      if (implementedInterfaces.isEmpty()) {
+        return;
+      }
 
-                logger.info("Hint proxy for {}: {}", implementClass.getSimpleName(), classNames);
-                registerProxy(hints, implementedInterfaces);
-              } catch (ClassNotFoundException e) {
-                throw new AotHintException(e);
-              }
-            });
+      final var classNames =
+          implementedInterfaces.stream()
+              .map(Class::getSimpleName)
+              .collect(Collectors.joining(" + "));
+
+      logger.info("Hint proxy for {}: {}", implementClass.getSimpleName(), classNames);
+      registerSpringAopProxy(hints, implementedInterfaces);
+    } catch (ClassNotFoundException e) {
+      throw new AotHintException(e);
+    }
   }
 
   private List<Class<?>> extractImplementedInterfaces(
@@ -176,7 +181,7 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
     return result;
   }
 
-  private void registerProxy(RuntimeHints hints, List<Class<?>> classes) {
+  private void registerSpringAopProxy(RuntimeHints hints, List<Class<?>> classes) {
     final var proxyInterfaces = new ArrayList<Class<?>>();
 
     proxyInterfaces.add(SpringProxy.class);
@@ -189,7 +194,7 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
   }
 
   private static class AotHintException extends RuntimeException {
-    public AotHintException(Exception e) {
+    AotHintException(Exception e) {
       super(e);
     }
   }
