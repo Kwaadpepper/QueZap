@@ -6,6 +6,8 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import com.quezap.application.config.ProfanityConfig;
 import com.quezap.domain.ports.services.UserNameSanitizer;
 
@@ -14,6 +16,7 @@ import com.modernmt.text.profanity.dictionary.Dictionary;
 import com.modernmt.text.profanity.dictionary.Profanity;
 import org.jspecify.annotations.Nullable;
 
+@Service
 public class UserNameSanitizerImpl implements UserNameSanitizer {
   private final ProfanityFilter profanityFilter;
   private final Dictionary customDictionary;
