@@ -8,16 +8,16 @@ import com.quezap.domain.ports.services.SessionCodeEncoder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class SessionCodeGeneratorTest {
+class SessionCodeEncoderTest {
   private static final int LENGTH = 6;
   private static final long SEED = 23;
   private static final char[] dict = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789".toCharArray();
 
   private final SessionCodeEncoder sessionCodeGenerator;
 
-  SessionCodeGeneratorTest() {
+  SessionCodeEncoderTest() {
     final var config = new SessionCodeConfig(LENGTH, SEED, new String(dict));
-    this.sessionCodeGenerator = new SessionCodeEncodeImpl(config);
+    this.sessionCodeGenerator = new SessionCodeEncoderImpl(config);
   }
 
   @Test
