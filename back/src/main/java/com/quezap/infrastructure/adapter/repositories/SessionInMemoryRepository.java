@@ -47,7 +47,7 @@ public class SessionInMemoryRepository implements SessionRepository {
       final var s1Number = a.getNumber();
       final var s2Number = b.getNumber();
 
-      return s1Number.value().compareTo(s2Number.value());
+      return Long.valueOf(s1Number.value()).compareTo(s2Number.value());
     };
   }
 }
