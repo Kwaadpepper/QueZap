@@ -9,7 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.quezap.domain.models.valueobjects.Sha256Hash;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-@Component
+@Service
 public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
   private static final String PICTURE_FOLDER = "pictures/questions/";
   private static final Logger logger = LoggerFactory.getLogger(QuestionPictureManagerS3Impl.class);
