@@ -12,7 +12,9 @@ class JwtServiceTest {
   JwtServiceTest() {
     final var config =
         new JwtServiceConfig(
-            "443a00f5072a066891ced7ea96f1926a1bcdb9f6d8ad4bbe3722cb59a2e15682", "example.net");
+            "1c0d219a2ea573bab0b8e1f01c1594614209a92c0df567c00a1"
+                + "131c4088cd3afd91fee49bba6d2ae4333a97d0b35e0149e9d5cc9461e1a28d1c38ab931e80a61",
+            "example.net");
     this.jwtService = new JwtServiceImpl(config);
   }
 
