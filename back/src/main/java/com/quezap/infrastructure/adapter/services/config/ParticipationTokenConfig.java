@@ -10,7 +10,7 @@ public class ParticipationTokenConfig {
   private final int expirationSeconds;
 
   public ParticipationTokenConfig(
-      @Value("participation.token-expiration-seconds") Integer expirationSeconds) {
+      @Value("${participation.token-expiration-seconds}") Integer expirationSeconds) {
     this.expirationSeconds =
         Objects.requireNonNull(expirationSeconds, "expirationSeconds cannot be null");
   }
