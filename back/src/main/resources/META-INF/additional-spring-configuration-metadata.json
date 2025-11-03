@@ -53,6 +53,16 @@
       "name": "pictures-s3.secret-access-key",
       "type": "java.lang.String",
       "description": "The secret access key for authenticating with the S3-compatible storage service."
+    },
+    {
+      "name": "jwt.secret-key",
+      "type": "java.lang.String",
+      "description": "Secret key used for signing JWT tokens"
+    },
+    {
+      "name": "jwt.issuer",
+      "type": "java.lang.String",
+      "description": "Issuer claim to be included in JWT tokens"
     }
   ]
 }

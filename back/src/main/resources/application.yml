@@ -39,3 +39,7 @@ pictures-s3:
   bucket-name: ${APP_S3_BUCKET_NAME:quezap-public-images}
   access-key-id: ${APP_S3_ACCESS_KEY_ID:quezap_java_writer}
   secret-access-key: ${APP_S3_SECRET_ACCESS_KEY:LocalPassword}
+
+jwt:
+  secret-key: ${APP_JWT_SECRET_KEY:4a3c4e58311739e4a396ad7a38a5454ad65cfde67b0fef9aeb351cbb3c478fef}
+  issuer: ${APP_JWT_ISSUER:quezap.com}

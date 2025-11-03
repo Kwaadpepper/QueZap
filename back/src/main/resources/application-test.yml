@@ -5,3 +5,7 @@ spring:
 logging:
   level:
     root: INFO
+
+jwt:
+  secret-key: 0a7ff964f138ac9f1a2f8e995d49dc7ff52d3a27b97addf86072bfa4ff014dcf
+  issuer: example.net
