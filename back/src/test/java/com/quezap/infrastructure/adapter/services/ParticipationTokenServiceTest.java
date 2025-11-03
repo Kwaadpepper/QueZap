@@ -3,6 +3,7 @@ package com.quezap.infrastructure.adapter.services;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
+import com.quezap.infrastructure.adapter.services.config.ParticipationTokenConfig;
 import com.quezap.infrastructure.adapter.services.jwt.JwtService;
 import com.quezap.infrastructure.adapter.services.jwt.JwtService.JwtException;
 import com.quezap.infrastructure.adapter.services.jwt.JwtToken.JwtPayload;
@@ -17,8 +18,9 @@ class ParticipationTokenServiceTest {
   private final JwtService jwtService;
 
   public ParticipationTokenServiceTest() {
+    final var config = new ParticipationTokenConfig(3600);
     this.jwtService = MockEntity.mock(JwtService.class);
-    this.participationTokenService = new ParticipationTokenServiceImpl(jwtService);
+    this.participationTokenService = new ParticipationTokenServiceImpl(jwtService, config);
   }
 
   @Test

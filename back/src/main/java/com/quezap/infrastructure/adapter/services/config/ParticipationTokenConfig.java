@@ -1,3 +1,19 @@
 package com.quezap.infrastructure.adapter.services.config;
 
-public class ParticipationTokenConfig {}
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Value;
+
+public class ParticipationTokenConfig {
+  private final int expirationSeconds;
+
+  public ParticipationTokenConfig(
+      @Value("participation.token-expiration-seconds") Integer expirationSeconds) {
+    this.expirationSeconds =
+        Objects.requireNonNull(expirationSeconds, "expirationSeconds cannot be null");
+  }
+
+  public int expirationSeconds() {
+    return expirationSeconds;
+  }
+}

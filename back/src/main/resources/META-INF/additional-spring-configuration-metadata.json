@@ -63,6 +63,11 @@
       "name": "jwt.issuer",
       "type": "java.lang.String",
       "description": "Issuer claim to be included in JWT tokens"
+    },
+    {
+      "name": "participation.token-expiration-seconds",
+      "type": "java.lang.String",
+      "description": "Expiration time in seconds for participation tokens"
     }
   ]
 }
