@@ -1,12 +1,14 @@
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.5.7'
-  id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.hibernate.orm' version '6.6.29.Final'
-  id 'org.graalvm.buildtools.native' version '0.10.6'
-  id 'net.ltgt.errorprone' version '4.3.0'
-  id 'net.ltgt.nullaway' version '2.3.0'
-  id 'com.diffplug.spotless' version '8.0.0'
+
+  alias(libs.plugins.springBoot)
+  alias(libs.plugins.dependencyManagement)
+  alias(libs.plugins.hibernateOrm)
+  alias(libs.plugins.graalvmNative)
+  alias(libs.plugins.errorProne)
+  alias(libs.plugins.nullaway)
+  alias(libs.plugins.spotless)
+
   id 'checkstyle'
   id 'jacoco'
 }
@@ -16,11 +18,11 @@ version = '0.0.1-SNAPSHOT'
 description = 'Demo project for Spring Boot'
 
 java {
-  sourceCompatibility = '25'
-  targetCompatibility = '25'
+  sourceCompatibility = libs.versions.javaLts.get() as String
+  targetCompatibility = libs.versions.javaLts.get() as String
 
   toolchain {
-    languageVersion = JavaLanguageVersion.of(25)
+    languageVersion = JavaLanguageVersion.of(libs.versions.javaLts.get() as String)
   }
 }
 
@@ -45,48 +47,48 @@ configurations.all {
 }
 
 dependencies {
-  errorprone 'com.google.errorprone:error_prone_core:2.42.0'
-  errorprone 'com.uber.nullaway:nullaway:0.12.10'
+// Error Prone / NullAway
+  errorprone libs.error.prone.core
+  errorprone libs.nullaway
 
-  compileOnly 'org.jspecify:jspecify:1.0.0'
-  testCompileOnly 'org.jspecify:jspecify:1.0.0'
+  // JSpecify (référence via le catalogue)
+  compileOnly libs.jspecify
+  testCompileOnly libs.jspecify
 
-  implementation 'org.springframework.boot:spring-boot-starter-actuator'
-  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-  implementation 'org.springframework.boot:spring-boot-starter-security'
-  implementation 'org.springframework.boot:spring-boot-starter-validation'
-  implementation 'org.springframework.boot:spring-boot-starter-web'
-  implementation 'org.springframework.shell:spring-shell-starter:3.4.1'
+  // Starters Spring Boot (versions gérées par le BOM)
+  implementation libs.spring.boot.starter.actuator
+  implementation libs.spring.boot.starter.data.jpa
+  implementation libs.spring.boot.starter.security
+  implementation libs.spring.boot.starter.validation
+  implementation libs.spring.boot.starter.web
+  implementation libs.spring.shell.starter
 
-  // Apache Tika pour la détection de type MIME
-  implementation 'org.apache.tika:tika-core:3.2.3'
-  implementation 'org.apache.tika:tika-parser-text-module:3.2.3'
+  // Autres dépendances
+  implementation libs.tika.core
+  implementation libs.tika.parser
 
-  // S3
-  implementation platform('software.amazon.awssdk:bom:2.37.2')
-  implementation "software.amazon.awssdk:s3"
-  implementation "software.amazon.awssdk:auth"
+  // S3 (plateforme et modules)
+  implementation platform(libs.aws.bom)
+  implementation libs.s3
+  implementation libs.auth
 
-  // Code generator
-  implementation 'io.github.kwaadpepper:serial-int-caster:2.0.0'
+  // Autres
+  implementation libs.serial.int.caster
+  implementation libs.profanity.filter
+  implementation libs.bouncy.castle
 
-  // Profanity filter
-  implementation 'com.modernmt.text:profanity-filter:1.0.1'
+  developmentOnly libs.spring.boot.devtools
 
-  // For ARGON 2
-  implementation 'org.bouncycastle:bcprov-jdk18on:1.82'
+  runtimeOnly libs.h2
+  runtimeOnly libs.postgresql
 
-  developmentOnly 'org.springframework.boot:spring-boot-devtools'
+  annotationProcessor libs.spring.boot.config.processor
+  testImplementation libs.spring.boot.starter.test
 
-  runtimeOnly 'com.h2database:h2'
-  runtimeOnly 'org.postgresql:postgresql'
+  testImplementation libs.spring.security.test
+  testRuntimeOnly libs.junit.platform.launcher
 
-  annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-  testImplementation 'org.springframework.boot:spring-boot-starter-test'
-  testImplementation 'org.springframework.security:spring-security-test'
-  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-  mockitoAgent("org.mockito:mockito-core")
+  mockitoAgent(libs.mockito.core)
 }
 
 // hibernate {
@@ -132,7 +134,7 @@ spotless {
   // * Java
   java {
     // * Utiliser Google Java Format
-    googleJavaFormat('1.29.0')
+    googleJavaFormat(libs.versions.googleJavaFormat.get())
     removeUnusedImports()
     importOrder(
         'java',
@@ -164,15 +166,11 @@ tasks.named('check') {
 
 // Configuration Checkstyle
 checkstyle {
-  // Utiliser une version récente de l'outil Checkstyle
-  toolVersion = '12.0.0'
+  toolVersion = libs.versions.checkstyle.get()
 
-  // Chemin vers le fichier de configuration principal (checkstyle.xml)
   configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
 
-  // Propriétés de configuration (nécessaires si vous utilisez des suppressions)
   configProperties = [
-    // Chemin vers le filtre de suppression (checkstyle-suppressions.xml)
     'org.checkstyle.google.suppressionfilter.config': file("${rootDir}/config/checkstyle/checkstyle-suppressions.xml"),
   ]
 }
@@ -225,7 +223,7 @@ graalvmNative {
 
 // --- Configuration JaCoCo (Couverture de Code) ---
 jacoco {
-  toolVersion = "0.8.13"
+  toolVersion = libs.versions.jacoco.get()
 }
 
 tasks.named('jacocoTestReport') {

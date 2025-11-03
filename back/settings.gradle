@@ -1,1 +1,9 @@
 rootProject.name = 'quizz'
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+    }
+}
