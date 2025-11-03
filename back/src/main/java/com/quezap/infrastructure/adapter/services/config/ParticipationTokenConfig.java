@@ -3,7 +3,9 @@ package com.quezap.infrastructure.adapter.services.config;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 public class ParticipationTokenConfig {
   private final int expirationSeconds;
 
