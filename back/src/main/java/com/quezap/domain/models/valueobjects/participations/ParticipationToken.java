@@ -12,7 +12,7 @@ public record ParticipationToken(String value) {
   }
 
   private Boolean isValidJwt(String token) {
-    String jwtRegex = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$";
+    final var jwtRegex = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$";
     return Pattern.matches(jwtRegex, token);
   }
 }

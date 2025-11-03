@@ -9,7 +9,7 @@ import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.participations.ParticipantName;
 import com.quezap.domain.ports.repositories.SessionRepository;
-import com.quezap.domain.ports.services.ParticipationTokenGenerator;
+import com.quezap.domain.ports.services.ParticipationTokenService;
 import com.quezap.domain.ports.services.SessionCodeEncoder;
 import com.quezap.domain.ports.services.UserNameSanitizer;
 import com.quezap.lib.ddd.exceptions.DomainConstraintException;
@@ -19,13 +19,13 @@ import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 @Usecase
 public final class ParticipateSessionHandler implements ParticipateSessionUsecase {
   private final SessionRepository sessionRepository;
-  private final ParticipationTokenGenerator participationTokenGenerator;
+  private final ParticipationTokenService participationTokenGenerator;
   private final UserNameSanitizer userNameSanitizer;
   private final SessionCodeEncoder sessionCodeEncoder;
 
   public ParticipateSessionHandler(
       SessionRepository sessionRepository,
-      ParticipationTokenGenerator sessionTokenGenerator,
+      ParticipationTokenService sessionTokenGenerator,
       UserNameSanitizer userNameSanitizer,
       SessionCodeEncoder sessionCodeEncoder) {
     this.sessionRepository = sessionRepository;

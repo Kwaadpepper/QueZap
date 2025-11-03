@@ -46,7 +46,7 @@ public interface JwtToken {
     }
 
     /** Builder for {@link JwtPayload}, handling validation and default values. */
-    protected static class Builder {
+    public static class Builder {
       private final String sub;
       private final Long exp;
       private Long iat;
