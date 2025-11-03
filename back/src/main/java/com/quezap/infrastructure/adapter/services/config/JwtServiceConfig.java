@@ -16,7 +16,7 @@ public class JwtServiceConfig {
   private final SecretKey jwtSigningKey;
 
   public JwtServiceConfig(
-      @Value("jwt.signing-key") String jwtSigningKey, @Value("jwt.issuer") String jwtIssuer) {
+      @Value("${jwt.signing-key}") String jwtSigningKey, @Value("${jwt.issuer}") String jwtIssuer) {
     this.jwtIssuer = Objects.requireNonNull(jwtIssuer, "JWT issuer must be provided");
     this.jwtSigningKey =
         keyFromString(Objects.requireNonNull(jwtSigningKey, "JWT signing key must be provided"));

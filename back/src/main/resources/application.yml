@@ -41,7 +41,7 @@ pictures-s3:
   secret-access-key: ${APP_S3_SECRET_ACCESS_KEY:LocalPassword}
 
 jwt:
-  secret-key: ${APP_JWT_SECRET_KEY:4a3c4e58311739e4a396ad7a38a5454ad65cfde67b0fef9aeb351cbb3c478fef}
+  signing-key: ${APP_JWT_SECRET_KEY:4a3c4e58311739e4a396ad7a38a5454ad65cfde67b0fef9aeb351cbb3c478fef}
   issuer: ${APP_JWT_ISSUER:quezap.com}
 
 participation:
