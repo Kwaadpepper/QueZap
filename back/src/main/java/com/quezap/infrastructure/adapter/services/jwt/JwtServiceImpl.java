@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.stereotype.Service;
+
 import com.quezap.infrastructure.adapter.services.config.JwtServiceConfig;
 import com.quezap.infrastructure.adapter.services.jwt.JwtToken.JwtPayload;
 
@@ -18,6 +20,7 @@ import io.jsonwebtoken.Jwts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Service
 public class JwtServiceImpl implements JwtService {
   private static final Logger logger =
       Objects.requireNonNull(LoggerFactory.getLogger(JwtServiceImpl.class));
