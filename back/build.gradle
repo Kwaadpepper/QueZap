@@ -63,22 +63,32 @@ dependencies {
   implementation libs.spring.boot.starter.web
   implementation libs.spring.shell.starter
 
-  // Autres dépendances
+  // Mime detection and parsing Apache Tika
   implementation libs.tika.core
   implementation libs.tika.parser
 
-  // S3 (plateforme et modules)
+  // S3 (plateform and modules)
   implementation platform(libs.aws.bom)
   implementation libs.s3
   implementation libs.auth
 
-  // Autres
+  // Code generator
   implementation libs.serial.int.caster
+
+  // Profanity filter
   implementation libs.profanity.filter
+
+  // For ARGON 2
   implementation libs.bouncy.castle
+
+  // JJWT (JSON Web Token)
+  implementation libs.jjwt.api
+  runtimeOnly libs.jjwt.impl
+  runtimeOnly libs.jjwt.jackson
 
   developmentOnly libs.spring.boot.devtools
 
+  // Database Drivers
   runtimeOnly libs.h2
   runtimeOnly libs.postgresql
 

@@ -23,6 +23,7 @@ awsBom = "2.37.2"
 serialIntCaster = "2.0.0"
 profanityFilter = "1.0.1"
 bouncyCastle = "1.82"
+jjwt = "0.12.5"
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
@@ -60,9 +61,16 @@ auth = { module = "software.amazon.awssdk:auth" }
 serial-int-caster = { module = "io.github.kwaadpepper:serial-int-caster", version.ref = "serialIntCaster" }
 profanity-filter = { module = "com.modernmt.text:profanity-filter", version.ref = "profanityFilter" }
 bouncy-castle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle" }
+
+# --- JJWT (Java JSON Web Token)
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# --- Database
 h2 = { module = "com.h2database:h2" }
 postgresql = { module = "org.postgresql:postgresql" }
 
-# Error Prone / NullAway
+# --- Error Prone / NullAway
 error-prone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
