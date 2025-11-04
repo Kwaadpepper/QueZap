@@ -80,7 +80,7 @@ Note : le support de certaines fonctionnalités (AOP/transactions) peut nécessi
 Le projet intègre des hints AOT programmatiques et l’agent GraalVM pour faciliter la compilation native.
 
 - Hints programmatiques
-  - `@ImportRuntimeHints`: voir `QuizzApplication.ValidationRuntimeHints` (ex: `PaginationValidator`).
+  - `@ImportRuntimeHints`: voir `ApiApplication.ValidationRuntimeHints` (ex: `PaginationValidator`).
   - `com.quezap.application.aot.QuezapRuntimeHints` (application):
     - Réflexion pour `ConstraintValidator`, `Converter`, `JsonDeserializer`, `Record` et les Use Cases
   - `com.quezap.infrastructure.aot.QuezapRuntimeHints` (infrastructure):
