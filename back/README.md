@@ -18,7 +18,6 @@ Backend Spring Boot (Java 25) organisé en DDD et architecture hexagonale. Expos
 - `modules:application` - ports/use cases, exécution transactionnelle, publication d’événements
 - `modules:infrastructure` - implémentations techniques (S3, sécurité, persistance, événements)
 - `modules:shared` - types partagés transverses
-- `modules:testing` - helpers de test (Mockito, etc.)
 - Applications :
   - `quezap-api` - API REST Spring Boot
   - `quezap-cli` - CLI Spring Shell
