@@ -1,13 +1,13 @@
 package com.quezap.application.usecases.sessions;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.sessions.StartSessionError;
 import com.quezap.application.ports.sessions.StartSession.Input;
 import com.quezap.application.ports.sessions.StartSession.Output;
 import com.quezap.application.ports.sessions.StartSession.StartSessionUsecase;
-import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.ports.repositories.SessionRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
@@ -26,7 +26,7 @@ public final class StartSessionHandler implements StartSessionUsecase {
         .find(sessionId)
         .ifPresentOrElse(
             this::startSession,
-            DomainConstraintException.throwWith(StartSessionError.NO_SUCH_SESSION));
+            ApplicationConstraintException.throwWith(StartSessionError.NO_SUCH_SESSION));
 
     return new Output.Started();
   }

@@ -4,11 +4,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import com.quezap.domain.errors.sessions.AddQuestionError;
-import com.quezap.domain.errors.sessions.AnswerSessionError;
-import com.quezap.domain.errors.sessions.ParticipateSessionError;
-import com.quezap.domain.errors.sessions.RemoveQuestionError;
-import com.quezap.domain.errors.sessions.StartSessionError;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
@@ -18,7 +13,6 @@ import com.quezap.domain.models.valueobjects.participations.ParticipantName;
 import com.quezap.domain.models.valueobjects.questions.QuestionAnswer;
 import com.quezap.domain.models.valueobjects.questions.QuestionSlide;
 import com.quezap.lib.ddd.AggregateRoot;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.Domain;
@@ -80,6 +74,7 @@ public class Session extends AggregateRoot<SessionId> {
     this.endedAt = null;
   }
 
+  @SuppressWarnings("java:S107")
   protected Session(
       SessionId id,
       SessionName name,
@@ -104,6 +99,7 @@ public class Session extends AggregateRoot<SessionId> {
     this.endedAt = endedAt;
   }
 
+  @SuppressWarnings("java:S107")
   public static Session hydrate(
       SessionId id,
       SessionName name,
@@ -142,29 +138,23 @@ public class Session extends AggregateRoot<SessionId> {
   }
 
   public Set<QuestionSlide> getQuestionSlides() {
-    return Set.copyOf(questionSlides);
+    return Objects.requireNonNull(Set.copyOf(questionSlides));
   }
 
   public void addQuestion(QuestionSlide question) {
-    if (isRunning()) {
-      throw new DomainConstraintException(AddQuestionError.SESSION_IS_RUNNING);
-    }
-    if (hasEnded()) {
-      throw new DomainConstraintException(AddQuestionError.SESSION_IS_ENDED);
-    }
-    if (questionSlides.size() >= QUESTIONS_COUNT_MAX_SIZE) {
-      throw new DomainConstraintException(AddQuestionError.MAX_QUESTIONS_REACHED);
-    }
+    Domain.checkDomain(() -> !isRunning(), "Cannot add question to a running session");
+    Domain.checkDomain(() -> !hasEnded(), "Cannot add question to an ended session");
+    Domain.checkDomain(
+        () -> questionSlides.size() < QUESTIONS_COUNT_MAX_SIZE,
+        "Cannot exceed maximum number of questions");
+
     questionSlides.add(question);
   }
 
   public void removeQuestion(QuestionSlide question) {
-    if (isRunning()) {
-      throw new DomainConstraintException(RemoveQuestionError.SESSION_IS_RUNNING);
-    }
-    if (hasEnded()) {
-      throw new DomainConstraintException(RemoveQuestionError.SESSION_IS_ENDED);
-    }
+    Domain.checkDomain(() -> !isRunning(), "Cannot remove question from a running session");
+    Domain.checkDomain(() -> !hasEnded(), "Cannot remove question from an ended session");
+
     questionSlides.remove(question);
   }
 
@@ -173,7 +163,7 @@ public class Session extends AggregateRoot<SessionId> {
   }
 
   public Set<Participant> getParticipants() {
-    return Set.copyOf(participants);
+    return Objects.requireNonNull(Set.copyOf(participants));
   }
 
   public UserId getAuthor() {
@@ -204,18 +194,13 @@ public class Session extends AggregateRoot<SessionId> {
   }
 
   public void startSession() {
-    if (hasBegun()) {
-      throw new DomainConstraintException(StartSessionError.SESSION_ALREADY_STARTED);
-    }
-    if (hasEnded()) {
-      throw new DomainConstraintException(StartSessionError.SESSION_ENDED);
-    }
-    if (!hasEnoughParticipantsToStart()) {
-      throw new DomainConstraintException(StartSessionError.NOT_ENOUGH_PARTICIPANTS);
-    }
-    if (!hasEnoughQuestionsToStart()) {
-      throw new DomainConstraintException(StartSessionError.NOT_ENOUGH_QUESTIONS_TO_START);
-    }
+    Domain.checkDomain(() -> !hasBegun(), "Session has already started");
+    Domain.checkDomain(() -> !hasEnded(), "Session has already been ended");
+    Domain.checkDomain(
+        this::hasEnoughParticipantsToStart, "Not enough participants to start the session");
+    Domain.checkDomain(
+        this::hasEnoughQuestionsToStart, "Not enough questions to start the session");
+
     startedAt = TimelinePoint.now();
     // TODO: Emmit event SessionStarted
   }
@@ -232,9 +217,9 @@ public class Session extends AggregateRoot<SessionId> {
   }
 
   public void addParticipant(Participant participant) {
-    if (participants.stream().anyMatch(p -> p.name().equals(participant.name()))) {
-      throw new DomainConstraintException(ParticipateSessionError.NAME_ALREADY_TAKEN);
-    }
+    Domain.checkDomain(
+        () -> participants.stream().noneMatch(p -> p.name().equals(participant.name())),
+        "Participant name is already taken");
 
     participants.add(participant);
   }
@@ -251,22 +236,19 @@ public class Session extends AggregateRoot<SessionId> {
     if (participants.stream().noneMatch(p -> p.name().equals(participantName))) {
       throw new IllegalArgumentException("Participant not found in session");
     }
-    if (!hasBegun()) {
-      throw new DomainConstraintException(AnswerSessionError.SESSION_NOT_STARTED);
-    }
-    if (hasEnded()) {
-      throw new DomainConstraintException(AnswerSessionError.SESSION_ALREADY_ENDED);
-    }
-    if (slideIndex < 0 || slideIndex >= questionSlides.size()) {
-      throw new DomainConstraintException(AnswerSessionError.INVALID_SLIDE_INDEX);
-    }
+
+    Domain.checkDomain(this::hasBegun, "Session has not started yet");
+    Domain.checkDomain(() -> !hasEnded(), "Session has already ended");
+
+    Domain.checkDomain(
+        () -> slideIndex >= 0 && slideIndex < questionSlides.size(),
+        "Slide index is out of bounds");
     // * Cannot validate answerIndex against possible answers here
-    if (answerIndex < 0) {
-      throw new DomainConstraintException(AnswerSessionError.INVALID_ANSWER_INDEX);
-    }
-    if (slideIndex < currentSlideIndex) {
-      throw new DomainConstraintException(AnswerSessionError.INVALID_SLIDE_INDEX);
-    }
+    Domain.checkDomain(() -> answerIndex >= 0, "Answer index is invalid");
+    Domain.checkDomain(
+        () -> slideIndex >= currentSlideIndex,
+        "Cannot answer a slide that has already been passed");
+
     final var answer = new QuestionAnswer(participantName, slideIndex, answerIndex);
 
     answers.add(answer);

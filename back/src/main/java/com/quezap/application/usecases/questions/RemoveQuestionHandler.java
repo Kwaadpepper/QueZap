@@ -1,13 +1,13 @@
 package com.quezap.application.usecases.questions;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.questions.DeleteQuestionError;
 import com.quezap.application.ports.questions.RemoveQuestion.Input;
 import com.quezap.application.ports.questions.RemoveQuestion.Output;
 import com.quezap.application.ports.questions.RemoveQuestion.RemoveQuestionUsecase;
-import com.quezap.domain.errors.questions.DeleteQuestionError;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.ports.repositories.QuestionRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
@@ -26,7 +26,7 @@ final class RemoveQuestionHandler implements RemoveQuestionUsecase {
         .find(questionId)
         .ifPresentOrElse(
             this::remove,
-            DomainConstraintException.throwWith(DeleteQuestionError.QUESTION_NOT_FOUND));
+            ApplicationConstraintException.throwWith(DeleteQuestionError.QUESTION_NOT_FOUND));
 
     return new Output.QuestionDeleted();
   }

@@ -1,8 +1,9 @@
 package com.quezap.application.usecases.users;
 
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.users.AddUserError;
 import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.AddUser.Input;
-import com.quezap.domain.errors.users.AddUserError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
@@ -13,7 +14,6 @@ import com.quezap.domain.ports.repositories.CredentialRepository;
 import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.domain.ports.services.IdentifierHasher;
 import com.quezap.domain.ports.services.PasswordHasher;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.mocks.MockEntity;
 
@@ -78,7 +78,7 @@ class AddUserTest {
 
     // THEN
     Assertions.assertThatThrownBy(() -> usecase.handle(input, unitOfWork))
-        .isInstanceOf(DomainConstraintException.class)
+        .isInstanceOf(ApplicationConstraintException.class)
         .hasMessage(AddUserError.IDENTIFIER_ALREADY_TAKEN.getMessage());
   }
 
@@ -100,7 +100,7 @@ class AddUserTest {
 
     // THEN
     Assertions.assertThatThrownBy(() -> usecase.handle(input, unitOfWork))
-        .isInstanceOf(DomainConstraintException.class)
+        .isInstanceOf(ApplicationConstraintException.class)
         .hasMessage(AddUserError.USER_NAME_ALREADY_TAKEN.getMessage());
   }
 }

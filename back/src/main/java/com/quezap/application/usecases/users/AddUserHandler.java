@@ -1,17 +1,17 @@
 package com.quezap.application.usecases.users;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.users.AddUserError;
 import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.AddUser.Input;
 import com.quezap.application.ports.users.AddUser.Output;
-import com.quezap.domain.errors.users.AddUserError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.ports.repositories.CredentialRepository;
 import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.domain.ports.services.IdentifierHasher;
 import com.quezap.domain.ports.services.PasswordHasher;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
@@ -41,11 +41,11 @@ final class AddUserHandler implements AddUserUsecase {
     final var hashedPassword = passwordHasher.hash(rawPassword);
 
     if (credentialRepository.findByIdentifier(hashedIdentifier).isPresent()) {
-      throw new DomainConstraintException(AddUserError.IDENTIFIER_ALREADY_TAKEN);
+      throw new ApplicationConstraintException(AddUserError.IDENTIFIER_ALREADY_TAKEN);
     }
 
     if (userRepository.findByName(userName).isPresent()) {
-      throw new DomainConstraintException(AddUserError.USER_NAME_ALREADY_TAKEN);
+      throw new ApplicationConstraintException(AddUserError.USER_NAME_ALREADY_TAKEN);
     }
 
     final var credential = new Credential(hashedPassword, hashedIdentifier);

@@ -1,11 +1,12 @@
 package com.quezap.application.usecases.users;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.users.DeleteUserError;
+import com.quezap.application.exceptions.users.UpdateUserPasswordError;
 import com.quezap.application.ports.users.UpdateUserPassword.Input;
 import com.quezap.application.ports.users.UpdateUserPassword.Output;
 import com.quezap.application.ports.users.UpdateUserPassword.UpdateUserPasswordUsecase;
-import com.quezap.domain.errors.users.DeleteUserError;
-import com.quezap.domain.errors.users.UpdateUserPasswordError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
@@ -13,7 +14,6 @@ import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.ports.repositories.CredentialRepository;
 import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.domain.ports.services.PasswordHasher;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
@@ -41,7 +41,7 @@ final class UpdateUserPasswordHandler implements UpdateUserPasswordUsecase {
         .find(userId)
         .ifPresentOrElse(
             user -> updateCredentialOf(user, newPassword),
-            DomainConstraintException.throwWith(DeleteUserError.NO_SUCH_USER));
+            ApplicationConstraintException.throwWith(DeleteUserError.NO_SUCH_USER));
 
     return new Output.PasswordUpdated();
   }
@@ -53,7 +53,8 @@ final class UpdateUserPasswordHandler implements UpdateUserPasswordUsecase {
           userRepository
               .findByName(inputName.name())
               .<UserId>map(User::getId)
-              .orElseThrow(DomainConstraintException.with(UpdateUserPasswordError.NO_SUCH_USER));
+              .orElseThrow(
+                  ApplicationConstraintException.with(UpdateUserPasswordError.NO_SUCH_USER));
     };
   }
 

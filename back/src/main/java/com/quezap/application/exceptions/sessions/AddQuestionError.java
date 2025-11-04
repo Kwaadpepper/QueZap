@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.sessions;
+package com.quezap.application.exceptions.sessions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum AddQuestionError implements DomainErrorCode {
+public enum AddQuestionError implements ApplicationErrorCode {
   NO_SUCH_QUESTION(2401, "The question does not exist"),
   NO_SUCH_SESSION(2402, "The session does not exist"),
   MAX_QUESTIONS_REACHED(2403, "The session has reached the maximum number of questions"),

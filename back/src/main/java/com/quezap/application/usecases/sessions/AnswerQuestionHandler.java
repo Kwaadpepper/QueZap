@@ -4,16 +4,16 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.sessions.AnswerSessionError;
 import com.quezap.application.ports.sessions.AnswerQuestion.AnswerQuestionUsecase;
 import com.quezap.application.ports.sessions.AnswerQuestion.Input;
 import com.quezap.application.ports.sessions.AnswerQuestion.Output;
-import com.quezap.domain.errors.sessions.AnswerSessionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.valueobjects.participations.Participant;
 import com.quezap.domain.models.valueobjects.participations.ParticipationToken;
 import com.quezap.domain.ports.repositories.SessionRepository;
 import com.quezap.domain.ports.services.SessionCodeEncoder;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
@@ -35,7 +35,7 @@ public final class AnswerQuestionHandler implements AnswerQuestionUsecase {
 
     session.ifPresentOrElse(
         persistIfValid(usecaseInput),
-        DomainConstraintException.throwWith(AnswerSessionError.NO_SUCH_SESSION));
+        ApplicationConstraintException.throwWith(AnswerSessionError.NO_SUCH_SESSION));
 
     return new Output.AnswerAdded();
   }
@@ -52,7 +52,8 @@ public final class AnswerQuestionHandler implements AnswerQuestionUsecase {
               .map(Participant::name)
               .findFirst()
               .orElseThrow(
-                  DomainConstraintException.with(AnswerSessionError.INVALID_PARTICIPATION_TOKEN));
+                  ApplicationConstraintException.with(
+                      AnswerSessionError.INVALID_PARTICIPATION_TOKEN));
 
       session.addAnswer(participantName, slideIndex, answerIndex);
       sessionRepository.persist(session);

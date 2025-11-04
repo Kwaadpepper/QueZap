@@ -3,14 +3,14 @@ package com.quezap.application.usecases.themes;
 import java.util.Set;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.themes.RemoveThemeError;
 import com.quezap.application.ports.themes.RemoveTheme.Input;
 import com.quezap.application.ports.themes.RemoveTheme.Output;
 import com.quezap.application.ports.themes.RemoveTheme.RemoveThemeUsecase;
-import com.quezap.domain.errors.themes.RemoveThemeError;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.domain.ports.repositories.ThemeRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
@@ -30,14 +30,14 @@ final class RemoveThemeHandler implements RemoveThemeUsecase {
     final var themeSet = Set.<ThemeId>of(themeId);
 
     if (questionRepository.countWithThemes(themeSet) > 0L) {
-      throw new DomainConstraintException(RemoveThemeError.THEME_HAS_QUESTIONS);
+      throw new ApplicationConstraintException(RemoveThemeError.THEME_HAS_QUESTIONS);
     }
 
     themeRepository
         .find(themeId)
         .ifPresentOrElse(
             themeRepository::delete,
-            DomainConstraintException.throwWith(RemoveThemeError.THEME_DOES_NOT_EXISTS));
+            ApplicationConstraintException.throwWith(RemoveThemeError.THEME_DOES_NOT_EXISTS));
 
     return new Output.ThemeRemoved();
   }

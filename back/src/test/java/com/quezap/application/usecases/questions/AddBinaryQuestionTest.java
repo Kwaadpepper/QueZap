@@ -3,9 +3,10 @@ package com.quezap.application.usecases.questions;
 import java.io.InputStream;
 import java.util.Set;
 
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.questions.AddQuestionError;
 import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
 import com.quezap.application.ports.questions.AddQuestion.Input;
-import com.quezap.domain.errors.questions.AddQuestionError;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
@@ -14,7 +15,6 @@ import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
 import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.domain.ports.repositories.ThemeRepository;
 import com.quezap.domain.ports.services.QuestionPictureManager;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.mocks.MockEntity;
 
@@ -127,9 +127,9 @@ class AddBinaryQuestionTest {
     Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional());
 
     // WHEN / THEN
-    Assertions.assertThatExceptionOfType(DomainConstraintException.class)
+    Assertions.assertThatExceptionOfType(ApplicationConstraintException.class)
         .isThrownBy(() -> usecase.handle(input, unitOfWork))
-        .extracting(DomainConstraintException::getCode)
+        .extracting(ApplicationConstraintException::getCode)
         .isEqualTo(AddQuestionError.THEME_DOES_NOT_EXISTS.getCode());
   }
 
@@ -149,9 +149,9 @@ class AddBinaryQuestionTest {
     Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN / THEN
-    Assertions.assertThatExceptionOfType(DomainConstraintException.class)
+    Assertions.assertThatExceptionOfType(ApplicationConstraintException.class)
         .isThrownBy(() -> usecase.handle(input, unitOfWork))
-        .extracting(DomainConstraintException::getCode)
+        .extracting(ApplicationConstraintException::getCode)
         .isEqualTo(AddQuestionError.INVALID_QUESTION_DATA.getCode());
   }
 
@@ -168,9 +168,9 @@ class AddBinaryQuestionTest {
     Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN / THEN
-    Assertions.assertThatExceptionOfType(DomainConstraintException.class)
+    Assertions.assertThatExceptionOfType(ApplicationConstraintException.class)
         .isThrownBy(() -> usecase.handle(input, unitOfWork))
-        .extracting(DomainConstraintException::getCode)
+        .extracting(ApplicationConstraintException::getCode)
         .isEqualTo(AddQuestionError.INVALID_QUESTION_DATA.getCode());
   }
 
@@ -191,9 +191,9 @@ class AddBinaryQuestionTest {
     Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN / THEN
-    Assertions.assertThatExceptionOfType(DomainConstraintException.class)
+    Assertions.assertThatExceptionOfType(ApplicationConstraintException.class)
         .isThrownBy(() -> usecase.handle(input, unitOfWork))
-        .extracting(DomainConstraintException::getCode)
+        .extracting(ApplicationConstraintException::getCode)
         .isEqualTo(AddQuestionError.INVALID_QUESTION_DATA.getCode());
   }
 
@@ -213,9 +213,9 @@ class AddBinaryQuestionTest {
     Mockito.when(themeRepository.find(theme)).thenReturn(MockEntity.optional(Theme.class));
 
     // WHEN / THEN
-    Assertions.assertThatExceptionOfType(DomainConstraintException.class)
+    Assertions.assertThatExceptionOfType(ApplicationConstraintException.class)
         .isThrownBy(() -> usecase.handle(input, unitOfWork))
-        .extracting(DomainConstraintException::getCode)
+        .extracting(ApplicationConstraintException::getCode)
         .isEqualTo(AddQuestionError.INVALID_QUESTION_DATA.getCode());
   }
 }

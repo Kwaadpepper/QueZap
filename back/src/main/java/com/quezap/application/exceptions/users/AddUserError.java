@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.users;
+package com.quezap.application.exceptions.users;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum AddUserError implements DomainErrorCode {
+public enum AddUserError implements ApplicationErrorCode {
   IDENTIFIER_ALREADY_TAKEN(1001, "Identifier is already taken"),
   USER_NAME_ALREADY_TAKEN(1002, "User name is already taken");
 

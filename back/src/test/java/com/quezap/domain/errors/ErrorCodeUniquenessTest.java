@@ -6,7 +6,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ class ErrorCodeUniquenessTest {
     final var uniqueCodes = new HashSet<Integer>();
     final var scanner = new ClassPathScanningCandidateComponentProvider(false);
 
-    scanner.addIncludeFilter(new AssignableTypeFilter(DomainErrorCode.class));
+    scanner.addIncludeFilter(new AssignableTypeFilter(ApplicationErrorCode.class));
 
     final var candidates = scanner.findCandidateComponents(BASE_PACKAGE);
 
@@ -32,11 +32,11 @@ class ErrorCodeUniquenessTest {
         continue;
       }
 
-      Assertions.assertThat(DomainErrorCode.class).isAssignableFrom(enumClass);
+      Assertions.assertThat(ApplicationErrorCode.class).isAssignableFrom(enumClass);
       Assertions.assertThat(enumClass.getEnumConstants()).isNotEmpty();
 
       for (Object enumValue : enumClass.getEnumConstants()) {
-        final var error = (DomainErrorCode) enumValue;
+        final var error = (ApplicationErrorCode) enumValue;
         final var code = error.getCode();
 
         Assertions.assertThat(uniqueCodes)

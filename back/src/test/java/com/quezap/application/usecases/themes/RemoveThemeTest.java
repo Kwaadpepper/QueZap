@@ -2,13 +2,13 @@ package com.quezap.application.usecases.themes;
 
 import java.util.Set;
 
+import com.quezap.application.exceptions.ApplicationConstraintException;
 import com.quezap.application.ports.themes.RemoveTheme.Input;
 import com.quezap.application.ports.themes.RemoveTheme.RemoveThemeUsecase;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.domain.ports.repositories.ThemeRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.mocks.MockEntity;
 
@@ -59,7 +59,7 @@ class RemoveThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class, () -> usecase.handle(removeThemeInput, unitOfWork));
+        ApplicationConstraintException.class, () -> usecase.handle(removeThemeInput, unitOfWork));
   }
 
   @Test
@@ -76,6 +76,6 @@ class RemoveThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class, () -> usecase.handle(removeThemeInput, unitOfWork));
+        ApplicationConstraintException.class, () -> usecase.handle(removeThemeInput, unitOfWork));
   }
 }

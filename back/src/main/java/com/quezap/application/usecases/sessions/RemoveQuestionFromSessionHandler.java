@@ -1,14 +1,14 @@
 package com.quezap.application.usecases.sessions;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.sessions.RemoveQuestionError;
 import com.quezap.application.ports.sessions.RemoveQuestionFromSession.Input;
 import com.quezap.application.ports.sessions.RemoveQuestionFromSession.Output;
 import com.quezap.application.ports.sessions.RemoveQuestionFromSession.RemoveQuestionFromSessionUsecase;
-import com.quezap.domain.errors.sessions.RemoveQuestionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.domain.ports.repositories.SessionRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.utils.EmptyConsumer;
 
@@ -33,13 +33,13 @@ public final class RemoveQuestionFromSessionHandler implements RemoveQuestionFro
         .find(questionId)
         .ifPresentOrElse(
             EmptyConsumer.accept(),
-            DomainConstraintException.throwWith(RemoveQuestionError.NO_SUCH_QUESTION));
+            ApplicationConstraintException.throwWith(RemoveQuestionError.NO_SUCH_QUESTION));
 
     sessionRepository
         .find(sessionId)
         .ifPresentOrElse(
             session -> removeQuestionFrom(session, questionSlide),
-            DomainConstraintException.throwWith(RemoveQuestionError.NO_SUCH_SESSION));
+            ApplicationConstraintException.throwWith(RemoveQuestionError.NO_SUCH_SESSION));
 
     return new Output.QuestionRemovedFromSession();
   }

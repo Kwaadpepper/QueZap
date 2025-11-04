@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.sessions;
+package com.quezap.application.exceptions.sessions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum AnswerSessionError implements DomainErrorCode {
+public enum AnswerSessionError implements ApplicationErrorCode {
   NO_SUCH_SESSION(2601, "The session does not exist"),
   INVALID_PARTICIPATION_TOKEN(2602, "The participation token is invalid"),
   SESSION_NOT_STARTED(2603, "The session has not started yet"),

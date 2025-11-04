@@ -2,10 +2,10 @@ package com.quezap.application.usecases.users;
 
 import java.util.UUID;
 
+import com.quezap.application.exceptions.users.DeleteUserError;
 import com.quezap.application.ports.users.DeleteUser.DeleteUserUsecase;
 import com.quezap.application.ports.users.DeleteUser.Input;
 import com.quezap.application.ports.users.DeleteUser.Output;
-import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.models.entities.Credential;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.CredentialId;

@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.sessions;
+package com.quezap.application.exceptions.sessions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum ParticipateSessionError implements DomainErrorCode {
+public enum ParticipateSessionError implements ApplicationErrorCode {
   INVALID_CODE(2001, "The session code is invalid"),
   NAME_ALREADY_TAKEN(2002, "User name is already taken"),
   NAME_REFUSED(2003, "User name is not compliant with our policies");

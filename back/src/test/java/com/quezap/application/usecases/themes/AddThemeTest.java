@@ -1,11 +1,11 @@
 package com.quezap.application.usecases.themes;
 
+import com.quezap.application.exceptions.ApplicationConstraintException;
 import com.quezap.application.ports.themes.AddTheme.AddThemeUsecase;
 import com.quezap.application.ports.themes.AddTheme.Input;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.ports.repositories.ThemeRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.mocks.MockEntity;
 
@@ -49,7 +49,7 @@ class AddThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class,
+        ApplicationConstraintException.class,
         () -> {
           usecase.handle(addThemeInput, unitOfWork);
         });

@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.themes;
+package com.quezap.application.exceptions.themes;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum RemoveThemeError implements DomainErrorCode {
+public enum RemoveThemeError implements ApplicationErrorCode {
   THEME_DOES_NOT_EXISTS(2701, "No theme exists with the provided identifier"),
   THEME_HAS_QUESTIONS(2702, "The theme has questions associated and cannot be removed");
 

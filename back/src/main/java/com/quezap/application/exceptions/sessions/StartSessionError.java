@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.sessions;
+package com.quezap.application.exceptions.sessions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum StartSessionError implements DomainErrorCode {
+public enum StartSessionError implements ApplicationErrorCode {
   SESSION_ALREADY_STARTED(2101, "Session has already started"),
   SESSION_ENDED(2102, "Session has already been ended"),
   NO_SUCH_SESSION(2103, "Session not found"),

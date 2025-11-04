@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
+import com.quezap.application.exceptions.ApplicationConstraintException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,10 +19,10 @@ public class GlobalExceptionHandler {
     this.clock = clock;
   }
 
-  @ExceptionHandler(DomainConstraintException.class)
+  @ExceptionHandler(ApplicationConstraintException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public ResponseEntity<ErrorResonseDto> handleDomainConstraintException(
-      DomainConstraintException ex) {
+      ApplicationConstraintException ex) {
     final var code = ex.getCode();
     final var message = ex.getMessage();
 

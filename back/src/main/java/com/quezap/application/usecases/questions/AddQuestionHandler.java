@@ -4,10 +4,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.questions.AddQuestionError;
 import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
 import com.quezap.application.ports.questions.AddQuestion.Input;
 import com.quezap.application.ports.questions.AddQuestion.Output;
-import com.quezap.domain.errors.questions.AddQuestionError;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
@@ -17,7 +18,6 @@ import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.domain.ports.repositories.ThemeRepository;
 import com.quezap.domain.ports.services.QuestionPictureManager;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.utils.EmptyConsumer;
@@ -61,7 +61,7 @@ final class AddQuestionHandler implements AddQuestionUsecase {
         .find(themeId)
         .ifPresentOrElse(
             EmptyConsumer.accept(),
-            DomainConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
+            ApplicationConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
 
     final var picture = storePicture(pictureBytes, unitOfWork);
     final var answer = new Answer(isTrue ? "True" : "False", null, isTrue);
@@ -87,7 +87,7 @@ final class AddQuestionHandler implements AddQuestionUsecase {
         .find(themeId)
         .ifPresentOrElse(
             EmptyConsumer.accept(),
-            DomainConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
+            ApplicationConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
 
     final var picture = storePicture(pictureBytes, unitOfWork);
     final var question =
@@ -111,7 +111,7 @@ final class AddQuestionHandler implements AddQuestionUsecase {
         .find(themeId)
         .ifPresentOrElse(
             EmptyConsumer.accept(),
-            DomainConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
+            ApplicationConstraintException.throwWith(AddQuestionError.THEME_DOES_NOT_EXISTS));
 
     final var picture = storePicture(pictureBytes, unitOfWork);
     final var question =
@@ -132,7 +132,8 @@ final class AddQuestionHandler implements AddQuestionUsecase {
       return new Question(type, value, picture, theme, answers);
     } catch (IllegalDomainStateException e) {
       // * Convert to a more specific domain exception with relevant error message
-      throw new DomainConstraintException(AddQuestionError.INVALID_QUESTION_DATA, e.getMessage());
+      throw new ApplicationConstraintException(
+          AddQuestionError.INVALID_QUESTION_DATA, e.getMessage());
     }
   }
 

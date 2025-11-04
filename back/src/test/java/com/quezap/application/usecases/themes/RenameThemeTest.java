@@ -1,12 +1,12 @@
 package com.quezap.application.usecases.themes;
 
+import com.quezap.application.exceptions.ApplicationConstraintException;
 import com.quezap.application.ports.themes.RenameTheme.Input;
 import com.quezap.application.ports.themes.RenameTheme.RenameThemeUsecase;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 import com.quezap.domain.ports.repositories.ThemeRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.mocks.MockEntity;
 
@@ -54,7 +54,7 @@ class RenameThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class,
+        ApplicationConstraintException.class,
         () -> {
           usecase.handle(renameThemeInput, unitOfWork);
         });
@@ -73,7 +73,7 @@ class RenameThemeTest {
 
     // WHEN / THEN
     Assertions.assertThrows(
-        DomainConstraintException.class,
+        ApplicationConstraintException.class,
         () -> {
           usecase.handle(renameThemeInput, unitOfWork);
         });

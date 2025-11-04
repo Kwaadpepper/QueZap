@@ -1,16 +1,16 @@
 package com.quezap.application.usecases.sessions;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.sessions.AddSessionError;
 import com.quezap.application.ports.sessions.AddSession.AddSessionUsecase;
 import com.quezap.application.ports.sessions.AddSession.Input;
 import com.quezap.application.ports.sessions.AddSession.Output;
-import com.quezap.domain.errors.sessions.AddSessionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.models.entities.builders.SessionBuilder;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.ports.repositories.SessionRepository;
 import com.quezap.domain.ports.repositories.UserRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.utils.EmptyConsumer;
@@ -38,7 +38,7 @@ public final class AddSessionHandler implements AddSessionUsecase {
         .find(userId)
         .ifPresentOrElse(
             EmptyConsumer.accept(),
-            DomainConstraintException.throwWith(AddSessionError.NO_SUCH_USER));
+            ApplicationConstraintException.throwWith(AddSessionError.NO_SUCH_USER));
 
     if (sessionRepository.findByNumber(newSessionNumber).isPresent()) {
       throw new IllegalDomainStateException("Generated session code is not unique");

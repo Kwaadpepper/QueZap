@@ -1,15 +1,15 @@
 package com.quezap.application.usecases.users;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.users.DeleteUserError;
 import com.quezap.application.ports.users.DeleteUser.DeleteUserUsecase;
 import com.quezap.application.ports.users.DeleteUser.Input;
 import com.quezap.application.ports.users.DeleteUser.Output;
-import com.quezap.domain.errors.users.DeleteUserError;
 import com.quezap.domain.models.entities.User;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.ports.repositories.CredentialRepository;
 import com.quezap.domain.ports.repositories.UserRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ final class DeleteUserHandler implements DeleteUserUsecase {
         .find(userId)
         .ifPresentOrElse(
             this::deleteCredentialAndUser,
-            DomainConstraintException.throwWith(DeleteUserError.NO_SUCH_USER));
+            ApplicationConstraintException.throwWith(DeleteUserError.NO_SUCH_USER));
 
     return new Output.UserDeleted();
   }
@@ -48,7 +48,7 @@ final class DeleteUserHandler implements DeleteUserUsecase {
           userRepository
               .findByName(name)
               .<UserId>map(User::getId)
-              .orElseThrow(DomainConstraintException.with(DeleteUserError.NO_SUCH_USER));
+              .orElseThrow(ApplicationConstraintException.with(DeleteUserError.NO_SUCH_USER));
     };
   }
 

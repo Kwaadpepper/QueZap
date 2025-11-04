@@ -1,13 +1,13 @@
 package com.quezap.application.usecases.themes;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.themes.AddThemeError;
 import com.quezap.application.ports.themes.AddTheme.AddThemeUsecase;
 import com.quezap.application.ports.themes.AddTheme.Input;
 import com.quezap.application.ports.themes.AddTheme.Output;
-import com.quezap.domain.errors.themes.AddThemeError;
 import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.ports.repositories.ThemeRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 
 @Usecase
@@ -23,7 +23,7 @@ final class AddThemeHandler implements AddThemeUsecase {
     final var themeName = usecaseInput.name();
 
     if (themeRepository.findByName(themeName).isPresent()) {
-      throw new DomainConstraintException(AddThemeError.THEME_ALREADY_EXISTS);
+      throw new ApplicationConstraintException(AddThemeError.THEME_ALREADY_EXISTS);
     }
 
     final var theme = new Theme(themeName);

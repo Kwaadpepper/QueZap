@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.users;
+package com.quezap.application.exceptions.users;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum DeleteUserError implements DomainErrorCode {
+public enum DeleteUserError implements ApplicationErrorCode {
   NO_SUCH_USER(1101, "No such user");
 
   private final int code;

@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.questions;
+package com.quezap.application.exceptions.questions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum DeleteQuestionError implements DomainErrorCode {
+public enum DeleteQuestionError implements ApplicationErrorCode {
   QUESTION_NOT_FOUND(3101, "The specified question does not exist");
 
   private final int code;

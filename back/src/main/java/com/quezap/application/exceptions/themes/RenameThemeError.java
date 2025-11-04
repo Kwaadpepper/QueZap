@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.themes;
+package com.quezap.application.exceptions.themes;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum RenameThemeError implements DomainErrorCode {
+public enum RenameThemeError implements ApplicationErrorCode {
   THEME_DOES_NOT_EXISTS(2801, "No theme exists with the provided identifier"),
   THEME_NAME_ALREADY_EXISTS(2802, "A theme with the provided name already exists");
 

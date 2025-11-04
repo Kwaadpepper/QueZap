@@ -3,14 +3,14 @@ package com.quezap.application.usecases.sessions;
 import java.util.function.Consumer;
 
 import com.quezap.application.annotations.Usecase;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.sessions.AddQuestionError;
 import com.quezap.application.ports.sessions.AddQuestionToSession.AddQuestionToSessionUsecase;
 import com.quezap.application.ports.sessions.AddQuestionToSession.Input;
 import com.quezap.application.ports.sessions.AddQuestionToSession.Output;
-import com.quezap.domain.errors.sessions.AddQuestionError;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.ports.repositories.QuestionRepository;
 import com.quezap.domain.ports.repositories.SessionRepository;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.usecases.UnitOfWorkEvents;
 import com.quezap.lib.utils.EmptyConsumer;
 
@@ -35,13 +35,13 @@ public final class AddQuestionToSessionHandler implements AddQuestionToSessionUs
         .find(questionId)
         .ifPresentOrElse(
             EmptyConsumer.accept(),
-            DomainConstraintException.throwWith(AddQuestionError.NO_SUCH_QUESTION));
+            ApplicationConstraintException.throwWith(AddQuestionError.NO_SUCH_QUESTION));
 
     sessionRepository
         .find(sessionId)
         .ifPresentOrElse(
             persistWith(questionSlide),
-            DomainConstraintException.throwWith(AddQuestionError.NO_SUCH_SESSION));
+            ApplicationConstraintException.throwWith(AddQuestionError.NO_SUCH_SESSION));
 
     return new Output.QuestionAddedToSession();
   }

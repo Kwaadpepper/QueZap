@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.sessions;
+package com.quezap.application.exceptions.sessions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum RemoveQuestionError implements DomainErrorCode {
+public enum RemoveQuestionError implements ApplicationErrorCode {
   NO_SUCH_QUESTION(2501, "The question does not exist"),
   NO_SUCH_SESSION(2502, "The session does not exist"),
   SESSION_IS_RUNNING(2504, "Cannot remove question to a session that is running"),

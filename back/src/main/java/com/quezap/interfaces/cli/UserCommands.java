@@ -10,6 +10,7 @@ import org.springframework.shell.command.CommandRegistration;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
+import com.quezap.application.exceptions.ApplicationConstraintException;
 import com.quezap.application.ports.users.AddUser;
 import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.DeleteUser;
@@ -19,7 +20,6 @@ import com.quezap.application.ports.users.ListUsers.ListUsersUsecase;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.lib.ddd.exceptions.DomainConstraintException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 import com.quezap.lib.pagination.Pagination;
@@ -93,7 +93,7 @@ public class UserCommands {
       return "Done";
     } catch (IllegalDomainStateException e) {
       return "Error : " + e.getMessage();
-    } catch (DomainConstraintException e) {
+    } catch (ApplicationConstraintException e) {
       return "Error " + e.getMessage();
     }
   }
@@ -119,7 +119,7 @@ public class UserCommands {
       return "Done";
     } catch (IllegalDomainStateException e) {
       return "Error : " + e.getMessage();
-    } catch (DomainConstraintException e) {
+    } catch (ApplicationConstraintException e) {
       return "Error " + e.getMessage();
     }
   }

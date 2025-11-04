@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.sessions;
+package com.quezap.application.exceptions.sessions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum AddSessionError implements DomainErrorCode {
+public enum AddSessionError implements ApplicationErrorCode {
   NO_SUCH_USER(2201, "The user does not exist");
 
   private final int code;

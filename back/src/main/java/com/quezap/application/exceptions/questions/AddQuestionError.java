@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.questions;
+package com.quezap.application.exceptions.questions;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum AddQuestionError implements DomainErrorCode {
+public enum AddQuestionError implements ApplicationErrorCode {
   THEME_DOES_NOT_EXISTS(2901, "The specified theme does not exist"),
   INVALID_QUESTION_DATA(2902, "The provided question data is invalid");
 

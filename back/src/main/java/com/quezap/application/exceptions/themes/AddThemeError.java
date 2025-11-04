@@ -1,8 +1,8 @@
-package com.quezap.domain.errors.themes;
+package com.quezap.application.exceptions.themes;
 
-import com.quezap.lib.ddd.exceptions.DomainErrorCode;
+import com.quezap.application.exceptions.ApplicationErrorCode;
 
-public enum AddThemeError implements DomainErrorCode {
+public enum AddThemeError implements ApplicationErrorCode {
   THEME_ALREADY_EXISTS(3001, "A theme with the same name already exists");
 
   private final int code;
