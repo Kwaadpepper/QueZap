@@ -30,6 +30,8 @@ body {
   height: 100dvh;
   margin: 0;
   line-height: 1.6;
+
+  @apply font-body bg-surface-100 text-surface-900 dark:bg-surface-900 dark:text-surface-100;
 }
 
 

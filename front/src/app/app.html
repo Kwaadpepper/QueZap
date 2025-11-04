@@ -1,10 +1,264 @@
-<h1 class="text-3xl font-bold underline text-red-900 font-title"> Hello world!</h1>
-<p-button label="Check" />
-<p-button size="large" label="Button" (onClick)="doSomething()"></p-button>
+<div class="p-6 space-y-8">
+  <section>
+    <h1 class="text-3xl font-bold font-title mb-4">QueZap - Thème des Plantes 🌿</h1>
+    <p class="text-surface-600 dark:text-surface-400 mb-6">Démonstration des composants PrimeNG avec le thème
+      personnalisé</p>
+  </section>
 
-multiSelect Example:
+  <!-- Buttons Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Boutons</h2>
+    <div class="flex flex-wrap gap-3">
+      <p-button label="Primary" />
+      <p-button label="Large" size="large" />
+      <p-button label="Small" size="small" />
+      <p-button label="Secondary" severity="secondary" />
+      <p-button label="Success" severity="success" />
+      <p-button label="Info" severity="info" />
+      <p-button label="Warn" severity="warn" />
+      <p-button label="Danger" severity="danger" />
+      <p-button label="Outlined" outlined />
+      <p-button label="Text" text />
+    </div>
+  </section>
 
-<p-multiSelect [options]="cities" [(ngModel)]="selectedCities" optionLabel="name" placeholder="Select Cities"
-  [maxSelectedLabels]="3" class="w-full md:w-80" />
+  <!-- Form Fields Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Champs de formulaire</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="input1" class="block mb-2">Input Text</label>
+        <input pInputText id="input1" placeholder="Entrez du texte" class="w-full" />
+      </div>
 
-{{selectedCities | json}}
+      <div>
+        <label for="autocomplete1" class="block mb-2">AutoComplete</label>
+        <p-autocomplete id="autocomplete1" [(ngModel)]="selectedCities" [suggestions]="filteredPlants"
+          (completeMethod)="searchPlants($event)" field="name" placeholder="Rechercher une plante" class="w-full" />
+      </div>
+
+      <div>
+        <label for="number1" class="block mb-2">Input Number</label>
+        <p-inputnumber id="number1" [(ngModel)]="numberValue" placeholder="Entrez un nombre" class="w-full" />
+      </div>
+
+      <div>
+        <label for="select1" class="block mb-2">Select</label>
+        <p-select id="select1" [options]="cities" optionLabel="name" placeholder="Sélectionnez une ville"
+          class="w-full" />
+      </div>
+
+      <div>
+        <label for="multiselect1" class="block mb-2">Multi Select</label>
+        <p-multiSelect id="multiselect1" [options]="cities" [(ngModel)]="selectedCities" optionLabel="name"
+          placeholder="Sélectionnez des villes" [maxSelectedLabels]="3" class="w-full" />
+      </div>
+
+      <div>
+        <label for="calendar1" class="block mb-2">Date Picker</label>
+        <p-datepicker id="calendar1" placeholder="Sélectionnez une date" class="w-full" />
+      </div>
+
+      <div class="col-span-2">
+        <label for="slider1" class="block mb-2">Slider (valeur: {{sliderValue}})</label>
+        <p-slider id="slider1" [(ngModel)]="sliderValue" class="w-full" />
+      </div>
+    </div>
+
+    <p-divider />
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <div class="mb-3 font-semibold">Checkbox</div>
+        <div class="flex items-center gap-2">
+          <p-checkbox [(ngModel)]="checked" [binary]="true" inputId="check1" />
+          <label for="check1">J'accepte les conditions</label>
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-3 font-semibold">Toggle Switch</div>
+        <div class="flex items-center gap-2">
+          <p-toggleSwitch [(ngModel)]="switchValue" inputId="switch1" />
+          <label for="switch1">Mode expert</label>
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-3 font-semibold">Radio Button</div>
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <p-radiobutton [(ngModel)]="selectedDifficulty" value="Facile" inputId="diff1" />
+            <label for="diff1">Facile</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <p-radiobutton [(ngModel)]="selectedDifficulty" value="Moyen" inputId="diff2" />
+            <label for="diff2">Moyen</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <p-radiobutton [(ngModel)]="selectedDifficulty" value="Difficile" inputId="diff3" />
+            <label for="diff3">Difficile</label>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-3 font-semibold">Rating</div>
+        <p-rating [(ngModel)]="rating" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Cards Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Panels</h2>
+
+    <div class="space-y-4 mb-6">
+      <p-panel header="Panel - Informations du Quiz" [toggleable]="true">
+        <p>Un panel est un conteneur qui peut être réduit/étendu. Parfait pour organiser le contenu.</p>
+      </p-panel>
+
+      <p-fieldset legend="Fieldset - Statistiques">
+        <p>Nombre de questions : 20</p>
+        <p>Temps moyen : 15 minutes</p>
+        <p>Taux de réussite : 75%</p>
+      </p-fieldset>
+    </div>
+
+    <p-divider />
+
+    <h3 class="text-xl font-semibold mb-4 mt-6">Accordion</h3>
+    <p-accordion [value]="['0']">
+      <p-accordionpanel value="0">
+        <p-accordionheader>Plantes d'intérieur</p-accordionheader>
+        <p-accordioncontent>
+          <p>Les plantes d'intérieur sont idéales pour purifier l'air et décorer votre maison.</p>
+        </p-accordioncontent>
+      </p-accordionpanel>
+      <p-accordionpanel value="1">
+        <p-accordionheader>Plantes d'extérieur</p-accordionheader>
+        <p-accordioncontent>
+          <p>Les plantes d'extérieur nécessitent plus de lumière naturelle et d'entretien régulier.</p>
+        </p-accordioncontent>
+      </p-accordionpanel>
+      <p-accordionpanel value="2">
+        <p-accordionheader>Plantes grasses</p-accordionheader>
+        <p-accordioncontent>
+          <p>Les plantes grasses sont très résistantes et demandent peu d'arrosage.</p>
+        </p-accordioncontent>
+      </p-accordionpanel>
+    </p-accordion>
+
+    <p-divider />
+
+    <h3 class="text-xl font-semibold mb-4 mt-6">Tabs</h3>
+    <p-tabs [value]="'0'">
+      <p-tablist>
+        <p-tab value="0">Facile</p-tab>
+        <p-tab value="1">Moyen</p-tab>
+        <p-tab value="2">Difficile</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <p class="m-0">Questions niveau facile : identification de plantes communes.</p>
+        </p-tabpanel>
+        <p-tabpanel value="1">
+          <p class="m-0">Questions niveau moyen : familles botaniques et caractéristiques.</p>
+        </p-tabpanel>
+        <p-tabpanel value="2">
+          <p class="m-0">Questions niveau difficile : classification scientifique détaillée.</p>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+
+    <p-divider />
+
+    <h3 class="text-xl font-semibold mb-4 mt-6">Cards</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <p-card header="Plante 1">
+        <p>Description de la première plante pour le quiz.</p>
+      </p-card>
+
+      <p-card header="Plante 2">
+        <p>Description de la deuxième plante pour le quiz.</p>
+      </p-card>
+
+      <p-card header="Plante 3">
+        <p>Description de la troisième plante pour le quiz.</p>
+      </p-card>
+    </div>
+  </section>
+
+  <!-- Overlays Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Overlays</h2>
+    <div class="flex flex-wrap gap-3">
+      <p-button label="Ouvrir Dialog" icon="pi pi-external-link" (onClick)="showDialog()" />
+    </div>
+
+    <p-dialog header="Dialog - Confirmation" [(visible)]="visible" [modal]="true" [style]="{ width: '30rem' }">
+      <p class="mb-4">Êtes-vous sûr de vouloir commencer le quiz ?</p>
+      <div class="flex justify-end gap-2">
+        <p-button label="Annuler" severity="secondary" (onClick)="visible = false" />
+        <p-button label="Confirmer" (onClick)="visible = false" />
+      </div>
+    </p-dialog>
+  </section>
+
+  <!-- Cards Section -->
+
+  <!-- Messages Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Messages</h2>
+    <div class="space-y-3">
+      <p-message severity="success" text="Bonne réponse ! Vous avez identifié la plante correctement." />
+      <p-message severity="info" text="Information : Ce quiz contient 20 questions." />
+      <p-message severity="warn" text="Attention : Il vous reste 30 secondes." />
+      <p-message severity="error" text="Erreur : Mauvaise réponse. Essayez encore !" />
+    </div>
+  </section>
+
+  <!-- Toast Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Toasts</h2>
+    <p-toast />
+    <div class="flex flex-wrap gap-3">
+      <p-button label="Toast Succès" severity="success" (onClick)="showToast('success')" />
+      <p-button label="Toast Info" severity="info" (onClick)="showToast('info')" />
+      <p-button label="Toast Attention" severity="warn" (onClick)="showToast('warn')" />
+      <p-button label="Toast Erreur" severity="danger" (onClick)="showToast('error')" />
+    </div>
+  </section>
+
+  <!-- Chips/Tags Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Tags & Badges</h2>
+    <div class="flex flex-wrap gap-2">
+      <p-tag value="Botanique" />
+      <p-tag value="Facile" severity="success" />
+      <p-tag value="Moyen" severity="warn" />
+      <p-tag value="Difficile" severity="danger" />
+      <p-badge [value]="5" />
+      <p-badge value="Nouveau" severity="success" />
+    </div>
+  </section>
+
+  <!-- Progress Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Progression</h2>
+    <div class="space-y-4">
+      <div>
+        <p class="block mb-2">Progression du quiz</p>
+        <p-progressbar [value]="65" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Debug -->
+  <section class="pt-4 border-t border-surface-200">
+    <details>
+      <summary class="cursor-pointer text-sm text-surface-500">Données de debug</summary>
+      <pre class="mt-2 text-xs">{{ selectedCities | json }}</pre>
+    </details>
+  </section>
+</div>
