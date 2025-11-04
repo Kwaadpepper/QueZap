@@ -2091,7 +2091,7 @@ const Quezap = definePreset({
         color: '{primary.color}',
       },
       columnResizer: {
-        width: '0.5rem'
+        width: '0.5rem',
       },
       resizeIndicator: {
         width: '1px',
@@ -4904,7 +4904,7 @@ const Quezap = definePreset({
         padding: '0.75rem 1rem',
       },
       columnResizer: {
-        width: '0.5rem'
+        width: '0.5rem',
       },
       resizeIndicator: {
         width: '1px',

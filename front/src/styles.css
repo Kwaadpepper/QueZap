@@ -3,21 +3,21 @@
 
 /* --- 1. Définition des polices (GARDER TEL QUEL) --- */
 @font-face {
-    font-family: 'Bangers';
+    font-display: swap;
+    font-family: Bangers;
+    font-style: normal;
+    font-weight: normal;
     src: url('../resources/fonts/subset-Bangers-Regular.woff2') format('woff2'),
         url('../resources/fonts/subset-Bangers-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lexend';
+    font-display: swap;
+    font-family: Lexend;
+    font-style: normal;
+    font-weight: normal;
     src: url('../resources/fonts/Lexend-Regular.woff2') format('woff2'),
         url('../resources/fonts/Lexend-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
 }
 
 @theme {

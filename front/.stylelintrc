@@ -1,0 +1,45 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-idiomatic-order"
+  ],
+  "files": [
+    "**/*.css"
+  ],
+  "ignoreFiles": [
+    "**/vendor/*.css",
+    "**/vendor/**/*.css"
+  ],
+  "rules": {
+    "import-notation": null,
+    "declaration-property-value-no-unknown": true,
+    "selector-max-id": null,
+    "color-no-invalid-hex": true,
+    "order/properties-alphabetical-order": null,
+    "selector-max-compound-selectors": 5,
+    "max-nesting-depth": 5,
+    "no-empty-source": null,
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "layer",
+          "theme"
+        ]
+      }
+    ],
+    "at-rule-no-deprecated": [
+      true,
+      {
+        "ignoreAtRules": [
+          "apply"
+        ]
+      }
+    ]
+  }
+}

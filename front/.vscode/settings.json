@@ -1,0 +1,43 @@
+{
+  "editor.tabSize": 2,
+  "conventionalCommits.scopes": [
+    "front",
+    "front-backoffice",
+    "front-support",
+    "front-reservation",
+    "front-shell",
+    "front-shared"
+  ],
+  "editor.formatOnSave": true,
+  "[html]": {
+    "html.format.enable": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.autoIndent": "full",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    },
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": true,
+  },
+  "[typescript]": {
+    "editor.autoIndent": "full",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    },
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html"
+  }
+}
