@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: quizz-cli
+  main:
+    web-application-type: none
+  shell:
+    interactive:
+      enabled: true
+    script:
+      enabled: true
+    history:
+      enabled: false
+
+logging:
+  level:
+    root: INFO
+
+jwt:
+  signing-key: ${APP_JWT_SECRET_KEY:4a3c4e58311739e4a396ad7a38a5454ad65cfde67b0fef9aeb351cbb3c478fef}
+  issuer: ${APP_JWT_ISSUER:quezap.com}
+
+participation:
+  token-expiration-seconds: 3600
+
+pictures-s3:
+  host: ${APP_S3_HOST:localhost}
+  port: ${APP_S3_PORT:9190}
+  public-endpoint: ${APP_S3_PUBLIC_ENDPOINT:http://localhost:9190}
+  bucket-name: ${APP_S3_BUCKET_NAME:quezap-public-images}
+  access-key-id: ${APP_S3_ACCESS_KEY_ID:quezap_java_writer}
+  secret-access-key: ${APP_S3_SECRET_ACCESS_KEY:LocalPassword}
+
+session-code:
+  seed: 12345
+  length: 6
+  dictionary: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+profanity:
+  custom-words: badword1,badword2

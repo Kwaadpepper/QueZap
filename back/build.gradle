@@ -1,12 +1,10 @@
 plugins {
-  id 'java'
-
-  alias(libs.plugins.springBoot)
-  alias(libs.plugins.dependencyManagement)
-  alias(libs.plugins.hibernateOrm)
-  alias(libs.plugins.graalvmNative)
-  alias(libs.plugins.errorProne)
-  alias(libs.plugins.nullaway)
+  alias(libs.plugins.springBoot) apply false
+  alias(libs.plugins.dependencyManagement) apply false
+  alias(libs.plugins.hibernateOrm) apply false
+  alias(libs.plugins.graalvmNative) apply false
+  alias(libs.plugins.errorProne) apply false
+  alias(libs.plugins.nullaway) apply false
   alias(libs.plugins.spotless)
 
   id 'checkstyle'
@@ -15,273 +13,284 @@ plugins {
 
 group = 'com.quezap'
 version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
+description = 'Quizz application backend'
 
-java {
-  sourceCompatibility = libs.versions.javaLts.get() as String
-  targetCompatibility = libs.versions.javaLts.get() as String
+def applicationProjects = [':quezap-api', ':quezap-cli']
 
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(libs.versions.javaLts.get() as String)
+subprojects {
+  var projectIsAnApplication = applicationProjects.contains(project.path)
+  if (projectIsAnApplication) {
+    apply plugin: 'java'
+  } else {
+    apply plugin: 'java-library'
+    apply plugin: libs.plugins.dependencyManagement.get().pluginId
   }
-}
+  apply plugin: libs.plugins.errorProne.get().pluginId
+  apply plugin: libs.plugins.nullaway.get().pluginId
+  apply plugin: 'jacoco'
 
-configurations {
-  mockitoAgent {
-    transitive = false
+  repositories { mavenCentral() }
+
+  java {
+    sourceCompatibility = libs.versions.javaLts.get() as String
+    targetCompatibility = libs.versions.javaLts.get() as String
+    toolchain { languageVersion = JavaLanguageVersion.of(libs.versions.javaLts.get() as String) }
   }
 
-  compileOnly {
-    extendsFrom annotationProcessor
+  configurations {
+    mockitoAgent { transitive = false }
+    compileOnly { extendsFrom annotationProcessor }
   }
-}
 
-repositories {
-  mavenCentral()
-}
-
-configurations.all {
-  resolutionStrategy {
-    force 'com.google.guava:guava:33.5.0-jre'
-  }
-}
-
-dependencies {
-// Error Prone / NullAway
-  errorprone libs.error.prone.core
-  errorprone libs.nullaway
-
-  // JSpecify (référence via le catalogue)
-  compileOnly libs.jspecify
-  testCompileOnly libs.jspecify
-
-  // Starters Spring Boot (versions gérées par le BOM)
-  implementation libs.spring.boot.starter.actuator
-  implementation libs.spring.boot.starter.data.jpa
-  implementation libs.spring.boot.starter.security
-  implementation libs.spring.boot.starter.validation
-  implementation libs.spring.boot.starter.web
-  implementation libs.spring.shell.starter
-
-  // Mime detection and parsing Apache Tika
-  implementation libs.tika.core
-  implementation libs.tika.parser
-
-  // S3 (plateform and modules)
-  implementation platform(libs.aws.bom)
-  implementation libs.s3
-  implementation libs.auth
-
-  // Code generator
-  implementation libs.serial.int.caster
-
-  // Profanity filter
-  implementation libs.profanity.filter
-
-  // For ARGON 2
-  implementation libs.bouncy.castle
-
-  // JJWT (JSON Web Token)
-  implementation libs.jjwt.api
-  runtimeOnly libs.jjwt.impl
-  runtimeOnly libs.jjwt.jackson
-
-  developmentOnly libs.spring.boot.devtools
-
-  // Database Drivers
-  runtimeOnly libs.h2
-  runtimeOnly libs.postgresql
-
-  annotationProcessor libs.spring.boot.config.processor
-  testImplementation libs.spring.boot.starter.test
-
-  testImplementation libs.spring.security.test
-  testRuntimeOnly libs.junit.platform.launcher
-
-  mockitoAgent(libs.mockito.core)
-}
-
-// hibernate {
-// 	enhancement {
-// 		enableAssociationManagement = true
-// 	}
-// }
-
-// --- Configuration Error Prone / NullAway (Conditionnelle) ---
-def enableNullAway = project.hasProperty('nullaway') && project.property('nullaway') == 'true'
-
-tasks.withType(JavaCompile).configureEach {
-  // Désactiver Error Prone complètement pour les tâches AOT (fichiers générés)
-  def isAotTask = name in ['compileAotJava', 'compileAotTestJava']
-
-  options.errorprone {
-    if (isAotTask) {
-      // Désactiver complètement Error Prone pour les tâches AOT
-      enabled = false
-    } else if (enableNullAway) {
-      // Activer NullAway pour les tâches normales
-      check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-      option('NullAway:AnnotatedPackages', 'com.quezap')
-      option('NullAway:JSpecifyMode', 'true')
-      option('TreatGeneratedAsUnannotated', 'true')
-    } else {
-      // Si NullAway n'est pas activé, le désactiver
-      option('NullAway:AnnotatedPackages', 'com.quezap')
-      option('NullAway:JSpecifyMode', 'true')
-      check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.OFF)
+  // BOM Spring Boot only to libraries (apps inherit via Spring Boot plugin)
+  if (!projectIsAnApplication) {
+    dependencyManagement {
+      imports { mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES) }
     }
   }
 
-  if (enableNullAway && !isAotTask) {
-    options.compilerArgs << '-Werror'
+  // Override Guava version to avoid conflicts
+  configurations.all { resolutionStrategy { force 'com.google.guava:guava:33.5.0-jre' } }
+
+  // All modules dependencies
+  dependencies {
+    errorprone libs.error.prone.core
+    errorprone libs.nullaway
+
+    compileOnly libs.jspecify
+    testCompileOnly libs.jspecify
+
+    testImplementation libs.spring.boot.starter.test
+    testRuntimeOnly libs.junit.platform.launcher
+
+    mockitoAgent(libs.mockito.core)
   }
 
-  options.compilerArgs << "-Xlint:deprecation"
+  // --- Error Prone / NullAway ---
+  def enableNullAway = project.hasProperty('nullaway') && project.property('nullaway') == 'true'
+  tasks.withType(JavaCompile).configureEach {
+    def isAotTask = name.toLowerCase().contains('aot')
+    options.errorprone {
+      if (isAotTask) {
+        enabled = false
+      } else if (enableNullAway) {
+        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        option('NullAway:AnnotatedPackages', 'com.quezap')
+        option('NullAway:JSpecifyMode', 'true')
+        option('TreatGeneratedAsUnannotated', 'true')
+      } else {
+        option('NullAway:AnnotatedPackages', 'com.quezap')
+        option('NullAway:JSpecifyMode', 'true')
+        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.OFF)
+      }
+    }
+    if (enableNullAway && !isAotTask) { options.compilerArgs << '-Werror' }
+    options.compilerArgs << '-Xlint:deprecation'
+  }
+
+  // --- Checkstyle ---
+  apply plugin: 'checkstyle'
+  checkstyle {
+    toolVersion = libs.versions.checkstyle.get()
+    configFile = file("${rootDir}/checkstyle/checkstyle.xml")
+    configProperties = [
+      'org.checkstyle.google.suppressionfilter.config': file("${rootDir}/checkstyle/checkstyle-suppressions.xml"),
+    ]
+  }
+  tasks.withType(Checkstyle).configureEach {
+    reports { html.required = true; xml.required = false }
+    // Ignore generated sources and anything under build/
+    exclude('**/build/**')
+    exclude('**/generated/**')
+    exclude('**/generated-sources/**')
+    exclude('**/generated/aotSources/**')
+    // Do not run Checkstyle on AOT-generated source set
+    if (name.toLowerCase().contains('aot')) { enabled = false }
+  }
+
+  // --- Tests JUnit Platform + JaCoCo ---
+  tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    jacoco {
+      destinationFile = layout.buildDirectory.file("jacoco/${name}.exec").get().asFile
+      classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
+    }
+    jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
+    jvmArgs += '-Xshare:off'
+  }
 }
 
-// --- Configuration Spotless ---
+// Dependencies specific to modules
+project(":modules:shared") {
+  dependencies {
+    compileOnly(libs.jspecify)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+  }
+}
+
+project(":modules:domain") {
+  dependencies {
+    api(project(":modules:shared"))
+    compileOnly(libs.jspecify)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+  }
+}
+
+project(":modules:application") {
+  dependencies {
+    api(project(":modules:domain"))
+    api(project(":modules:shared"))
+
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation(libs.spring.boot.starter.web)
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework:spring-tx")
+    implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.security)
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation(libs.tika.core)
+    implementation(libs.tika.parser)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+  }
+}
+
+project(":modules:infrastructure") {
+  dependencies {
+    api(project(":modules:application"))
+    implementation(project(":modules:domain"))
+
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework:spring-tx")
+    implementation("org.springframework.security:spring-security-crypto")
+    implementation(libs.tika.core)
+    implementation(libs.tika.parser)
+    implementation(platform(libs.aws.bom))
+    implementation(libs.s3)
+    implementation(libs.auth)
+    implementation(libs.bouncy.castle)
+    implementation(libs.jjwt.api)
+    implementation(libs.jjwt.impl)
+    implementation(libs.jjwt.jackson)
+    implementation(libs.profanity.filter)
+    implementation(libs.serial.int.caster)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+  }
+}
+
+project(":quezap-api") {
+  apply plugin: libs.plugins.springBoot.get().pluginId
+  apply plugin: libs.plugins.dependencyManagement.get().pluginId
+  apply plugin: libs.plugins.graalvmNative.get().pluginId
+
+  dependencyManagement {
+    imports { mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES) }
+  }
+
+  dependencies {
+    implementation(project(":modules:application"))
+    implementation(project(":modules:domain"))
+    implementation(project(":modules:infrastructure"))
+
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.security)
+    developmentOnly(libs.spring.boot.devtools)
+    runtimeOnly(libs.h2)
+    runtimeOnly(libs.postgresql)
+    annotationProcessor(libs.spring.boot.config.processor)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.security.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+  }
+
+  graalvmNative {
+    metadataRepository { enabled = true }
+    agent {
+      defaultMode = "conditional"
+      modes { conditional { userCodeFilterPath = "${project.rootDir}/user-code-filter.json" } }
+      metadataCopy {
+        mergeWithExisting = true
+        inputTaskNames.add("test")
+        outputDirectories.add("src/main/resources/META-INF/native-image")
+      }
+    }
+    binaries {
+      named("main") {
+        imageName.set("quezap-api")
+        sharedLibrary.set(false)
+        buildArgs.addAll('-H:+ReportExceptionStackTraces', '--no-fallback', '-march=compatibility')
+      }
+    }
+  }
+}
+
+project(":quezap-cli") {
+  apply plugin: libs.plugins.springBoot.get().pluginId
+  apply plugin: libs.plugins.dependencyManagement.get().pluginId
+  apply plugin: libs.plugins.graalvmNative.get().pluginId
+
+  dependencyManagement {
+    imports { mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES) }
+  }
+
+  dependencies {
+    implementation(project(":modules:application"))
+    implementation(project(":modules:infrastructure"))
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation(libs.spring.boot.starter.data.jpa)
+    runtimeOnly(libs.h2)
+    implementation(libs.spring.shell.starter)
+    annotationProcessor(libs.spring.boot.config.processor)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+  }
+
+  // Allow bootRun to accept input from console
+  tasks.named('bootRun') { configure { standardInput = System.in } }
+
+  graalvmNative {
+    metadataRepository { enabled = true }
+    binaries {
+      named("main") {
+        imageName.set("quezap-cli")
+        sharedLibrary.set(false)
+        buildArgs.addAll('-H:+ReportExceptionStackTraces', '--no-fallback', '-march=compatibility')
+      }
+    }
+  }
+}
+
+// --- Spotless ---
 spotless {
-  // * Java
   java {
-    // * Utiliser Google Java Format
     googleJavaFormat(libs.versions.googleJavaFormat.get())
     removeUnusedImports()
-    importOrder(
-        'java',
-        'javax',
-        'org.springframework',
-        'com.quezap',
-        '#',
-        '',
-        )
+    importOrder('java','javax','org.springframework','com.quezap','#','',)
     formatAnnotations()
     target('**/*.java')
     targetExclude('**/build/**', '**/generated/**')
   }
-
-  // * Scripts Gradle Groovy
   groovyGradle {
-
     target('**/*.gradle')
     targetExclude('**/build/**')
-
     leadingTabsToSpaces(2)
   }
 }
 
-// * Intègre Spotless dans 'check'
-tasks.named('check') {
-  dependsOn('spotlessCheck', 'checkstyleMain', 'checkstyleTest')
-}
+tasks.named('check') { dependsOn('spotlessCheck') }
 
-// Configuration Checkstyle
-checkstyle {
-  toolVersion = libs.versions.checkstyle.get()
+// --- JaCoCo ---
+jacoco { toolVersion = libs.versions.jacoco.get() }
 
-  configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-
-  configProperties = [
-    'org.checkstyle.google.suppressionfilter.config': file("${rootDir}/config/checkstyle/checkstyle-suppressions.xml"),
-  ]
-}
-
-// Configuration des tâches de compilation/vérification (pour Main et Test)
-tasks.withType(Checkstyle).configureEach {
-  enabled = fileTree('src/main/java').files.size() > 0
-
-  reports {
-    // Exiger le rapport HTML (facile à lire)
-    html.required = true
-    // Désactiver le rapport XML (facultatif)
-    xml.required = false
-  }
-}
-
-// Désactiver Checkstyle pour les fichiers générés par AOT
-tasks.named('checkstyleAot') {
-  enabled = false
-}
-
-// Désactiver Checkstyle pour les fichiers générés par AOT
-tasks.named('checkstyleAotTest') {
-  enabled = false
-}
-
-// --- Tâches diverses ---
-
-graalvmNative {
-  metadataRepository {
-    enabled = true
-  }
-  agent {
-    defaultMode = "conditional"
-    modes {
-      conditional {
-        userCodeFilterPath = "user-code-filter.json"
-      }
-    }
-    metadataCopy {
-      mergeWithExisting = true
-      inputTaskNames.add("test")
-      outputDirectories.add("src/main/resources/META-INF/native-image")
-    }
-  }
-  binaries.configureEach {
-    buildArgs.add('-march=compatibility')
-  }
-}
-
-// --- Configuration JaCoCo (Couverture de Code) ---
-jacoco {
-  toolVersion = libs.versions.jacoco.get()
-}
-
-tasks.named('jacocoTestReport') {
-  dependsOn tasks.named('test')
-
-  reports {
-    html.required = true
-    html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
-
-    xml.required = true
-    xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
-
-    csv.required = false
-  }
-}
-
-// --- Configuration de l'exécution des tests (pour JaCoCo) ---
-tasks.named('test', Test) {
-  useJUnitPlatform()
-
-  jacoco {
-    destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
-    classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
-  }
-
-  jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
-
-  jvmArgs += "-Xshare:off"
-}
-
-project.afterEvaluate {
-  tasks.named('jacocoTestReport').configure {
-    classDirectories.setFrom(files(classDirectories.files.collect {
-      fileTree(dir: it, exclude: [
-        // Exclure les classes Spring Boot standards
-        '**/com/quezap/*Application.class',
-        // Exclure les classes de configuration/interfaces DTO sans logique
-        '**/*Configuration.class',
-        '**/*Dto.class',
-        '**/*MapperImpl.class',
-        '**/*Constants.class',
-        // Exclure les classes gérées par l'ORM si elles n'ont que des getters/setters
-        '**/domain/entities/**',
-      ])
-    }))
-  }
-}
-
-bootRun {
-  standardInput = System.in
-}
