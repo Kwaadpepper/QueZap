@@ -47,4 +47,24 @@
     { "text": "After the subject, add a blank line, then an optional short body explaining the WHY." },
     { "text": "Use a footer for BREAKING CHANGE and for formal issue linking (e.g., Closes #123)." }
   ],
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#510321",
+    "activityBar.background": "#510321",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#327b05",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#510321",
+    "statusBar.background": "#20010d",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#510321",
+    "statusBarItem.remoteBackground": "#20010d",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#20010d",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#20010d99",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#20010d",
 }
