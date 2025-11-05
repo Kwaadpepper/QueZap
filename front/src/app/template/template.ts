@@ -14,6 +14,7 @@ import { DatePickerModule } from 'primeng/datepicker'
 import { DialogModule } from 'primeng/dialog'
 import { DividerModule } from 'primeng/divider'
 import { FieldsetModule } from 'primeng/fieldset'
+import { ImageModule } from 'primeng/image'
 import { InputNumberModule } from 'primeng/inputnumber'
 import { InputTextModule } from 'primeng/inputtext'
 import { MessageModule } from 'primeng/message'
@@ -55,6 +56,7 @@ interface Plant {
     DividerModule,
     FieldsetModule,
     FormsModule,
+    ImageModule,
     InputNumberModule,
     InputTextModule,
     JsonPipe,
