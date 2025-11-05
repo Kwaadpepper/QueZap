@@ -1,17 +1,31 @@
-import { Component, signal } from '@angular/core'
-import { RouterOutlet } from '@angular/router'
+import { Component, computed, inject, signal } from '@angular/core'
+import { RouterModule, RouterOutlet } from '@angular/router'
 
-interface City {
-  name: string
-  code: string
-}
+import { ButtonDirective } from 'primeng/button'
+import { ImageModule } from 'primeng/image'
+
+import { Debugbar } from './core/components/debugbar/debugbar'
+import { ConfigService } from './core/services/config'
 
 @Component({
-  standalone: true,
   selector: 'quizz-root',
-  imports: [RouterOutlet],
+  imports: [
+    RouterOutlet,
+    RouterModule,
+    ButtonDirective,
+    ImageModule,
+    Debugbar,
+  ],
   templateUrl: './app.html',
 })
 export class App {
-  protected readonly title = signal('quezap')
+  public readonly asWebsite = signal(true)
+  private readonly config = inject(ConfigService)
+
+  public readonly footer = computed(() => {
+    return {
+      authorName: this.config.appConfig.value().authorName,
+      authorEmail: this.config.appConfig.value().authorEmail,
+    }
+  })
 }

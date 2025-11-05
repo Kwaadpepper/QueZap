@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core'
+import { computed, Injectable, resource, ResourceRef } from '@angular/core'
 
 import z from 'zod'
 
-import { environment } from '../../../environments/environment'
+import { environment } from '@quezap/env/environment'
 
 export enum Environment {
   DEV = 'dev',
@@ -11,6 +11,9 @@ export enum Environment {
 
 const configSchema = z.object({
   env: z.enum(Environment),
+  appName: z.string(),
+  authorName: z.string(),
+  authorEmail: z.email(),
   apiUrl: z.url(),
 })
 
@@ -20,13 +23,18 @@ type AppConfig = z.infer<typeof configSchema>
   providedIn: 'root',
 })
 export class ConfigService {
-  private readonly appConfig!: AppConfig
+  public readonly appConfig: ResourceRef<AppConfig> = resource({
+    defaultValue: configSchema.parse({
+      env: Environment.PROD,
+      appName: 'Quizz',
+      authorName: 'Example Author',
+      authorEmail: 'example@example.net',
+      apiUrl: 'https://example.net',
+    }),
+    loader: () => Promise.resolve(configSchema.parse(environment)),
+  })
 
-  constructor() {
-    this.appConfig = configSchema.parse(environment)
-  }
-
-  getConfig(): AppConfig {
-    return this.appConfig
-  }
+  public readonly debug = computed(() => {
+    return this.appConfig.value().env === Environment.DEV
+  })
 }

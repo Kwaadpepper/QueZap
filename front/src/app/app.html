@@ -1,1 +1,41 @@
-<router-outlet></router-outlet>
+@if(asWebsite()) {
+<header>
+  <nav>
+    <ul class="flex gap-2 px-10">
+      <li class="me-auto">
+        <a pButton routerLink="/" title="Aller sur la page d'accueil" text outlined>
+          <p-image src="images/quezap.svg" width="100" alt="QueZap"></p-image>
+        </a>
+      </li>
+      <li><a pButton routerLink="/template" text outlined>About</a></li>
+    </ul>
+  </nav>
+</header>
+}
+
+<main class="grow relative">
+  <quizz-debugbar [(websiteMode)]="asWebsite" />
+  <router-outlet></router-outlet>
+</main>
+
+@if(asWebsite()) {
+<footer class="pt-5 py-4 text-center relative">
+  <span
+    aria-hidden="true"
+    class="border-t-2 border-surface-300 dark:border-surface-700 opacity-90 h-1 w-11/12 md:w-10/12 mx-auto block absolute top-0 left-0 right-0"
+  ></span>
+  <div class="mx-auto w-11/12 md:w-10/12">
+    <div>
+      <p-image src="images/quezap.svg" width="100" alt="QueZap"></p-image>
+    </div>
+    <div
+      class="flex flex-wrap justify-center md:justify-end gap-4 my-2 text-surface-900/70 dark:text-surface-100/70"
+    >
+      <span>
+        <a href="mailto:{{ footer().authorEmail }}">{{ footer().authorName }}</a>
+      </span>
+      <span>&copy; 2026 QueZap</span>
+    </div>
+  </div>
+</footer>
+}

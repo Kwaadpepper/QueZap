@@ -1,26 +1,29 @@
-@import "tailwindcss";
-@import "tailwindcss-primeui";
+@import 'tailwindcss';
+@import 'tailwindcss-primeui';
+@import 'primeicons/primeicons.css';
 
 /* --- 1. Définition des polices (GARDER TEL QUEL) --- */
 @font-face {
-    font-display: swap;
-    font-family: Bangers;
-    font-style: normal;
-    font-weight: normal;
-    src: url('../resources/fonts/subset-Bangers-Regular.woff2') format('woff2'),
-        url('../resources/fonts/subset-Bangers-Regular.woff') format('woff');
+  font-display: swap;
+  font-family: Bangers;
+  font-style: normal;
+  font-weight: normal;
+  src: url('../resources/fonts/subset-Bangers-Regular.woff2') format('woff2'),
+    url('../resources/fonts/subset-Bangers-Regular.woff') format('woff');
 }
 
 @font-face {
-    font-display: swap;
-    font-family: Lexend;
-    font-style: normal;
-    font-weight: normal;
-    src: url('../resources/fonts/Lexend-Regular.woff2') format('woff2'),
-        url('../resources/fonts/Lexend-Regular.woff') format('woff');
+  font-display: swap;
+  font-family: Lexend;
+  font-style: normal;
+  font-weight: normal;
+  src: url('../resources/fonts/Lexend-Regular.woff2') format('woff2'),
+    url('../resources/fonts/Lexend-Regular.woff') format('woff');
 }
 
 @theme {
+  --color-background-light: hsl(0deg 0% 100%);
+  --color-background-dark: hsl(207deg 95% 8%);
   --font-title: 'Bangers', sans-serif;
   --font-body: 'Lexend', sans-serif;
 }
@@ -32,35 +35,43 @@ body {
   line-height: 1.6;
 
   @apply font-body bg-surface-100 text-surface-900 dark:bg-surface-900 dark:text-surface-100;
+
+  quizz-root {
+    @apply flex flex-col h-full;
+  }
 }
 
-
-.h1, h1 {
-  @apply text-2xl mb-3;
+.h1,
+h1 {
+  @apply text-2xl mb-3 font-title uppercase;
 
   letter-spacing: 0.1em;
 }
 
-.h2, h2 {
+.h2,
+h2 {
   @apply text-xl mb-3 font-semibold;
 }
 
-.h3, h3 {
+.h3,
+h3 {
   @apply text-lg mb-3 font-semibold;
 }
 
-.h4, h4 {
+.h4,
+h4 {
   @apply text-base mb-2 font-semibold;
 }
 
-.h5, h5 {
+.h5,
+h5 {
   @apply text-sm mb-2 font-semibold;
 }
 
-.h6, h6 {
+.h6,
+h6 {
   @apply text-xs mb-1 font-semibold;
 }
-
 
 p {
   @apply mb-4;

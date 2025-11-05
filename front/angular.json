@@ -18,6 +18,11 @@
             "assets": [
               {
                 "glob": "**/*",
+                "input": "resources/images",
+                "output": "images"
+              },
+              {
+                "glob": "**/*",
                 "input": "public"
               }
             ],
@@ -75,6 +80,11 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "assets": [
+              {
+                "glob": "**/*",
+                "input": "resources/images",
+                "output": "images"
+              },
               {
                 "glob": "**/*",
                 "input": "public"
