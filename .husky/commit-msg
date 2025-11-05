@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+GIT_DIR="$(git rev-parse --absolute-git-dir)"
+
+MSG_FILE="$1"
+[ -f "$MSG_FILE" ] || MSG_FILE="$GIT_DIR/COMMIT_EDITMSG"
+
+echo "Husky (commit-msg): commitlint avec scopes dynamiques"
+npx commitlint --config commitlint.config.cjs --edit "$MSG_FILE"

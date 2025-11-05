@@ -1,8 +1,4 @@
 {
-  "conventionalCommits.scopes": [
-    "back",
-    "gaphor"
-  ],
   "editor.formatOnSave": true,
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.import.gradle.enabled": true,
@@ -64,5 +60,22 @@
     "titleBar.inactiveForeground": "#e7e7e799"
   },
   "peacock.color": "#0c0e23",
-  "java.debug.settings.onBuildFailureProceed": true
+  "java.debug.settings.onBuildFailureProceed": true,
+  "conventionalCommits.scopes": [
+    "back",
+    "modelisation"
+  ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    { "text": "Use Conventional Commits: <type>(<scope> optional): <subject>." },
+    { "text": "Write the subject in imperative mood, professional, no trailing period, under 50 characters." },
+    { "text": "Body lines must not be longer than 100 characters." },
+    { "text": "Allowed types: feat, fix, docs, style, refactor, perf, test, chore, ci." },
+    { "text": "Include a scope ONLY when it is obvious (e.g., api, ui, auth). Never invent a scope." },
+    { "text": "If a scope is used, restrict it to: back, modelisation." },
+    { "text": "Reference issues with # ONLY if the context (branch name or diff) mentions them. Never invent a number." },
+    { "text": "If the branch follows 'issue-123-...' (or similar), reference #123 in the BODY ONLY, never in the subject." },
+    { "text": "ALWAYS base the message on the CURRENT diff and the branch name, nothing else." },
+    { "text": "After the subject, add a blank line, then an optional short body explaining the WHY." },
+    { "text": "Use a footer for BREAKING CHANGE and for formal issue linking (e.g., Closes #123)." }
+  ],
 }

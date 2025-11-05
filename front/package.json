@@ -14,7 +14,8 @@
     "lint:ts:fix": "ng lint --fix",
     "lint:css": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\"",
     "lint:css:ci": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\" -f json",
-    "lint:css:fix": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\" --fix"
+    "lint:css:fix": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\" --fix",
+    "prepare": "husky"
   },
   "prettier": {
     "printWidth": 100,

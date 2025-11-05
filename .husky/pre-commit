@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+echo "Husky (pre-commit): lint-staged dans $(pwd)"
+npx lint-staged -c .lintstagedrc.json
