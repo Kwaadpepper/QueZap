@@ -1,0 +1,63 @@
+mon-app-angular-officielle/
+├── .angular/
+├── node_modules/
+├── .gitignore
+├── angular.json
+├── package.json
+├── README.md
+├── tsconfig.json
+└── src/
+    ├── main.ts               # Point d'entrée, bootstrap (mode zoneless possible ici)
+    ├── index.html
+    ├── styles.css
+    ├── assets/
+    └── app/
+        ├── app.config.ts     # (Moderne) Configuration centrale (remplace app.module)
+        ├── app.routes.ts     # (Moderne) Routes principales (autonomes et "lazy")
+        │
+        ├── app.ts    # (Officiel)
+        ├── app.html
+        ├── app.css
+        ├── app.spec.ts # Tests
+        │
+        ├── core/             # (Officiel: Style 04-10) Services singletons
+        │   ├── guards/
+        │   │   └── auth.ts     # (Garde fonctionnelle, autonome)
+        │   ├── interceptors/
+        │   │   └── token.ts # (Intercepteur fonctionnel)
+        │   └── services/
+        │       ├── auth.ts     # (Officiel) Suffixe .service.ts
+        │       └── logger.ts
+        │
+        ├── features/         # (Officiel: Style 04-01) "Structure by feature"
+        │   │
+        │   ├── products/     # Dossier pour la fonctionnalité "Produits"
+        │   │   ├── components/   # Composants "Dumb" / UI
+        │   │   │   └── product-card/
+        │   │   │       ├── product-card.ts
+        │   │   │       ├── product-card.html
+        │   │   │       └── product-card.css
+        │   │   │
+        │   │   ├── product-list/   # Composant de "route" / "Smart"
+        │   │   │   ├── product-list.ts
+        │   │   │   ├── product-list.html
+        │   │   │   └── product-list.css
+        │   │   │
+        │   │   ├── services/
+        │   │   │   └── product.service.ts # (Gère l'état, idéalement avec des Signals)
+        │   │   │
+        │   │   ├── models/
+        │   │   │   └── product.model.ts
+        │   │   │
+        │   │   └── products.routes.ts   # Routes de cette fonctionnalité
+        │
+        └── shared/           # (Officiel: Style 04-09) Éléments réutilisables
+            ├── components/
+            │   └── loading-spinner/
+            │       └── loading-spinner.ts
+            ├── pipes/
+            │   └── format-currency.ts
+            ├── directives/
+            │   └── highlight.ts
+            └── models/
+                └── api-response.ts
