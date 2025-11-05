@@ -1,12 +1,18 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'
+import { ApplicationConfig, enableProdMode, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { provideRouter } from '@angular/router'
 
 import { providePrimeNG } from 'primeng/config'
 
-import Quezap from '../themes/Quezap'
+import { environment } from '@quezap/env/environment'
+import Quezap from '@quezap/themes/Quezap'
 
 import { routes } from './app.routes'
+import { ConfigService } from './core/services/config'
+
+if (environment.env === 'prod') {
+  enableProdMode()
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,5 +31,6 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+    ConfigService,
   ],
 }
