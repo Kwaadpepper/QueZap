@@ -4,12 +4,21 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": []
+    "types": [],
+    "paths": {
+      "@quezap/env/*": ["./src/environments/*"],
+      "@quezap/themes/*": ["./src/themes/*"],
+      "@quezap/core/*": ["./src/core/*"],
+      "@quezap/features/*": ["./src/features/*"],
+      "@quezap/home/*": ["./src/home/*"],
+      "@quezap/shared/*": ["./src/shared/*"],
+      "@quezap/template/*": ["./src/template/*"],
+    }
   },
   "include": [
     "src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts"
-  ]
+  ],
 }
