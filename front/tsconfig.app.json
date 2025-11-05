@@ -8,11 +8,11 @@
     "paths": {
       "@quezap/env/*": ["./src/environments/*"],
       "@quezap/themes/*": ["./src/themes/*"],
-      "@quezap/core/*": ["./src/core/*"],
-      "@quezap/features/*": ["./src/features/*"],
-      "@quezap/home/*": ["./src/home/*"],
-      "@quezap/shared/*": ["./src/shared/*"],
-      "@quezap/template/*": ["./src/template/*"],
+      "@quezap/core/*": ["./src/app/core/*"],
+      "@quezap/features/*": ["./src/app/features/*"],
+      "@quezap/home/*": ["./src/app/home/*"],
+      "@quezap/shared/*": ["./src/app/shared/*"],
+      "@quezap/template/*": ["./src/app/template/*"],
     }
   },
   "include": [

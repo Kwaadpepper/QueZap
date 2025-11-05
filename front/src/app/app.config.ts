@@ -4,11 +4,11 @@ import { provideRouter } from '@angular/router'
 
 import { providePrimeNG } from 'primeng/config'
 
+import { ConfigService } from '@quezap/core/services/config'
 import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/Quezap'
 
 import { routes } from './app.routes'
-import { ConfigService } from './core/services/config'
 
 if (environment.env === 'prod') {
   enableProdMode()
