@@ -2,7 +2,14 @@
 <div
   class="fixed top-3/6 right-1 z-50 bg-surface-200/80 dark:bg-surface-800/80 backdrop-blur-md p-2 rounded-md shadow-md flex flex-col items-center gap-2"
 >
-  <button pButton (click)="toggleWebsiteMode()" class="w-10" text outlined>
+  <button
+    title="Basculer le mode site web"
+    pButton
+    (click)="toggleWebsiteMode()"
+    class="w-10 cursor-pointer"
+    text
+    outlined
+  >
     <i
       class="pi"
       [class]="{
@@ -11,5 +18,14 @@
       }"
     ></i>
   </button>
+  <a
+    title="Ouvrir la page template"
+    routerLink="/template"
+    class="w-10"
+    icon="pi pi-android"
+    pButton
+    text
+    outlined
+  ></a>
 </div>
 }

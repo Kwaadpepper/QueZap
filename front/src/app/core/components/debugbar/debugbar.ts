@@ -1,10 +1,14 @@
 import { Component, computed, inject, model, signal } from '@angular/core'
 
+import { ButtonModule } from 'primeng/button'
+
 import { ConfigService } from '@quezap/core/services/config'
 
 @Component({
   selector: 'quizz-debugbar',
-  imports: [],
+  imports: [
+    ButtonModule,
+  ],
   templateUrl: './debugbar.html',
 })
 export class Debugbar {
