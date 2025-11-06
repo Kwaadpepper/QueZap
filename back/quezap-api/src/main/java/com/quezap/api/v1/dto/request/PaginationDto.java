@@ -11,4 +11,6 @@ public record PaginationDto(
     @Nullable @Positive Long page,
     @Nullable @Positive Long perPage,
     @Nullable @PositiveOrZero Long from,
-    @Nullable @Positive Long to) {}
+    @Nullable @Positive Long to,
+    @Nullable @PositiveOrZero Long offset,
+    @Nullable @Positive Long limit) {}

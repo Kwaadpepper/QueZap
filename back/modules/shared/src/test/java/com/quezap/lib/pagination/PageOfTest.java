@@ -12,49 +12,64 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class PageOfTest {
 
-  @Test
-  void canInstanciatePageRequestWithPageValues() {
-    // GIVEN
-    var pageNumber = 1L;
-    var pageSize = 1L;
-
+  @ParameterizedTest
+  @MethodSource("validPageValues")
+  void canInstanciatePageRequestWithPageValues(long pageNumber, long pageSize, long from, long to) {
     // WHEN
     var page = Pagination.ofPage(pageNumber, pageSize);
-
-    // THEN
-    Assertions.assertEquals(0L, page.from());
-    Assertions.assertEquals(1L, page.to());
-  }
-
-  @Test
-  void canInstanciatePageRequestWithPageValuesAgain() {
-    // GIVEN
-    var pageNumber = 2L;
-    var pageSize = 25L;
-
-    // WHEN
-    var page = Pagination.ofPage(pageNumber, pageSize);
-
-    // THEN
-    Assertions.assertEquals(25L, page.from());
-    Assertions.assertEquals(49L, page.to());
-  }
-
-  @Test
-  void canInstanciatePageRequestWithIndexes() {
-    // GIVEN
-    var from = 10L;
-    var to = 25L;
-
-    // WHEN
-    var page = Pagination.ofIndexes(from, to);
 
     // THEN
     Assertions.assertEquals(from, page.from());
     Assertions.assertEquals(to, page.to());
   }
 
-  // --- Tests d'arguments invalides pour ofPage ---
+  private static Stream<Arguments> validPageValues() {
+    return Stream.of(
+        // Valid page number and size combinations.
+        Arguments.of(1L, 1L, 0L, 1L),
+        Arguments.of(1L, 10L, 0L, 9L),
+        // ---
+        Arguments.of(2L, 10L, 10L, 19L));
+  }
+
+  @ParameterizedTest
+  @MethodSource("validIndexValues")
+  void canInstanciatePageRequestWithIndexes(long from, long to) {
+    // WHEN
+    Pagination.ofIndexes(from, to);
+
+    // THEN
+    Assertions.assertDoesNotThrow(() -> {});
+  }
+
+  private static Stream<Arguments> validIndexValues() {
+    return Stream.of(
+        // Valid from and to combinations.
+        Arguments.of(0L, 1L),
+        Arguments.of(0L, 10L),
+        // ---
+        Arguments.of(10L, 50L));
+  }
+
+  @ParameterizedTest
+  @MethodSource("validOffsetValues")
+  void canInstanciatePageRequestWithOffset(long offset, long limit, long from, long to) {
+    // WHEN
+    final var page = Pagination.ofOffsetAndLimit(offset, limit);
+
+    // THEN
+    Assertions.assertEquals(from, page.from());
+    Assertions.assertEquals(to, page.to());
+  }
+
+  private static Stream<Arguments> validOffsetValues() {
+    return Stream.of(
+        // Valid offset and limit combinations.
+        Arguments.of(0L, 1L, 0L, 1L),
+        Arguments.of(0L, 10L, 0L, 9L),
+        // ---
+        Arguments.of(10L, 10L, 10L, 19L));
+  }
 
   @ParameterizedTest
   @MethodSource("invalidPageValues")
@@ -130,5 +145,26 @@ class PageOfTest {
     // THEN
     Assertions.assertEquals(from, page.from());
     Assertions.assertEquals(to, page.to());
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidOffsets")
+  void cannotInstantiatePageWithRequestWithInvalidOffsetAndLimit(long offset, long limit) {
+    // WHEN / THEN
+    Assertions.assertThrows(
+        IllegalDomainStateException.class,
+        () -> {
+          Pagination.ofOffsetAndLimit(offset, limit);
+        });
+  }
+
+  private static Stream<Arguments> invalidOffsets() {
+    return Stream.of(
+        // Negative offset index.
+        Arguments.of(-1L, 10L),
+        // Negative limit index.
+        Arguments.of(0L, -10L),
+        // Zero limit index.
+        Arguments.of(0L, 0L));
   }
 }

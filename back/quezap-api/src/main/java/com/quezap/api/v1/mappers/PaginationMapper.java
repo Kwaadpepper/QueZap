@@ -20,12 +20,17 @@ public class PaginationMapper {
       final var perPage = dto.perPage();
       final var from = dto.from();
       final var to = dto.to();
+      final var offset = dto.offset();
+      final var limit = dto.limit();
 
       if (page != null && perPage != null) {
         return Pagination.ofPage(page, perPage);
       } else if (from != null && to != null) {
         return Pagination.ofIndexes(from, to);
+      } else if (offset != null && limit != null) {
+        return Pagination.ofOffsetAndLimit(offset, limit);
       }
+
       return Pagination.firstPage();
     } catch (IllegalDomainStateException e) {
       final var errorMessage = e.getMessage();
