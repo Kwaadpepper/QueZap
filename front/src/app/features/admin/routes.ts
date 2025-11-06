@@ -12,4 +12,9 @@ export const routes: Routes = [
     path: 'themes',
     children: themesRoutes,
   },
+  {
+    path: '',
+    redirectTo: 'dashboard',
+    pathMatch: 'full',
+  },
 ]

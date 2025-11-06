@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core'
-import { RouterModule, RouterOutlet } from '@angular/router'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router'
 
 import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
@@ -19,13 +20,25 @@ import { ConfigService } from './core/services/config'
   templateUrl: './app.html',
 })
 export class App {
-  public readonly asWebsite = signal(true)
   private readonly config = inject(ConfigService)
+  private readonly router = inject(Router)
 
-  public readonly footer = computed(() => {
+  protected readonly asWebsite = signal(true)
+
+  protected readonly footer = computed(() => {
     return {
       authorName: this.config.appConfig.value().authorName,
       authorEmail: this.config.appConfig.value().authorEmail,
     }
   })
+
+  protected readonly onAdminPath = signal(false)
+
+  constructor() {
+    this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.onAdminPath.set(this.router.url.startsWith('/admin'))
+      }
+    })
+  }
 }
