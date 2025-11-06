@@ -1,3 +1,4 @@
+import { provideHttpClient } from '@angular/common/http'
 import { ApplicationConfig, enableProdMode, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { provideRouter } from '@angular/router'
@@ -20,6 +21,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideAnimationsAsync(),
+    provideHttpClient(),
     providePrimeNG({
       theme: {
         preset: Quezap,
@@ -32,5 +34,6 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     ConfigService,
+
   ],
 }

@@ -4,7 +4,7 @@ import { RouterModule, RouterOutlet } from '@angular/router'
 import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
 
-import { Debugbar } from './core/components/debugbar/debugbar'
+import { Debugbar } from './core/components'
 import { ConfigService } from './core/services/config'
 
 @Component({

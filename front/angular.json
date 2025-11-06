@@ -18,6 +18,16 @@
             "assets": [
               {
                 "glob": "**/*",
+                "input": "resources/markdown",
+                "output": "markdown"
+              },
+              {
+                "glob": "LICENCE.md",
+                "input": ".",
+                "output": "markdown"
+              },
+              {
+                "glob": "**/*",
                 "input": "resources/images",
                 "output": "images"
               },
@@ -80,6 +90,16 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "assets": [
+              {
+                "glob": "**/*",
+                "input": "resources/markdown",
+                "output": "markdown"
+              },
+              {
+                "glob": "LICENCE.md",
+                "input": ".",
+                "output": "markdown"
+              },
               {
                 "glob": "**/*",
                 "input": "resources/images",

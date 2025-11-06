@@ -43,6 +43,21 @@ body {
 
 @layer base {
   .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-stone-700 dark:text-stone-200;
+  }
+
+  .h1,
   h1 {
     @apply text-2xl mb-3 font-title uppercase;
 
@@ -78,10 +93,19 @@ body {
     @apply mb-4;
   }
 
+  ul,
+  ol {
+    @apply mb-4 pl-6;
+  }
+
   a {
     @apply text-surface-600 dark:text-surface-400;
     @apply hover:text-surface-950 dark:hover:text-surface-200;
     @apply focus:text-surface-800 dark:focus:text-surface-100;
     @apply transition-colors duration-200 ease-in-out;
+  }
+
+  hr {
+    @apply my-6 border-t border-solid border-surface-300 dark:border-surface-700;
   }
 }
