@@ -79,7 +79,17 @@ interface Plant {
 export class Template {
   protected readonly title = signal('quezap')
 
-  cities: City[] = [
+  protected readonly colorShades: number[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]
+
+  protected readonly fullColorNames: string[] = [
+    'primary', // Couleur principale (selon le thème PrimeNG)
+    'surface', // Couleur de surface (selon le thème PrimeNG)
+    'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan',
+    'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose',
+    'slate', 'gray', 'zinc', 'neutral', 'stone',
+  ]
+
+  protected readonly cities: City[] = [
     { name: 'New York', code: 'NY' },
     { name: 'Rome', code: 'RM' },
     { name: 'London', code: 'LDN' },
@@ -87,7 +97,7 @@ export class Template {
     { name: 'Paris', code: 'PRS' },
   ]
 
-  plants: Plant[] = [
+  protected readonly plants: Plant[] = [
     { name: 'Rose', family: 'Rosaceae', difficulty: 'Facile' },
     { name: 'Orchidée', family: 'Orchidaceae', difficulty: 'Difficile' },
     { name: 'Cactus', family: 'Cactaceae', difficulty: 'Facile' },
@@ -95,16 +105,16 @@ export class Template {
     { name: 'Bambou', family: 'Poaceae', difficulty: 'Moyen' },
   ]
 
-  selectedCities: City[] = []
-  filteredPlants: Plant[] = []
-  checked = false
-  selectedDifficulty = 'Facile'
-  switchValue = false
-  rating = 3
-  sliderValue = 50
-  numberValue = 42
-  textareaValue = ''
-  visible = false
+  protected readonly selectedCities = signal<City[]>([])
+  protected readonly filteredPlants = signal<Plant[]>([])
+  protected readonly checked = false
+  protected readonly selectedDifficulty = 'Facile'
+  protected readonly switchValue = false
+  protected readonly rating = 3
+  protected readonly sliderValue = 50
+  protected readonly numberValue = 42
+  protected readonly textareaValue = ''
+  protected readonly visible = signal(false)
 
   private readonly messageService = inject(MessageService)
 
@@ -128,12 +138,30 @@ export class Template {
   }
 
   showDialog() {
-    this.visible = true
+    this.visible.set(true)
   }
 
   searchPlants(event: { query: string }) {
-    this.filteredPlants = this.plants.filter(plant =>
-      plant.name.toLowerCase().includes(event.query.toLowerCase()),
+    this.filteredPlants.set(
+      this.plants.filter(plant =>
+        plant.name.toLowerCase().includes(event.query.toLowerCase())
+        || plant.family.toLowerCase().includes(event.query.toLowerCase()),
+      ),
     )
+  }
+
+  getColorName(baseName: string, shade: number): string {
+    return `${baseName}-${shade}`
+  }
+
+  /**
+   * Retourne un objet de style pour le binding [style] d'Angular,
+   * utilisant une variable CSS pour la couleur de fond du bloc.
+   */
+  getCardBackgroundStyles(baseName: string, shade: number): Record<string, string> {
+    const cssVarName = `--p-${baseName}-${shade}`
+    return {
+      'background-color': `var(${cssVarName})`,
+    }
   }
 }
