@@ -18,7 +18,7 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "resources/markdown",
+                "input": "src/assets/markdown",
                 "output": "markdown"
               },
               {
@@ -28,7 +28,7 @@
               },
               {
                 "glob": "**/*",
-                "input": "resources/images",
+                "input": "src/assets/images",
                 "output": "images"
               },
               {
@@ -92,7 +92,7 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "resources/markdown",
+                "input": "src/assets/markdown",
                 "output": "markdown"
               },
               {
@@ -102,7 +102,7 @@
               },
               {
                 "glob": "**/*",
-                "input": "resources/images",
+                "input": "src/assets/images",
                 "output": "images"
               },
               {
