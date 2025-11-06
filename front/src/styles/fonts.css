@@ -1,0 +1,17 @@
+@font-face {
+  font-display: swap;
+  font-family: Bangers;
+  font-style: normal;
+  font-weight: normal;
+  src: url('../../src/assets/fonts/subset-Bangers-Regular.woff2') format('woff2'),
+    url('../../src/assets/fonts/subset-Bangers-Regular.woff') format('woff');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: Lexend;
+  font-style: normal;
+  font-weight: normal;
+  src: url('../../src/assets/fonts/Lexend-Regular.woff2') format('woff2'),
+    url('../../src/assets/fonts/Lexend-Regular.woff') format('woff');
+}

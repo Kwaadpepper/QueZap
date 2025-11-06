@@ -1,24 +1,6 @@
-@import 'tailwindcss';
-@import 'tailwindcss-primeui';
-@import 'primeicons/primeicons.css';
-
-/* --- 1. Définition des polices (GARDER TEL QUEL) --- */
-@font-face {
-  font-display: swap;
-  font-family: Bangers;
-  font-style: normal;
-  font-weight: normal;
-  src: url('assets/fonts/subset-Bangers-Regular.woff2') format('woff2'),
-    url('assets/fonts/subset-Bangers-Regular.woff') format('woff');
-}
-
-@font-face {
-  font-display: swap;
-  font-family: Lexend;
-  font-style: normal;
-  font-weight: normal;
-  src: url('assets/fonts/Lexend-Regular.woff2') format('woff2'),
-    url('assets/fonts/Lexend-Regular.woff') format('woff');
+html,
+body {
+  @apply font-body bg-surface-100 text-surface-900 dark:bg-surface-900 dark:text-surface-100;
 }
 
 @theme {
@@ -26,19 +8,6 @@
   --color-background-dark: hsl(207deg 95% 8%);
   --font-title: 'Bangers', sans-serif;
   --font-body: 'Lexend', sans-serif;
-}
-
-html,
-body {
-  height: 100dvh;
-  margin: 0;
-  line-height: 1.6;
-
-  @apply font-body bg-surface-100 text-surface-900 dark:bg-surface-900 dark:text-surface-100;
-
-  quizz-root {
-    @apply flex flex-col h-full;
-  }
 }
 
 @layer base {
