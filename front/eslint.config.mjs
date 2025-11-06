@@ -87,8 +87,20 @@ export default tseslint.config(
       ...angular.configs.templateAccessibility,
     ],
     rules: {
-      // Exemples de règles que vous pouvez ajouter pour le HTML
-      // "@angular-eslint/template/no-negated-async": "error"
+      "@angular-eslint/template/attributes-order": [
+        "error",
+        {
+          alphabetical: false,
+          order: [
+            "STRUCTURAL_DIRECTIVE", // 1. *ngIf, *ngFor
+            "TEMPLATE_REFERENCE",   // 2. #myVar
+            "ATTRIBUTE_BINDING",    // 3. Tous les attributs HTML standard (id, src, type, class, etc.)
+            "INPUT_BINDING",        // 4. Property bindings ([value], [hidden], etc.)
+            "OUTPUT_BINDING",       // 5. Event bindings ((click), (input), etc.)
+            "TWO_WAY_BINDING",      // 6. Two-way bindings ([(ngModel)], etc.)
+          ],
+        },
+      ],
     }
   },
   {
@@ -111,9 +123,5 @@ export default tseslint.config(
         },
       ],
     },
-  },
-  {
-    files: ["**/*.html"],
-    rules: {},
   }
 )

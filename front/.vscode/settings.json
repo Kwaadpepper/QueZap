@@ -1,10 +1,19 @@
 {
   "editor.formatOnSave": true,
+  "eslint.useFlatConfig": true,
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "html"
+  ],
   "[html]": {
     "html.format.enable": false,
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    },
   },
   "[javascript]": {
     "editor.autoIndent": "full",
