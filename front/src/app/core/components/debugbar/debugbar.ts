@@ -1,4 +1,5 @@
 import { Component, computed, inject, model, signal } from '@angular/core'
+import { RouterModule } from '@angular/router'
 
 import { ButtonModule } from 'primeng/button'
 
@@ -8,6 +9,7 @@ import { ConfigService } from '@quezap/core/services/config'
   selector: 'quizz-debugbar',
   imports: [
     ButtonModule,
+    RouterModule,
   ],
   templateUrl: './debugbar.html',
 })
