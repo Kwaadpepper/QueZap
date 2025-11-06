@@ -59,7 +59,7 @@ body {
 
   .h1,
   h1 {
-    @apply text-2xl mb-3 font-title uppercase;
+    @apply text-3xl mb-3 font-title uppercase;
 
     letter-spacing: 0.1em;
   }
