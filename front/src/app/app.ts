@@ -5,8 +5,8 @@ import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/rout
 import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
 
-import { Debugbar } from './core/components'
 import { ConfigService } from './core/services'
+import { Debugbar } from './shared/components'
 
 @Component({
   selector: 'quizz-root',
