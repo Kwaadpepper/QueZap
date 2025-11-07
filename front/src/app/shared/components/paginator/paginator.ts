@@ -1,4 +1,3 @@
-import { JsonPipe } from '@angular/common'
 import { Component, computed, input, output } from '@angular/core'
 
 import { PaginatorModule, PaginatorState } from 'primeng/paginator'
@@ -17,7 +16,7 @@ export interface PaginatorEvent {
 
 @Component({
   selector: 'quizz-paginator',
-  imports: [PaginatorModule, JsonPipe],
+  imports: [PaginatorModule],
   templateUrl: './paginator.html',
 })
 export class Paginator {
