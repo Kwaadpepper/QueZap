@@ -1,0 +1,21 @@
+<p-paginator
+  [first]="(pageInfo().page - 1) * pageInfo().pageSize"
+  [rows]="pageInfo().pageSize"
+  [totalRecords]="pageInfo().totalElements"
+  [rowsPerPageOptions]="perPageOptions"
+  [showFirstLastIcon]="showFirstLastIcon()"
+  [showJumpToPageDropdown]="showJumpToPageDropdown()"
+  [showPageLinks]="showPageLinks()"
+  [showCurrentPageReport]="showCurrentPageReport()"
+  [currentPageReportTemplate]="'Page {currentPage} de {totalPages}'"
+  [pt]="{
+    root: {
+      class: 'flex flex-wrap justify-center my-4'
+    },
+    current: {
+      class: 'hidden md:inline-flex'
+    }
+  }"
+  (onPageChange)="onPageChange($event)"
+/>
+{{ pageInfo() | json }}
