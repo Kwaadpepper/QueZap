@@ -157,14 +157,9 @@ export const ThemePageStore = signalStore(
         })
       },
 
-      /** Set the current page and reload */
-      setPage: (page: number) => {
-        updatePagination({ ...store.query(), page })
-      },
-
-      /** Set the page size and reload */
-      setPageSize: (pageSize: number) => {
-        updatePagination({ ...store.query(), pageSize })
+      /** Set pagination and reload */
+      setPagination: (pagination: Partial<{ page: number, pageSize: number }>) => {
+        updatePagination({ ...store.query(), ...pagination })
       },
     }
   }),
