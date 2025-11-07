@@ -5,11 +5,13 @@ import { provideRouter } from '@angular/router'
 
 import { providePrimeNG } from 'primeng/config'
 
-import { ConfigService } from '@quezap/core/services/config'
+import { ConfigService } from '@quezap/core/services'
 import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/Quezap'
 
 import { routes } from './app.routes'
+import { ThemeMockService } from './features/admin/themes/services'
+import { THEME_SERVICE } from './features/admin/themes/services/theme'
 
 if (environment.env === 'prod') {
   enableProdMode()
@@ -34,6 +36,9 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     ConfigService,
-
+    {
+      provide: THEME_SERVICE,
+      useClass: ThemeMockService,
+    },
   ],
 }

@@ -1,1 +1,19 @@
-<p>theme-list works!</p>
+@if(isLoading()) {
+<span>Loading themes...</span>
+} @else {
+<span>Total themes: {{ themes().length }}</span>
+}
+<div>
+  Current page: {{ pageInfo().page }} / Total pages: {{ pageInfo().totalPages }} / Page size:
+  {{ pageInfo().pageSize }} / Total elements: {{ pageInfo().totalElements }}
+</div>
+<div class="flex flex-row flex-wrap gap-2">
+  <button pButton (click)="nextPage()">next page</button>
+  <button pButton (click)="previousPage()">previous page</button>
+  <button pButton (click)="setPageSize(5)">set page size to 5</button>
+</div>
+<div class="flex flex-row flex-wrap gap-3 py-4">
+  @for(theme of themes(); track theme.id) {
+  <quizz-theme-card [theme]="theme" />
+  }
+</div>

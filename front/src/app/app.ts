@@ -6,7 +6,7 @@ import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
 
 import { Debugbar } from './core/components'
-import { ConfigService } from './core/services/config'
+import { ConfigService } from './core/services'
 
 @Component({
   selector: 'quizz-root',

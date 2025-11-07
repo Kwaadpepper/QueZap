@@ -1,23 +1,23 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { ThemeCard } from './theme-card';
+import { ThemeCard } from './theme-card'
 
 describe('ThemeCard', () => {
-  let component: ThemeCard;
-  let fixture: ComponentFixture<ThemeCard>;
+  let component: ThemeCard
+  let fixture: ComponentFixture<ThemeCard>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ThemeCard]
+      imports: [ThemeCard],
     })
-    .compileComponents();
+      .compileComponents()
 
-    fixture = TestBed.createComponent(ThemeCard);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(ThemeCard)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+    expect(component).toBeTruthy()
+  })
+})

@@ -1,1 +1,13 @@
-<p>theme-card works!</p>
+<p-card [style]="{ '--p-card-body-padding': '.4rem .2rem .4rem .8rem' }">
+  <div class="flex flex-row gap-2 items-center justify-center">
+    <span class="text-lg-center">{{ name() }}</span>
+
+    <p-button
+      icon="pi pi-pencil"
+      severity="primary"
+      text
+      (click)="onClick()"
+      (keydown.enter)="onClick()"
+    ></p-button>
+  </div>
+</p-card>

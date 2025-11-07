@@ -11,6 +11,7 @@ export enum Environment {
 
 const configSchema = z.object({
   env: z.enum(Environment),
+  useMockData: z.boolean(),
   appName: z.string(),
   authorName: z.string(),
   authorEmail: z.email(),
@@ -26,6 +27,7 @@ export class ConfigService {
   public readonly appConfig: ResourceRef<AppConfig> = resource({
     defaultValue: configSchema.parse({
       env: Environment.PROD,
+      useMockData: false,
       appName: 'Quizz',
       authorName: 'Example Author',
       authorEmail: 'example@example.net',

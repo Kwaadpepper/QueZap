@@ -1,5 +1,6 @@
 export const environment = {
   env: 'dev',
+  useMockData: true,
   appName: 'QueZap',
   authorName: 'Author User',
   authorEmail: 'author@example.net',

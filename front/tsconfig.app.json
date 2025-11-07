@@ -8,6 +8,7 @@
     "paths": {
       "@quezap/env/*": ["./src/environments/*"],
       "@quezap/themes/*": ["./src/themes/*"],
+      "@quezap/domain/*": ["./src/app/domain/*"],
       "@quezap/core/*": ["./src/app/core/*"],
       "@quezap/features/*": ["./src/app/features/*"],
       "@quezap/home/*": ["./src/app/home/*"],

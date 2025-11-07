@@ -1,11 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, computed, input } from '@angular/core'
+
+import { ButtonModule } from 'primeng/button'
+import { CardModule } from 'primeng/card'
+
+import { Theme } from '@quezap/domain/models'
 
 @Component({
-  selector: 'app-theme-card',
-  imports: [],
+  selector: 'quizz-theme-card',
+  imports: [
+    CardModule,
+    ButtonModule,
+  ],
   templateUrl: './theme-card.html',
-  styleUrl: './theme-card.css',
 })
 export class ThemeCard {
+  public readonly theme = input.required<Theme>()
 
+  protected readonly id = computed(() => this.theme().id)
+  protected readonly name = computed(() => this.theme().name)
+
+  protected onClick() {
+    console.log(`Theme card clicked: ${this.name()}`)
+  }
 }
