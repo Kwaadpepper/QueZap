@@ -1,15 +1,15 @@
 import { Component, computed, input } from '@angular/core'
 
-import { ButtonModule } from 'primeng/button'
-import { CardModule } from 'primeng/card'
+import { Button } from 'primeng/button'
+import { Card } from 'primeng/card'
 
 import { Theme } from '@quezap/domain/models'
 
 @Component({
   selector: 'quizz-theme-card',
   imports: [
-    CardModule,
-    ButtonModule,
+    Card,
+    Button,
   ],
   templateUrl: './theme-card.html',
 })

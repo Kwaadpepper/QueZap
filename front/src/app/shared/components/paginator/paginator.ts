@@ -1,6 +1,6 @@
 import { Component, computed, input, output } from '@angular/core'
 
-import { PaginatorModule, PaginatorState } from 'primeng/paginator'
+import { Paginator as PaginatorComponent, PaginatorState } from 'primeng/paginator'
 
 export interface PaginatorPageInfo {
   page: number
@@ -16,7 +16,7 @@ export interface PaginatorEvent {
 
 @Component({
   selector: 'quizz-paginator',
-  imports: [PaginatorModule],
+  imports: [PaginatorComponent],
   templateUrl: './paginator.html',
 })
 export class Paginator {
