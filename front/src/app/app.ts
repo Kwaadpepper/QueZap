@@ -5,7 +5,7 @@ import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/rout
 import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
 
-import { Config } from './core/services'
+import { Config, LayoutSettings } from './core/services'
 import { Debugbar, LoadingBar } from './shared/components'
 
 @Component({
@@ -24,9 +24,7 @@ import { Debugbar, LoadingBar } from './shared/components'
 export class App {
   private readonly config = inject(Config)
   private readonly router = inject(Router)
-
-  protected readonly inContainer = signal(true)
-  protected readonly asWebsite = signal(true)
+  protected readonly layout = inject(LayoutSettings)
 
   protected readonly footer = computed(() => {
     return {

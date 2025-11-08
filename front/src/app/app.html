@@ -1,4 +1,4 @@
-@if(asWebsite() && !onAdminPath()) {
+@if(layout.asWebsite() && !onAdminPath()) {
 <header class="pt-4">
   <nav aria-label="Menu du site web">
     <ul class="flex gap-2 px-10">
@@ -51,16 +51,16 @@
 <main
   class="grow relative"
   [class]="{
-    'main-as-website': asWebsite(),
-    'main-in-container': inContainer(),
+    'main-as-website': layout.asWebsite(),
+    'main-in-container': layout.inContainer(),
   }"
 >
   <quizz-loading-bar class="absolute top-0 left-0" />
-  <quizz-debugbar [(websiteMode)]="asWebsite" />
+  <quizz-debugbar [(websiteMode)]="layout.asWebsite" />
   <router-outlet></router-outlet>
 </main>
 
-@if(asWebsite()) {
+@if(layout.asWebsite()) {
 <footer class="pt-5 py-4 text-center relative">
   <span
     aria-hidden="true"
