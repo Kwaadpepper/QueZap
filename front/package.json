@@ -17,6 +17,9 @@
     "lint:css:fix": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\" --fix",
     "prepare": "husky"
   },
+  "imports": {
+    "#tailwind.css": "./src/styles/tailwindcss.css"
+  },
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,

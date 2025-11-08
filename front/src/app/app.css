@@ -1,0 +1,7 @@
+/* stylelint-disable */
+@reference "#tailwind.css";
+/* stylelint-enable */
+
+.main-in-container {
+  @apply container xl:max-w-300 mx-auto px-2 md:px-8 py-4;
+}

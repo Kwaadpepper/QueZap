@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import './tailwindcss.css';
 @import 'tailwindcss-primeui';
 @import 'primeicons/primeicons.css';
 @import './fonts.css';
