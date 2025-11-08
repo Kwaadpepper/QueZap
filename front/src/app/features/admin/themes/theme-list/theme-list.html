@@ -1,19 +1,26 @@
 @if(isLoading()) {
-<span>Loading themes...</span>
-} @else {
-<span>Total themes: {{ themes().length }}</span>
+<p-progress-spinner
+  strokeWidth="8"
+  fill="transparent"
+  animationDuration=".5s"
+  [style]="{ width: '50px', height: '50px' }"
+/>
 }
-<div>
-  Current page: {{ pageInfo().page }} / Total pages: {{ pageInfo().totalPages }} / Page size:
-  {{ pageInfo().pageSize }} / Total elements: {{ pageInfo().totalElements }}
+
+<div class="flex justify-center">
+  <quizz-paginator [pageInfo]="pageInfo()" (paginationChanged)="onPaginationChanged($event)" />
 </div>
-<div class="flex flex-row flex-wrap gap-2">
-  <button pButton (click)="nextPage()">next page</button>
-  <button pButton (click)="previousPage()">previous page</button>
-  <button pButton (click)="setPageSize(5)">set page size to 5</button>
-</div>
+
+@if(pageInfo().totalElements === 0) {
+<div class="py-4">No themes found.</div>
+} @else {
 <div class="flex flex-row flex-wrap gap-3 py-4">
   @for(theme of themes(); track theme.id) {
   <quizz-theme-card [theme]="theme" />
   }
 </div>
+} @if(pageInfo().totalElements > 25) {
+<div class="flex justify-center">
+  <quizz-paginator [pageInfo]="pageInfo()" (paginationChanged)="onPaginationChanged($event)" />
+</div>
+}
