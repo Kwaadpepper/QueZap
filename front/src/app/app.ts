@@ -6,7 +6,7 @@ import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
 
 import { Config } from './core/services'
-import { Debugbar } from './shared/components'
+import { Debugbar, LoadingBar } from './shared/components'
 
 @Component({
   selector: 'quizz-root',
@@ -16,6 +16,7 @@ import { Debugbar } from './shared/components'
     ButtonDirective,
     ImageModule,
     Debugbar,
+    LoadingBar,
   ],
   templateUrl: './app.html',
 })
