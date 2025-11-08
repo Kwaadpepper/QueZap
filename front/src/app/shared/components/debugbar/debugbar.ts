@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router'
 
 import { ButtonModule } from 'primeng/button'
 
-import { ConfigService } from '@quezap/core/services'
+import { Config } from '@quezap/core/services'
 
 @Component({
   selector: 'quizz-debugbar',
@@ -14,7 +14,7 @@ import { ConfigService } from '@quezap/core/services'
   templateUrl: './debugbar.html',
 })
 export class Debugbar {
-  private readonly config = inject(ConfigService)
+  private readonly config = inject(Config)
 
   protected readonly asWebsite = signal<boolean>(true)
   protected readonly debug = computed(() => this.config.debug())

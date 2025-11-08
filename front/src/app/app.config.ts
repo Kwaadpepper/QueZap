@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router'
 
 import { providePrimeNG } from 'primeng/config'
 
-import { ConfigService } from '@quezap/core/services'
+import { Config } from '@quezap/core/services'
 import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/Quezap'
 
@@ -35,7 +35,10 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    ConfigService,
+    {
+      provide: Config,
+      useClass: Config,
+    },
     {
       provide: THEME_SERVICE,
       useClass: ThemeMockService,

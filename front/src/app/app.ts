@@ -5,7 +5,7 @@ import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/rout
 import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
 
-import { ConfigService } from './core/services'
+import { Config } from './core/services'
 import { Debugbar } from './shared/components'
 
 @Component({
@@ -20,7 +20,7 @@ import { Debugbar } from './shared/components'
   templateUrl: './app.html',
 })
 export class App {
-  private readonly config = inject(ConfigService)
+  private readonly config = inject(Config)
   private readonly router = inject(Router)
 
   protected readonly asWebsite = signal(true)

@@ -23,7 +23,7 @@ type AppConfig = z.infer<typeof configSchema>
 @Injectable({
   providedIn: 'root',
 })
-export class ConfigService {
+export class Config {
   public readonly appConfig: ResourceRef<AppConfig> = resource({
     defaultValue: configSchema.parse({
       env: Environment.PROD,
