@@ -5,6 +5,7 @@ import { patchState, signalStore, withComputed, withMethods, withState } from '@
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, pipe, retry, switchMap, tap } from 'rxjs'
 
+import { LoadingStatus } from '@quezap/core/services'
 import { pageComparator, Pagination, validatePagination } from '@quezap/core/types'
 import { Theme } from '@quezap/domain/models'
 
@@ -64,6 +65,8 @@ export const ThemePageStore = signalStore(
   })),
 
   withMethods((store, themeService = inject(THEME_SERVICE)) => {
+    const progression = inject(LoadingStatus)
+
     const updatePagination = (query: { page: number, pageSize: number }) => {
       if (!validatePagination(query)) {
         return
@@ -87,6 +90,8 @@ export const ThemePageStore = signalStore(
         debounceTime(300),
         tap(() => patchState(store, { _isLoading: true })),
         switchMap((pagination) => {
+          progression.start()
+
           return themeService.getThemePage(pagination).pipe(
             // Retry twice on failure
             retry(2),
@@ -104,11 +109,15 @@ export const ThemePageStore = signalStore(
                   _doReload: false,
                   _isRollingBack: false,
                 })
+
+                progression.stop()
               },
             }),
             // Gracefully handle errors
             catchError((error) => {
               console.error('Error loading themes:', error)
+
+              progression.stop()
 
               const lastSuccessfulPage = {
                 page: store._pageMetaData().page,
