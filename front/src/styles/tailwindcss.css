@@ -1,1 +1,17 @@
 @import 'tailwindcss';
+
+.animated-background {
+  animation: animation 13s ease infinite;
+  background-size: 400%;
+}
+
+@keyframes animation {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}

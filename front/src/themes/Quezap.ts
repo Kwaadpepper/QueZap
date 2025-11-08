@@ -12,6 +12,53 @@ const Quezap = definePreset({
       lg: '8px',
       xl: '12px',
     },
+    deepblue: {
+      50: '#e6f0ff',
+      100: '#ccdfff',
+      200: '#99c0ff',
+      300: '#66a0ff',
+      400: '#3380ff',
+      500: '#0060ff',
+      600: '#004ecc',
+      700: '#003c99',
+      800: '#031646', // Pour les inputs/surfaces plus claires
+      900: '#021033', // Pour les cartes/contenu
+      950: '#010A20', // Fond de page
+    },
+
+    sapphire: {
+      50: '#eef1ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+      400: '#818cf8', // Éclairci (utilisé en mode sombre)
+      500: '#6366f1',
+      600: '#4f46e5', 700: '#3730a3',
+      800: '#2A3278', // Notre Bleu Principal (mode clair)
+      900: '#1e3a8a', 950: '#172554',
+    },
+    // Vert du logo (brand-green / Success)
+    green: {
+      50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
+      400: '#4ade80', // Éclairci (utilisé en mode sombre)
+      500: '#22c55e',
+      600: '#16a34a', 700: '#15803d',
+      800: '#36712D', // AJUSTÉ (plus foncé) pour WCAG Mode Clair
+      900: '#0f3f21', 950: '#052e16',
+    },
+    // Jaune-Orange du logo (brand-yellow / Warn)
+    amber: {
+      50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d',
+      400: '#fbbf24', // Éclairci (utilisé en mode sombre)
+      500: '#F9B43A', // Notre Jaune-Orange Principal (mode clair)
+      600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f', 950: '#451a03',
+    },
+    // Rouge (Danger)
+    red: {
+      50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca',
+      300: '#fca5a5', // Éclairci (utilisé en mode sombre)
+      400: '#f87171', 500: '#ef4444',
+      600: '#c02a3a', // AJUSTÉ (plus foncé) pour WCAG Mode Clair
+      700: '#b91c1c', 800: '#991b1b', 900: '#7f1d1d', 950: '#450a0a',
+    },
+
     emerald: {
       50: '#ecfdf5',
       100: '#d1fae5',
@@ -25,19 +72,19 @@ const Quezap = definePreset({
       900: '#064e3b',
       950: '#022c22',
     },
-    green: {
-      50: '#f0fdf4',
-      100: '#dcfce7',
-      200: '#bbf7d0',
-      300: '#86efac',
-      400: '#4ade80',
-      500: '#22c55e',
-      600: '#16a34a',
-      700: '#15803d',
-      800: '#166534',
-      900: '#14532d',
-      950: '#052e16',
-    },
+    // green: {
+    //   50: '#f0fdf4',
+    //   100: '#dcfce7',
+    //   200: '#bbf7d0',
+    //   300: '#86efac',
+    //   400: '#4ade80',
+    //   500: '#22c55e',
+    //   600: '#16a34a',
+    //   700: '#15803d',
+    //   800: '#166534',
+    //   900: '#14532d',
+    //   950: '#052e16',
+    // },
     lime: {
       50: '#f7fee7',
       100: '#ecfccb',
@@ -51,19 +98,19 @@ const Quezap = definePreset({
       900: '#365314',
       950: '#1a2e05',
     },
-    red: {
-      50: '#fef2f2',
-      100: '#fee2e2',
-      200: '#fecaca',
-      300: '#fca5a5',
-      400: '#f87171',
-      500: '#ef4444',
-      600: '#dc2626',
-      700: '#b91c1c',
-      800: '#991b1b',
-      900: '#7f1d1d',
-      950: '#450a0a',
-    },
+    // red: {
+    //   50: '#fef2f2',
+    //   100: '#fee2e2',
+    //   200: '#fecaca',
+    //   300: '#fca5a5',
+    //   400: '#f87171',
+    //   500: '#ef4444',
+    //   600: '#dc2626',
+    //   700: '#b91c1c',
+    //   800: '#991b1b',
+    //   900: '#7f1d1d',
+    //   950: '#450a0a',
+    // },
     orange: {
       50: '#fff7ed',
       100: '#ffedd5',
@@ -77,19 +124,19 @@ const Quezap = definePreset({
       900: '#7c2d12',
       950: '#431407',
     },
-    amber: {
-      50: '#fffbeb',
-      100: '#fef3c7',
-      200: '#fde68a',
-      300: '#fcd34d',
-      400: '#fbbf24',
-      500: '#f59e0b',
-      600: '#d97706',
-      700: '#b45309',
-      800: '#92400e',
-      900: '#78350f',
-      950: '#451a03',
-    },
+    // amber: {
+    //   50: '#fffbeb',
+    //   100: '#fef3c7',
+    //   200: '#fde68a',
+    //   300: '#fcd34d',
+    //   400: '#fbbf24',
+    //   500: '#f59e0b',
+    //   600: '#d97706',
+    //   700: '#b45309',
+    //   800: '#92400e',
+    //   900: '#78350f',
+    //   950: '#451a03',
+    // },
     yellow: {
       50: '#fefce8',
       100: '#fef9c3',
