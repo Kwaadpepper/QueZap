@@ -19,11 +19,13 @@ import { Debugbar, LoadingBar } from './shared/components'
     LoadingBar,
   ],
   templateUrl: './app.html',
+  styleUrl: './app.css',
 })
 export class App {
   private readonly config = inject(Config)
   private readonly router = inject(Router)
 
+  protected readonly inContainer = signal(true)
   protected readonly asWebsite = signal(true)
 
   protected readonly footer = computed(() => {
