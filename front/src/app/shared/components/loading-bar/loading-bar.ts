@@ -14,7 +14,6 @@ export class LoadingBar {
 
   protected readonly progression = computed(() => {
     const progression = this.loadingStatus.progression()
-    console.debug('LoadingBar progression:', progression)
 
     return progression === null ? 0 : progression
   })
