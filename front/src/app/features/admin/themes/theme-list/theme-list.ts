@@ -1,7 +1,5 @@
 import { Component, computed, inject } from '@angular/core'
 
-import { ProgressSpinner } from 'primeng/progressspinner'
-
 import { Paginator } from '@quezap/shared/components/paginator/paginator'
 
 import { ThemeCard } from '../components'
@@ -10,7 +8,6 @@ import { ThemePageStore } from '../stores'
 @Component({
   selector: 'quizz-theme-list',
   imports: [
-    ProgressSpinner,
     ThemeCard,
     Paginator,
   ],
