@@ -40,6 +40,14 @@
   "tailwindCSS.includeLanguages": {
     "plaintext": "html"
   },
+  "tailwindCSS.files.exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**"
+  ],
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
   "conventionalCommits.scopes": [
     "front",
   ],

@@ -18,7 +18,7 @@
     "prepare": "husky"
   },
   "imports": {
-    "#tailwind.css": "./src/styles/tailwindcss.css"
+    "#tailwind.css": "./src/styles/tailwind.css"
   },
   "prettier": {
     "printWidth": 100,
