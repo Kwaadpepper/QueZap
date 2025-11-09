@@ -4,11 +4,107 @@
   leaveClass="animate-leave fade-out-0"
   class="flex flex-col justify-center items-center text-center animated-background bg-linear-to-tl from-brand-yellow-default to-sky-400 dark:from-yellow-900 via-30% dark:to-sky-900 py-10 px-4"
 >
-  <p-image src="images/quezap-full.svg" class="min-w-20 max-w-100" alt="QueZap" />
+  <img
+    ngSrc="/images/quezap-full.svg"
+    width="320"
+    height="250"
+    class="min-w-20 max-w-100"
+    alt="QueZap"
+    priority
+  />
   <h1 class="hidden my-2">{{ appName() }}</h1>
-  <h2 class="my-2 animate-bounce text-primary dark:text-shadow-md dark:text-primary-100">
-    L'application de Quizz
+  <h2 class="my-2 text-2xl md:text-3xl font-semibold text-green-outlined">
+    L'application de quiz en live
   </h2>
+  <p class="max-w-3xl text-sm md:text-base text-surface-700 dark:text-surface-200">
+    Créez une partie, affichez le QR code et laissez vos participant·e·s rejoindre en un instant.
+  </p>
 </div>
+
 <p-divider />
-<div class="flex"></div>
+
+<!-- Zone d'action principale: Rejoindre / Créer -->
+<section
+  class="mx-auto w-full max-w-6xl px-4 py-6 grid grid-cols-1 md:grid-cols-2 gap-6"
+  aria-labelledby="cta-title"
+>
+  <h2 id="cta-title" class="sr-only">Actions principales</h2>
+
+  <!-- Rejoindre une partie -->
+  <form
+    class="p-4 rounded-lg bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+    (submit)="onSubmitJoinForm($event)"
+  >
+    <h3 class="text-xl font-medium mb-3">Rejoindre une partie</h3>
+    <div class="flex flex-col gap-2" aria-labelledby="join-label" aria-describedby="join-help">
+      <label id="join-label" for="join-code" class="text-sm">Code de la partie</label>
+      <input
+        pInputText
+        id="join-code"
+        name="joinCode"
+        placeholder="Ex: AB12CD"
+        class="w-full md:w-80"
+        autocomplete="off"
+        inputmode="text"
+        aria-describedby="join-help"
+        [value]="joinCode()"
+        (input)="onJoinCodeInput($event)"
+      />
+      <p id="join-help" class="text-xs text-surface-600 dark:text-surface-300">
+        Entrez le code affiché à l’écran de l’animateur.
+      </p>
+      <div class="flex gap-2 items-center mt-2">
+        <p-button
+          label="Rejoindre"
+          type="submit"
+          aria-label="Rejoindre la partie"
+          [disabled]="!isJoinCodeValid()"
+        />
+        <span class="text-xs text-surface-500" aria-live="polite" aria-atomic="true">
+          @if (!isJoinCodeValid() && joinCode().length > 0) { Code invalide (4 à 10 caractères). }
+        </span>
+      </div>
+      <p class="text-xs text-surface-600 dark:text-surface-300 mt-2">
+        Ou scannez le QR code affiché par l’animateur pour rejoindre automatiquement.
+      </p>
+    </div>
+  </form>
+
+  <!-- Créer une partie -->
+  <div
+    class="p-4 rounded-lg bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 flex flex-col justify-between"
+  >
+    <div>
+      <h3 class="text-xl font-medium mb-3">Utiliser la plateforme</h3>
+      <p class="text-sm text-surface-700 dark:text-surface-200 mb-4">
+        L'accès à cette plateforme est <b>entièrement gratuit</b> et ne nécessite
+        <b>pas de création de compte pour le public participant</b>. <br />
+        Pour créer une session, il vous suffit de cliquer sur le bouton ci-dessous.
+      </p>
+    </div>
+    <div class="flex gap-2 items-center">
+      <button pButton routerLink="/admin/themes" severity="primary">
+        <span pButtonLabel>Créer une partie</span>
+      </button>
+      <a
+        pButton
+        routerLink="/about"
+        label="Comment ça marche ?"
+        text
+        aria-label="En savoir plus"
+      ></a>
+    </div>
+  </div>
+</section>
+
+<p-divider />
+
+<!-- Comment ça marche -->
+<section class="mx-auto w-full max-w-5xl px-4 pb-10" aria-labelledby="how-title">
+  <h2 id="how-title" class="text-xl font-semibold mb-4">Comment ça marche</h2>
+  <ol class="list-decimal pl-6 space-y-2 text-surface-700 dark:text-surface-200">
+    <li>Créez une session avec différents types de questions.</li>
+    <li>Le public participant scanne le QR code ou saisis le code pour rejoindre.</li>
+    <li>Lancez le quiz et suivez le classement en temps réel.</li>
+  </ol>
+</section>
