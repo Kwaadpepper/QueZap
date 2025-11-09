@@ -86,33 +86,10 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "src/assets/markdown",
-                "output": "markdown"
-              },
-              {
-                "glob": "LICENCE.md",
-                "input": ".",
-                "output": "markdown"
-              },
-              {
-                "glob": "**/*",
-                "input": "src/assets/images",
-                "output": "images"
-              },
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles/index.css"
-            ]
+            "configPath": "./jest.config.ts"
           }
         },
         "lint": {
