@@ -1,6 +1,6 @@
 @if(debug()) {
 <div
-  class="fixed top-3/6 right-1 z-50 bg-surface-200/80 dark:bg-surface-800/80 backdrop-blur-md p-2 rounded-md shadow-md flex flex-col items-center gap-2"
+  class="fixed top-3/6 right-0 z-50 border-contrast-800 border-l border-y bg-stone-200/80 dark:bg-stone-800/80 backdrop-blur-md p-2 rounded-l-md shadow-md flex flex-col items-center gap-2"
 >
   <button
     title="Basculer le mode site web"
@@ -8,6 +8,7 @@
     class="w-10 cursor-pointer"
     text
     outlined
+    severity="contrast"
     (click)="toggleWebsiteMode()"
   >
     <i
@@ -26,6 +27,7 @@
     pButton
     text
     outlined
+    severity="contrast"
   ></a>
 </div>
 }
