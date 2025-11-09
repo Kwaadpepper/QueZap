@@ -1,5 +1,5 @@
 import { JsonPipe } from '@angular/common'
-import { Component, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { RouterModule } from '@angular/router'
 
@@ -75,6 +75,7 @@ interface Plant {
   ],
   providers: [MessageService],
   templateUrl: './template.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Template {
   protected readonly title = signal('quezap')
