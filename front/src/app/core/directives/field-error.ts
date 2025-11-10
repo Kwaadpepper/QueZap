@@ -1,5 +1,5 @@
 import { ComponentRef, Directive, effect, inject, input, OnDestroy, ViewContainerRef } from '@angular/core'
-import { FieldState, ValidationErrorWithField } from '@angular/forms/signals'
+import { FieldState, StandardSchemaValidationError, ValidationErrorWithField } from '@angular/forms/signals'
 
 import { Message, MessageModule } from 'primeng/message'
 
@@ -39,16 +39,18 @@ export class FieldError implements OnDestroy {
       return []
     }
 
-    return this.toPrintableErrors(input.errors())
+    return input.errors().map(this.getErrorMessage)
   }
 
-  private toPrintableErrors(errors: ValidationErrorWithField[]): string[] {
-    return errors.map((err) => {
-      const field = err.field
-      const kind = err.kind
-      const message = err.message
+  private getErrorMessage(error: ValidationErrorWithField): string {
+    const field = error.field().name
+    const kind = error.kind
+    const message = error.message
 
-      return message === undefined ? `• [${field}] Erreur de type '${kind}'` : `• ${message}`
-    })
+    if (kind === 'standardSchema') {
+      return (error as StandardSchemaValidationError).issue.message
+    }
+
+    return message === undefined ? `• [${field}] Erreur de type '${kind}'` : `• ${message}`
   }
 }
