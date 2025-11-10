@@ -9,6 +9,7 @@ export const routes: Routes = [
   },
   {
     path: 'template',
+    title: 'Deboggeur de template',
     loadComponent: () => import('./template/template').then(m => m.Template),
   },
   ...FeatureRoutes,

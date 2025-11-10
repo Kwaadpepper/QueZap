@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http'
 import { ApplicationConfig, enableProdMode, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
-import { provideRouter } from '@angular/router'
+import { provideRouter, TitleStrategy } from '@angular/router'
 
 import { providePrimeNG } from 'primeng/config'
 
@@ -10,6 +10,7 @@ import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/Quezap'
 
 import { routes } from './app.routes'
+import { DynamicTitleStrategy } from './core/strategies'
 import { ThemeMockService } from './features/admin/themes/services'
 import { THEME_SERVICE } from './features/admin/themes/services/theme'
 
@@ -38,6 +39,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: Config,
       useClass: Config,
+    },
+    {
+      provide: TitleStrategy,
+      useClass: DynamicTitleStrategy,
     },
     {
       provide: THEME_SERVICE,

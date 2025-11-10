@@ -6,6 +6,7 @@ import { routes as PagesRoutes } from './pages/routes'
 export const routes: Routes = [
   {
     path: 'admin',
+    title: 'Administration',
     children: AdminRoutes,
   },
   ...PagesRoutes,
