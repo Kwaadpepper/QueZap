@@ -10,7 +10,7 @@ import { MOCK_THEMES } from './theme.mock'
 
 @Injectable()
 export class ThemeMockService implements ThemeService {
-  private readonly MOCK_DELAY = Math.max(100, Math.random() * 3000)
+  private readonly MOCK_DELAY = () => Math.max(100, Math.random() * 3000)
   private readonly NETWORK_ERROR_PROBABILITY = 0.5
 
   getThemePage(page: Pagination): Observable<PageOf<Theme>> {
@@ -35,7 +35,7 @@ export class ThemeMockService implements ThemeService {
     }
 
     return of(pageOfThemes).pipe(
-      delay(this.MOCK_DELAY),
+      delay(this.MOCK_DELAY()),
       map((obs) => {
         if (Math.random() < this.NETWORK_ERROR_PROBABILITY) {
           throw new Error('Network error occurred while fetching themes.')
