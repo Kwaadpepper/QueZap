@@ -60,6 +60,7 @@ export class RegisterModal {
 
   protected onRegister() {
     if (this.registerForm().invalid()) {
+      this.registerForm().markAsTouched()
       return
     }
 
