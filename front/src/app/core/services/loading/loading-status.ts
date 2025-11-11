@@ -2,7 +2,7 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 
 import { BehaviorSubject, EMPTY, interval, switchMap, takeWhile, tap } from 'rxjs'
 
-import { Easing, ProgressionEase } from './easing'
+import { Easing, ProgressionEase } from '../easing/easing'
 
 @Injectable({
   providedIn: 'root',
