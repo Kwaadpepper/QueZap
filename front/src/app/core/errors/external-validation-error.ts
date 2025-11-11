@@ -1,4 +1,4 @@
-import { ValidationError as SignalValidationError } from '@angular/forms/signals'
+import { FieldTree, ValidationError as SignalValidationError, ValidationErrorWithOptionalField } from '@angular/forms/signals'
 
 interface ValidationError extends SignalValidationError {
   kind: 'external'
@@ -21,6 +21,22 @@ export class ExternalValidationError extends Error {
       [...this.errors.entries()]
         .map(([key, value]) => [key, value.map(this.copyError)]),
     )
+  }
+
+  public getErrorsForForm<T>(form: FieldTree<T>): ValidationErrorWithOptionalField[] {
+    const result: ValidationErrorWithOptionalField[] = []
+
+    for (const [field, errors] of this.errors.entries()) {
+      const formField = form[field as keyof typeof form] ?? null
+      for (const error of errors) {
+        result.push({
+          ...error,
+          field: formField as FieldTree<unknown>,
+        })
+      }
+    }
+
+    return result
   }
 
   private errorMapper(message: string): ValidationError {

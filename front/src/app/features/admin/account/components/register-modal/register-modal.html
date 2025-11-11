@@ -2,6 +2,7 @@
   header="Créer un profile"
   [modal]="true"
   [pt]="{ root: { class: 'md:max-w-5/8 lg:md:max-w-3/8' } }"
+  [inert]="this.registerForm().submitting()"
   (onHide)="onModalHide()"
   (onShow)="onModalHide()"
   [(visible)]="visible"
@@ -44,8 +45,12 @@
         <p-button
           label="Recevoir un mot de passe"
           type="submit"
-          [disabled]="this.registerForm().invalid()"
-        />
+          [disabled]="this.registerForm().invalid() || this.registerForm().submitting()"
+        >
+          @if(this.registerForm().submitting()) {
+          <i class="pi pi-cog pi-spin" pButtonIcon></i>
+          }
+        </p-button>
       </div>
     </form>
   </ng-template>

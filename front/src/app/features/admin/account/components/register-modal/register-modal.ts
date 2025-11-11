@@ -1,5 +1,5 @@
 import { Component, inject, model, signal } from '@angular/core'
-import { Field, form, validateStandardSchema, ValidationError } from '@angular/forms/signals'
+import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext'
 import { firstValueFrom } from 'rxjs'
 
 import { FieldError } from '@quezap/core/directives'
-import { ExternalValidationError, superRefineExternalError } from '@quezap/core/errors'
+import { ExternalValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 
 import { REGISTER_SERVICE, RegisterMockService } from '../../services'
@@ -39,20 +39,12 @@ export class RegisterModal {
     username: '',
   })
 
-  private readonly externalErrors = signal<Map<string, ValidationError[]>>(new Map())
-
   protected readonly registerForm = form(this.userInfo, (path) => {
     validateStandardSchema(path, zod.object({
-      email: zod.email('Email invalide')
-        .superRefine(superRefineExternalError(
-          () => this.externalErrors().get('email'),
-        )),
+      email: zod.email('Email invalide'),
       username: zod.string()
         .min(3, '3 caractères minimum')
-        .max(20, '20 caractères maximum')
-        .superRefine(superRefineExternalError(
-          () => this.externalErrors().get('username'),
-        )),
+        .max(20, '20 caractères maximum'),
     }))
   })
 
@@ -71,35 +63,36 @@ export class RegisterModal {
       return
     }
 
-    firstValueFrom(this.registerService.register(
-      this.userInfo().email,
-      this.userInfo().username,
-    )).then(() => {
-      console.log('Registering user with data:', this.userInfo())
-      this.message.add({
-        severity: 'success',
-        summary: 'Inscription réussie',
-        detail: 'Vous allez recevoir un email contenant votre lien d\'activation',
-        sticky: true,
-      })
-      this.visible.set(false)
-    }).catch((err) => {
-      if (err instanceof ExternalValidationError) {
-        this.externalErrors.set(err.getErrors())
-
-        // Remove after sometime to allow user to change the value
-        setTimeout(() => this.externalErrors().clear(), 0)
-      }
-      else {
-        console.error('Registration error :', err)
-        this.message.add({
-          severity: 'error',
-          summary: 'Erreur lors de l\'inscription',
-          detail: 'Un erreur est survenu lors de l\'envoi du formulaire',
-          life: 5000,
+    submit(this.registerForm, async (form) => {
+      return new Promise((resolve, reject) => {
+        firstValueFrom(this.registerService.register(
+          form.email().value(),
+          form.username().value(),
+        )).then(() => {
+          this.message.add({
+            severity: 'success',
+            summary: 'Inscription réussie',
+            detail: 'Vous allez recevoir un email contenant votre lien d\'activation',
+            sticky: true,
+          })
+          resolve()
+          this.visible.set(false)
+        }).catch((err) => {
+          if (err instanceof ExternalValidationError) {
+            resolve(err.getErrorsForForm(form))
+          }
+          else {
+            reject(err)
+            this.message.add({
+              severity: 'error',
+              summary: 'Erreur lors de l\'inscription',
+              detail: 'Un erreur est survenu lors de l\'envoi du formulaire',
+              life: 5000,
+            })
+          }
+          return err
         })
-      }
-      return err
+      })
     })
   }
 
