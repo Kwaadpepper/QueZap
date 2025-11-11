@@ -1,1 +1,1 @@
-export * from './loading-progression-interceptor'
+export * from './loading-progression/loading-progression-interceptor'
