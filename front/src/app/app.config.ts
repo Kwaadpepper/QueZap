@@ -5,7 +5,7 @@ import { provideRouter, TitleStrategy } from '@angular/router'
 
 import { providePrimeNG } from 'primeng/config'
 
-import { Config } from '@quezap/core/services'
+import { AUTHENTICATION_SERVICE, AuthenticationMockService, Config } from '@quezap/core/services'
 import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/Quezap'
 
@@ -39,6 +39,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: Config,
       useClass: Config,
+    },
+    {
+      provide: AUTHENTICATION_SERVICE,
+      useClass: AuthenticationMockService,
     },
     {
       provide: TitleStrategy,
