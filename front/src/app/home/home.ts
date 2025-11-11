@@ -8,6 +8,7 @@ import { Divider } from 'primeng/divider'
 import { InputText } from 'primeng/inputtext'
 
 import { Config, LayoutSettings } from '@quezap/core/services'
+import { RegisterModal } from '@quezap/features/admin/account/components'
 
 @Component({
   selector: 'quizz-home',
@@ -20,6 +21,7 @@ import { Config, LayoutSettings } from '@quezap/core/services'
     InputText,
     ButtonDirective,
     ButtonLabel,
+    RegisterModal,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
@@ -34,6 +36,8 @@ export class Home implements OnInit, OnDestroy {
   // Code pour rejoindre une partie existante via QR ou code manuel
   protected readonly joinCode = signal('')
   protected readonly isJoinCodeValid = computed(() => /^\w{4,10}$/i.test(this.joinCode()))
+
+  protected readonly registerModalVisible = signal(false)
 
   protected onJoinGame() {
     if (!this.isJoinCodeValid()) return

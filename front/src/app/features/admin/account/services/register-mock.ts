@@ -6,7 +6,7 @@ import { zodToExternalValidationError } from '@quezap/core/tools/zod-to-external
 import { RegisterService } from './register'
 
 const validationSchema = zod.object({
-  email: zod.email(),
+  email: zod.email().check(zod.regex(/@quezap\.com$/)),
   username: zod.string().min(3).max(20),
 })
 

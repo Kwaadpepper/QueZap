@@ -83,7 +83,12 @@
       </p>
     </div>
     <div class="flex gap-2 items-center">
-      <button pButton routerLink="/admin/themes" severity="primary">
+      <button
+        pButton
+        severity="primary"
+        aria-label="Créer une partie"
+        (click)="registerModalVisible.set(true)"
+      >
         <span pButtonLabel>Créer une partie</span>
       </button>
       <a
@@ -94,6 +99,7 @@
         aria-label="En savoir plus"
       ></a>
     </div>
+    <quizz-register-modal [(visible)]="registerModalVisible" />
   </div>
 </section>
 

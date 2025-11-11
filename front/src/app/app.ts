@@ -2,8 +2,10 @@ import { Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router'
 
+import { MessageService } from 'primeng/api'
 import { ButtonDirective } from 'primeng/button'
 import { ImageModule } from 'primeng/image'
+import { Toast } from 'primeng/toast'
 
 import { Config, LayoutSettings } from './core/services'
 import { Debugbar, LoadingBar } from './shared/components'
@@ -17,7 +19,9 @@ import { Debugbar, LoadingBar } from './shared/components'
     ImageModule,
     Debugbar,
     LoadingBar,
+    Toast,
   ],
+  providers: [MessageService],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

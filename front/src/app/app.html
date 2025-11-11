@@ -58,6 +58,8 @@
   <quizz-loading-bar class="absolute top-0 left-0" />
   <quizz-debugbar [(websiteMode)]="layout.asWebsite" />
   <router-outlet></router-outlet>
+
+  <p-toast />
 </main>
 
 @if(layout.asWebsite()) {

@@ -1,0 +1,52 @@
+<p-dialog
+  header="Créer un profile"
+  [modal]="true"
+  [pt]="{ root: { class: 'md:max-w-5/8 lg:md:max-w-3/8' } }"
+  (onHide)="onModalHide()"
+  (onShow)="onModalHide()"
+  [(visible)]="visible"
+>
+  <ng-template #content>
+    <form class="flex flex-col justify-center" (submit)="onRegister(); $event.preventDefault()">
+      <span class="p-text-secondary block mb-8"
+        >Votre adresse e-mail est obligatoire pour la réinitialisation de votre mot de passe et pour
+        recevoir les communications importantes de l'administrateur concernant votre profil. Vos
+        informations sont protégées et ne seront jamais divulguées à des tiers.</span
+      >
+      <div class="flex flex-col items-center gap-4 mb-4 mx-auto">
+        <label for="username" class="font-semibold w-24 me-30">Pseudonyme</label>
+        <input
+          pInputText
+          id="username"
+          class="flex-auto"
+          autocomplete="username"
+          type="text"
+          quizzFieldError
+          [field]="registerForm.username"
+          [fieldState]="registerForm.username"
+        />
+      </div>
+      <div class="flex flex-col items-center gap-4 mb-8 mx-auto">
+        <label for="email" class="font-semibold w-24 me-30">Email</label>
+        <input
+          pInputText
+          id="email"
+          class="flex-auto"
+          autocomplete="email"
+          type="email"
+          quizzFieldError
+          [field]="registerForm.email"
+          [fieldState]="registerForm.email"
+        />
+      </div>
+      <div class="flex justify-end gap-2">
+        <p-button label="Fermer" severity="secondary" (click)="onCancel()" (keydown)="onCancel()" />
+        <p-button
+          label="Recevoir un mot de passe"
+          type="submit"
+          [disabled]="this.registerForm().invalid()"
+        />
+      </div>
+    </form>
+  </ng-template>
+</p-dialog>
