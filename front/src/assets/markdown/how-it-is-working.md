@@ -43,4 +43,4 @@ Ce projet est développé de manière transparente et sous une licence libre.
 
 ## 📧 Devenir Créateur
 
-Pour obtenir votre compte et commencer à créer vos propres quiz et exercices, veuillez me contacter en utilisant le lien en bas de page (envoi d'un email).
+Pour obtenir votre compte et commencer à créer vos propres quiz et exercices, vous pouvez vous inscrire en utilisant le bouton sur la page d'accueil.
