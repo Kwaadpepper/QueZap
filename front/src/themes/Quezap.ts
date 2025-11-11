@@ -5135,57 +5135,57 @@ const Quezap = definePreset({
         },
         dark: {
           info: {
-            background: 'color-mix(in srgb, {teal.500}, transparent 50%)',
-            borderColor: '{teal.700}',
-            color: '{teal.200}',
+            background: 'color-mix(in srgb, {teal.500}, transparent 10%)',
+            borderColor: '{teal.800}',
+            color: '{teal.50}',
             detailColor: '{surface.0}',
             shadow: '0px 4px 8px 0px color-mix(in srgb, {teal.500}, transparent 96%)',
             closeButton: {
               hoverBackground: 'rgba(255, 255, 255, 0.1)',
               focusRing: {
-                color: '{teal.200}',
+                color: '{teal.50}',
                 shadow: 'none',
               },
             },
           },
           success: {
-            background: 'color-mix(in srgb, {green.500}, transparent 50%)',
-            borderColor: '{green.700}',
-            color: '{green.200}',
+            background: 'color-mix(in srgb, {green.500}, transparent 10%)',
+            borderColor: '{green.800}',
+            color: '{green.50}',
             detailColor: '{surface.0}',
             shadow: '0px 4px 8px 0px color-mix(in srgb, {green.500}, transparent 96%)',
             closeButton: {
               hoverBackground: 'rgba(255, 255, 255, 0.1)',
               focusRing: {
-                color: '{green.200}',
+                color: '{green.50}',
                 shadow: 'none',
               },
             },
           },
           warn: {
-            background: 'color-mix(in srgb, {amber.500}, transparent 50%)',
-            borderColor: '{amber.700}',
-            color: '{amber.200}',
+            background: 'color-mix(in srgb, {amber.500}, transparent 10%)',
+            borderColor: '{amber.800}',
+            color: '{amber.50}',
             detailColor: '{surface.0}',
             shadow: '0px 4px 8px 0px color-mix(in srgb, {amber.500}, transparent 96%)',
             closeButton: {
               hoverBackground: 'rgba(255, 255, 255, 0.1)',
               focusRing: {
-                color: '{amber.200}',
+                color: '{amber.50}',
                 shadow: 'none',
               },
             },
           },
           error: {
-            background: 'color-mix(in srgb, {red.500}, transparent 50%)',
-            borderColor: '{red.700}',
-            color: '{red.200}',
+            background: 'color-mix(in srgb, {red.500}, transparent 10%)',
+            borderColor: '{red.800}',
+            color: '{red.50}',
             detailColor: '{surface.0}',
             shadow: '0px 4px 8px 0px color-mix(in srgb, {red.500}, transparent 96%)',
             closeButton: {
               hoverBackground: 'rgba(255, 255, 255, 0.1)',
               focusRing: {
-                color: '{red.200}',
+                color: '{red.50}',
                 shadow: 'none',
               },
             },
