@@ -7,9 +7,9 @@ import { Dialog } from 'primeng/dialog'
 import { InputText } from 'primeng/inputtext'
 import { firstValueFrom } from 'rxjs'
 
-import { FieldError } from '@quezap/core/directives'
 import { ExternalValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
+import { FieldError } from '@quezap/shared/directives'
 
 import { REGISTER_SERVICE, RegisterMockService } from '../../services'
 
