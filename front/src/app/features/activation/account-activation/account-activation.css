@@ -1,0 +1,22 @@
+.p-progressspinner {
+  --p-progressspinner-color-one: var(--p-green-800);
+  --p-progressspinner-color-two: var(--p-green-800);
+  --p-progressspinner-color-three: var(--p-green-600);
+  --p-progressspinner-color-four: var(--p-green-600);
+}
+
+@media (prefers-color-scheme: dark) {
+  .p-progressspinner {
+    --p-progressspinner-color-one: var(--p-stone-300);
+    --p-progressspinner-color-two: var(--p-stone-300);
+    --p-progressspinner-color-three: var(--p-stone-200);
+    --p-progressspinner-color-four: var(--p-stone-200);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host .p-progressspinner-spin,
+  :host /deep/ .p-progressspinner-circle {
+    animation: none !important;
+  }
+}
