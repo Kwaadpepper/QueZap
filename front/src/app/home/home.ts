@@ -2,7 +2,6 @@ import { NgOptimizedImage } from '@angular/common'
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core'
 import { RouterLink } from '@angular/router'
 
-import { AnimateOnScrollModule } from 'primeng/animateonscroll'
 import { Button, ButtonDirective, ButtonLabel } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 import { InputText } from 'primeng/inputtext'
@@ -15,7 +14,6 @@ import { RegisterModal } from '@quezap/features/admin/account/components'
   imports: [
     NgOptimizedImage,
     RouterLink,
-    AnimateOnScrollModule,
     Divider,
     Button,
     InputText,
