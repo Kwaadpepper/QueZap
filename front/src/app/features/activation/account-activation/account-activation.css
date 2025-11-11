@@ -13,10 +13,3 @@
     --p-progressspinner-color-four: var(--p-stone-200);
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  :host .p-progressspinner-spin,
-  :host /deep/ .p-progressspinner-circle {
-    animation: none !important;
-  }
-}
