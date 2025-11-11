@@ -78,7 +78,8 @@ export class RegisterModal {
       console.log('Registering user with data:', this.userInfo())
       this.message.add({
         severity: 'success',
-        summary: 'Vous allez recevoir un email contenant votre lien d\'activation',
+        summary: 'Inscription réussie',
+        detail: 'Vous allez recevoir un email contenant votre lien d\'activation',
         sticky: true,
       })
       this.visible.set(false)
@@ -93,7 +94,8 @@ export class RegisterModal {
         console.error('Registration error :', err)
         this.message.add({
           severity: 'error',
-          summary: 'Un erreur est survenu lors de l\'envoi du formulaire',
+          summary: 'Erreur lors de l\'inscription',
+          detail: 'Un erreur est survenu lors de l\'envoi du formulaire',
           life: 5000,
         })
       }
