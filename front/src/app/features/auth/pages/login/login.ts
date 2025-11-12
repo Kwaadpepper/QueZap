@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
@@ -30,6 +31,7 @@ export class Login implements OnInit {
   private readonly authenticatedUserStore = inject(AuthenticatedUserStore)
   private readonly message = inject(MessageService)
   private readonly router = inject(Router)
+  private readonly destroyRef = inject(DestroyRef)
 
   private readonly redirectUrl = '/admin'
 
@@ -73,7 +75,7 @@ export class Login implements OnInit {
           this.authenticatedUserStore.login(
             form.email().value(),
             form.password().value(),
-          ),
+          ).pipe(takeUntilDestroyed(this.destroyRef)),
         ).then(() => {
           this.invalidCredentials.set(false)
           this.resetCredentials()
