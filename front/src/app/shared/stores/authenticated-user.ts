@@ -1,7 +1,7 @@
 import { computed, inject } from '@angular/core'
 
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
-import { catchError, concatMap, EMPTY, map, of, tap, throwError } from 'rxjs'
+import { catchError, concatMap, map, of, tap, throwError } from 'rxjs'
 
 import { AuthenticatedUser, AuthTokens } from '@quezap/domain/models'
 import { AUTHENTICATION_SERVICE, TokenPersitance } from '@quezap/features/auth/services'
@@ -48,7 +48,7 @@ export const AuthenticatedUserStore = signalStore(
       const tokens = tokenPersistance.getTokens()
 
       if (tokens === undefined) {
-        return of()
+        return of(undefined)
       }
 
       patchState(store, {
@@ -66,11 +66,11 @@ export const AuthenticatedUserStore = signalStore(
           })
         }),
         map(() => { return }),
-        catchError(() => {
+        catchError((err) => {
           tokenPersistance.removeTokens()
           patchState(store, initialState)
           patchState(store, { sessionExpired: true })
-          return of()
+          return of(err)
         }),
       )
     },
@@ -121,7 +121,7 @@ export const AuthenticatedUserStore = signalStore(
           console.error('Logout service failed, but forcing local state reset.', err)
           tokenPersistance.removeTokens()
           patchState(store, initialState)
-          return EMPTY
+          return throwError(() => err)
         }),
       )
     },
