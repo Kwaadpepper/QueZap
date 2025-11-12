@@ -1,5 +1,5 @@
 <p-dialog
-  header="Créer un profile"
+  header="Créer une partie"
   [modal]="true"
   [pt]="{ root: { class: 'md:max-w-5/8 lg:md:max-w-3/8' } }"
   [inert]="this.registerForm().submitting()"
@@ -9,11 +9,15 @@
 >
   <ng-template #content>
     <form class="flex flex-col justify-center" (submit)="onRegister(); $event.preventDefault()">
-      <span class="p-text-secondary block mb-8"
-        >Votre adresse e-mail est obligatoire pour la réinitialisation de votre mot de passe et pour
-        recevoir les communications importantes de l'administrateur concernant votre profil. Vos
-        informations sont protégées et ne seront jamais divulguées à des tiers.</span
-      >
+      <span class="p-text-secondary block mb-8">
+        <p>Pour créer une partie <strong>vous devez posséder un compte</strong>.</p>
+        <p>
+          Votre adresse <strong>e-mail est obligatoire</strong> pour la
+          <strong>réinitialisation de votre mot de passe</strong> et pour recevoir les
+          communications importantes de l'administrateur concernant votre profil.
+        </p>
+        <p>Vos informations sont protégées et ne seront jamais divulguées à des tiers.</p>
+      </span>
       <div class="flex flex-col items-center gap-4 mb-4 mx-auto">
         <label for="username" class="font-semibold w-24 me-30">Pseudonyme</label>
         <input
