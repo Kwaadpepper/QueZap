@@ -3,7 +3,7 @@ import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
-import { catchError, firstValueFrom, tap, throwError } from 'rxjs'
+import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
 
@@ -27,6 +27,10 @@ export class LogoutButton {
     firstValueFrom(
       this.authenticatedUser.logout()
         .pipe(
+          catchError((err) => {
+            // Ignore errors during logout
+            return of(err)
+          }),
           tap(() => {
             this.router.navigate(['/auth/login'])
             this.messageService.add({
@@ -35,16 +39,6 @@ export class LogoutButton {
               detail: 'Vous avez été déconnecté.',
             })
             this.running.set(false)
-          }),
-          catchError((error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Une erreur est survenue lors de la déconnexion.',
-            })
-            this.running.set(false)
-
-            return throwError(() => error)
           }),
         ),
     )
