@@ -32,10 +32,17 @@
     <quizz-admin-nav />
     } @else if(layout.asWebsite()) {
     <quizz-site-nav />
+    } @if(isLoggedIn()) {
+    <div class="flex justify-center">
+      <quizz-logout-button class="mx-2 pt-1" />
+    </div>
     }
   </p-drawer>
 
-  <div>
+  <div class="flex">
+    @if(isLoggedIn()) {
+    <quizz-logout-button class="mx-2 pt-1 hidden md:inline-flex" />
+    }
     <p-button
       class="ms-2 me-4 mt-1 md:hidden"
       title="Afficher le menu"

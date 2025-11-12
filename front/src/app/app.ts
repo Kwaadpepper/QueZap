@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core'
+import { Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
 
@@ -12,9 +12,11 @@ import { Toast } from 'primeng/toast'
 import { LoadingStatus } from '@quezap/core/services'
 
 import { LayoutSettings } from './core/services'
+import { LogoutButton } from './features/auth/components'
 import { Footer } from './layout/footer/footer'
 import { AdminNav, SiteNav } from './layout/navigation'
 import { Debugbar, LoadingBar } from './shared/components'
+import { AuthenticatedUserStore } from './shared/stores'
 
 @Component({
   selector: 'quizz-root',
@@ -31,6 +33,7 @@ import { Debugbar, LoadingBar } from './shared/components'
     Footer,
     Drawer,
     Button,
+    LogoutButton,
   ],
   providers: [MessageService],
   templateUrl: './app.html',
@@ -39,10 +42,12 @@ import { Debugbar, LoadingBar } from './shared/components'
 export class App {
   private readonly router = inject(Router)
   private readonly LoadingStatus = inject(LoadingStatus)
+  private readonly authenticatedUser = inject(AuthenticatedUserStore)
   protected readonly layout = inject(LayoutSettings)
 
   protected readonly drawerVisible = signal(false)
   protected readonly onAdminPath = signal(false)
+  protected readonly isLoggedIn = computed(() => this.authenticatedUser.isLoggedIn())
 
   constructor() {
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {

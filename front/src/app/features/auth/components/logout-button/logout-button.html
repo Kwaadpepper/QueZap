@@ -1,0 +1,17 @@
+<p-button
+  class="p-button-text"
+  title="Déconnexion"
+  size="small"
+  severity="danger"
+  text
+  [disabled]="running()"
+  (onClick)="onLogout()"
+>
+  <span pButtonIcon aria-hidden="true">
+    @if(running()) {
+    <span class="pi pi-cog pi-spin"></span>
+    } @else {
+    <span class="pi pi-sign-out"></span>
+    }
+  </span>
+</p-button>
