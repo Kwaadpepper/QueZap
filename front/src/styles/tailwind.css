@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'tailwindcss-primeui';
 
 .animated-background {
   animation: animation 13s ease infinite;
