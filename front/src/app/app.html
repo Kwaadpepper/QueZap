@@ -58,7 +58,10 @@
   <quizz-debugbar [(websiteMode)]="layout.asWebsite" />
   <router-outlet></router-outlet>
 
-  <p-toast position="bottom-left" />
+  <p-toast
+    position="bottom-left"
+    [breakpoints]="{ '920px': { width: '100%', right: '0', left: '0' } }"
+  />
 </main>
 
 @if(layout.asWebsite()) {
