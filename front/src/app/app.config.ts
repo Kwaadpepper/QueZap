@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http'
-import { ApplicationConfig, enableProdMode, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'
+import { ApplicationConfig, enableProdMode, provideAppInitializer, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { provideRouter, TitleStrategy } from '@angular/router'
 
@@ -8,6 +8,7 @@ import { providePrimeNG } from 'primeng/config'
 import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/Quezap'
 
+import { AppInitializer } from './app.initializer'
 import { routes } from './app.routes'
 import { AUTHENTICATION_SERVICE, AuthenticationMockService } from './auth/services'
 import { Config } from './core/services'
@@ -37,6 +38,7 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+    provideAppInitializer(AppInitializer),
     {
       provide: Config,
       useClass: Config,

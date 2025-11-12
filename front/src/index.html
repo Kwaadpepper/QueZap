@@ -11,8 +11,38 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="QueZap" />
     <link rel="manifest" href="/site.webmanifest" />
+
+    <style>
+      #app-loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        opacity: 1;
+        z-index: 9999;
+
+        transition: opacity 300ms ease-out;
+      }
+    </style>
   </head>
   <body>
     <quizz-root></quizz-root>
+
+    <div id="app-loading-screen">
+      <img
+        src="images/quezap-full.svg"
+        alt="Logo de l'application"
+        style="height: 6rem; margin-bottom: 6rem"
+      />
+      <output class="spinner-border text-primary">
+        <span class="sr-only">Chargement...</span>
+      </output>
+    </div>
   </body>
 </html>
