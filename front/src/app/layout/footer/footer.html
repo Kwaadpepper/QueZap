@@ -2,8 +2,9 @@
   <div>
     <p-image src="images/quezap.svg" class="min-w-20" width="100" alt="QueZap" />
   </div>
-  <div
-    class="flex flex-wrap justify-center md:justify-end gap-4 my-2 text-surface-900/70 dark:text-surface-100/70"
+  <nav
+    aria-label="Menu de pied de page"
+    class="flex flex-wrap justify-center md:justify-end gap-4 my-2"
   >
     <span>
       <a routerLink="/licence">MIT License</a>
@@ -12,5 +13,5 @@
       <a href="mailto:{{ footer().authorEmail }}">{{ footer().authorName }}</a>
     </span>
     <span>&copy; 2026 QueZap</span>
-  </div>
+  </nav>
 </div>
