@@ -11,9 +11,7 @@
       "@quezap/domain/*": ["./src/app/domain/*"],
       "@quezap/core/*": ["./src/app/core/*"],
       "@quezap/features/*": ["./src/app/features/*"],
-      "@quezap/home/*": ["./src/app/home/*"],
       "@quezap/shared/*": ["./src/app/shared/*"],
-      "@quezap/template/*": ["./src/app/template/*"],
     }
   },
   "include": [
