@@ -9,10 +9,9 @@ import { Message } from 'primeng/message'
 import { firstValueFrom } from 'rxjs'
 
 import { ExternalValidationError } from '@quezap/core/errors'
+import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
-
-import { Config } from '../../../../core/services'
 
 @Component({
   selector: 'quizz-login',
