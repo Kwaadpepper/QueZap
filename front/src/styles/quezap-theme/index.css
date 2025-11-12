@@ -1,0 +1,23 @@
+@import './colors.css';
+@import './links.css';
+@import './headings.css';
+
+html,
+body {
+  @apply font-body bg-surface-100 text-surface-900 dark:bg-surface-900 dark:text-surface-100;
+}
+
+@layer base {
+  p {
+    @apply mb-4;
+  }
+
+  ul,
+  ol {
+    @apply mb-4 pl-6;
+  }
+
+  hr {
+    @apply my-6 border-t border-solid border-surface-300 dark:border-surface-700;
+  }
+}

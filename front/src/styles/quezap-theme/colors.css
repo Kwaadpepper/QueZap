@@ -1,0 +1,73 @@
+@layer utilities {
+  :root {
+    @theme {
+      /* --- Polices --- */
+      --font-title: 'Bangers', sans-serif;
+      --font-body: 'Lexend', sans-serif;
+
+      /* --- Couleurs de Marque (Primitives) --- */
+      --color-brand-green-default: #36712d;
+      --color-brand-green-light: #6cbf5a;
+      --color-brand-green-dark: #2e5d26;
+      --color-brand-yellow-default: #f9b43a;
+      --color-brand-yellow-light: #ffe066;
+      --color-brand-yellow-dark: #c0862a;
+      --color-ui-primary-default-base: #2a3278;
+      --color-ui-primary-light: #4f59a5;
+      --color-ui-primary-dark: #1f255a;
+      --color-ui-danger-default-base: #c02a3a;
+
+      /* --- Fonds (Light/Dark) - Primitives --- */
+      --color-background-light: hsl(0deg 0% 100%); /* #ffffff */
+      --color-background-dark: hsl(207deg 95% 8%); /* #010A20 */
+      --color-card-dark: hsl(207deg 93% 10%); /* #021033 */
+      --color-input-dark: hsl(207deg 92% 15%); /* #031646 */
+
+      /* --- Couleurs Sémantiques (Mode Clair par défaut) --- */
+
+      /* Arrière-plans */
+      --color-ui-background-page: var(--color-background-light);
+      --color-ui-background-card: #f5f5f5;
+      --color-ui-background-input: #e8e8e8;
+
+      /* Texte */
+      --color-ui-text-default: #1f2937;
+      --color-ui-text-subtle: #575f6b;
+      --color-ui-text-on-primary: #fff;
+      --color-ui-text-on-accent: #111827;
+
+      /* Liens */
+      --color-ui-links: var(--color-brand-green-default);
+      --color-ui-links-visited: var(--color-brand-green-dark);
+
+      /* Sémantique */
+      --color-ui-primary-default: var(--color-ui-primary-default-base);
+      --color-ui-success-default: var(--color-brand-green-default);
+      --color-ui-danger-default: var(--color-ui-danger-default-base);
+      --color-ui-accent-default: var(--color-brand-yellow-default);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      /* Arrière-plans */
+      --color-ui-background-page: var(--color-background-dark);
+      --color-ui-background-card: var(--color-card-dark);
+      --color-ui-background-input: var(--color-input-dark);
+
+      /* Texte */
+      --color-ui-text-default: #e6f0ff;
+      --color-ui-text-subtle: #99c0ff;
+      --color-ui-text-on-primary: #fff;
+      --color-ui-text-on-accent: #111827;
+
+      /* Liens */
+      --color-ui-links: var(--p-primary-300);
+      --color-ui-links-visited: var(--p-primary-400);
+
+      /* Sémantique (Couleurs éclaircies pour WCAG sur fond sombre) */
+      --color-ui-primary-default: #818cf8;
+      --color-ui-success-default: #4ade80;
+      --color-ui-danger-default: #fca5a5;
+      --color-ui-accent-default: #fbbf24;
+    }
+  }
+}
