@@ -55,6 +55,7 @@ export class App {
         this.LoadingStatus.start()
       }
       if (event instanceof NavigationEnd) {
+        this.drawerVisible.set(false)
         this.LoadingStatus.stop()
         this.onAdminPath.set(this.router.url.startsWith('/admin'))
       }
