@@ -5,11 +5,12 @@ import { provideRouter, TitleStrategy } from '@angular/router'
 
 import { providePrimeNG } from 'primeng/config'
 
-import { AUTHENTICATION_SERVICE, AuthenticationMockService, Config } from '@quezap/core/services'
 import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/Quezap'
 
 import { routes } from './app.routes'
+import { AUTHENTICATION_SERVICE, AuthenticationMockService } from './auth/services'
+import { Config } from './core/services'
 import { DynamicTitleStrategy } from './core/strategies'
 import { ThemeMockService } from './features/admin/themes/services'
 import { THEME_SERVICE } from './features/admin/themes/services/theme'

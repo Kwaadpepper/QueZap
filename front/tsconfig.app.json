@@ -9,6 +9,7 @@
       "@quezap/env/*": ["./src/environments/*"],
       "@quezap/themes/*": ["./src/themes/*"],
       "@quezap/domain/*": ["./src/app/domain/*"],
+      "@quezap/auth/*": ["./src/app/auth/*"],
       "@quezap/core/*": ["./src/app/core/*"],
       "@quezap/features/*": ["./src/app/features/*"],
       "@quezap/home/*": ["./src/app/home/*"],

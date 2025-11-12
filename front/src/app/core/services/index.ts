@@ -1,5 +1,3 @@
-export * from './authentication/authentication'
-export * from './authentication/authentication-mock'
 export * from './config/config'
 export * from './easing/easing'
 export * from './layout/layout-settings'

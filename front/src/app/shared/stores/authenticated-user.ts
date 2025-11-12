@@ -3,7 +3,7 @@ import { computed, inject } from '@angular/core'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { catchError, concatMap, EMPTY, map, of, tap, throwError } from 'rxjs'
 
-import { AUTHENTICATION_SERVICE } from '@quezap/core/services'
+import { AUTHENTICATION_SERVICE } from '@quezap/auth/services'
 import { AuthenticatedUser, AuthTokens } from '@quezap/domain/models'
 
 interface AuthenticatedUserState {

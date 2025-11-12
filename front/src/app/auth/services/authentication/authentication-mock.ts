@@ -8,7 +8,7 @@ import { AuthenticationService } from './authentication'
 
 const validationLoginSchema = zod.object({
   email: zod.email().refine(v => v === 'user@example.net'),
-  password: zod.string().refine(v => v === 'P@ssw0rd!'),
+  password: zod.string().refine(v => v === 'password'),
 })
 const validationRefreshSchema = zod.jwt()
 
