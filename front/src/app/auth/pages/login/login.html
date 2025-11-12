@@ -1,0 +1,60 @@
+<div class="flex flex-col justify-center items-center h-full">
+  <h1 class="mb-5">Connexion</h1>
+
+  <form class="flex flex-col justify-center" (submit)="onLogin(); $event.preventDefault()">
+    @if (this.invalidCredentials()) {
+    <div class="mb-4">
+      <p-message severity="error">
+        <span>Email ou mot de passe invalide</span>
+      </p-message>
+    </div>
+    }
+
+    <div class="flex flex-col md:items-center gap-4 mb-8 mx-auto">
+      <label for="email" class="font-semibold md:w-40 md:me-30">Email</label>
+      <input
+        pInputText
+        id="email"
+        class="flex-auto w-full"
+        autocomplete="email"
+        type="email"
+        [field]="loginForm.email"
+      />
+    </div>
+    <div class="flex flex-col md:items-center gap-4 mb-8 mx-auto">
+      <label for="password" class="font-semibold md:w-40 md:me-30">Mot de passe</label>
+      <input
+        pInputText
+        id="password"
+        class="flex-auto w-full"
+        autocomplete="current-password"
+        type="password"
+        [field]="loginForm.password"
+      />
+    </div>
+    <div class="flex justify-center gap-2 relative">
+      @if(isDebug()) {
+      <p-button
+        type="button"
+        class="left-0 bottom-1/2 translate-y-1/2 absolute"
+        title="Utiliser des identifiants de test"
+        severity="info"
+        outlined
+        (click)="onFillMockedCredentials()"
+        (keypress)="onFillMockedCredentials()"
+      >
+        <i class="pi pi-user" pButtonIcon></i>
+      </p-button>
+      }
+      <p-button
+        label="Se connecter"
+        type="submit"
+        [disabled]="this.loginForm().submitting() || !this.loginForm().dirty()"
+      >
+        @if(this.loginForm().submitting()) {
+        <i class="pi pi-cog pi-spin" pButtonIcon></i>
+        }
+      </p-button>
+    </div>
+  </form>
+</div>
