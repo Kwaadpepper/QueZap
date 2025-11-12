@@ -1,14 +1,13 @@
 <p-progressbar
   mode="determinate"
   aria-label="Progression du chargement"
+  class="h-1 rounded w-full"
   [showValue]="false"
   [value]="progression()"
   [class]="{
     'opacity-0': progression() === 0  ? true : false,
-    'h-1': true,
-    'rounded-0': true,
   }"
   [pt]="{
-    value:{ class: 'duration-100' },
+    value:{ class: 'duration-400' },
   }"
 />

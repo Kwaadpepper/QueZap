@@ -1,0 +1,8 @@
+p-progressbar {
+  transition: opacity 0.3s ease-in-out;
+  transition-delay: 500ms;
+}
+
+p-progressbar.opacity-0 {
+  transition-delay: 0ms;
+}

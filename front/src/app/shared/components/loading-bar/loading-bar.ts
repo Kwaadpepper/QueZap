@@ -8,6 +8,7 @@ import { LoadingStatus } from '@quezap/core/services'
   selector: 'quizz-loading-bar',
   imports: [ProgressBar],
   templateUrl: './loading-bar.html',
+  styleUrl: './loading-bar.css',
 })
 export class LoadingBar {
   private readonly loadingStatus = inject(LoadingStatus)
@@ -15,6 +16,8 @@ export class LoadingBar {
   protected readonly progression = computed(() => {
     const progression = this.loadingStatus.progression()
 
-    return progression === null ? 0 : progression
+    console.log('LoadingBar progression:', progression)
+
+    return progression ?? 0
   })
 }

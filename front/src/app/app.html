@@ -1,18 +1,22 @@
-<header [class.website-header]="layout.asWebsite()" [class.admin-header]="onAdminPath()">
+<header
+  class="relative"
+  [class.website-header]="layout.asWebsite()"
+  [class.admin-header]="onAdminPath()"
+>
   @if(onAdminPath()) {
   <quizz-admin-nav />
   } @else if(layout.asWebsite()) {
   <quizz-site-nav />
   }
 </header>
+<quizz-loading-bar class="absolute top-0 left-0 z-10 w-full" />
 <main
-  class="grow relative"
+  class="grow"
   [class]="{
     'main-as-website': layout.asWebsite(),
     'main-in-container': layout.inContainer(),
   }"
 >
-  <quizz-loading-bar class="absolute top-0 left-0" />
   <quizz-debugbar [(websiteMode)]="layout.asWebsite" />
   <router-outlet></router-outlet>
 
