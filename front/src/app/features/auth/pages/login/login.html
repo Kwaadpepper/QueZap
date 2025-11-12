@@ -2,7 +2,13 @@
   <h1 class="mb-5">Connexion</h1>
 
   <form class="flex flex-col justify-center" (submit)="onLogin(); $event.preventDefault()">
-    @if (this.invalidCredentials()) {
+    @if (this.loginError()) {
+    <div class="mb-4">
+      <p-message severity="error" closable="true">
+        <span>Une erreur est survenue lors de la connexion</span>
+      </p-message>
+    </div>
+    } @if (this.invalidCredentials()) {
     <div class="mb-4">
       <p-message severity="error">
         <span>Email ou mot de passe invalide</span>

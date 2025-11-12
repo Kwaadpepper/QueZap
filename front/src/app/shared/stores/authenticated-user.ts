@@ -48,7 +48,7 @@ export const AuthenticatedUserStore = signalStore(
       const tokens = tokenPersistance.getTokens()
 
       if (tokens === undefined) {
-        return EMPTY
+        return of()
       }
 
       patchState(store, {
@@ -70,7 +70,7 @@ export const AuthenticatedUserStore = signalStore(
           tokenPersistance.removeTokens()
           patchState(store, initialState)
           patchState(store, { sessionExpired: true })
-          return EMPTY
+          return of()
         }),
       )
     },

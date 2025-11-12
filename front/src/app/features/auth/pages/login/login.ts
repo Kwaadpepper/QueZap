@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router } from '@angular/router'
@@ -7,7 +7,7 @@ import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
-import { firstValueFrom } from 'rxjs'
+import { catchError, firstValueFrom, tap, throwError } from 'rxjs'
 
 import { ExternalValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
@@ -26,7 +26,7 @@ import { AuthenticatedUserStore } from '@quezap/shared/stores'
   styleUrl: './login.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Login implements OnInit {
+export class Login {
   private readonly config = inject(Config)
   private readonly authenticatedUserStore = inject(AuthenticatedUserStore)
   private readonly message = inject(MessageService)
@@ -46,6 +46,7 @@ export class Login implements OnInit {
   })
 
   protected readonly isDebug = computed(() => this.config.debug())
+  protected readonly loginError = signal(false)
   protected readonly invalidCredentials = signal(false)
 
   protected readonly loginForm = form(this.loginInfo, (path) => {
@@ -55,56 +56,48 @@ export class Login implements OnInit {
     }))
   })
 
-  ngOnInit(): void {
-    if (this.authenticatedUserStore.isLoggedIn()) {
-      this.router.navigateByUrl(this.redirectUrl)
-    }
-  }
-
   protected onLogin() {
     if (this.loginForm().invalid()) {
       this.loginForm().markAsTouched()
       return
     }
 
+    this.loginError.set(false)
     this.invalidCredentials.set(false)
 
-    submit(this.loginForm, async (form) => {
-      return new Promise((resolve, reject) => {
-        firstValueFrom(
-          this.authenticatedUserStore.login(
-            form.email().value(),
-            form.password().value(),
-          ).pipe(takeUntilDestroyed(this.destroyRef)),
-        ).then(() => {
-          this.invalidCredentials.set(false)
-          this.resetCredentials()
-          resolve()
-          this.message.add({
-            severity: 'success',
-            summary: 'Connexion réussie',
-            closable: false,
-            life: 2000,
-          })
-          this.router.navigateByUrl(this.redirectUrl)
-        }).catch((err) => {
-          if (err instanceof ExternalValidationError) {
-            resolve(err.getErrorsForForm(form))
-            this.invalidCredentials.set(true)
-          }
-          else {
-            this.resetPassword()
-            reject(err)
+    submit(this.loginForm, async form =>
+      firstValueFrom(
+        this.authenticatedUserStore.login(
+          form.email().value(),
+          form.password().value(),
+        ).pipe(
+          takeUntilDestroyed(this.destroyRef),
+          tap(() => {
+            this.invalidCredentials.set(false)
+            this.resetCredentials()
             this.message.add({
-              severity: 'error',
-              summary: 'Erreur lors de la connexion',
-              life: 5000,
+              severity: 'success',
+              summary: 'Connexion réussie',
+              closable: false,
+              life: 2000,
             })
-          }
-          return err
-        })
-      })
-    })
+            this.router.navigateByUrl(this.redirectUrl)
+          }),
+          catchError((err) => {
+            if (err instanceof ExternalValidationError) {
+              this.invalidCredentials.set(true)
+              return throwError(() => err.getErrorsForForm(form))
+            }
+            else {
+              this.resetPassword()
+              this.loginError.set(true)
+            }
+
+            return throwError(() => err)
+          }),
+        ),
+      ),
+    )
   }
 
   protected onFillMockedCredentials() {
