@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
+import { NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
@@ -57,6 +57,9 @@ export class App {
       if (event instanceof NavigationEnd) {
         this.LoadingStatus.stop()
         this.onAdminPath.set(this.router.url.startsWith('/admin'))
+      }
+      if (event instanceof NavigationCancel) {
+        this.LoadingStatus.stop()
       }
     })
   }

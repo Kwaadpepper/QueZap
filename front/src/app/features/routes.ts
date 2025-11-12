@@ -1,10 +1,16 @@
+import { inject } from '@angular/core'
 import { Routes } from '@angular/router'
+
+import { AuthenticatedGuard } from '@quezap/core/guards'
 
 export const routes: Routes = [
   {
     path: 'admin',
     title: 'Administration',
     loadChildren: () => import('./admin/routes').then(m => m.routes),
+    canActivateChild: [
+      () => inject(AuthenticatedGuard).canActivateChild(),
+    ],
   },
   {
     path: 'auth',
