@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router'
 
-import { routes as AuthRoutes } from './auth/routes'
+import { routes as AuthRoutes } from './features/auth/routes'
 import { routes as FeatureRoutes } from './features/routes'
 
 export const routes: Routes = [

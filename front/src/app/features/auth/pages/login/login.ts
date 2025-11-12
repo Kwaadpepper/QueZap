@@ -12,7 +12,7 @@ import { ExternalValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
 
-import { Config } from '../../../core/services'
+import { Config } from '../../../../core/services'
 
 @Component({
   selector: 'quizz-login',

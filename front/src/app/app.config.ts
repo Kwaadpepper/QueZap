@@ -10,11 +10,11 @@ import Quezap from '@quezap/themes/Quezap'
 
 import { AppInitializer } from './app.initializer'
 import { routes } from './app.routes'
-import { AUTHENTICATION_SERVICE, AuthenticationMockService } from './auth/services'
 import { Config } from './core/services'
 import { DynamicTitleStrategy } from './core/strategies'
 import { ThemeMockService } from './features/admin/themes/services'
 import { THEME_SERVICE } from './features/admin/themes/services/theme'
+import { AUTHENTICATION_SERVICE, AuthenticationMockService } from './features/auth/services'
 
 if (environment.env === 'prod') {
   enableProdMode()

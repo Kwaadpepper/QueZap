@@ -3,8 +3,8 @@ import { computed, inject } from '@angular/core'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { catchError, concatMap, EMPTY, map, of, tap, throwError } from 'rxjs'
 
-import { AUTHENTICATION_SERVICE, TokenPersitance } from '@quezap/auth/services'
 import { AuthenticatedUser, AuthTokens } from '@quezap/domain/models'
+import { AUTHENTICATION_SERVICE, TokenPersitance } from '@quezap/features/auth/services'
 
 interface AuthenticatedUserState {
   _temporaryTokens?: AuthTokens
