@@ -3,7 +3,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
+import { Button } from 'primeng/button'
 import { Divider } from 'primeng/divider'
+import { Drawer } from 'primeng/drawer'
 import { ImageModule } from 'primeng/image'
 import { Toast } from 'primeng/toast'
 
@@ -27,6 +29,8 @@ import { Debugbar, LoadingBar } from './shared/components'
     SiteNav,
     Divider,
     Footer,
+    Drawer,
+    Button,
   ],
   providers: [MessageService],
   templateUrl: './app.html',
@@ -37,6 +41,7 @@ export class App {
   private readonly LoadingStatus = inject(LoadingStatus)
   protected readonly layout = inject(LayoutSettings)
 
+  protected readonly drawerVisible = signal(false)
   protected readonly onAdminPath = signal(false)
 
   constructor() {
@@ -51,5 +56,9 @@ export class App {
         this.onAdminPath.set(this.router.url.startsWith('/admin'))
       }
     })
+  }
+
+  protected toggleDrawer() {
+    this.drawerVisible.update(v => !v)
   }
 }
