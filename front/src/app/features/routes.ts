@@ -1,13 +1,19 @@
 import { Routes } from '@angular/router'
 
-import { routes as ActivationRoutes } from './activation/routes'
-import { routes as AdminRoutes } from './admin/routes'
-
 export const routes: Routes = [
   {
     path: 'admin',
     title: 'Administration',
-    children: AdminRoutes,
+    loadChildren: () => import('./admin/routes').then(m => m.routes),
   },
-  ...ActivationRoutes,
+  {
+    path: 'auth',
+    title: 'Authentification',
+    loadChildren: () => import('./auth/routes').then(m => m.routes),
+  },
+  {
+    path: 'activation',
+    title: 'Activation du compte',
+    loadChildren: () => import('./activation/routes').then(m => m.routes),
+  },
 ]
