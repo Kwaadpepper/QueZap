@@ -52,11 +52,9 @@ export class App {
   constructor() {
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationStart) {
-        console.log('NavigationStart', event.url)
         this.LoadingStatus.start()
       }
       if (event instanceof NavigationEnd) {
-        console.log('NavigationEnd', event.url)
         this.LoadingStatus.stop()
         this.onAdminPath.set(this.router.url.startsWith('/admin'))
       }
