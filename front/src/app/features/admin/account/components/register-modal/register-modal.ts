@@ -36,15 +36,11 @@ export class RegisterModal {
 
   private readonly userInfo = signal({
     email: '',
-    username: '',
   })
 
   protected readonly registerForm = form(this.userInfo, (path) => {
     validateStandardSchema(path, zod.object({
       email: zod.email('Email invalide'),
-      username: zod.string()
-        .min(3, '3 caractères minimum')
-        .max(20, '20 caractères maximum'),
     }))
   })
 
@@ -53,7 +49,6 @@ export class RegisterModal {
   protected onModalHide() {
     this.userInfo.set({
       email: '',
-      username: '',
     })
     this.registerForm().reset()
   }
@@ -68,7 +63,6 @@ export class RegisterModal {
       return new Promise((resolve, reject) => {
         firstValueFrom(this.registerService.register(
           form.email().value(),
-          form.username().value(),
         )).then(() => {
           this.message.add({
             severity: 'success',
