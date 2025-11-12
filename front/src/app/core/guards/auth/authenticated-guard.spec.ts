@@ -1,6 +1,6 @@
 import { computed, signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
-import { Router } from '@angular/router'
+import { Router, UrlTree } from '@angular/router'
 
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
 
@@ -23,7 +23,7 @@ describe('AuthenticatedGuard', () => {
         {
           provide: Router,
           useValue: {
-            parseUrl: (url: string) => url !== '/auth/login',
+            parseUrl: jest.fn<UrlTree, [string]>(() => new UrlTree()),
           },
         },
       ],
@@ -45,12 +45,12 @@ describe('AuthenticatedGuard', () => {
       expect(result).toBe(true)
     })
 
-    it('should return false when user is not logged in', () => {
+    it('should return UrlTree when user is not logged in', () => {
       isLoggedInSignal.set(false)
 
       const result = guard.canActivate()
 
-      expect(result).toBe(false)
+      expect(result).toBeInstanceOf(UrlTree)
     })
   })
 
@@ -63,12 +63,12 @@ describe('AuthenticatedGuard', () => {
       expect(result).toBe(true)
     })
 
-    it('should return false when user is not logged in', () => {
+    it('should return UrlTree when user is not logged in', () => {
       isLoggedInSignal.set(false)
 
       const result = guard.canActivateChild()
 
-      expect(result).toBe(false)
+      expect(result).toBeInstanceOf(UrlTree)
     })
   })
 })
