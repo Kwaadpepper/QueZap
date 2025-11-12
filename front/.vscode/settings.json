@@ -37,6 +37,10 @@
   "files.associations": {
     "*.css": "tailwindcss"
   },
+  "stylelint.validate": [
+    "css",
+    "tailwindcss"
+  ],
   "tailwindCSS.includeLanguages": {
     "plaintext": "html"
   },
