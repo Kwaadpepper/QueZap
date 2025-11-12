@@ -15,7 +15,15 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "paths": {
+      "@quezap/env/*": ["./src/environments/*"],
+      "@quezap/themes/*": ["./src/themes/*"],
+      "@quezap/domain/*": ["./src/app/domain/*"],
+      "@quezap/core/*": ["./src/app/core/*"],
+      "@quezap/features/*": ["./src/app/features/*"],
+      "@quezap/shared/*": ["./src/app/shared/*"],
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
