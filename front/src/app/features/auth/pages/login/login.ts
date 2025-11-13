@@ -9,7 +9,7 @@ import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, tap, throwError } from 'rxjs'
 
-import { ExternalValidationError } from '@quezap/core/errors'
+import { ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
@@ -85,7 +85,7 @@ export class Login {
             this.router.navigateByUrl(this.redirectUrl)
           }),
           catchError((err) => {
-            if (err instanceof ExternalValidationError) {
+            if (err instanceof ValidationError) {
               this.invalidCredentials.set(true)
               return throwError(() => err.getErrorsForForm(form))
             }

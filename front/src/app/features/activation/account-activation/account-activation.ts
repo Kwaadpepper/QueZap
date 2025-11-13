@@ -5,7 +5,7 @@ import { MessageService } from 'primeng/api'
 import { ProgressSpinnerModule } from 'primeng/progressspinner'
 import { firstValueFrom } from 'rxjs'
 
-import { ExternalValidationError } from '@quezap/core/errors'
+import { ValidationError } from '@quezap/core/errors'
 
 import { ACCOUNT_ACTIVATION_SERVICE, AccountActivationMockService } from '../services'
 
@@ -57,7 +57,7 @@ export class AccountActivation implements OnInit {
         this.router.navigateByUrl('/auth/login')
       })
       .catch((error) => {
-        if (error instanceof ExternalValidationError) {
+        if (error instanceof ValidationError) {
           this.message.add({
             severity: 'error',
             summary: 'Échec de l\'activation',

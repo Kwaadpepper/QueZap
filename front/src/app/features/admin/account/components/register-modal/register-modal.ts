@@ -7,7 +7,7 @@ import { Dialog } from 'primeng/dialog'
 import { InputText } from 'primeng/inputtext'
 import { firstValueFrom } from 'rxjs'
 
-import { ExternalValidationError } from '@quezap/core/errors'
+import { ValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 import { FieldError } from '@quezap/shared/directives'
 
@@ -73,7 +73,7 @@ export class RegisterModal {
           resolve()
           this.visible.set(false)
         }).catch((err) => {
-          if (err instanceof ExternalValidationError) {
+          if (err instanceof ValidationError) {
             resolve(err.getErrorsForForm(form))
           }
           else {

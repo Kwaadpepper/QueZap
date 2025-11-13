@@ -1,8 +1,8 @@
 import { ZodError } from 'zod'
 
-import { ExternalValidationError } from '../errors/external-validation-error'
+import { ValidationError } from '../errors/validation-error'
 
-export function zodToExternalValidationError(error: ZodError): ExternalValidationError {
+export function zodToExternalValidationError(error: ZodError): ValidationError {
   const validationErrors: Record<string, string[]> = {}
 
   for (const issue of error.issues) {
@@ -13,5 +13,5 @@ export function zodToExternalValidationError(error: ZodError): ExternalValidatio
     validationErrors[fieldPath].push(issue.message)
   }
 
-  return new ExternalValidationError(validationErrors)
+  return new ValidationError(validationErrors)
 }

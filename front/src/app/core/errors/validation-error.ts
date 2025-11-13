@@ -1,22 +1,27 @@
 import { FieldTree, ValidationError as SignalValidationError, ValidationErrorWithOptionalField } from '@angular/forms/signals'
 
-interface ValidationError extends SignalValidationError {
+import { ServiceError } from './service-error'
+
+interface FormValidationError extends SignalValidationError {
   kind: 'external'
   message: string
 }
 
-export class ExternalValidationError extends Error {
-  private readonly errors: Map<string, ValidationError[]>
+export class ValidationError extends ServiceError {
+  public static override readonly name: string = 'ValidationError'
+  public static override readonly code: number = 422
 
-  public constructor(errors: Record<string, string[]>) {
-    super('Validation error')
+  private readonly errors: Map<string, FormValidationError[]>
+
+  public constructor(errors: Record<string, string[]>, message = 'The provided data is invalid.') {
+    super(message)
     this.errors = new Map(
       Object.entries(errors)
         .map(([key, value]) => [key, value.map(this.errorMapper)]),
     )
   }
 
-  public getErrors(): Map<string, ValidationError[]> {
+  public getErrors(): Map<string, FormValidationError[]> {
     return new Map(
       [...this.errors.entries()]
         .map(([key, value]) => [key, value.map(this.copyError)]),
@@ -39,14 +44,14 @@ export class ExternalValidationError extends Error {
     return result
   }
 
-  private errorMapper(message: string): ValidationError {
+  private errorMapper(message: string): FormValidationError {
     return {
       kind: 'external',
       message,
     }
   }
 
-  private copyError(error: ValidationError): ValidationError {
+  private copyError(error: FormValidationError): FormValidationError {
     return { ...error }
   }
 }
