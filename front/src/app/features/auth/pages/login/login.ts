@@ -7,7 +7,7 @@ import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
-import { catchError, firstValueFrom, tap, throwError } from 'rxjs'
+import { catchError, firstValueFrom, of, tap, throwError } from 'rxjs'
 
 import { ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
@@ -87,12 +87,11 @@ export class Login {
           catchError((err) => {
             if (err instanceof ValidationError) {
               this.invalidCredentials.set(true)
-              return throwError(() => err.getErrorsForForm(form))
+              return of(err.getErrorsForForm(form))
             }
-            else {
-              this.resetPassword()
-              this.loginError.set(true)
-            }
+
+            this.resetPassword()
+            this.loginError.set(true)
 
             return throwError(() => err)
           }),

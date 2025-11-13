@@ -5,17 +5,18 @@ import { Field, form, submit, validateStandardSchema } from '@angular/forms/sign
 import { Button } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
-import { firstValueFrom, of } from 'rxjs'
+import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
 import { BackButton } from '@quezap/shared/components'
+import { FieldError } from '@quezap/shared/directives'
 
 import { AUTHENTICATION_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-forgotten-password',
-  imports: [InputText, Field, Button, Message, BackButton],
+  imports: [InputText, Field, Button, Message, BackButton, FieldError],
   templateUrl: './forgotten-password.html',
 })
 export class ForgottenPassword {
@@ -50,24 +51,26 @@ export class ForgottenPassword {
     this.hasBeenAskedToReset.set(false)
     this.errorHasOccured.set(false)
 
-    submit(this.resetForm, async (form) => {
-      return new Promise((resolve, reject) => {
-        firstValueFrom(
-          this.authenticationService.askToResetPassword(
-            form.email().value(),
-          ).pipe(takeUntilDestroyed(this.destroyRef)),
-        ).then(() => {
-          this.resetForm()
-          resolve()
-          this.hasBeenAskedToReset.set(true)
-        }).catch((err) => {
-          this.resetFormInput()
-          reject(err)
-          this.errorHasOccured.set(true)
-          return of(null)
-        })
-      })
-    })
+    submit(this.resetForm, async form =>
+      firstValueFrom(
+        this.authenticationService.askToResetPassword(
+          form.email().value(),
+        ).pipe(
+          takeUntilDestroyed(this.destroyRef),
+          tap(() => {
+            this.resetFormInput()
+            this.resetForm().reset()
+            this.hasBeenAskedToReset.set(true)
+          }),
+          catchError(() => {
+            this.resetForm().reset()
+            this.resetFormInput()
+            this.errorHasOccured.set(true)
+            return of(null)
+          }),
+        ),
+      ),
+    )
   }
 
   protected onFillMockedValue() {
