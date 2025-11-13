@@ -1,0 +1,28 @@
+:host {
+  display: contents;
+}
+
+button {
+  position: fixed;
+  z-index: 200;
+  top: calc(100% - 4rem);
+  right: 1rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 1.5rem;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: visibility 1s 1s, opacity 0.5s linear;
+  visibility: hidden;
+
+  &:hover {
+      cursor: pointer;
+  }
+
+  &.show {
+      opacity: 1;
+      transition: visibility 1s, opacity 0.5s linear;
+      visibility: visible;
+  }
+}

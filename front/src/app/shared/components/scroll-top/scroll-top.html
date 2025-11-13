@@ -1,0 +1,11 @@
+<button
+  pButton
+  class="px-2 py-0"
+  title="Remonter en haut de la page"
+  [class.show]="showButton()"
+  (click)="onScrollTopClick()"
+>
+  <span pButtonLabel>
+    <i class="pi pi-arrow-up"></i>
+  </span>
+</button>

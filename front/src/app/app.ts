@@ -15,7 +15,7 @@ import { LayoutSettings } from './core/services'
 import { LogoutButton } from './features/auth/components'
 import { Footer } from './layout/footer/footer'
 import { AdminNav, SiteNav } from './layout/navigation'
-import { Debugbar, LoadingBar } from './shared/components'
+import { Debugbar, LoadingBar, ScrollTopComponent } from './shared/components'
 import { AuthenticatedUserStore } from './shared/stores'
 
 @Component({
@@ -34,6 +34,7 @@ import { AuthenticatedUserStore } from './shared/stores'
     Drawer,
     Button,
     LogoutButton,
+    ScrollTopComponent,
   ],
   providers: [MessageService],
   templateUrl: './app.html',
