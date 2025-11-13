@@ -1,7 +1,11 @@
 <div class="flex flex-col justify-center items-center h-full">
   <h1 class="mb-5">Connexion</h1>
 
-  <form class="flex flex-col justify-center" (submit)="onLogin(); $event.preventDefault()">
+  <form
+    class="flex flex-col justify-center"
+    [inert]="this.loginForm().submitting()"
+    (submit)="onLogin(); $event.preventDefault()"
+  >
     @if (this.loginError()) {
     <div class="mb-4">
       <p-message severity="error" closable="true">
