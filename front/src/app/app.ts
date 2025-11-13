@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 import { Drawer } from 'primeng/drawer'
@@ -36,7 +35,6 @@ import { AuthenticatedUserStore } from './shared/stores'
     LogoutButton,
     ScrollTopComponent,
   ],
-  providers: [MessageService],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
