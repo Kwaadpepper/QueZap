@@ -53,7 +53,7 @@ export class ForgottenPassword {
     submit(this.resetForm, async (form) => {
       return new Promise((resolve, reject) => {
         firstValueFrom(
-          this.authenticationService.resetPassword(
+          this.authenticationService.askToResetPassword(
             form.email().value(),
           ).pipe(takeUntilDestroyed(this.destroyRef)),
         ).then(() => {

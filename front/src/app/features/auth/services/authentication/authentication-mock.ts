@@ -112,7 +112,7 @@ export class AuthenticationMockService implements AuthenticationService {
     return response
   }
 
-  resetPassword(email: string): Observable<void> {
+  askToResetPassword(email: string): Observable<void> {
     const response = new Subject<void>()
 
     validationAskResetPasswordSchema

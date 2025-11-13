@@ -20,7 +20,7 @@ export interface AuthenticationService {
 
   me(): Observable<AuthenticatedUser>
 
-  resetPassword(email: string): Observable<void>
+  askToResetPassword(email: string): Observable<void>
 }
 
 export const AUTHENTICATION_SERVICE = new InjectionToken<AuthenticationService>('AuthenticationService')
