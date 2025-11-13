@@ -8,7 +8,11 @@
   [(visible)]="visible"
 >
   <ng-template #content>
-    <form class="flex flex-col justify-center" (submit)="onRegister(); $event.preventDefault()">
+    <form
+      class="flex flex-col justify-center"
+      [inert]="this.registerForm().submitting()"
+      (submit)="onRegister(); $event.preventDefault()"
+    >
       <span class="p-text-secondary block mb-8">
         <p>Pour créer une partie <strong>vous devez posséder un compte</strong>.</p>
         <p>
