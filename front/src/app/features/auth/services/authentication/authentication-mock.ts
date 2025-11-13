@@ -11,6 +11,9 @@ const validationLoginSchema = zod.object({
   password: zod.string().refine(v => v === 'password'),
 })
 const validationRefreshSchema = zod.jwt()
+const validationAskResetPasswordSchema = zod.object({
+  email: zod.email().refine(v => v === 'user@example.net'),
+})
 
 export class AuthenticationMockService implements AuthenticationService {
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
@@ -106,6 +109,33 @@ export class AuthenticationMockService implements AuthenticationService {
       response.next({ ...this.MOCKED_USER })
       response.complete()
     }, this.MOCK_DELAY())
+    return response
+  }
+
+  resetPassword(email: string): Observable<void> {
+    const response = new Subject<void>()
+
+    validationAskResetPasswordSchema
+      .safeParseAsync({ email })
+      .then((result) => {
+        setTimeout(() => {
+          if (!result.success) {
+            response.error(
+              zodToExternalValidationError(result.error),
+            )
+            return
+          }
+
+          if (Math.random() < 0.2) {
+            response.error(new Error('Ask to reset failed due to network error'))
+            return
+          }
+
+          response.next()
+          response.complete()
+        }, this.MOCK_DELAY())
+      })
+
     return response
   }
 

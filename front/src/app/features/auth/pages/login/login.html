@@ -38,7 +38,7 @@
         [field]="loginForm.password"
       />
     </div>
-    <div class="flex justify-center gap-2 relative">
+    <div class="flex justify-center gap-2 relative mb-5">
       @if(isDebug()) {
       <p-button
         type="button"
@@ -61,6 +61,14 @@
         <i class="pi pi-cog pi-spin" pButtonIcon></i>
         }
       </p-button>
+    </div>
+
+    <div class="flex justify-center gap-2 relative">
+      <p class="sm:w-80">
+        Mince ! <br />
+        J'ai oublié et je veux
+        <a routerLink="/auth/reset"> rénitialiser mon mot de passe</a>
+      </p>
     </div>
   </form>
 </div>

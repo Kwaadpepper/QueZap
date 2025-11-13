@@ -19,6 +19,8 @@ export interface AuthenticationService {
   logout(): Observable<void>
 
   me(): Observable<AuthenticatedUser>
+
+  resetPassword(email: string): Observable<void>
 }
 
 export const AUTHENTICATION_SERVICE = new InjectionToken<AuthenticationService>('AuthenticationService')
