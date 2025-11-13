@@ -1,6 +1,10 @@
-import { Observable, Subject } from 'rxjs'
+import { HttpErrorResponse } from '@angular/common/http'
 
+import { Subject } from 'rxjs'
+
+import { ValidationError } from '@quezap/core/errors'
 import { zod, zodToExternalValidationError } from '@quezap/core/tools'
+import { ServiceOutput, Tried } from '@quezap/core/types'
 import { AuthenticatedUser } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
 
@@ -15,126 +19,191 @@ const validationAskResetPasswordSchema = zod.object({
   email: zod.email().refine(v => v === 'user@example.net'),
 })
 
+const validationVerifyResetTokenSchema = zod.jwt()
+
+const validationResetPasswordSchema = zod.object({
+  token: zod.jwt(),
+  newPassword: zod.string().min(8),
+})
+
 export class AuthenticationMockService implements AuthenticationService {
+  private readonly MOCK_ERROR = () => Math.random() < 0.2
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
   private readonly MOCKED_USER: AuthenticatedUser = {
     uuid: '123e4567-e89b-12d3-a456-426614174000',
     pseudo: 'Jane Doe',
   }
 
-  login(email: string, password: string): Observable<AuthTokens> {
-    const response = new Subject<AuthTokens>()
-
-    validationLoginSchema
-      .safeParseAsync({ email, password })
-      .then((result) => {
-        setTimeout(() => {
-          if (!result.success) {
-            response.error(
-              zodToExternalValidationError(result.error),
-            )
-            return
-          }
-
-          if (Math.random() < 0.2) {
-            response.error(new Error('Login failed due to network error'))
-            return
-          }
-
-          response.next({
-            accessToken: this.randomJwtToken(),
-            refreshToken: this.randomJwtToken(),
-          })
-          response.complete()
-        }, this.MOCK_DELAY())
-      })
-
-    return response
-  }
-
-  refresh(tokens: AuthTokens): Observable<AuthTokens> {
-    const response = new Subject<AuthTokens>()
-
-    validationRefreshSchema
-      .safeParseAsync(this.randomJwtToken())
-      .then((result) => {
-        setTimeout(() => {
-          if (!result.success) {
-            response.error(
-              zodToExternalValidationError(result.error),
-            )
-            return
-          }
-
-          if (Math.random() < 0.2) {
-            response.error(new Error('Login failed due to network error'))
-            return
-          }
-
-          response.next({
-            accessToken: this.randomJwtToken(),
-            refreshToken: tokens.refreshToken,
-          })
-          response.complete()
-        }, this.MOCK_DELAY())
-      })
-
-    return response
-  }
-
-  logout(): Observable<void> {
-    const response = new Subject<void>()
+  login(email: string, password: string): ServiceOutput<AuthTokens> {
+    const response = new Subject<Tried<AuthTokens>>()
 
     setTimeout(() => {
-      if (Math.random() < 0.2) {
-        response.error(new Error('Logout failed due to network error'))
+      const result = validationLoginSchema.safeParse({ email, password })
+      if (!result.success) {
+        response.next(zodToExternalValidationError(result.error))
+        response.complete()
         return
       }
 
-      response.next()
+      if (this.MOCK_ERROR()) {
+        response.error(new HttpErrorResponse({}))
+        return
+      }
+
+      response.next({
+        kind: 'success',
+        result: {
+          accessToken: this.randomJwtToken(),
+          refreshToken: this.randomJwtToken(),
+        },
+      })
       response.complete()
     }, this.MOCK_DELAY())
 
     return response
   }
 
-  me(): Observable<AuthenticatedUser> {
-    const response = new Subject<AuthenticatedUser>()
+  refresh(tokens: AuthTokens): ServiceOutput<AuthTokens> {
+    const response = new Subject<Tried<AuthTokens>>()
+
     setTimeout(() => {
-      // Simulate a 20% chance of network error
-      if (Math.random() < 0.2) {
-        response.error(new Error('Failed to fetch user info due to network error'))
+      const result = validationRefreshSchema.safeParse(tokens.refreshToken)
+      if (!result.success) {
+        response.next(zodToExternalValidationError(result.error))
+        response.complete()
         return
       }
-      response.next({ ...this.MOCKED_USER })
+
+      if (this.MOCK_ERROR()) {
+        response.error(new HttpErrorResponse({}))
+        return
+      }
+
+      response.next({
+        kind: 'success',
+        result: {
+          accessToken: this.randomJwtToken(),
+          refreshToken: tokens.refreshToken,
+        },
+      })
+      response.complete()
+    }, this.MOCK_DELAY())
+
+    return response
+  }
+
+  logout(): ServiceOutput<void> {
+    const response = new Subject<Tried<void>>()
+
+    setTimeout(() => {
+      if (this.MOCK_ERROR()) {
+        response.error(new HttpErrorResponse({}))
+        return
+      }
+
+      response.next({
+        kind: 'success',
+        result: void 0,
+      })
+      response.complete()
+    }, this.MOCK_DELAY())
+
+    return response
+  }
+
+  me(): ServiceOutput<AuthenticatedUser> {
+    const response = new Subject<Tried<AuthenticatedUser>>()
+    setTimeout(() => {
+      if (this.MOCK_ERROR()) {
+        response.error(new HttpErrorResponse({}))
+        return
+      }
+      response.next({
+        kind: 'success',
+        result: { ...this.MOCKED_USER },
+      })
       response.complete()
     }, this.MOCK_DELAY())
     return response
   }
 
-  askToResetPassword(email: string): Observable<void> {
-    const response = new Subject<void>()
+  askToResetPassword(email: string): ServiceOutput<void> {
+    const response = new Subject<Tried<void>>()
 
-    validationAskResetPasswordSchema
-      .safeParseAsync({ email })
-      .then((result) => {
-        setTimeout(() => {
-          if (!result.success) {
-            response.error(
-              zodToExternalValidationError(result.error),
-            )
-            return
-          }
+    const result = validationAskResetPasswordSchema.safeParse({ email })
+    setTimeout(() => {
+      if (!result.success) {
+        response.next(zodToExternalValidationError(result.error))
+        response.complete()
+        return
+      }
 
-          if (Math.random() < 0.2) {
-            response.error(new Error('Ask to reset failed due to network error'))
-            return
-          }
+      if (this.MOCK_ERROR()) {
+        response.error(new HttpErrorResponse({}))
+        return
+      }
 
-          response.next()
-          response.complete()
-        }, this.MOCK_DELAY())
+      response.next({
+        kind: 'success',
+        result: void 0,
       })
+      response.complete()
+    }, this.MOCK_DELAY())
+
+    return response
+  }
+
+  verifyResetToken(token: string): ServiceOutput<void> {
+    const response = new Subject<Tried<void>>()
+
+    setTimeout(() => {
+      if (validationVerifyResetTokenSchema.safeParse(token).success === false) {
+        response.next(new ValidationError({
+          token: ['The reset token is invalid'],
+        }, 'Invalid reset token'))
+        response.complete()
+        return
+      }
+
+      if (this.MOCK_ERROR()) {
+        response.error(new HttpErrorResponse({}))
+        response.complete()
+        return
+      }
+
+      response.next({
+        kind: 'success',
+        result: void 0,
+      })
+      response.complete()
+    }, this.MOCK_DELAY())
+
+    return response
+  }
+
+  resetPassword(token: string, newPassword: string): ServiceOutput<void> {
+    const response = new Subject<Tried<void>>()
+
+    setTimeout(() => {
+      const parseResult = validationResetPasswordSchema.safeParse({ token, newPassword })
+      if (parseResult.success === false) {
+        response.next(zodToExternalValidationError(parseResult.error))
+        response.complete()
+        return
+      }
+
+      if (this.MOCK_ERROR()) {
+        response.error(new HttpErrorResponse({}))
+        response.complete()
+        return
+      }
+
+      response.next({
+        kind: 'success',
+        result: void 0,
+      })
+      response.complete()
+    }, this.MOCK_DELAY())
 
     return response
   }

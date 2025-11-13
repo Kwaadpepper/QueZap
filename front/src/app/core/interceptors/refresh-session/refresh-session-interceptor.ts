@@ -33,19 +33,19 @@ export const refreshSessionInterceptor: HttpInterceptorFn = (req, next) => {
         && currentTokens
         && !req.context.get(IS_REFRESHING_ACCESS_TOKEN)
       ) {
-        // Pour éviter une boucle infinie de rafraîchissement, nous vérifions
-        // généralement si la requête elle-même n'est pas déjà celle de rafraîchissement.
-        // Ici, nous supposons que le service d'authentification gère cela,
-        // mais une vérification d'URL est souvent nécessaire en production.
-
-        // Utiliser switchMap pour passer de l'erreur à l'Observable de rafraîchissement
         return store.refresh().pipe(
           // Retry once if refresh fails
           retry(1),
-          switchMap((newTokens) => {
+          switchMap(() => {
+            const currentTokens = store.currentTokens()
+
+            if (!currentTokens) {
+              return throwError(() => error)
+            }
+
             return next(
               // Replay with new auth header
-              cloneRequestWithAuthHeader(req, newTokens),
+              cloneRequestWithAuthHeader(req, currentTokens),
             )
           }),
           catchError((refreshError) => {

@@ -3,6 +3,7 @@ import { computed, inject } from '@angular/core'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { catchError, concatMap, map, of, tap, throwError } from 'rxjs'
 
+import { isFailure } from '@quezap/core/types'
 import { AuthenticatedUser, AuthTokens } from '@quezap/domain/models'
 import { AUTHENTICATION_SERVICE, TokenPersitance } from '@quezap/features/auth/services'
 
@@ -57,15 +58,22 @@ export const AuthenticatedUserStore = signalStore(
       })
 
       return authService.me().pipe(
-        tap((user) => {
+        concatMap((maybeUser) => {
+          if (isFailure(maybeUser)) {
+            return throwError(() => maybeUser.error)
+          }
+
+          const user = maybeUser.result
+
           patchState(store, {
             _authenticated: { user, tokens },
             _temporaryTokens: undefined,
             authenticating: false,
             sessionExpired: false,
           })
+
+          return of(undefined)
         }),
-        map(() => { return }),
         catchError((err) => {
           tokenPersistance.removeTokens()
           patchState(store, initialState)
@@ -80,16 +88,26 @@ export const AuthenticatedUserStore = signalStore(
 
       return of({ email, password }).pipe(
         concatMap(credentials => authService.login(credentials.email, credentials.password)),
-        tap((tokens) => {
+        concatMap((maybeTokens) => {
+          if (isFailure(maybeTokens)) {
+            return throwError(() => maybeTokens.error)
+          }
+
+          const tokens = maybeTokens.result
           tokenPersistance.saveTokens(tokens)
           patchState(store, { _temporaryTokens: tokens })
+
+          return authService.me().pipe(
+            concatMap((maybeUser) => {
+              if (isFailure(maybeUser)) {
+                return throwError(() => maybeUser.error)
+              }
+
+              const user = maybeUser.result
+              return of({ tokens, user })
+            }),
+          )
         }),
-        concatMap(tokens => authService.me().pipe(
-          map(user => ({
-            tokens,
-            user,
-          })),
-        )),
 
         tap(({ tokens, user }) => {
           patchState(store, {
@@ -113,9 +131,14 @@ export const AuthenticatedUserStore = signalStore(
 
     logout: () => {
       return authService.logout().pipe(
-        tap(() => {
+        concatMap((maybeVoid) => {
+          if (isFailure(maybeVoid)) {
+            return throwError(() => maybeVoid.error)
+          }
+
           tokenPersistance.removeTokens()
           patchState(store, initialState)
+          return of(undefined)
         }),
         catchError((err) => {
           console.error('Logout service failed, but forcing local state reset.', err)
@@ -138,7 +161,12 @@ export const AuthenticatedUserStore = signalStore(
       return authService
         .refresh(currentAuth.tokens)
         .pipe(
-          tap((newTokens: AuthTokens) => {
+          concatMap((maybeTokens) => {
+            if (isFailure(maybeTokens)) {
+              return throwError(() => maybeTokens.error)
+            }
+
+            const newTokens: AuthTokens = maybeTokens.result
             tokenPersistance.saveTokens(newTokens)
             patchState(store, {
               _authenticated: {
@@ -147,6 +175,8 @@ export const AuthenticatedUserStore = signalStore(
               },
               sessionExpired: false,
             })
+
+            return of(undefined)
           }),
           catchError((err) => {
             tokenPersistance.removeTokens()

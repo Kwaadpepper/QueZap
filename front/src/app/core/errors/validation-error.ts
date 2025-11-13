@@ -1,5 +1,7 @@
 import { FieldTree, ValidationError as SignalValidationError, ValidationErrorWithOptionalField } from '@angular/forms/signals'
 
+import { Failure } from '../types'
+
 import { ServiceError } from './service-error'
 
 interface FormValidationError extends SignalValidationError {
@@ -7,9 +9,11 @@ interface FormValidationError extends SignalValidationError {
   message: string
 }
 
-export class ValidationError extends ServiceError {
+export class ValidationError extends ServiceError implements Failure<ValidationError> {
   public static override readonly name: string = 'ValidationError'
   public static override readonly code: number = 422
+
+  public override readonly error: ValidationError
 
   private readonly errors: Map<string, FormValidationError[]>
 
@@ -19,6 +23,7 @@ export class ValidationError extends ServiceError {
       Object.entries(errors)
         .map(([key, value]) => [key, value.map(this.errorMapper)]),
     )
+    this.error = this
   }
 
   public getErrors(): Map<string, FormValidationError[]> {
