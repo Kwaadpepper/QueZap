@@ -2,6 +2,7 @@ import { signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { Router } from '@angular/router'
 
+import { MessageService } from 'primeng/api'
 import { of } from 'rxjs'
 
 import { ForbidenError } from '@quezap/core/errors'
@@ -28,8 +29,12 @@ describe('ResetPassword', () => {
     }),
   }
 
+  const message$ = {
+    add: jest.fn<void, [unknown]>(),
+  }
+
   const verifyResetSeviceFails = signal(false)
-  const authService: Pick<AuthenticationService, 'verifyResetToken'> = {
+  const auth$: Pick<AuthenticationService, 'verifyResetToken'> = {
     verifyResetToken: jest.fn(() => {
       if (verifyResetSeviceFails()) {
         return of({
@@ -51,14 +56,9 @@ describe('ResetPassword', () => {
     await TestBed.configureTestingModule({
       imports: [ResetPassword],
       providers: [
-        {
-          provide: Router,
-          useValue: router,
-        },
-        {
-          provide: AUTHENTICATION_SERVICE,
-          useValue: authService,
-        },
+        { provide: Router, useValue: router },
+        { provide: AUTHENTICATION_SERVICE, useValue: auth$ },
+        { provide: MessageService, useValue: message$ },
       ],
     })
       .compileComponents()
@@ -93,7 +93,7 @@ describe('ResetPassword', () => {
     createComponent()
 
     // THEN
-    expect(authService.verifyResetToken).toHaveBeenCalledWith(validJwtToken)
+    expect(auth$.verifyResetToken).toHaveBeenCalledWith(validJwtToken)
   })
 
   it('should show a message if the token is invalid', () => {
@@ -115,7 +115,7 @@ describe('ResetPassword', () => {
     createComponent()
 
     // THEN
-    expect(authService.verifyResetToken).not.toHaveBeenCalled()
+    expect(auth$.verifyResetToken).not.toHaveBeenCalled()
   })
 
   it('should show an error message if the token verification fails', async () => {

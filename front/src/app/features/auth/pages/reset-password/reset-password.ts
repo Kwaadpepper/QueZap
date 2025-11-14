@@ -2,7 +2,9 @@ import { Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
-import { Message } from 'primeng/message'
+import { MessageModule } from 'primeng/message'
+import { ProgressSpinner } from 'primeng/progressspinner'
+import { catchError, finalize, firstValueFrom, retry, tap, throwError } from 'rxjs'
 
 import { ForbidenError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
@@ -13,7 +15,11 @@ import { AUTHENTICATION_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-reset-password',
-  imports: [ResetPasswordForm, Message],
+  imports: [
+    ResetPasswordForm,
+    MessageModule,
+    ProgressSpinner,
+  ],
   templateUrl: './reset-password.html',
 })
 export class ResetPassword {
@@ -23,8 +29,10 @@ export class ResetPassword {
   private readonly validTokenSchema = zod.jwt()
   protected readonly resetToken = signal('')
 
+  protected readonly verifyingToken = signal(true)
   protected readonly anErrorOccured = signal(false)
   private readonly tokenIsInvalid = signal(false)
+
   protected readonly displayForm = computed(() =>
     !this.anErrorOccured() && !this.tokenIsInvalid(),
   )
@@ -42,10 +50,11 @@ export class ResetPassword {
   }
 
   private verifyToken(token: string) {
-    this.authenticationService.verifyResetToken(token)
-      .pipe(takeUntilDestroyed())
-      .subscribe({
-        next: (result) => {
+    firstValueFrom(
+      this.authenticationService.verifyResetToken(token).pipe(
+        retry(1),
+        takeUntilDestroyed(),
+        tap((result) => {
           if (isSuccess(result)) {
             this.resetToken.set(token)
             return
@@ -54,12 +63,15 @@ export class ResetPassword {
           const isForbiddenError = result.error instanceof ForbidenError
           this.tokenIsInvalid.set(isForbiddenError)
           this.anErrorOccured.set(!isForbiddenError)
-        },
-        error: (e) => {
-        // Gère toute erreur de l'Observable lui-même (erreur technique 5xx)
-          console.error('Erreur technique de l\'Observable :', e)
-          this.anErrorOccured.set(true) // Affiche l'erreur générale
-        },
-      })
+        }),
+        catchError((err) => {
+          this.anErrorOccured.set(true)
+          return throwError(() => err)
+        }),
+        finalize(() => {
+          this.verifyingToken.set(false)
+        }),
+      ),
+    )
   }
 }
