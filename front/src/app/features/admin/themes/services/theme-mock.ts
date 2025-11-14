@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core'
 
-import { delay, map, Observable, of } from 'rxjs'
+import { delay, map, of, tap } from 'rxjs'
 
-import { PageOf, Pagination, toPageBasedPagination } from '@quezap/core/types'
+import { ServiceError } from '@quezap/core/errors'
+import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Theme } from '@quezap/domain/models'
 
 import { ThemeService } from './theme'
@@ -11,9 +12,9 @@ import { MOCK_THEMES } from './theme.mock'
 @Injectable()
 export class ThemeMockService implements ThemeService {
   private readonly MOCK_DELAY = () => Math.max(100, Math.random() * 3000)
-  private readonly NETWORK_ERROR_PROBABILITY = 0.5
+  private readonly MOCK_ERROR = () => Math.random() < 0.2
 
-  getThemePage(page: Pagination): Observable<PageOf<Theme>> {
+  getThemePage(page: Pagination): ServiceOutput<PageOf<Theme>> {
     const pagination = toPageBasedPagination(page)
     const themes: Theme[] = MOCK_THEMES.map(product => ({
       id: product.id,
@@ -36,11 +37,16 @@ export class ThemeMockService implements ThemeService {
 
     return of(pageOfThemes).pipe(
       delay(this.MOCK_DELAY()),
-      map((obs) => {
-        if (Math.random() < this.NETWORK_ERROR_PROBABILITY) {
-          throw new Error('Network error occurred while fetching themes.')
+      tap(() => {
+        if (this.MOCK_ERROR()) {
+          throw new ServiceError('Mock service error')
         }
-        return obs
+      }),
+      map((obs) => {
+        return {
+          kind: 'success',
+          result: obs,
+        }
       }),
     )
   }

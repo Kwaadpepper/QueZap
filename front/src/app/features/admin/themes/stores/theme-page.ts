@@ -3,10 +3,10 @@ import { toObservable } from '@angular/core/rxjs-interop'
 
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, pipe, retry, switchMap, tap } from 'rxjs'
+import { debounceTime, distinctUntilChanged, filter, of, pipe, retry, switchMap, tap } from 'rxjs'
 
 import { LoadingStatus } from '@quezap/core/services'
-import { pageComparator, Pagination, validatePagination } from '@quezap/core/types'
+import { isFailure, pageComparator, Pagination, validatePagination } from '@quezap/core/types'
 import { Theme } from '@quezap/domain/models'
 
 import { THEME_SERVICE } from '../services'
@@ -96,14 +96,49 @@ export const ThemePageStore = signalStore(
             // Retry twice on failure
             retry(2),
             tap({
-              next: (response) => {
+              next: (result) => {
+                if (isFailure(result)) {
+                  console.error('Error loading themes:', result.error)
+
+                  progression.stop()
+
+                  const lastSuccessfulPage = {
+                    page: store._pageMetaData().page,
+                    pageSize: store._pageMetaData().pageSize,
+                  }
+
+                  // Mark as rolling back
+                  patchState(store, { _isRollingBack: true, _isLoading: false, _doReload: false })
+
+                  // Next tick to make sure isRollingBack change is detected
+                  setTimeout(() => {
+                    patchState(store, {
+                      query: { ...lastSuccessfulPage },
+                      _pageMetaData: {
+                        ...store._pageMetaData(),
+                        page: lastSuccessfulPage.page,
+                        pageSize: lastSuccessfulPage.pageSize,
+                      },
+                    })
+
+                    // Next tick to reset isRollingBack
+                    setTimeout(() => { // NOSONAR
+                      patchState(store, { _isRollingBack: false })
+                    })
+                  }, 0)
+
+                  return of(void 0)
+                }
+
+                const pageResult = result.result
+
                 patchState(store, {
-                  pageData: response.data,
+                  pageData: pageResult.data,
                   _pageMetaData: {
-                    totalElements: response.totalElements,
-                    totalPages: response.totalPages,
-                    page: response.page,
-                    pageSize: response.pageSize,
+                    totalElements: pageResult.totalElements,
+                    totalPages: pageResult.totalPages,
+                    page: pageResult.page,
+                    pageSize: pageResult.pageSize,
                   },
                   _isLoading: false,
                   _doReload: false,
@@ -111,40 +146,9 @@ export const ThemePageStore = signalStore(
                 })
 
                 progression.stop()
+
+                return of(void 0)
               },
-            }),
-            // Gracefully handle errors
-            catchError((error) => {
-              console.error('Error loading themes:', error)
-
-              progression.stop()
-
-              const lastSuccessfulPage = {
-                page: store._pageMetaData().page,
-                pageSize: store._pageMetaData().pageSize,
-              }
-
-              // Mark as rolling back
-              patchState(store, { _isRollingBack: true, _isLoading: false, _doReload: false })
-
-              // Next tick to make sure isRollingBack change is detected
-              setTimeout(() => {
-                patchState(store, {
-                  query: { ...lastSuccessfulPage },
-                  _pageMetaData: {
-                    ...store._pageMetaData(),
-                    page: lastSuccessfulPage.page,
-                    pageSize: lastSuccessfulPage.pageSize,
-                  },
-                })
-
-                // Next tick to reset isRollingBack
-                setTimeout(() => { // NOSONAR
-                  patchState(store, { _isRollingBack: false })
-                })
-              }, 0)
-
-              return EMPTY
             }),
           )
         },
