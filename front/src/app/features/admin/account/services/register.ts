@@ -1,9 +1,9 @@
 import { InjectionToken } from '@angular/core'
 
-import { Observable } from 'rxjs'
+import { ServiceOutput } from '@quezap/core/types'
 
 export interface RegisterService {
-  register(email: string): Observable<void>
+  register(email: string): ServiceOutput<void>
 }
 
 export const REGISTER_SERVICE = new InjectionToken<RegisterService>('RegisterService')

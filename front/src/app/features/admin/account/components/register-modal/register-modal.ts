@@ -1,14 +1,15 @@
-import { Component, inject, model, signal } from '@angular/core'
+import { Component, ErrorHandler, inject, model, signal } from '@angular/core'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Dialog } from 'primeng/dialog'
 import { InputText } from 'primeng/inputtext'
-import { firstValueFrom } from 'rxjs'
+import { catchError, exhaustMap, firstValueFrom, of, throwError } from 'rxjs'
 
 import { ValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
+import { isFailure } from '@quezap/core/types'
 import { FieldError } from '@quezap/shared/directives'
 
 import { REGISTER_SERVICE, RegisterMockService } from '../../services'
@@ -33,6 +34,7 @@ import { REGISTER_SERVICE, RegisterMockService } from '../../services'
 export class RegisterModal {
   private readonly message = inject(MessageService)
   private readonly registerService = inject(REGISTER_SERVICE)
+  private readonly errorHandler = inject(ErrorHandler)
 
   private readonly userInfo = signal({
     email: '',
@@ -59,36 +61,45 @@ export class RegisterModal {
       return
     }
 
-    submit(this.registerForm, async (form) => {
-      return new Promise((resolve, reject) => {
-        firstValueFrom(this.registerService.register(
-          form.email().value(),
-        )).then(() => {
+    submit(this.registerForm, form =>
+      firstValueFrom(this.registerService.register(
+        form.email().value(),
+      ).pipe(
+        exhaustMap((result) => {
+          if (isFailure(result)) {
+            const err = result.error
+            if (err instanceof ValidationError) {
+              return of(err.getErrorsForForm(this.registerForm))
+            }
+
+            // Unexpected error
+            return throwError(() => err)
+          }
+
           this.message.add({
             severity: 'success',
             summary: 'Inscription réussie',
             detail: 'Vous allez recevoir un email contenant votre lien d\'activation',
             sticky: true,
           })
-          resolve()
           this.visible.set(false)
-        }).catch((err) => {
-          if (err instanceof ValidationError) {
-            resolve(err.getErrorsForForm(form))
-          }
-          else {
-            reject(err)
-            this.message.add({
-              severity: 'error',
-              summary: 'Erreur lors de l\'inscription',
-              detail: 'Un erreur est survenu lors de l\'envoi du formulaire',
-              life: 5000,
-            })
-          }
-          return err
-        })
-      })
-    })
+
+          return of(void 0)
+        }),
+        catchError((err) => {
+          this.message.add({
+            severity: 'error',
+            summary: 'Erreur lors de l\'inscription',
+            detail: 'Un erreur est survenu lors de l\'envoi du formulaire',
+            life: 5000,
+          })
+
+          this.errorHandler.handleError(err)
+          return of(void 0)
+        }),
+      ),
+      ),
+    )
   }
 
   protected onCancel() {
