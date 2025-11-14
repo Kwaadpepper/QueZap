@@ -21,7 +21,7 @@ export async function AppInitializer() {
         console.warn('AppInitializer: Failed to load initial state (one or more tasks failed).', err)
       }
 
-      alert('An error occurred while initializing the application. Please try reloading the page.')
+      alert('Une erreur est survenue lors du démarrage de l\'application. Veuillez essayer de rafraîchir la page.')
 
       return throwError(() => err)
     }),
