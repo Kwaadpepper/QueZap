@@ -1,6 +1,7 @@
 @import './colors.css';
 @import './links.css';
 @import './headings.css';
+@import './spinner.css';
 
 html,
 body {

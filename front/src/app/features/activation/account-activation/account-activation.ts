@@ -21,7 +21,6 @@ import { ACCOUNT_ACTIVATION_SERVICE, AccountActivationMockService } from '../ser
     },
   ],
   templateUrl: './account-activation.html',
-  styleUrl: './account-activation.css',
 })
 export class AccountActivation implements OnInit {
   private readonly router = inject(Router)
