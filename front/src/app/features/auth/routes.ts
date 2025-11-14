@@ -11,4 +11,9 @@ export const routes: Routes = [
     title: 'Mot de passe oublié',
     loadComponent: () => import('./pages/forgotten-password/forgotten-password').then(m => m.ForgottenPassword),
   },
+  {
+    path: 'reset-password',
+    title: 'Réinitialisation du mot de passe',
+    loadComponent: () => import('./pages/reset-password/reset-password').then(m => m.ResetPassword),
+  },
 ]
