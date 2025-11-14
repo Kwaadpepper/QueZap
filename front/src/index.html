@@ -13,6 +13,34 @@
     <link rel="manifest" href="/site.webmanifest" />
 
     <style>
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.6;
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-15px);
+        }
+        60% {
+          transform: translateY(-7px);
+        }
+      }
+
       #app-loading-screen {
         position: fixed;
         top: 0;
@@ -23,26 +51,81 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background-color: #ffffff;
         opacity: 1;
         z-index: 9999;
-
         transition: opacity 300ms ease-out;
+      }
+
+      .app-loading-screen-colors {
+        background-color: #ffffff;
+        color: #000000;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .app-loading-screen-colors {
+          background-color: #121212;
+          color: #ffffff;
+        }
+      }
+
+      #logo-container {
+        position: relative;
+        width: 80vw;
+        max-width: 26rem;
+        min-height: 10rem; /* Pour éviter l'affaissement avant chargement */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #loading-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        animation: pulse 1.5s infinite ease-in-out;
+        z-index: 1;
+      }
+
+      #logo-container img {
+        object-fit: contain;
+        max-width: 100%;
+        height: auto;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+
+        opacity: 0;
+
+        transition: opacity 0.5s ease-in-out;
+
+        z-index: 2;
+      }
+
+      #logo-container img:not([src='']) {
+        opacity: 1;
+
+        animation: bounce 2s infinite;
       }
     </style>
   </head>
   <body>
     <quizz-root></quizz-root>
 
-    <div id="app-loading-screen">
-      <img
-        src="images/quezap-full.svg"
-        alt="Logo de l'application"
-        style="height: 6rem; margin-bottom: 6rem"
-      />
-      <output class="spinner-border text-primary">
-        <span class="sr-only">Chargement...</span>
-      </output>
+    <div id="app-loading-screen" class="app-loading-screen-colors">
+      <div id="logo-container">
+        <span id="loading-text">Chargement...</span>
+
+        <img
+          src="images/quezap-full.svg"
+          alt="Logo de l'application"
+          class="app-loading-screen-colors"
+        />
+      </div>
     </div>
   </body>
 </html>
