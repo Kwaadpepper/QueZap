@@ -7,5 +7,6 @@ try {
   await bootstrapApplication(App, appConfig)
 }
 catch (err) {
+  console.warn('--- Fatal error during application bootstrap ---')
   console.error(err)
 }
