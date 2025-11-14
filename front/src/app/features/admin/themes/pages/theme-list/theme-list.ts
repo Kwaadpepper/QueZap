@@ -34,7 +34,6 @@ export class ThemeList {
   }
 
   onPaginationChanged(pagination: { page: number, pageSize: number }) {
-    console.debug('Pagination changed:', pagination)
     this.themePage.setPagination(pagination)
   }
 }
