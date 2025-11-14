@@ -1,11 +1,14 @@
-<p-button
-  class="p-button-text"
+<button
+  pButton
+  class="h-fit py-3"
   title="Déconnexion"
   size="small"
   severity="danger"
   text
+  size="small"
   [disabled]="running()"
-  (onClick)="onLogout()"
+  (click)="onLogout()"
+  (keydown)="onLogout()"
 >
   <span pButtonIcon aria-hidden="true">
     @if(running()) {
@@ -14,4 +17,4 @@
     <span class="pi pi-sign-out"></span>
     }
   </span>
-</p-button>
+</button>
