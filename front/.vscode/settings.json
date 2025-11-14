@@ -88,4 +88,8 @@
     "titleBar.inactiveForeground": "#e7e7e799"
   },
   "peacock.color": "#20010d",
+  "jest.runMode": {
+    "type": "on-save",
+    "testFileOnly": true
+  },
 }
