@@ -7,7 +7,7 @@ import { Dialog } from 'primeng/dialog'
 import { InputText } from 'primeng/inputtext'
 import { catchError, exhaustMap, firstValueFrom, of, throwError } from 'rxjs'
 
-import { ValidationError } from '@quezap/core/errors'
+import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 import { isFailure } from '@quezap/core/types'
 import { FieldError } from '@quezap/shared/directives'
@@ -94,7 +94,10 @@ export class RegisterModal {
             life: 5000,
           })
 
-          this.errorHandler.handleError(err)
+          this.errorHandler.handleError(
+            HandledFrontError.from(err),
+          )
+
           return of(void 0)
         }),
       ),
