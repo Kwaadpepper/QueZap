@@ -1,4 +1,13 @@
 <div class="flex flex-col justify-center items-center h-full">
   <h1 class="mb-15">Activation du compte</h1>
+  @if (errorOccurred()) {
+  <p-message severity="error">
+    <span>
+      Une erreur est survenue lors de l'activation de votre compte. Veuillez réessayer plus tard.
+    </span>
+  </p-message>
+  } @else {
+
   <p-progress-spinner strokeWidth="4" fill="transparent" animationDuration="60s" />
+  }
 </div>
