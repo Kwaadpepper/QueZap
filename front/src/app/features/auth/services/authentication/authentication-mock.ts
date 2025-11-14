@@ -1,12 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http'
+import { inject } from '@angular/core'
 
 import { Subject } from 'rxjs'
 
 import { ValidationError } from '@quezap/core/errors'
+import { UnauthorizedError } from '@quezap/core/errors/unauthorized-error'
 import { zod, zodToExternalValidationError } from '@quezap/core/tools'
 import { ServiceOutput, Tried } from '@quezap/core/types'
 import { AuthenticatedUser } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
+import { TokenPersitance } from '@quezap/features/auth/services'
 
 import { AuthenticationService } from './authentication'
 
@@ -33,6 +36,8 @@ export class AuthenticationMockService implements AuthenticationService {
     uuid: '123e4567-e89b-12d3-a456-426614174000',
     pseudo: 'Jane Doe',
   }
+
+  private readonly tokenPersitance = inject(TokenPersitance)
 
   login(email: string, password: string): ServiceOutput<AuthTokens> {
     const response = new Subject<Tried<AuthTokens>>()
@@ -113,17 +118,28 @@ export class AuthenticationMockService implements AuthenticationService {
 
   me(): ServiceOutput<AuthenticatedUser> {
     const response = new Subject<Tried<AuthenticatedUser>>()
+    const hasTokens = this.tokenPersitance.getTokens() !== undefined
+
     setTimeout(() => {
       if (this.MOCK_ERROR()) {
         response.error(new HttpErrorResponse({}))
+        response.complete()
         return
       }
+
+      if (!hasTokens) {
+        response.next(new UnauthorizedError())
+        response.complete()
+        return
+      }
+
       response.next({
         kind: 'success',
         result: { ...this.MOCKED_USER },
       })
       response.complete()
     }, this.MOCK_DELAY())
+
     return response
   }
 

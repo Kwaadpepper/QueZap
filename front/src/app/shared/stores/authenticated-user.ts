@@ -49,7 +49,7 @@ export const AuthenticatedUserStore = signalStore(
       const tokens = tokenPersistance.getTokens()
 
       if (tokens === undefined) {
-        return of(undefined)
+        return of(void 0)
       }
 
       patchState(store, {
@@ -60,6 +60,9 @@ export const AuthenticatedUserStore = signalStore(
       return authService.me().pipe(
         concatMap((maybeUser) => {
           if (isFailure(maybeUser)) {
+            tokenPersistance.removeTokens()
+            patchState(store, initialState)
+            patchState(store, { sessionExpired: true })
             return throwError(() => maybeUser.error)
           }
 
@@ -72,13 +75,13 @@ export const AuthenticatedUserStore = signalStore(
             sessionExpired: false,
           })
 
-          return of(undefined)
+          return of(void 0)
         }),
         catchError((err) => {
           tokenPersistance.removeTokens()
           patchState(store, initialState)
           patchState(store, { sessionExpired: true })
-          return of(err)
+          return throwError(() => err)
         }),
       )
     },
@@ -136,6 +139,7 @@ export const AuthenticatedUserStore = signalStore(
             return throwError(() => maybeVoid.error)
           }
 
+          console.log('Logout successful.')
           tokenPersistance.removeTokens()
           patchState(store, initialState)
           return of(undefined)
@@ -179,6 +183,7 @@ export const AuthenticatedUserStore = signalStore(
             return of(undefined)
           }),
           catchError((err) => {
+            console.error('Token refresh failed:', err)
             tokenPersistance.removeTokens()
             patchState(store, initialState)
             patchState(store, { sessionExpired: true })

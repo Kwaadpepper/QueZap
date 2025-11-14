@@ -6,6 +6,8 @@ import { tap } from 'rxjs'
 import { ValidationError } from '@quezap/core/errors'
 import { isSuccess } from '@quezap/core/types'
 
+import { TokenPersitance } from '../token-persistance/token-persitance'
+
 import { AuthenticationMockService } from './authentication-mock'
 
 describe('AuthenticationMockService', () => {
@@ -13,7 +15,7 @@ describe('AuthenticationMockService', () => {
     + '4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp - QV30'
 
   const createService = ({ mockError = false } = {}): AuthenticationMockService => {
-    const service = new AuthenticationMockService()
+    const service = TestBed.inject(AuthenticationMockService)
     Object.defineProperty(service, 'MOCK_ERROR', { value: () => mockError })
     Object.defineProperty(service, 'MOCK_DELAY', { value: () => 0 })
 
@@ -22,12 +24,22 @@ describe('AuthenticationMockService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [],
+      providers: [
+        AuthenticationMockService,
+        {
+          provide: TokenPersitance, useValue: {
+            getTokens: jest.fn(() => ({
+              accessToken: validJwtToken,
+              refreshToken: validJwtToken,
+            })),
+          },
+        },
+      ],
     })
   })
 
   it('should be created', () => {
-    const service = new AuthenticationMockService()
+    const service = createService()
 
     expect(service).toBeTruthy()
   })

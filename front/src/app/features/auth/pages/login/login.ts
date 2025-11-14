@@ -7,7 +7,7 @@ import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
-import { catchError, firstValueFrom, of, tap, throwError } from 'rxjs'
+import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
@@ -93,7 +93,7 @@ export class Login {
             this.resetPassword()
             this.loginError.set(true)
 
-            return throwError(() => err)
+            return of(void 0)
           }),
         ),
       ),

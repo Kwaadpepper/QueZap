@@ -1,31 +1,34 @@
 import { DOCUMENT, inject } from '@angular/core'
 
-import { catchError, firstValueFrom, Subject, tap } from 'rxjs'
+import { catchError, firstValueFrom, forkJoin, tap, throwError } from 'rxjs'
 
 import { Config } from './core/services'
 import { AuthenticatedUserStore } from './shared/stores'
 
-export function AppInitializer() {
+export async function AppInitializer() {
   const config = inject(Config)
   const authStore = inject(AuthenticatedUserStore)
-  const bootLoader = new Subject<void>()
-
   const document = inject(DOCUMENT)
 
-  setTimeout(() => {
-    bootLoader.next()
-  }, 0)
+  // Init tasks
+  const initializationTasks = [
+    authStore.loadInitialState(),
+  ]
 
-  return firstValueFrom(bootLoader.pipe(
-    tap(authStore.loadInitialState()),
-    catchError(() => {
+  const initialization$ = forkJoin(initializationTasks).pipe(
+    catchError((err) => {
       if (config.debug()) {
-        console.warn('AppInitializer: Failed to load initial authenticated user state.')
+        console.warn('AppInitializer: Failed to load initial state (one or more tasks failed).', err)
       }
-      return []
+
+      alert('An error occurred while initializing the application. Please try reloading the page.')
+
+      return throwError(() => err)
     }),
     tap(() => HideSplashScreen(document)),
-  ))
+  )
+
+  return await firstValueFrom(initialization$)
 }
 
 function HideSplashScreen(document: Document) {
