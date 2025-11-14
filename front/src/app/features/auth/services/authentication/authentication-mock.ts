@@ -30,7 +30,7 @@ const validationResetPasswordSchema = zod.object({
 })
 
 export class AuthenticationMockService implements AuthenticationService {
-  private readonly MOCK_ERROR = () => Math.random() < 0.2
+  private readonly MOCK_ERROR = (failureProbability = 0.2) => Math.random() < failureProbability
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
   private readonly MOCKED_USER: AuthenticatedUser = {
     uuid: '123e4567-e89b-12d3-a456-426614174000',
@@ -121,7 +121,7 @@ export class AuthenticationMockService implements AuthenticationService {
     const hasTokens = this.tokenPersitance.getTokens() !== undefined
 
     setTimeout(() => {
-      if (this.MOCK_ERROR()) {
+      if (this.MOCK_ERROR(0)) {
         response.error(new HttpErrorResponse({}))
         response.complete()
         return
