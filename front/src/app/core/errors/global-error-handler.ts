@@ -33,17 +33,20 @@ export class GlobalErrorHandler implements ErrorHandler {
           detail = error.message
           break
       }
-    }
 
-    if (error instanceof HandledFrontError) {
-      console.debug('--- Handled error detected --- \n'
-        + `Summary: ${summary}\n`
-        + `Detail: ${detail}\n`,
-      )
+      if (error instanceof HandledFrontError) {
+        console.debug('--- Handled error detected --- \n'
+          + `Summary: ${summary}\n`
+          + `Detail: ${detail}\n`,
+        )
+      }
+      else {
+        console.warn('--- Unhandled error detected ---')
+        this.notifier.notify(summary, detail)
+      }
     }
     else {
-      console.warn('--- Unhandled error detected ---')
-      this.notifier.notify(summary, detail)
+      console.error('GlobalErrorHandler caught an error:', error)
     }
 
     // TODO: add an external loggin service here
