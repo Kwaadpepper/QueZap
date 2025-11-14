@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core'
+import { Component, computed, ErrorHandler, inject, input, signal } from '@angular/core'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
-import { ValidationError } from '@quezap/core/errors'
+import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
 import { isFailure } from '@quezap/core/types'
@@ -32,6 +32,7 @@ export class ResetPasswordForm {
   private readonly message$ = inject(MessageService)
   private readonly router = inject(Router)
   private readonly config = inject(Config)
+  private readonly errorHandler = inject(ErrorHandler)
 
   readonly #mockedValues = {
     password: 'NewPassword123!',
@@ -93,7 +94,7 @@ export class ResetPasswordForm {
 
             return of(void 0)
           }),
-          catchError(() => {
+          catchError((err) => {
             this.resetForm().reset()
             this.resetFormInput()
 
@@ -102,6 +103,11 @@ export class ResetPasswordForm {
               summary: 'Erreur',
               detail: 'La réinitialisation du mot de passe a échoué. Veuillez réessayer.',
             })
+
+            this.errorHandler.handleError(
+              HandledFrontError.from(err),
+            )
+
             return of(void 0)
           }),
         ),
@@ -111,6 +117,7 @@ export class ResetPasswordForm {
 
   protected onFillMockedValues() {
     this.resetValues.set(this.#mockedValues)
+    this.resetForm().markAsDirty()
   }
 
   private redirectToLogin() {
@@ -122,5 +129,6 @@ export class ResetPasswordForm {
       password: '',
       confirmPassword: '',
     })
+    this.resetForm().reset()
   }
 }

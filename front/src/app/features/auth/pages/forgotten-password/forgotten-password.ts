@@ -1,14 +1,16 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core'
+import { Component, computed, DestroyRef, ErrorHandler, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { Button } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
-import { catchError, firstValueFrom, of, tap } from 'rxjs'
+import { catchError, firstValueFrom, of, switchMap } from 'rxjs'
 
+import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
+import { isFailure } from '@quezap/core/types'
 import { BackButton } from '@quezap/shared/components'
 import { FieldError } from '@quezap/shared/directives'
 
@@ -22,6 +24,7 @@ import { AUTHENTICATION_SERVICE } from '../../services'
 export class ForgottenPassword {
   private readonly config = inject(Config)
   private readonly authenticationService = inject(AUTHENTICATION_SERVICE)
+  private readonly errorHandler = inject(ErrorHandler)
   private readonly destroyRef = inject(DestroyRef)
 
   readonly #mockedCredentials = {
@@ -51,22 +54,41 @@ export class ForgottenPassword {
     this.hasBeenAskedToReset.set(false)
     this.errorHasOccured.set(false)
 
-    submit(this.resetForm, async form =>
+    submit(this.resetForm, form =>
       firstValueFrom(
         this.authenticationService.askToResetPassword(
           form.email().value(),
         ).pipe(
           takeUntilDestroyed(this.destroyRef),
-          tap(() => {
+          switchMap((result) => {
+            if (isFailure(result)) {
+              const error = result.error
+              if (error instanceof ValidationError) {
+                return of(error.getErrorsForForm(this.resetForm))
+              }
+
+              this.resetForm().reset()
+              this.resetFormInput()
+              this.errorHasOccured.set(true)
+              return of(void 0)
+            }
+
             this.resetFormInput()
             this.resetForm().reset()
             this.hasBeenAskedToReset.set(true)
+
+            return of(void 0)
           }),
-          catchError(() => {
+          catchError((err) => {
             this.resetForm().reset()
             this.resetFormInput()
             this.errorHasOccured.set(true)
-            return of(null)
+
+            this.errorHandler.handleError(
+              HandledFrontError.from(err),
+            )
+
+            return of(void 0)
           }),
         ),
       ),

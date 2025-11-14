@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core'
+import { Component, ErrorHandler, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
+import { HandledFrontError } from '@quezap/core/errors'
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
 
 @Component({
@@ -19,6 +20,7 @@ export class LogoutButton {
   private readonly router = inject(Router)
   private readonly messageService = inject(MessageService)
   private readonly authenticatedUser = inject(AuthenticatedUserStore)
+  private readonly errorHandler = inject(ErrorHandler)
 
   protected readonly running = signal(false)
 
@@ -28,8 +30,11 @@ export class LogoutButton {
       this.authenticatedUser.logout()
         .pipe(
           catchError((err) => {
-            // Ignore errors during logout
-            return of(err)
+            this.errorHandler.handleError(
+              HandledFrontError.from(err),
+            )
+
+            return of(void 0)
           }),
           tap(() => {
             this.router.navigate(['/auth/login'])

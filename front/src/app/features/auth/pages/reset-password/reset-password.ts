@@ -1,12 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core'
+import { Component, computed, ErrorHandler, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
 import { MessageModule } from 'primeng/message'
 import { ProgressSpinner } from 'primeng/progressspinner'
-import { catchError, finalize, firstValueFrom, retry, tap, throwError } from 'rxjs'
+import { catchError, finalize, firstValueFrom, of, retry, tap } from 'rxjs'
 
-import { ForbidenError } from '@quezap/core/errors'
+import { ForbidenError, HandledFrontError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 import { isSuccess } from '@quezap/core/types'
 
@@ -25,6 +25,7 @@ import { AUTHENTICATION_SERVICE } from '../../services'
 export class ResetPassword {
   private readonly router = inject(Router)
   private readonly authenticationService = inject(AUTHENTICATION_SERVICE)
+  private readonly errorHandler = inject(ErrorHandler)
 
   private readonly validTokenSchema = zod.jwt()
   protected readonly resetToken = signal('')
@@ -66,7 +67,11 @@ export class ResetPassword {
         }),
         catchError((err) => {
           this.anErrorOccured.set(true)
-          return throwError(() => err)
+          this.errorHandler.handleError(
+            HandledFrontError.from(err),
+          )
+
+          return of(void 0)
         }),
         finalize(() => {
           this.verifyingToken.set(false)

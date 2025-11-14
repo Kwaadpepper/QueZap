@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, ErrorHandler, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router, RouterModule } from '@angular/router'
@@ -9,7 +9,7 @@ import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
-import { ValidationError } from '@quezap/core/errors'
+import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
@@ -32,6 +32,7 @@ export class Login {
   private readonly authenticatedUserStore = inject(AuthenticatedUserStore)
   private readonly message = inject(MessageService)
   private readonly router = inject(Router)
+  private readonly errorHandler = inject(ErrorHandler)
   private readonly destroyRef = inject(DestroyRef)
 
   private readonly redirectUrl = '/admin'
@@ -66,7 +67,7 @@ export class Login {
     this.loginError.set(false)
     this.invalidCredentials.set(false)
 
-    submit(this.loginForm, async form =>
+    submit(this.loginForm, form =>
       firstValueFrom(
         this.authenticatedUserStore.login(
           form.email().value(),
@@ -92,6 +93,10 @@ export class Login {
 
             this.resetPassword()
             this.loginError.set(true)
+
+            this.errorHandler.handleError(
+              HandledFrontError.from(err),
+            )
 
             return of(void 0)
           }),
