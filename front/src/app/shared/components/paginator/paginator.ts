@@ -38,8 +38,6 @@ export class Paginator {
     const page = (event.page ?? 0) + 1
     const pageSize = event.rows ?? this.defaultPerPage
 
-    console.debug('Page changed:', { page, pageSize })
-
     this.paginationChanged.emit({ page, pageSize })
   }
 }
