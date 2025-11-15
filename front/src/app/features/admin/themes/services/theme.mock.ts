@@ -1,33 +1,32 @@
-import { Theme } from '@quezap/domain/models'
-import { UUID } from '@quezap/domain/types'
+import { Theme, ThemeId } from '@quezap/domain/models'
 
 export const MOCK_THEMES: Theme[] = [
   {
-    uuid: '019a87fd-3713-7f62-9081-bf7cb1542208' as UUID,
+    id: '019a87fd-3713-7f62-9081-bf7cb1542208' as ThemeId,
     name: 'Arbres caduques',
   },
   {
-    uuid: '019a87fd-d3fb-716b-bacb-6879a477b3c8' as UUID,
+    id: '019a87fd-d3fb-716b-bacb-6879a477b3c8' as ThemeId,
     name: 'Fleurs sauvages',
   },
   {
-    uuid: '019a87fd-eb76-779c-82ed-a23a3159a76d' as UUID,
+    id: '019a87fd-eb76-779c-82ed-a23a3159a76d' as ThemeId,
     name: 'Plantes tropicales',
   },
   {
-    uuid: '019a87fd-fef0-738d-9eea-71986fa39127' as UUID,
+    id: '019a87fd-fef0-738d-9eea-71986fa39127' as ThemeId,
     name: 'Succulentes et cactus',
   },
   {
-    uuid: '019a87fe-195b-759e-9ffd-5aaf4d596d8f' as UUID,
+    id: '019a87fe-195b-759e-9ffd-5aaf4d596d8f' as ThemeId,
     name: 'Bambous et graminées',
   },
   {
-    uuid: '019a87fe-3585-7f11-9836-acb83bf04bfe' as UUID,
+    id: '019a87fe-3585-7f11-9836-acb83bf04bfe' as ThemeId,
     name: 'Aromatiques et médicinales',
   },
   {
-    uuid: '019a87ff-b31d-753e-a722-847d8d8ed649' as UUID,
+    id: '019a87ff-b31d-753e-a722-847d8d8ed649' as ThemeId,
     name: 'Légumes du potager',
   },
 ]

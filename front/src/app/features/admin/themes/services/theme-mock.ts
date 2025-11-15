@@ -5,7 +5,7 @@ import { delay, map, of, tap } from 'rxjs'
 import { ServiceError, ValidationError } from '@quezap/core/errors'
 import { zod, zodToExternalValidationError } from '@quezap/core/tools'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
-import { Theme } from '@quezap/domain/models'
+import { Theme, ThemeId } from '@quezap/domain/models'
 import { UUID } from '@quezap/domain/types'
 
 import { NewThemeDTO, ThemeService } from './theme'
@@ -33,7 +33,7 @@ export class ThemeMockService implements ThemeService {
   getThemePage(page: Pagination): ServiceOutput<PageOf<Theme>> {
     const pagination = toPageBasedPagination(page)
     const themes: Theme[] = this.mockedThemes().map(product => ({
-      uuid: product.uuid,
+      id: product.id,
       name: product.name,
     }))
 
@@ -67,7 +67,7 @@ export class ThemeMockService implements ThemeService {
     )
   }
 
-  create(newTheme: NewThemeDTO): ServiceOutput<UUID> {
+  create(newTheme: NewThemeDTO): ServiceOutput<ThemeId> {
     return of(newTheme).pipe(
       delay(this.MOCK_DELAY()),
       map((newTheme) => {
@@ -87,10 +87,10 @@ export class ThemeMockService implements ThemeService {
           }, 'Un thème avec ce nom existe déjà')
         }
 
-        const newId = crypto.randomUUID() as UUID
+        const newId = crypto.randomUUID() as ThemeId
         this.mockedThemes.update(themes => [
           {
-            uuid: newId,
+            id: newId,
             name: newTheme.name,
           },
           ...themes,
@@ -118,20 +118,20 @@ export class ThemeMockService implements ThemeService {
           return zodToExternalValidationError(parsed.error)
         }
 
-        if (this.themeExists(theme.name, theme.uuid)) {
+        if (this.themeExists(theme.name, theme.id)) {
           return new ValidationError({
             name: ['Un thème avec ce nom existe déjà'],
           }, 'Un thème avec ce nom existe déjà')
         }
 
-        const existingTheme = this.getTheme(theme.uuid)
+        const existingTheme = this.getTheme(theme.id)
 
         if (!existingTheme) {
           return new ServiceError('Thème non trouvé')
         }
 
         this.mockedThemes.update(themes => themes.map((t) => {
-          if (t.uuid === theme.uuid) {
+          if (t.id === theme.id) {
             return {
               ...t,
               name: theme.name,
@@ -149,10 +149,10 @@ export class ThemeMockService implements ThemeService {
   }
 
   private getTheme(id: UUID): Theme | undefined {
-    return this.mockedThemes().find(theme => theme.uuid === id)
+    return this.mockedThemes().find(theme => theme.id === id)
   }
 
   private themeExists(name: string, ignore?: UUID): boolean {
-    return this.mockedThemes().some(theme => theme.name.toLowerCase() === name.toLowerCase() && theme.uuid !== ignore)
+    return this.mockedThemes().some(theme => theme.name.toLowerCase() === name.toLowerCase() && theme.id !== ignore)
   }
 }

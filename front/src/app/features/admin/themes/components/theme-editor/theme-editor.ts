@@ -11,14 +11,13 @@ import { catchError, concatMap, firstValueFrom, of, throwError } from 'rxjs'
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 import { isFailure } from '@quezap/core/types'
-import { Theme } from '@quezap/domain/models'
-import { UUID } from '@quezap/domain/types'
+import { Theme, ThemeId } from '@quezap/domain/models'
 import { FieldError } from '@quezap/shared/directives'
 
 import { NewThemeDTO, THEME_SERVICE } from '../../services'
 
 export interface ThemeInputModel {
-  id?: UUID
+  id?: ThemeId
   name: string
 }
 
@@ -81,7 +80,7 @@ export class ThemeEditor {
     }
 
     this.updateTheme({
-      uuid: this.theme().id!,
+      id: this.theme().id!,
       name: this.themeForm.name().value(),
     })
   }
@@ -113,7 +112,7 @@ export class ThemeEditor {
           this.visible.set(false)
           this.themePersisted.emit({
             ...theme,
-            uuid: result.result,
+            id: result.result,
           })
 
           return of(void 0)

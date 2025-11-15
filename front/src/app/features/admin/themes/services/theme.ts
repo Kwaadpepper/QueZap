@@ -1,8 +1,7 @@
 import { InjectionToken } from '@angular/core'
 
 import { PageOf, Pagination, ServiceOutput } from '@quezap/core/types'
-import { Theme } from '@quezap/domain/models'
-import { UUID } from '@quezap/domain/types'
+import { Theme, ThemeId } from '@quezap/domain/models'
 
 export interface NewThemeDTO {
   name: string
@@ -11,7 +10,7 @@ export interface NewThemeDTO {
 export interface ThemeService {
   getThemePage(page: Pagination): ServiceOutput<PageOf<Theme>>
 
-  create(newTheme: NewThemeDTO): ServiceOutput<UUID>
+  create(newTheme: NewThemeDTO): ServiceOutput<ThemeId>
 
   update(theme: Theme): ServiceOutput<void>
 }

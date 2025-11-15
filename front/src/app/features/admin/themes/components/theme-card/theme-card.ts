@@ -37,7 +37,7 @@ export class ThemeCard implements OnInit {
   protected onThemeUpdated(updatedTheme: Theme) {
     this.name.set(updatedTheme.name)
     this.themeUpdated.emit({
-      uuid: updatedTheme.uuid,
+      id: updatedTheme.id,
       name: updatedTheme.name,
     })
   }
