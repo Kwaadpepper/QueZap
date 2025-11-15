@@ -14,25 +14,25 @@ export class TokenPersitance {
 
   public saveTokens(tokens: AuthTokens): void {
     try {
-      sessionStorage.setItem(this.tokenKey(), JSON.stringify(tokens))
+      localStorage.setItem(this.tokenKey(), JSON.stringify(tokens))
     }
     catch (e) {
-      console.error('Could not save tokens to sessionStorage', e)
+      console.error('Could not save tokens to localStorage', e)
     }
   }
 
   public getTokens(): AuthTokens | undefined {
     try {
-      const tokens = sessionStorage.getItem(this.tokenKey())
+      const tokens = localStorage.getItem(this.tokenKey())
       return tokens ? (JSON.parse(tokens) as AuthTokens) : undefined
     }
     catch (e) {
-      console.error('Could not read tokens from sessionStorage', e)
+      console.error('Could not read tokens from localStorage', e)
       return undefined
     }
   }
 
   public removeTokens(): void {
-    sessionStorage.removeItem(this.tokenKey())
+    localStorage.removeItem(this.tokenKey())
   }
 }
