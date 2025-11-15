@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http'
 import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
@@ -13,13 +14,13 @@ import { MOCK_THEMES } from './theme.mock'
 
 const newThemeValidationschema = zod.object({
   name: zod.string()
-    .min(1, 'Le nom ne peut pas être vide')
+    .min(2, 'Le nom doit contenir au moins 2 caractères')
     .max(50, 'Le nom ne peut pas dépasser 50 caractères')
     .nonempty('Le nom ne peut pas être vide'),
 })
 
 const themeValidationschema = zod.object({
-  uuid: zod.uuid('UUID invalide'),
+  id: zod.uuid('UUID invalide'),
   name: newThemeValidationschema.shape.name,
 })
 
@@ -72,7 +73,7 @@ export class ThemeMockService implements ThemeService {
       delay(this.MOCK_DELAY()),
       map((newTheme) => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new HttpErrorResponse({})
         }
 
         const parsed = newThemeValidationschema.safeParse(newTheme)
@@ -109,7 +110,7 @@ export class ThemeMockService implements ThemeService {
       delay(this.MOCK_DELAY()),
       map((theme) => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new HttpErrorResponse({})
         }
 
         const parsed = themeValidationschema.safeParse(theme)

@@ -1,4 +1,4 @@
-import { Component, computed, ErrorHandler, inject, input, model, output, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, input, model, signal } from '@angular/core'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
@@ -14,7 +14,7 @@ import { isFailure } from '@quezap/core/types'
 import { Theme, ThemeId } from '@quezap/domain/models'
 import { FieldError } from '@quezap/shared/directives'
 
-import { NewThemeDTO, THEME_SERVICE } from '../../services'
+import { NewThemeDTO, THEME_SERVICE, ThemesEventsBus } from '../../services'
 
 export interface ThemeInputModel {
   id?: ThemeId
@@ -32,14 +32,15 @@ export interface ThemeInputModel {
     Message,
   ],
   templateUrl: './theme-editor.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeEditor {
   private readonly errorHandler = inject(ErrorHandler)
+  private readonly themesEventBus = inject(ThemesEventsBus)
   private readonly themeService = inject(THEME_SERVICE)
   private readonly message = inject(MessageService)
 
   public readonly theme = input.required<ThemeInputModel>()
-  public readonly themePersisted = output<Theme>()
   public readonly visible = model.required<boolean>()
 
   protected readonly errorOccurred = signal(false)
@@ -110,10 +111,7 @@ export class ThemeEditor {
             life: 5000,
           })
           this.visible.set(false)
-          this.themePersisted.emit({
-            ...theme,
-            id: result.result,
-          })
+          this.themesEventBus.dispatchChanged(result.result)
 
           return of(void 0)
         }),
@@ -152,7 +150,7 @@ export class ThemeEditor {
             life: 5000,
           })
           this.visible.set(false)
-          this.themePersisted.emit(theme)
+          this.themesEventBus.dispatchChanged(theme.id)
 
           return of(void 0)
         }),

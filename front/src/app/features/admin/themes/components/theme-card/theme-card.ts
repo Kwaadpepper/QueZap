@@ -1,4 +1,4 @@
-import { Component, input, model, OnInit, output } from '@angular/core'
+import { ChangeDetectionStrategy, Component, input, model } from '@angular/core'
 
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
@@ -15,30 +15,15 @@ import { ThemeEditor } from '../theme-editor/theme-editor'
     ThemeEditor,
   ],
   templateUrl: './theme-card.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ThemeCard implements OnInit {
+export class ThemeCard {
   public readonly theme = input.required<Theme>()
-  public readonly themeUpdated = output<Theme>()
-
-  protected readonly name = model<string>()
+  public readonly editable = input<boolean>(false)
 
   protected readonly editorIsVisible = model(false)
 
-  public readonly editable = input<boolean>(false)
-
-  ngOnInit() {
-    this.name.set(this.theme().name)
-  }
-
   protected onOpenEditor() {
     this.editorIsVisible.set(true)
-  }
-
-  protected onThemeUpdated(updatedTheme: Theme) {
-    this.name.set(updatedTheme.name)
-    this.themeUpdated.emit({
-      id: updatedTheme.id,
-      name: updatedTheme.name,
-    })
   }
 }
