@@ -3,8 +3,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "type": "npm",
+      "type": "bun",
       "script": "start",
+      "label": "bun: start",
       "isBackground": true,
       "problemMatcher": {
         "owner": "typescript",
@@ -15,15 +16,31 @@
             "regexp": "(.*?)"
           },
           "endsPattern": {
-            "regexp": "bundle generation complete"
+            "regexp": "bundle generation complete."
           }
         }
+      },
+      "presentation": {
+        "reveal": "never"
       }
     },
     {
-      "type": "npm",
+      "label": "kill-ng-serve",
+      "type": "shell",
+      "command": "lsof -t -i :4200 | xargs -r kill",
+      "windows": {
+        "command": "powershell.exe -Command \"Stop-Process -Id (Get-NetTCPConnection -LocalPort 4200).OwningProcess -Force\" || exit 0"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      }
+    },
+    {
+      "type": "bun",
       "script": "test",
-      "isBackground": true,
+      "label": "bun: test",
       "problemMatcher": {
         "owner": "typescript",
         "pattern": "$tsc",
@@ -36,6 +53,9 @@
             "regexp": "bundle generation complete"
           }
         }
+      },
+      "presentation": {
+        "reveal": "never"
       }
     }
   ]

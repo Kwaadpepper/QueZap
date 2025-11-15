@@ -4,16 +4,21 @@
   "configurations": [
     {
       "name": "ng serve",
-      "type": "chrome",
+      "type": "firefox",
       "request": "launch",
-      "preLaunchTask": "npm: start",
-      "url": "http://localhost:4200/"
+      "preLaunchTask": "bun: start",
+      "postDebugTask": "kill-ng-serve",
+      "url": "http://localhost:4200/",
+      "reloadOnChange": {
+        "watch": "${workspaceFolder}/**/*.{ts,html,css}",
+        "ignore": "**/node_modules/**"
+      }
     },
     {
       "name": "ng test",
-      "type": "chrome",
+      "type": "firefox",
       "request": "launch",
-      "preLaunchTask": "npm: test",
+      "preLaunchTask": "bun: test",
       "url": "http://localhost:9876/debug.html"
     }
   ]
