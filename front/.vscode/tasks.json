@@ -21,7 +21,7 @@
         }
       },
       "presentation": {
-        "reveal": "never"
+        "reveal": "always"
       }
     },
     {
