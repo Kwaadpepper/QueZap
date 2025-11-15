@@ -2,19 +2,31 @@ import { Theme } from '@quezap/domain/models'
 
 export const MOCK_THEMES: Theme[] = [
   {
-    id: 'eff1c1e2a-3b4d-5f6a-7b8c-9d0e1f2a3b4c',
+    id: '019a87fd-3713-7f62-9081-bf7cb1542208',
     name: 'Arbres caduques',
   },
   {
-    id: '1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d',
+    id: '019a87fd-d3fb-716b-bacb-6879a477b3c8',
     name: 'Fleurs sauvages',
   },
   {
-    id: '9f8e7d6c-5b4a-3c2d-1e0f-9a8b7c6d5e4f',
+    id: '019a87fd-eb76-779c-82ed-a23a3159a76d',
     name: 'Plantes tropicales',
   },
   {
-    id: '0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d',
+    id: '019a87fd-fef0-738d-9eea-71986fa39127',
     name: 'Succulentes et cactus',
+  },
+  {
+    id: '019a87fe-195b-759e-9ffd-5aaf4d596d8f',
+    name: 'Bambous et graminées',
+  },
+  {
+    id: '019a87fe-3585-7f11-9836-acb83bf04bfe',
+    name: 'Aromatiques et médicinales',
+  },
+  {
+    id: '019a87ff-b31d-753e-a722-847d8d8ed649',
+    name: 'Légumes du potager',
   },
 ]
