@@ -14,10 +14,6 @@
           "${workspaceFolder}/node_modules/**/*.js",
           "<node_internals>/**/*.js"
       ],
-      "reloadOnChange": {
-        "watch": "${workspaceFolder}/**/*.{ts,html,css}",
-        "ignore": "**/node_modules/**"
-      },
       "firefoxArgs": [
         "--kiosk"
       ],
