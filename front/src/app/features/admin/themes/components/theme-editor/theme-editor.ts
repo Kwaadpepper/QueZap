@@ -18,7 +18,7 @@ import { FieldError } from '@quezap/shared/directives'
 import { NewThemeDTO, THEME_SERVICE } from '../../services'
 
 export interface ThemeInputModel {
-  id: UUID
+  id?: UUID
   name: string
 }
 
@@ -40,11 +40,11 @@ export class ThemeEditor {
   private readonly message = inject(MessageService)
 
   public readonly theme = input.required<ThemeInputModel>()
-  public readonly themePersisted = output<ThemeInputModel>()
+  public readonly themePersisted = output<Theme>()
   public readonly visible = model.required<boolean>()
 
   protected readonly errorOccurred = signal(false)
-  protected readonly forUpdateAction = computed(() => this.theme().id !== '')
+  protected readonly forUpdateAction = computed(() => this.theme().id !== undefined)
 
   protected readonly themeData = signal({
     name: '',
@@ -71,19 +71,19 @@ export class ThemeEditor {
       return
     }
 
-    const newTheme = {
-      id: this.theme().id,
-      name: this.themeForm.name().value(),
-    }
-
     this.errorOccurred.set(false)
 
-    if (this.theme().id.trim() === '') {
-      this.createTheme(newTheme)
+    if (this.theme().id === undefined) {
+      this.createTheme({
+        name: this.themeForm.name().value(),
+      })
       return
     }
 
-    this.updateTheme(newTheme)
+    this.updateTheme({
+      id: this.theme().id!,
+      name: this.themeForm.name().value(),
+    })
   }
 
   protected onCancel() {

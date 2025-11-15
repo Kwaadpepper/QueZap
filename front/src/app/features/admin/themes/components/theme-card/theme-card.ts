@@ -5,7 +5,7 @@ import { Card } from 'primeng/card'
 
 import { Theme } from '@quezap/domain/models'
 
-import { ThemeEditor, ThemeInputModel } from '../theme-editor/theme-editor'
+import { ThemeEditor } from '../theme-editor/theme-editor'
 
 @Component({
   selector: 'quizz-theme-card',
@@ -34,7 +34,7 @@ export class ThemeCard implements OnInit {
     this.editorIsVisible.set(true)
   }
 
-  protected onThemeUpdated(updatedTheme: ThemeInputModel) {
+  protected onThemeUpdated(updatedTheme: Theme) {
     this.name.set(updatedTheme.name)
     this.themeUpdated.emit({
       id: updatedTheme.id,

@@ -9,6 +9,7 @@ import { zod, zodToExternalValidationError } from '@quezap/core/tools'
 import { ServiceOutput, Tried } from '@quezap/core/types'
 import { AuthenticatedUser } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
+import { JWT, UUID } from '@quezap/domain/types'
 import { TokenPersitance } from '@quezap/features/auth/services'
 
 import { AuthenticationService } from './authentication'
@@ -33,7 +34,7 @@ export class AuthenticationMockService implements AuthenticationService {
   private readonly MOCK_ERROR = (failureProbability = 0.2) => Math.random() < failureProbability
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
   private readonly MOCKED_USER: AuthenticatedUser = {
-    uuid: '123e4567-e89b-12d3-a456-426614174000',
+    uuid: '123e4567-e89b-12d3-a456-426614174000' as UUID,
     pseudo: 'Jane Doe',
   }
 
@@ -224,7 +225,7 @@ export class AuthenticationMockService implements AuthenticationService {
     return response
   }
 
-  private randomJwtToken(): string {
+  private randomJwtToken(): JWT {
     const header = {
       alg: 'HS256',
       typ: 'JWT',
@@ -256,6 +257,6 @@ export class AuthenticationMockService implements AuthenticationService {
       .replaceAll('/', '_')
       .replace(/=+$/, '')
 
-    return `${encodedHeader}.${encodedPayload}.${fakeSignature}`
+    return `${encodedHeader}.${encodedPayload}.${fakeSignature}` as JWT
   }
 }
