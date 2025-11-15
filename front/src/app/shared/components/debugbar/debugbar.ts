@@ -1,9 +1,9 @@
-import { Component, computed, inject, model, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 import { RouterModule } from '@angular/router'
 
 import { ButtonDirective } from 'primeng/button'
 
-import { Config } from '@quezap/core/services'
+import { Config, LayoutSettings } from '@quezap/core/services'
 
 @Component({
   selector: 'quizz-debugbar',
@@ -12,17 +12,16 @@ import { Config } from '@quezap/core/services'
     RouterModule,
   ],
   templateUrl: './debugbar.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Debugbar {
   private readonly config = inject(Config)
+  private readonly layoutSettings = inject(LayoutSettings)
 
-  protected readonly asWebsite = signal<boolean>(true)
+  protected readonly asWebsite = computed(() => this.layoutSettings.asWebsite())
   protected readonly debug = computed(() => this.config.debug())
 
-  public readonly websiteMode = model<boolean>()
-
   toggleWebsiteMode(): void {
-    this.asWebsite.update(value => !value)
-    this.websiteMode.set(this.asWebsite())
+    this.layoutSettings.asWebsite.update(mode => !mode)
   }
 }

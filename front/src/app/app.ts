@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
 
@@ -37,6 +37,7 @@ import { AuthenticatedUserStore } from './shared/stores'
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   private readonly router = inject(Router)
@@ -47,6 +48,9 @@ export class App {
   protected readonly drawerVisible = signal(false)
   protected readonly onAdminPath = signal(false)
   protected readonly isLoggedIn = computed(() => this.authenticatedUser.isLoggedIn())
+
+  protected readonly inContainer = computed(() => this.layout.inContainer())
+  protected readonly asWebsite = computed(() => this.layout.asWebsite())
 
   constructor() {
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {

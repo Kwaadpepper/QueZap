@@ -6,10 +6,6 @@
   @apply container xl:max-w-300 mx-auto px-2 md:px-8 py-4;
 }
 
-.website-header {
-  @apply pt-4;
-}
-
 .admin-header {
-  @apply pt-4 bg-stone-200 dark:bg-stone-800 shadow-md;
+  @apply bg-stone-200 dark:bg-stone-800 shadow-md;
 }
