@@ -1,25 +1,44 @@
-import { Component, computed, input } from '@angular/core'
+import { Component, input, model, OnInit, output } from '@angular/core'
 
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 
 import { Theme } from '@quezap/domain/models'
 
+import { ThemeEditor, ThemeInputModel } from '../theme-editor/theme-editor'
+
 @Component({
   selector: 'quizz-theme-card',
   imports: [
     Card,
     Button,
+    ThemeEditor,
   ],
   templateUrl: './theme-card.html',
 })
-export class ThemeCard {
+export class ThemeCard implements OnInit {
   public readonly theme = input.required<Theme>()
+  public readonly themeUpdated = output<Theme>()
 
-  protected readonly id = computed(() => this.theme().id)
-  protected readonly name = computed(() => this.theme().name)
+  protected readonly name = model<string>()
 
-  protected onClick() {
-    console.log(`Theme card clicked: ${this.name()}`)
+  protected readonly editorIsVisible = model(false)
+
+  public readonly editable = input<boolean>(false)
+
+  ngOnInit() {
+    this.name.set(this.theme().name)
+  }
+
+  protected onOpenEditor() {
+    this.editorIsVisible.set(true)
+  }
+
+  protected onThemeUpdated(updatedTheme: ThemeInputModel) {
+    this.name.set(updatedTheme.name)
+    this.themeUpdated.emit({
+      id: updatedTheme.id,
+      name: updatedTheme.name,
+    })
   }
 }

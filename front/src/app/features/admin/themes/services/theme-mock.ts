@@ -50,4 +50,19 @@ export class ThemeMockService implements ThemeService {
       }),
     )
   }
+
+  update(theme: Theme): ServiceOutput<void> {
+    return of(theme).pipe(
+      delay(this.MOCK_DELAY()),
+      tap(() => {
+        if (this.MOCK_ERROR()) {
+          throw new ServiceError('Mock service error')
+        }
+      }),
+      map(() => ({
+        kind: 'success',
+        result: void 0,
+      })),
+    )
+  }
 }

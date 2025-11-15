@@ -7,7 +7,7 @@
 } @else {
 <div class="flex flex-row flex-wrap gap-3 py-4">
   @for(theme of themes(); track theme.id) {
-  <quizz-theme-card [theme]="theme" />
+  <quizz-theme-card [theme]="theme" [editable]="true" />
   }
 </div>
 } @if(pageInfo().totalElements > 25) {

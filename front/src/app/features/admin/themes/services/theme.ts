@@ -5,6 +5,8 @@ import { Theme } from '@quezap/domain/models'
 
 export interface ThemeService {
   getThemePage(page: Pagination): ServiceOutput<PageOf<Theme>>
+
+  update(theme: Theme): ServiceOutput<void>
 }
 
 export const THEME_SERVICE = new InjectionToken<ThemeService>('ThemeService')

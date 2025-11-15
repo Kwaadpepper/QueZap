@@ -1,0 +1,44 @@
+<p-dialog
+  header="Modifier un thème"
+  [modal]="true"
+  [pt]="{ root: { class: 'md:max-w-5/8 lg:md:max-w-3/8' } }"
+  (onShow)="onShow()"
+  [(visible)]="visible"
+>
+  @if(errorOccurred()) {
+  <p-message severity="error" class="mb-4">
+    <span> Une erreur est survenue lors de la mise à jour du thème. Veuillez réessayer. </span>
+  </p-message>
+  }
+  <form
+    class="flex flex-col justify-center"
+    [inert]="this.editForm().submitting()"
+    (submit)="onSave(); $event.preventDefault()"
+  >
+    <div class="flex flex-col items-center gap-4 mb-8 mx-auto">
+      <label for="name" class="font-semibold w-24 me-30">Nom du thème</label>
+      <input
+        pInputText
+        id="text"
+        class="flex-auto"
+        autocomplete="off"
+        type="text"
+        quizzFieldError
+        [field]="editForm.name"
+        [fieldState]="editForm.name"
+      />
+    </div>
+    <div class="flex justify-end gap-2">
+      <p-button label="Fermer" severity="secondary" (onClick)="onCancel()" />
+      <p-button
+        label="Enregistrer"
+        type="submit"
+        [disabled]="this.editForm().invalid() || this.editForm().submitting()"
+      >
+        @if(this.editForm().submitting()) {
+        <i class="pi pi-cog pi-spin" pButtonIcon></i>
+        }
+      </p-button>
+    </div>
+  </form>
+</p-dialog>
