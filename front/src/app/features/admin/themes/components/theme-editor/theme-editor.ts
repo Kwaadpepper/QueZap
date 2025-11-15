@@ -81,7 +81,7 @@ export class ThemeEditor {
     }
 
     this.updateTheme({
-      id: this.theme().id!,
+      uuid: this.theme().id!,
       name: this.themeForm.name().value(),
     })
   }
@@ -113,7 +113,7 @@ export class ThemeEditor {
           this.visible.set(false)
           this.themePersisted.emit({
             ...theme,
-            id: result.result,
+            uuid: result.result,
           })
 
           return of(void 0)

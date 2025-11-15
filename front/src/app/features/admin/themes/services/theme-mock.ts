@@ -19,7 +19,7 @@ const newThemeValidationschema = zod.object({
 })
 
 const themeValidationschema = zod.object({
-  id: zod.uuid('UUID invalide'),
+  uuid: zod.uuid('UUID invalide'),
   name: newThemeValidationschema.shape.name,
 })
 
@@ -33,7 +33,7 @@ export class ThemeMockService implements ThemeService {
   getThemePage(page: Pagination): ServiceOutput<PageOf<Theme>> {
     const pagination = toPageBasedPagination(page)
     const themes: Theme[] = this.mockedThemes().map(product => ({
-      id: product.id,
+      uuid: product.uuid,
       name: product.name,
     }))
 
@@ -90,7 +90,7 @@ export class ThemeMockService implements ThemeService {
         const newId = crypto.randomUUID() as UUID
         this.mockedThemes.update(themes => [
           {
-            id: newId,
+            uuid: newId,
             name: newTheme.name,
           },
           ...themes,
@@ -118,20 +118,20 @@ export class ThemeMockService implements ThemeService {
           return zodToExternalValidationError(parsed.error)
         }
 
-        if (this.themeExists(theme.name, theme.id)) {
+        if (this.themeExists(theme.name, theme.uuid)) {
           return new ValidationError({
             name: ['Un thème avec ce nom existe déjà'],
           }, 'Un thème avec ce nom existe déjà')
         }
 
-        const existingTheme = this.getTheme(theme.id)
+        const existingTheme = this.getTheme(theme.uuid)
 
         if (!existingTheme) {
           return new ServiceError('Thème non trouvé')
         }
 
         this.mockedThemes.update(themes => themes.map((t) => {
-          if (t.id === theme.id) {
+          if (t.uuid === theme.uuid) {
             return {
               ...t,
               name: theme.name,
@@ -149,10 +149,10 @@ export class ThemeMockService implements ThemeService {
   }
 
   private getTheme(id: UUID): Theme | undefined {
-    return this.mockedThemes().find(theme => theme.id === id)
+    return this.mockedThemes().find(theme => theme.uuid === id)
   }
 
   private themeExists(name: string, ignore?: UUID): boolean {
-    return this.mockedThemes().some(theme => theme.name.toLowerCase() === name.toLowerCase() && theme.id !== ignore)
+    return this.mockedThemes().some(theme => theme.name.toLowerCase() === name.toLowerCase() && theme.uuid !== ignore)
   }
 }

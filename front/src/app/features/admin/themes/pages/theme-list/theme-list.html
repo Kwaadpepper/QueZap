@@ -24,7 +24,7 @@
   <div class="py-4">No themes found.</div>
   } @else {
   <div class="flex flex-row flex-wrap gap-3 py-4">
-    @for(theme of themes(); track theme.id) {
+    @for(theme of themes(); track theme.uuid) {
     <quizz-theme-card [theme]="theme" [editable]="true" />
     }
   </div>

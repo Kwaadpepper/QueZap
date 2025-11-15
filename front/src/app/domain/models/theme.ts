@@ -1,6 +1,6 @@
 import { UUID } from '../types'
 
 export interface Theme {
-  readonly id: UUID
+  readonly uuid: UUID
   readonly name: string
 }
