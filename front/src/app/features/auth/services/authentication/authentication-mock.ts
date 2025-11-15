@@ -7,9 +7,9 @@ import { ValidationError } from '@quezap/core/errors'
 import { UnauthorizedError } from '@quezap/core/errors/unauthorized-error'
 import { zod, zodToExternalValidationError } from '@quezap/core/tools'
 import { ServiceOutput, Tried } from '@quezap/core/types'
-import { AuthenticatedUser } from '@quezap/domain/models'
+import { AuthenticatedUser, UserId } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
-import { JWT, UUID } from '@quezap/domain/types'
+import { JWT } from '@quezap/domain/types'
 import { TokenPersitance } from '@quezap/features/auth/services'
 
 import { AuthenticationService } from './authentication'
@@ -34,7 +34,7 @@ export class AuthenticationMockService implements AuthenticationService {
   private readonly MOCK_ERROR = (failureProbability = 0.2) => Math.random() < failureProbability
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
   private readonly MOCKED_USER: AuthenticatedUser = {
-    uuid: '123e4567-e89b-12d3-a456-426614174000' as UUID,
+    id: '123e4567-e89b-12d3-a456-426614174000' as UserId,
     pseudo: 'Jane Doe',
   }
 
@@ -233,7 +233,7 @@ export class AuthenticationMockService implements AuthenticationService {
 
     const now = Math.floor(Date.now() / 1000)
     const payload = {
-      sub: this.MOCKED_USER.uuid,
+      sub: this.MOCKED_USER.id,
       iat: now,
       exp: now + (60 * 60),
     }

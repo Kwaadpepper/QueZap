@@ -1,6 +1,10 @@
 import { UUID } from '../types'
 
+export type UserId = UUID & {
+  readonly __type: 'UserId'
+}
+
 export interface AuthenticatedUser {
-  readonly uuid: UUID
+  readonly id: UserId
   readonly pseudo: string
 }
