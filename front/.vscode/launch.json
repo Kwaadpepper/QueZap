@@ -9,10 +9,21 @@
       "preLaunchTask": "bun: start",
       "postDebugTask": "kill-ng-serve",
       "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}",
+      "skipFiles": [
+          "${workspaceFolder}/node_modules/**/*.js",
+          "<node_internals>/**/*.js"
+      ],
       "reloadOnChange": {
         "watch": "${workspaceFolder}/**/*.{ts,html,css}",
         "ignore": "**/node_modules/**"
-      }
+      },
+      "firefoxArgs": [
+        "--kiosk"
+      ],
+      "keepProfileChanges": true,
+      "profileDir": "${workspaceFolder}/.vscode/firefox-profile",
+      "internalConsoleOptions": "openOnSessionStart"
     },
     {
       "name": "ng test",
