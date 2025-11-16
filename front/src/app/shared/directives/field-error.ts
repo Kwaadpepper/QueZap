@@ -3,7 +3,7 @@ import { FieldState, StandardSchemaValidationError, ValidationErrorWithField } f
 
 import { Message, MessageModule } from 'primeng/message'
 
-type InputFieldState = FieldState<string, string>
+type InputFieldState = FieldState<string, string | number>
 
 @Directive({
   selector: '[quizzFieldError]',

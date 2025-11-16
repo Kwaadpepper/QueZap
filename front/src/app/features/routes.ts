@@ -25,5 +25,13 @@ export const routes: Routes = [
     path: 'activation',
     title: 'Activation du compte',
     loadChildren: () => import('./activation/routes').then(m => m.routes),
+    canActivateChild: [
+      () => inject(UnAuthenticatedGuard).canActivateChild(),
+    ],
+  },
+  {
+    path: 'quizz',
+    title: 'Quizz',
+    loadChildren: () => import('./quizz/routes').then(m => m.routes),
   },
 ]

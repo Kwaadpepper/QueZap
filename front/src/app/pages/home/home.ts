@@ -1,13 +1,16 @@
 import { NgOptimizedImage } from '@angular/common'
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core'
-import { RouterLink } from '@angular/router'
+import { customError, Field, form, validate } from '@angular/forms/signals'
+import { Router, RouterLink } from '@angular/router'
 
 import { Button, ButtonDirective, ButtonLabel } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 import { InputText } from 'primeng/inputtext'
 
 import { Config, LayoutSettings } from '@quezap/core/services'
+import { isValidSessionCode } from '@quezap/domain/models'
 import { RegisterModal } from '@quezap/features/admin/account/components'
+import { FieldError } from '@quezap/shared/directives'
 
 @Component({
   selector: 'quizz-home',
@@ -20,6 +23,8 @@ import { RegisterModal } from '@quezap/features/admin/account/components'
     ButtonDirective,
     ButtonLabel,
     RegisterModal,
+    FieldError,
+    Field,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
@@ -28,28 +33,32 @@ import { RegisterModal } from '@quezap/features/admin/account/components'
 export class Home implements OnInit, OnDestroy {
   private readonly config = inject(Config)
   private readonly layout = inject(LayoutSettings)
+  private readonly router = inject(Router)
 
   protected readonly appName = computed(() => this.config.appConfig.value().appName)
 
-  // Code pour rejoindre une partie existante via QR ou code manuel
-  protected readonly joinCode = signal('')
-  protected readonly isJoinCodeValid = computed(() => /^\w{4,10}$/i.test(this.joinCode()))
-
   protected readonly registerModalVisible = signal(false)
 
-  protected onJoinGame() {
-    if (!this.isJoinCodeValid()) return
-    console.log(`Rejoindre la partie avec le code: ${this.joinCode()}`)
-  }
+  // JOIN FORM
+  protected readonly joinCode = signal('')
 
-  protected onJoinCodeInput(ev: Event) {
-    const value = (ev.target as HTMLInputElement | null)?.value ?? ''
-    this.joinCode.set(value.trim())
-  }
+  protected readonly joinCodeForm = form(this.joinCode, (joinCode) => {
+    validate(joinCode, ({ value }) => {
+      return isValidSessionCode(value())
+        ? []
+        : customError({
+            kind: 'invalid-value',
+            message: 'Le code de session est invalide.',
+          })
+    })
+  })
 
-  protected onSubmitJoinForm(ev: Event) {
-    ev.preventDefault()
-    this.onJoinGame()
+  protected onSubmitJoinForm() {
+    const sessionCode = this.joinCode().trim()
+
+    if (isValidSessionCode(sessionCode)) {
+      this.router.navigate(['/quizz/join', sessionCode])
+    }
   }
 
   ngOnInit(): void {

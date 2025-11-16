@@ -1,0 +1,18 @@
+<div class="flex flex-col justify-center items-center h-full">
+  <h1 class="mb-15">Rejoindre une session</h1>
+  @if (sessionNotFound()) {
+  <p-message
+    severity="warn"
+    class="w-full max-w-md flex flex-col items-center text-center"
+    size="large"
+  >
+    <i class="pi pi-info-circle mr-2"></i>
+    Aucune session trouvée avec le code <br />
+    <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
+    Vérifiez le code et réessayez.
+  </p-message>
+  } @else {
+
+  <p-progress-spinner strokeWidth="4" fill="transparent" animationDuration="60s" />
+  }
+</div>
