@@ -1,74 +1,81 @@
-import { computed, signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
-import { Router, UrlTree } from '@angular/router'
+import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router'
 
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
 
-import { UnAuthenticatedGuard } from './unauthenticated-guard'
+import { isUnauthenticatedChildGuard, isUnauthenticatedGuard } from './unauthenticated-guard'
 
-describe('UnAuthenticatedGuard', () => {
-  let guard: UnAuthenticatedGuard
-  const isLoggedInSignal = signal(false)
+const mockAuthenticatedUserStore = {
+  isLoggedIn: jest.fn(),
+}
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+const mockRouter = {
+  parseUrl: jest.fn(url => url),
+}
+
+describe('Unauthenticated Function Guards', () => {
+  beforeEach(() => {
+    mockAuthenticatedUserStore.isLoggedIn.mockClear()
+    mockRouter.parseUrl.mockClear()
+
+    TestBed.configureTestingModule({
       providers: [
-        UnAuthenticatedGuard,
-        {
-          provide: AuthenticatedUserStore,
-          useValue: {
-            isLoggedIn: computed(() => isLoggedInSignal()),
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            parseUrl: jest.fn<UrlTree, [string]>(() => new UrlTree()),
-          },
-        },
+        { provide: AuthenticatedUserStore, useValue: mockAuthenticatedUserStore },
+        { provide: Router, useValue: mockRouter },
       ],
-    }).compileComponents()
-
-    guard = TestBed.inject(UnAuthenticatedGuard)
+    })
   })
 
-  it('should be created', () => {
-    expect(guard).toBeTruthy()
-  })
+  const runGuardInContext = (guardFn: CanActivateFn | CanActivateChildFn) => {
+    return TestBed.runInInjectionContext(() => {
+      return guardFn(
+        null as unknown as ActivatedRouteSnapshot,
+        null as unknown as RouterStateSnapshot,
+      )
+    })
+  }
 
-  describe('canActivate', () => {
-    it('should return true when user is not logged in', () => {
-      isLoggedInSignal.set(false)
+  describe('If the user is unauthenticated', () => {
+    beforeEach(() => {
+      mockAuthenticatedUserStore.isLoggedIn.mockReturnValue(false)
+    })
 
-      const result = guard.canActivate()
+    it('isUnauthenticatedGuard should return TRUE', () => {
+      const result = runGuardInContext(isUnauthenticatedGuard)
 
       expect(result).toBe(true)
     })
 
-    it('should return UrlTree when user is logged in', () => {
-      isLoggedInSignal.set(true)
-
-      const result = guard.canActivate()
-
-      expect(result).toBeInstanceOf(UrlTree)
-    })
-  })
-
-  describe('canActivateChild', () => {
-    it('should return true when user is not logged in', () => {
-      isLoggedInSignal.set(false)
-
-      const result = guard.canActivateChild()
+    it('isUnauthenticatedChildGuard should return TRUE', () => {
+      const result = runGuardInContext(isUnauthenticatedChildGuard)
 
       expect(result).toBe(true)
     })
+  })
 
-    it('should return UrlTree when user is logged in', () => {
-      isLoggedInSignal.set(true)
+  describe('If the user is authenticated', () => {
+    beforeEach(() => {
+      mockAuthenticatedUserStore.isLoggedIn.mockReturnValue(true)
+    })
 
-      const result = guard.canActivateChild()
+    it('isUnauthenticatedGuard should return the redirection URL', () => {
+      const expectedUrl = '/admin'
+      mockRouter.parseUrl.mockReturnValue(expectedUrl)
 
-      expect(result).toBeInstanceOf(UrlTree)
+      const result = runGuardInContext(isUnauthenticatedGuard)
+
+      expect(result).toBe(expectedUrl)
+      expect(mockRouter.parseUrl).toHaveBeenCalledWith(expectedUrl)
+    })
+
+    it('isUnauthenticatedChildGuard should return the redirection URL', () => {
+      const expectedUrl = '/admin'
+      mockRouter.parseUrl.mockReturnValue(expectedUrl)
+
+      const result = runGuardInContext(isUnauthenticatedChildGuard)
+
+      expect(result).toBe(expectedUrl)
+      expect(mockRouter.parseUrl).toHaveBeenCalledWith(expectedUrl)
     })
   })
 })

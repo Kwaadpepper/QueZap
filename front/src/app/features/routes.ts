@@ -1,8 +1,6 @@
-import { inject } from '@angular/core'
 import { Routes } from '@angular/router'
 
-import { AuthenticatedGuard } from '@quezap/core/guards'
-import { UnAuthenticatedGuard } from '@quezap/core/guards/auth/unauthenticated-guard'
+import { isAuthenticatedGuard, isUnauthenticatedGuard } from '@quezap/core/guards'
 
 import { SESSION_SERVICE, SessionMockService } from './quizz/services'
 import { ActiveSessionStore } from './quizz/stores'
@@ -13,7 +11,7 @@ export const routes: Routes = [
     title: 'Administration',
     loadChildren: () => import('./admin/routes').then(m => m.routes),
     canActivateChild: [
-      () => inject(AuthenticatedGuard).canActivateChild(),
+      isAuthenticatedGuard,
     ],
   },
   {
@@ -21,7 +19,7 @@ export const routes: Routes = [
     title: 'Authentification',
     loadChildren: () => import('./auth/routes').then(m => m.routes),
     canActivateChild: [
-      () => inject(UnAuthenticatedGuard).canActivateChild(),
+      isUnauthenticatedGuard,
     ],
   },
   {
@@ -29,7 +27,7 @@ export const routes: Routes = [
     title: 'Activation du compte',
     loadChildren: () => import('./activation/routes').then(m => m.routes),
     canActivateChild: [
-      () => inject(UnAuthenticatedGuard).canActivateChild(),
+      isUnauthenticatedGuard,
     ],
   },
   {

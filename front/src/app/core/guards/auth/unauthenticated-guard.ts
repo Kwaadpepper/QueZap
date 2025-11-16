@@ -1,29 +1,19 @@
-import { inject, Injectable } from '@angular/core'
-import { CanActivate, CanActivateChild, GuardResult, MaybeAsync, Router } from '@angular/router'
+import { inject } from '@angular/core'
+import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router'
 
 import { AuthenticatedUserStore } from '@quezap/shared/stores'
 
-@Injectable({
-  providedIn: 'root',
-})
-export class UnAuthenticatedGuard implements CanActivate, CanActivateChild {
-  private readonly router = inject(Router)
-  private readonly authenticatedUser = inject(AuthenticatedUserStore)
-  private readonly unAuthRoute = this.router.parseUrl('/admin')
+const handleAuthenticated = (): boolean | ReturnType<Router['parseUrl']> => {
+  const router = inject(Router)
+  const authenticatedUser = inject(AuthenticatedUserStore)
+  const authenticatedRoute = router.parseUrl('/admin')
 
-  canActivate(): MaybeAsync<GuardResult> {
-    return this.handleUnauthenticated()
+  if (authenticatedUser.isLoggedIn()) {
+    return authenticatedRoute
   }
 
-  canActivateChild(): MaybeAsync<GuardResult> {
-    return this.handleUnauthenticated()
-  }
-
-  private handleUnauthenticated(): GuardResult {
-    if (this.authenticatedUser.isLoggedIn()) {
-      return this.unAuthRoute
-    }
-
-    return true
-  }
+  return true
 }
+
+export const isUnauthenticatedGuard: CanActivateFn = () => handleAuthenticated()
+export const isUnauthenticatedChildGuard: CanActivateChildFn = () => handleAuthenticated()
