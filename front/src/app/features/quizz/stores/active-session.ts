@@ -53,7 +53,7 @@ export const ActiveSessionStore = signalStore(
             return throwError(() => session.error)
           }
 
-          alert(`Session trouvée : ${session.result.name}`)
+          patchState(store, { _session: session.result })
 
           return of(void 0)
         }),
