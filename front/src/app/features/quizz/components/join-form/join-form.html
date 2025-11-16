@@ -21,6 +21,18 @@
       Entrez le code affiché à l’écran de l’animateur.
     </p>
     <div class="flex gap-2 items-center mt-2">
+      @if(isDebug()) {
+      <p-button
+        type="button"
+        class="me-2"
+        title="Utiliser un code de test"
+        severity="info"
+        outlined
+        (onClick)="onFillMockedValue()"
+      >
+        <i class="pi pi-user" pButtonIcon></i>
+      </p-button>
+      }
       <p-button
         label="Rejoindre"
         type="submit"
