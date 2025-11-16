@@ -1,27 +1,30 @@
 import { computed, inject } from '@angular/core'
 
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
-import { catchError, concatMap, Observable, of, throwError } from 'rxjs'
+import { catchError, concatMap, firstValueFrom, Observable, of, throwError } from 'rxjs'
 
 import { isFailure } from '@quezap/core/types'
 import { Session, SessionCode } from '@quezap/domain/models'
 
 import { SESSION_SERVICE } from '../services'
 
+import { ActiveSessionPersistence } from './../services/active-session-persistence/active-session-persistence'
+
 interface ActiveSessionState {
   _session?: Session
+  _sessionIsLoaded: boolean
 }
 
 const initialState: ActiveSessionState = {
   _session: undefined,
+  _sessionIsLoaded: false,
 }
 
 export const ActiveSessionStore = signalStore(
   withState(initialState),
   withComputed(store => ({
-    session: computed(() => {
-      return store._session?.()
-    }),
+    session: computed(() => store._session?.()),
+    restorationComplete: computed(() => store._sessionIsLoaded()),
   })),
 
   // Add current question as linked state
@@ -35,15 +38,10 @@ export const ActiveSessionStore = signalStore(
   //   })
   // }))
 
-  withHooks({
-    // onDestroy(store) {
-    // Notify service that session is no longer active
-    // },
-  }),
-
   withMethods((
     store,
     sessionService = inject(SESSION_SERVICE),
+    activeSessionPersistence = inject(ActiveSessionPersistence),
   ) => ({
 
     startSession: (code: SessionCode): Observable<void> => {
@@ -54,6 +52,8 @@ export const ActiveSessionStore = signalStore(
           }
 
           patchState(store, { _session: session.result })
+
+          activeSessionPersistence.persists(code)
 
           return of(void 0)
         }),
@@ -112,4 +112,35 @@ export const ActiveSessionStore = signalStore(
     // },
 
   })),
+
+  withHooks({
+    onInit(store, activeSessionPersistence = inject(ActiveSessionPersistence)) {
+      const code = activeSessionPersistence.retrieve()
+      if (code === null) {
+        patchState(store, { _sessionIsLoaded: true })
+        return
+      }
+
+      console.log('Restoring active session with code:', code)
+
+      patchState(store, initialState)
+
+      firstValueFrom(
+        store.startSession(code),
+      ).catch(() => {
+        activeSessionPersistence.clear()
+      }).finally(() => {
+        patchState(store, { _sessionIsLoaded: true })
+      })
+
+      // store.startSession(code).subscribe({
+      //   error: () => {
+      //     activeSessionPersistence.clear()
+      //   },
+      // })
+    },
+    // onDestroy(store) {
+    // Notify service that session is no longer active
+    // },
+  }),
 )
