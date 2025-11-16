@@ -1,5 +1,8 @@
 import { Routes } from '@angular/router'
 
+import { THEME_SERVICE, ThemeMockService } from './themes/services'
+import { ThemePageStore } from './themes/stores'
+
 export const routes: Routes = [
   {
     path: 'dashboard',
@@ -9,6 +12,10 @@ export const routes: Routes = [
   {
     path: 'themes',
     title: 'Thèmes',
+    providers: [
+      ThemePageStore,
+      { provide: THEME_SERVICE, useClass: ThemeMockService },
+    ],
     loadChildren: () => import('./themes/routes').then(m => m.routes),
   },
   {

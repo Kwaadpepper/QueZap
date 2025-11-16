@@ -14,8 +14,6 @@ import { routes } from './app.routes'
 import { createErrorNotifier, ERROR_NOTIFIER, GlobalErrorHandler } from './core/errors'
 import { Config } from './core/services'
 import { DynamicTitleStrategy } from './core/strategies'
-import { ThemeMockService } from './features/admin/themes/services'
-import { THEME_SERVICE } from './features/admin/themes/services/theme'
 import { AUTHENTICATION_SERVICE, AuthenticationMockService } from './features/auth/services'
 
 if (environment.env === 'prod') {
@@ -29,7 +27,6 @@ const appProviders: ApplicationConfig['providers'] = [
   { provide: ErrorHandler, useClass: GlobalErrorHandler },
   { provide: AUTHENTICATION_SERVICE, useClass: AuthenticationMockService },
   { provide: TitleStrategy, useClass: DynamicTitleStrategy },
-  { provide: THEME_SERVICE, useClass: ThemeMockService },
 ]
 
 export const appConfig: ApplicationConfig = {

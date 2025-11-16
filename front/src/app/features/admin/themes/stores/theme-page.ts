@@ -43,7 +43,6 @@ const initialState: ThemePageState = {
 }
 
 export const ThemePageStore = signalStore(
-  { providedIn: 'root' },
   withState(initialState),
   withComputed(store => ({
     pageInfo: computed(() => {
