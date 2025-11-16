@@ -1,6 +1,6 @@
-import { inject } from '@angular/core'
+import { computed, inject } from '@angular/core'
 
-import { patchState, signalStore, withHooks, withMethods, withState } from '@ngrx/signals'
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { catchError, concatMap, Observable, of, throwError } from 'rxjs'
 
 import { isFailure } from '@quezap/core/types'
@@ -9,20 +9,20 @@ import { Session, SessionCode } from '@quezap/domain/models'
 import { SESSION_SERVICE } from '../services'
 
 interface ActiveSessionState {
-  session?: Session
+  _session?: Session
 }
 
 const initialState: ActiveSessionState = {
-  session: undefined,
+  _session: undefined,
 }
 
 export const ActiveSessionStore = signalStore(
   withState(initialState),
-  // withComputed(store => ({
-  //   isLoggedIn: computed(() => {
-  //     return store._authenticated?.() !== undefined && !store.sessionExpired()
-  //   }),
-  // })),
+  withComputed(store => ({
+    session: computed(() => {
+      return store._session?.()
+    }),
+  })),
 
   // Add current question as linked state
   // withLinkedState(({ options }) => ({
