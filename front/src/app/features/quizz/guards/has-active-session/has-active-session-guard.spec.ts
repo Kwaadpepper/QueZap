@@ -1,5 +1,8 @@
+import { signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
-import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router'
+import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, GuardResult, Router, RouterStateSnapshot } from '@angular/router'
+
+import { firstValueFrom, Observable } from 'rxjs'
 
 import { ActiveSessionStore } from '../../stores'
 
@@ -7,6 +10,7 @@ import { hasActiveSessionChildGuard, hasActiveSessionGuard } from './has-active-
 
 const mockActiveSessionStore = {
   session: jest.fn(),
+  restorationComplete: signal(false),
 }
 
 const mockRouter = {
@@ -16,6 +20,7 @@ const mockRouter = {
 describe('Has active session Function Guards', () => {
   beforeEach(() => {
     mockActiveSessionStore.session.mockClear()
+    mockActiveSessionStore.restorationComplete.set(false)
     mockRouter.parseUrl.mockClear()
 
     TestBed.configureTestingModule({
@@ -26,55 +31,61 @@ describe('Has active session Function Guards', () => {
     })
   })
 
-  const runGuardInContext = (guardFn: CanActivateFn | CanActivateChildFn) => {
+  const runGuardInContext = (guardFn: CanActivateFn | CanActivateChildFn): Observable<GuardResult> => {
     return TestBed.runInInjectionContext(() => {
       return guardFn(
         null as unknown as ActivatedRouteSnapshot,
         null as unknown as RouterStateSnapshot,
       )
-    })
+    }) as Observable<GuardResult>
   }
 
   describe('If an active session exists', () => {
     beforeEach(() => {
-      mockActiveSessionStore.session.mockReturnValue({})
+      mockActiveSessionStore.session.mockReturnValue(true)
+      mockActiveSessionStore.restorationComplete.set(true)
     })
 
-    it('hasActiveSessionGuard should return TRUE', () => {
-      const result = runGuardInContext(hasActiveSessionGuard)
+    it('hasActiveSessionGuard should return TRUE', async () => {
+      const observable = runGuardInContext(hasActiveSessionGuard)
+      const test = firstValueFrom(observable)
 
-      expect(result).toBe(true)
+      await expect(test).resolves.toEqual(true)
     })
 
-    it('hasActiveSessionChildGuard should return TRUE', () => {
-      const result = runGuardInContext(hasActiveSessionChildGuard)
+    it('hasActiveSessionChildGuard should return TRUE', async () => {
+      const observable = runGuardInContext(hasActiveSessionChildGuard)
+      const test = firstValueFrom(observable)
 
-      expect(result).toBe(true)
+      await expect(test).resolves.toEqual(true)
     })
   })
 
   describe('If there is no active session', () => {
     beforeEach(() => {
       mockActiveSessionStore.session.mockReturnValue(void 0)
+      mockActiveSessionStore.restorationComplete.set(true)
     })
 
-    it('hasActiveSessiondGuard should return the redirection URL', () => {
+    it('hasActiveSessionGuard should return the redirection URL', async () => {
       const expectedUrl = '/quizz/expired'
       mockRouter.parseUrl.mockReturnValue(expectedUrl)
 
-      const result = runGuardInContext(hasActiveSessionGuard)
+      const observable = runGuardInContext(hasActiveSessionGuard)
+      const test = firstValueFrom(observable)
 
-      expect(result).toBe(expectedUrl)
+      await expect(test).resolves.toEqual(expectedUrl)
       expect(mockRouter.parseUrl).toHaveBeenCalledWith(expectedUrl)
     })
 
-    it('hasActiveSessionChildGuard should return the redirection URL', () => {
+    it('hasActiveSessionChildGuard should return the redirection URL', async () => {
       const expectedUrl = '/quizz/expired'
       mockRouter.parseUrl.mockReturnValue(expectedUrl)
 
-      const result = runGuardInContext(hasActiveSessionChildGuard)
+      const observable = runGuardInContext(hasActiveSessionChildGuard)
+      const test = firstValueFrom(observable)
 
-      expect(result).toBe(expectedUrl)
+      await expect(test).resolves.toEqual(expectedUrl)
       expect(mockRouter.parseUrl).toHaveBeenCalledWith(expectedUrl)
     })
   })
