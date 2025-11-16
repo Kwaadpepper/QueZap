@@ -4,6 +4,9 @@ import { Routes } from '@angular/router'
 import { AuthenticatedGuard } from '@quezap/core/guards'
 import { UnAuthenticatedGuard } from '@quezap/core/guards/auth/unauthenticated-guard'
 
+import { SESSION_SERVICE, SessionMockService } from './quizz/services'
+import { ActiveSessionStore } from './quizz/stores'
+
 export const routes: Routes = [
   {
     path: 'admin',
@@ -32,6 +35,10 @@ export const routes: Routes = [
   {
     path: 'quizz',
     title: 'Quizz',
+    providers: [
+      ActiveSessionStore,
+      { provide: SESSION_SERVICE, useClass: SessionMockService },
+    ],
     loadChildren: () => import('./quizz/routes').then(m => m.routes),
   },
 ]

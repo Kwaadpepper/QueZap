@@ -9,9 +9,7 @@ import { Session, SessionCode } from '@quezap/domain/models'
 import { SessionService } from './session'
 import { MOCK_SESSIONS } from './session.mock'
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class SessionMockService implements SessionService {
   private readonly MOCK_ERROR = (failureProbability = 0.2) => Math.random() < failureProbability
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
