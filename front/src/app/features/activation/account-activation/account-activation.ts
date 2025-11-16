@@ -9,19 +9,13 @@ import { catchError, firstValueFrom, of, tap } from 'rxjs'
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { isSuccess } from '@quezap/core/types'
 
-import { ACCOUNT_ACTIVATION_SERVICE, AccountActivationMockService } from '../services'
+import { ACCOUNT_ACTIVATION_SERVICE } from '../services'
 
 @Component({
   selector: 'quizz-account-activation',
   imports: [
     ProgressSpinnerModule,
     Message,
-  ],
-  providers: [
-    {
-      provide: ACCOUNT_ACTIVATION_SERVICE,
-      useClass: AccountActivationMockService,
-    },
   ],
   templateUrl: './account-activation.html',
 })
