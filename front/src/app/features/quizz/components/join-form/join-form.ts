@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { customError, Field, form, validate } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
@@ -22,10 +22,9 @@ import { FieldError } from '@quezap/shared/directives'
 })
 export class JoinForm {
   readonly #joinUrl = '/quizz/join'
+  readonly #mockedCode = 'A2B3C4'
   private readonly router = inject(Router)
   private readonly config = inject(Config)
-
-  public readonly invalidCodes = input<string[]>([])
 
   protected readonly isDebug = computed(() => this.config.debug())
 
@@ -36,7 +35,6 @@ export class JoinForm {
   protected readonly joinCodeForm = form(this.joinCode, (path) => {
     validate(path.code, ({ value }) => {
       return isValidSessionCode(value())
-        && !this.invalidCodes().includes(value())
         ? []
         : customError({
             kind: 'invalid-value',
@@ -56,7 +54,8 @@ export class JoinForm {
 
   protected onFillMockedValue() {
     this.joinCode.update(() => ({
-      code: 'A2B3C4',
+      code: this.#mockedCode,
     }))
+    this.joinCodeForm().markAsTouched()
   }
 }

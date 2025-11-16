@@ -1,8 +1,9 @@
 import { computed, inject } from '@angular/core'
 
-import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
+import { patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { catchError, concatMap, firstValueFrom, Observable, of, throwError } from 'rxjs'
 
+import { ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
 import { Session, SessionCode } from '@quezap/domain/models'
 
@@ -12,11 +13,16 @@ import { ActiveSessionPersistence } from './../services/active-session-persisten
 
 interface ActiveSessionState {
   _session?: Session
+  _nickname: SignalState<{
+    value: string
+    remembered: boolean
+  }> | undefined
   _sessionIsLoaded: boolean
 }
 
 const initialState: ActiveSessionState = {
   _session: undefined,
+  _nickname: undefined,
   _sessionIsLoaded: false,
 }
 
@@ -24,6 +30,7 @@ export const ActiveSessionStore = signalStore(
   withState(initialState),
   withComputed(store => ({
     session: computed(() => store._session?.()),
+    nickname: computed(() => store._nickname?.()),
     restorationComplete: computed(() => store._sessionIsLoaded()),
   })),
 
@@ -46,19 +53,55 @@ export const ActiveSessionStore = signalStore(
 
     startSession: (code: SessionCode): Observable<void> => {
       return sessionService.find(code).pipe(
-        concatMap((session) => {
-          if (isFailure(session)) {
-            return throwError(() => session.error)
+        concatMap((response) => {
+          if (isFailure(response)) {
+            return throwError(() => response.error)
           }
 
-          patchState(store, { _session: session.result })
+          patchState(store, { _session: response.result })
 
-          activeSessionPersistence.persists(code)
+          activeSessionPersistence.patch({ code })
 
           return of(void 0)
         }),
         catchError((err) => {
           patchState(store, initialState)
+
+          return throwError(() => err)
+        }),
+      )
+    },
+
+    chooseNickname: (nickname: string, remember: boolean): Observable<void | ValidationError> => {
+      return sessionService.chooseNickname(nickname).pipe(
+        concatMap((response) => {
+          if (isFailure(response)) {
+            activeSessionPersistence.persistNickname(remember ? nickname : undefined)
+
+            if (response.error instanceof ValidationError) {
+              return of(response.error)
+            }
+
+            patchState(store, { _nickname: undefined })
+
+            return throwError(() => response.error)
+          }
+
+          activeSessionPersistence.persistNickname(remember ? nickname : undefined)
+
+          patchState(store, {
+            _nickname: signalState({
+              value: nickname,
+              remembered: remember,
+            }),
+          })
+
+          return of(void 0)
+        }),
+        catchError((err) => {
+          patchState(store, { _nickname: undefined })
+
+          activeSessionPersistence.persistNickname()
 
           return throwError(() => err)
         }),
@@ -115,32 +158,27 @@ export const ActiveSessionStore = signalStore(
 
   withHooks({
     onInit(store, activeSessionPersistence = inject(ActiveSessionPersistence)) {
-      const code = activeSessionPersistence.retrieve()
-      if (code === null) {
+      const data = activeSessionPersistence.retrieve()
+      if (data === null) {
         patchState(store, { _sessionIsLoaded: true })
         return
       }
 
-      console.log('Restoring active session with code:', code)
-
-      patchState(store, initialState)
+      patchState(store, {
+        ...initialState,
+        _nickname: signalState({
+          value: data.nickname ?? '',
+          remembered: !!data.nickname,
+        }),
+      })
 
       firstValueFrom(
-        store.startSession(code),
+        store.startSession(data.code),
       ).catch(() => {
-        activeSessionPersistence.clear()
+        activeSessionPersistence.clearKeepingNickname()
       }).finally(() => {
         patchState(store, { _sessionIsLoaded: true })
       })
-
-      // store.startSession(code).subscribe({
-      //   error: () => {
-      //     activeSessionPersistence.clear()
-      //   },
-      // })
     },
-    // onDestroy(store) {
-    // Notify service that session is no longer active
-    // },
   }),
 )
