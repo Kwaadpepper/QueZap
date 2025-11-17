@@ -1,13 +1,14 @@
-import { computed, inject } from '@angular/core'
+import { computed, inject, Injector, runInInjectionContext } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
 import { patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { catchError, concatMap, firstValueFrom, Observable, of, throwError } from 'rxjs'
 
 import { ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
-import { Session, SessionCode } from '@quezap/domain/models'
+import { Participant, Session, SessionCode } from '@quezap/domain/models'
 
-import { SESSION_SERVICE } from '../services'
+import { SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE } from '../services'
 
 import { ActiveSessionPersistence } from './../services/active-session-persistence/active-session-persistence'
 
@@ -18,12 +19,14 @@ interface ActiveSessionState {
     remembered: boolean
   }> | undefined
   _sessionIsLoaded: boolean
+  _participants: Participant[]
 }
 
 const initialState: ActiveSessionState = {
   _session: undefined,
   _nickname: undefined,
   _sessionIsLoaded: false,
+  _participants: [],
 }
 
 export const ActiveSessionStore = signalStore(
@@ -32,6 +35,7 @@ export const ActiveSessionStore = signalStore(
     session: computed(() => store._session?.()),
     nickname: computed(() => store._nickname?.()),
     restorationComplete: computed(() => store._sessionIsLoaded()),
+    participants: computed(() => store._participants()),
   })),
 
   // Add current question as linked state
@@ -47,12 +51,13 @@ export const ActiveSessionStore = signalStore(
 
   withMethods((
     store,
-    sessionService = inject(SESSION_SERVICE),
+    sessionApi = inject(SESSION_API_SERVICE),
+    sessionObserver = inject(SESSION_OBSERVER_SERVICE),
     activeSessionPersistence = inject(ActiveSessionPersistence),
   ) => ({
 
     startSession: (code: SessionCode): Observable<void> => {
-      return sessionService.find(code).pipe(
+      return sessionApi.find(code).pipe(
         concatMap((response) => {
           if (isFailure(response)) {
             return throwError(() => response.error)
@@ -73,7 +78,7 @@ export const ActiveSessionStore = signalStore(
     },
 
     chooseNickname: (nickname: string, remember: boolean): Observable<void | ValidationError> => {
-      return sessionService.chooseNickname(nickname).pipe(
+      return sessionApi.chooseNickname(nickname).pipe(
         concatMap((response) => {
           if (isFailure(response)) {
             activeSessionPersistence.persistNickname(remember ? nickname : undefined)
@@ -108,56 +113,25 @@ export const ActiveSessionStore = signalStore(
       )
     },
 
-    // login: (email: string, password: string) => {
-    //   patchState(store, { authenticating: true })
+    _loadParticipantsStream: (): Observable<Participant[]> => {
+      return sessionObserver.participants().pipe(
+        concatMap((response) => {
+          if (isFailure(response)) {
+            return throwError(() => response.error)
+          }
 
-    //   return of({ email, password }).pipe(
-    //     concatMap(credentials => authService.login(credentials.email, credentials.password)),
-    //     concatMap((maybeTokens) => {
-    //       if (isFailure(maybeTokens)) {
-    //         return throwError(() => maybeTokens.error)
-    //       }
-
-    //       const tokens = maybeTokens.result
-    //       tokenPersistance.saveTokens(tokens)
-    //       patchState(store, { _temporaryTokens: tokens })
-
-    //       return authService.me().pipe(
-    //         concatMap((maybeUser) => {
-    //           if (isFailure(maybeUser)) {
-    //             return throwError(() => maybeUser.error)
-    //           }
-
-    //           const user = maybeUser.result
-    //           return of({ tokens, user })
-    //         }),
-    //       )
-    //     }),
-
-    //     tap(({ tokens, user }) => {
-    //       patchState(store, {
-    //         _authenticated: {
-    //           user,
-    //           tokens: tokens,
-    //         },
-    //         _temporaryTokens: undefined,
-    //         authenticating: false,
-    //         sessionExpired: false,
-    //       })
-    //     }),
-    //     map(() => { return }),
-    //     catchError((err) => {
-    //       tokenPersistance.removeTokens()
-    //       patchState(store, initialState)
-    //       return throwError(() => err)
-    //     }),
-    //   )
-    // },
-
+          return of(response.result)
+        }),
+        catchError((err) => {
+          console.error('Erreur du flux des participants', err)
+          return of([])
+        }),
+      )
+    },
   })),
 
   withHooks({
-    onInit(store, activeSessionPersistence = inject(ActiveSessionPersistence)) {
+    onInit(store, activeSessionPersistence = inject(ActiveSessionPersistence), injector = inject(Injector)) {
       const data = activeSessionPersistence.retrieve()
       if (data === null) {
         patchState(store, { _sessionIsLoaded: true })
@@ -174,7 +148,17 @@ export const ActiveSessionStore = signalStore(
 
       firstValueFrom(
         store.startSession(data.code),
-      ).catch(() => {
+      ).then(() => {
+        // In order to be destroyed with the store
+        runInInjectionContext(injector, () => {
+          store._loadParticipantsStream().pipe(
+            // Prevent memory leaks if the store is destroyed
+            takeUntilDestroyed(),
+          ).subscribe((participants) => {
+            patchState(store, { _participants: participants })
+          })
+        })
+      }).catch(() => {
         activeSessionPersistence.clearKeepingNickname()
       }).finally(() => {
         patchState(store, { _sessionIsLoaded: true })

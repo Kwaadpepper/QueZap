@@ -1,6 +1,19 @@
 <div class="flex flex-col justify-center items-center h-full">
   <h1 class="mb-15">Rejoindre une session</h1>
-  @if (sessionNotFound()) {
+  @if(errorOccured()) {
+  <p-message
+    severity="error"
+    class="w-full max-w-md flex flex-col items-center text-center"
+    size="large"
+  >
+    <i class="pi pi-times-circle mr-2"></i>
+    Une erreur est survenue lors de la tentative de connexion à la session <br />
+    <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
+    Veuillez réessayer plus tard.
+  </p-message>
+
+  <quizz-join-form class="w-full max-w-md mt-10" />
+  } @else if (sessionNotFound()) {
   <p-message
     severity="warn"
     class="w-full max-w-md flex flex-col items-center text-center"
@@ -12,10 +25,7 @@
     Vérifiez le code et réessayez.
   </p-message>
 
-  <quizz-join-form
-    class="w-full max-w-md mt-10"
-    [invalidCodes]="sessionNotFound() ? [sessionCode()] : []"
-  />
+  <quizz-join-form class="w-full max-w-md mt-10" />
   } @else {
   <p-progress-spinner strokeWidth="4" fill="transparent" animationDuration="60s" />
   }

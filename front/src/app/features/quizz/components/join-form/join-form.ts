@@ -56,6 +56,7 @@ export class JoinForm {
     this.joinCode.update(() => ({
       code: this.#mockedCode,
     }))
+    this.joinCodeForm().markAsDirty()
     this.joinCodeForm().markAsTouched()
   }
 }

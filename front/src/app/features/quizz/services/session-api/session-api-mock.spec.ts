@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing'
 
-import { SessionMockService } from './session-mock'
+import { SessionApiMockService } from './session-api-mock'
 
-describe('SessionMockService', () => {
-  let service: SessionMockService
+describe('SessionApiMockService', () => {
+  let service: SessionApiMockService
 
   beforeEach(() => {
     TestBed.configureTestingModule({})
-    service = TestBed.inject(SessionMockService)
+    service = TestBed.inject(SessionApiMockService)
   })
 
   it('should be created', () => {

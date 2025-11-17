@@ -30,6 +30,7 @@ export class Join {
 
   protected readonly sessionCode = signal('')
   protected readonly sessionNotFound = signal(false)
+  protected readonly errorOccured = signal(false)
   protected readonly isLoading = signal(false)
 
   constructor() {
@@ -38,6 +39,7 @@ export class Join {
       tap((code) => {
         this.sessionCode.set(code ?? 'NON FOURNI')
         this.sessionNotFound.set(false)
+        this.errorOccured.set(false)
         this.isLoading.set(false)
       }),
       filter((code): code is SessionCode => {
@@ -50,7 +52,7 @@ export class Join {
       switchMap(code => this.loadSession(code).pipe(
         catchError(() => {
           this.isLoading.set(false)
-          this.sessionNotFound.set(true)
+          this.errorOccured.set(true)
           return []
         }),
       )),
@@ -64,7 +66,9 @@ export class Join {
     return this.sessionStore.startSession(code).pipe(
       tap(() => {
         this.isLoading.set(false)
-        this.router.navigate([this.#lobbyUrl])
+        setTimeout(() => {
+          this.router.navigate([this.#lobbyUrl])
+        }, 200)
       }),
     )
   }
