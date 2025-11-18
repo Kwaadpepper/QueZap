@@ -1,5 +1,6 @@
 export * from './auth-tokens'
 export * from './authenticated-user'
 export * from './participant'
+export * from './questions'
 export * from './session'
 export * from './theme'
