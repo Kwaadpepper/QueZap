@@ -12,13 +12,12 @@
   h5,
   h6 {
     @apply text-stone-700 dark:text-stone-200;
+    @apply font-bold tracking-wide;
   }
 
   .h1,
   h1 {
-    @apply text-3xl mb-3 font-title uppercase;
-
-    letter-spacing: 0.1em;
+    @apply text-4xl sm:text-5xl lg:text-6xl mb-3 font-title uppercase;
   }
 
   .h2,

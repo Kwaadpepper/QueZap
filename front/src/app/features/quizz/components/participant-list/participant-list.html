@@ -1,0 +1,17 @@
+<div
+  class="max-w-80 p-4 rounded-lg bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+>
+  <h2>Participants</h2>
+  <ul class="flex flex-wrap">
+    @for( participant of participants(); track participant.id) {
+    <li class="m-1 flex flex-row items-center gap-1">
+      <quizz-participant-icon
+        class="inline-block w-10"
+        backgroundColor="var(--p-surface-200)"
+        leafColor="green"
+      />
+      <span>{{ participant.nickname }}</span>
+    </li>
+    }
+  </ul>
+</div>

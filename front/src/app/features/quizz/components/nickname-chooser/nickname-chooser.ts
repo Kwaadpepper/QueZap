@@ -29,9 +29,9 @@ export class NicknameChooser {
   private readonly sessionStore = inject(ActiveSessionStore)
 
   protected readonly loading = signal(false)
-  protected readonly nicknameValidated = signal(false)
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly selectedNickname = computed(() => this.sessionStore.nickname()?.value())
+  protected readonly nicknameValidated = signal(this.selectedNickname() !== undefined)
 
   private readonly nickname = signal({
     nicknameValue: this.sessionStore.nickname()?.value() ?? '',

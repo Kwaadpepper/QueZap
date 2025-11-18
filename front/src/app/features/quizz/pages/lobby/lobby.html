@@ -1,11 +1,10 @@
-<div class="flex flex-col justify-center items-center h-full">
-  <h1 class="mb-15">Salle d'attente</h1>
+<div class="flex justify-center items-center h-screen w-screen waiting-room-background">
+  <div class="container p-4 sm:p-6 lg:p-8 relative">
+    <h1>Salle d'attente</h1>
 
-  <quizz-nickname-chooser />
-
-  <!-- <quizz-session-code-display class="mt-10" />
-
-  <quizz-participant-list class="mt-20" />
-
-  <quizz-lobby-start-session-button class="mt-30" /> -->
+    <div class="flex flex-col items-center">
+      <quizz-nickname-chooser />
+      <quizz-participant-list />
+    </div>
+  </div>
 </div>
