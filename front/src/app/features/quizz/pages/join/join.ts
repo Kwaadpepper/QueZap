@@ -63,11 +63,13 @@ export class Join {
   private loadSession(code: SessionCode) {
     this.isLoading.set(true)
 
-    return this.sessionStore.startSession(code).pipe(
+    return this.sessionStore.joinSession(code).pipe(
       tap(() => {
         this.isLoading.set(false)
         setTimeout(() => {
-          this.router.navigate([this.#lobbyUrl])
+          this.router.navigate([this.#lobbyUrl], {
+            skipLocationChange: true,
+          })
         }, 200)
       }),
     )

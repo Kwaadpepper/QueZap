@@ -17,8 +17,20 @@ export const routes: Routes = [
     path: 'lobby',
     title: 'Salle d\'attente',
     canActivate: [
-      hasActiveSessionGuard,
+      hasActiveSessionGuard(),
     ],
     loadComponent: () => import('./pages/lobby/lobby').then(m => m.Lobby),
+  },
+  {
+    path: '',
+    title: 'Quizz',
+    canActivate: [
+      hasActiveSessionGuard({ withQuizzRunning: true }),
+    ],
+    loadComponent: () => import('./pages/quizz-runner/quizz-runner').then(m => m.QuizzRunner),
+  },
+  {
+    path: '**',
+    redirectTo: 'expired',
   },
 ]

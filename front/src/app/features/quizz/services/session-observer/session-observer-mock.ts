@@ -6,7 +6,7 @@ import { ServiceError } from '@quezap/core/errors'
 import { ServiceObservable } from '@quezap/core/types'
 import { MixedQuestion, Participant, ParticipantId, QuestionId, QuestionType, Score, Theme, ThemeId } from '@quezap/domain/models'
 
-import { NoMoreQuestions, SessionObserverService } from './session-observer'
+import { NoMoreQuestions, SessionEvent, SessionObserverService } from './session-observer'
 
 @Injectable()
 export class SessionObserverMockService implements SessionObserverService {
@@ -33,6 +33,7 @@ export class SessionObserverMockService implements SessionObserverService {
     length: Math.max(3, Math.random() * 25),
   }).map(() => this.generateRandomParticipant())
 
+  private readonly sessionSubject = new Subject<SessionEvent>()
   private readonly questionSubject = new Subject<MixedQuestion | NoMoreQuestions>()
 
   public participants(): ServiceObservable<Participant[]> {
@@ -46,6 +47,21 @@ export class SessionObserverMockService implements SessionObserverService {
       map(participants => ({
         kind: 'success',
         result: participants,
+      })),
+    )
+  }
+
+  public sessionEvents(): ServiceObservable<SessionEvent> {
+    return this.sessionSubject.pipe(
+      delay(this.MOCK_DELAY()),
+      tap(() => {
+        if (this.MOCK_ERROR()) {
+          throw new ServiceError('Mock service error')
+        }
+      }),
+      map(event => ({
+        kind: 'success',
+        result: event,
       })),
     )
   }
@@ -150,8 +166,31 @@ export class SessionObserverMockService implements SessionObserverService {
   }
 
   private queueQuestion(question: MixedQuestion | NoMoreQuestions) {
+    this.startSession()
     setTimeout(() => {
       this.questionSubject.next(question)
+    }, this.MOCK_DELAY())
+  }
+
+  private startSession() {
+    setTimeout(() => {
+      this.sessionSubject.next({
+        type: 'SessionStarted',
+        session: {
+          startedAt: new Date(),
+        },
+      })
+    }, this.MOCK_DELAY())
+  }
+
+  private endSession() {
+    setTimeout(() => {
+      this.sessionSubject.next({
+        type: 'SessionEnded',
+        session: {
+          endedAt: new Date(),
+        },
+      })
     }, this.MOCK_DELAY())
   }
 }
