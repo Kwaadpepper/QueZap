@@ -1,1 +1,25 @@
-<p>quizz-runner works!</p>
+<div class="flex relative flex-col items-center">
+  <div class="top-0 right-0">
+    @if(isDebug()) {
+    <button class="btn btn-sm btn-primary mr-2" onClick="{onNextQuestion.bind(this)}">
+      Question suivante (debug)
+    </button>
+    }
+  </div>
+  <div class="mt-4">
+    <div>
+      @if(question() === null) {
+      <span>En attente de la question suivante</span>
+      } @else { @switch (question()!.type) { @case (QuestionType.Binary) {
+      <span>binaire</span>
+      <!-- <quizz-question-binary question={question()!} /> -->
+      } @case (QuestionType.Boolean) { choix multiple
+      <span>boolean</span>
+      <!-- <quizz-question-multiple-choice question={question()!} /> -->
+      } @case (QuestionType.Quizz) { choix multiple
+      <span>boolean</span>
+      <!-- <quizz-question-multiple-choice question={question()!} /> -->
+      } @default { Type de question inconnu } } }
+    </div>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 export * from './active-session-persistence/active-session-persistence'
 export * from './session-api/session-api'
 export * from './session-api/session-api-mock'
-export * from './session-api/session.mock'
 export * from './session-observer/session-observer'
 export * from './session-observer/session-observer-mock'
+export * from './session.mock'

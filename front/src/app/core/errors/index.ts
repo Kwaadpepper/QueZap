@@ -1,4 +1,5 @@
 export * from './error-notifier'
+export * from './expired-error'
 export * from './forbiden-error'
 export * from './global-error-handler'
 export * from './handled-front-error'

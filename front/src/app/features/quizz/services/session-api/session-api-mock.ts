@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core'
+import { inject, Injectable } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
@@ -6,8 +6,9 @@ import { NotFoundError, ServiceError, ValidationError } from '@quezap/core/error
 import { ServiceOutput } from '@quezap/core/types'
 import { Session, SessionCode } from '@quezap/domain/models'
 
+import { SessionMocks } from '../session.mock'
+
 import { SessionApiService } from './session-api'
-import { MOCK_SESSIONS } from './session.mock'
 
 @Injectable()
 export class SessionApiMockService implements SessionApiService {
@@ -15,7 +16,7 @@ export class SessionApiMockService implements SessionApiService {
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
   readonly #validPseudos = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Hannah']
 
-  private readonly sessions = signal(MOCK_SESSIONS)
+  private readonly sessions = inject(SessionMocks)
 
   find(code: SessionCode): ServiceOutput<Session, NotFoundError> {
     return of(code).pipe(
@@ -26,10 +27,12 @@ export class SessionApiMockService implements SessionApiService {
         }
       }),
       map((code) => {
-        const session = this.sessions().find(s => s.code === code)
+        const session = this.sessions.getSessionByCode(code)
         if (!session) {
           return new NotFoundError(`Session with code ${code} not found`)
         }
+
+        console.log('Mock session found:', session)
         return {
           kind: 'success',
           result: session,

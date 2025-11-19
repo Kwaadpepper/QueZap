@@ -38,7 +38,15 @@ export class Lobby {
   protected readonly readyTonJoinQuizz = computed(() => this.hasNickname())
 
   constructor() {
+    console.log('Lobby initialized with nickname:', this.nickname())
+    console.log('Session is running:', this.sessionStore.sessionIsRunning())
+    if (this.sessionStore.sessionIsRunning()) {
+      this.navigateToQuizz()
+    }
+
     effect(() => {
+      console.log('Nickname changed to:', this.nickname())
+      console.log('Session is running:', this.sessionStore.sessionIsRunning())
       if (this.sessionStore.sessionIsRunning()) {
         this.navigateToQuizz()
       }
@@ -52,7 +60,7 @@ export class Lobby {
       return
     }
 
-    this.sessionObserver.mockNextQuestion()
+    this.sessionObserver.mockNextQuestion(this.sessionStore.session()!.code)
   }
 
   private navigateToQuizz() {

@@ -1,19 +1,24 @@
-import { Injectable } from '@angular/core'
+import { inject, Injectable } from '@angular/core'
 
 import { delay, map, of, Subject, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { ServiceObservable } from '@quezap/core/types'
-import { MixedQuestion, Participant, ParticipantId, QuestionId, QuestionType, Score, Theme, ThemeId } from '@quezap/domain/models'
+import { MixedQuestion, Participant, ParticipantId, QuestionId, QuestionType, Score, SessionCode, Theme, ThemeId } from '@quezap/domain/models'
+
+import { SessionMocks } from '../session.mock'
 
 import { NoMoreQuestions, SessionEvent, SessionObserverService } from './session-observer'
 
-type SessionRunState = 'not_started' | 'running' | 'ended'
+interface SessionRunState {
+  session: SessionCode
+  state: 'not_started' | 'running' | 'ended'
+}
 
 @Injectable()
 export class SessionObserverMockService implements SessionObserverService {
   readonly #sessionRunStatePersistKey = 'mockSessionRunState'
-  #sessionRunState: SessionRunState = 'not_started'
+  #sessionRunState: SessionRunState | undefined = undefined
   private readonly MOCK_ERROR = (failureProbability = 0.2) => Math.random() < failureProbability
   private readonly MOCK_DELAY = () => Math.max(1000, Math.random() * 3000)
   readonly #participantsNames = [
@@ -32,6 +37,8 @@ export class SessionObserverMockService implements SessionObserverService {
     'Oiseaux communs', 'Insectes pollinisateurs', 'Mammifères nocturnes', 'Reptiles et amphibiens',
     'Fruits et légumes', 'Herbes aromatiques', 'Plantes aquatiques', 'Plantes carnivores',
   ]
+
+  private readonly sessions = inject(SessionMocks)
 
   private readonly mockParticipants: Participant[] = Array.from({
     length: Math.max(3, Math.random() * 25),
@@ -56,12 +63,14 @@ export class SessionObserverMockService implements SessionObserverService {
   }
 
   public sessionEvents(): ServiceObservable<SessionEvent> {
-    if (this.getSessionRunState() === 'not_started') {
-      this.endSession()
+    const previousState = this.getSessionRunState()
+
+    switch (previousState?.state) {
+      case 'running': this.startSession(previousState.session)
+        break
+      case 'ended': this.endSession(previousState.session)
     }
-    else if (this.getSessionRunState() === 'running') {
-      this.startSession()
-    }
+
     return this.sessionSubject.pipe(
       delay(this.MOCK_DELAY()),
       tap(() => {
@@ -93,30 +102,42 @@ export class SessionObserverMockService implements SessionObserverService {
 
   // --- Specific to mock service ---
 
-  public mockNextQuestion() {
-    this.queueQuestion(this.generateRandomQuestion({}))
+  public mockNextQuestion(onSession: SessionCode) {
+    this.queueQuestion(
+      onSession,
+      this.generateRandomQuestion({}),
+    )
   }
 
-  public mockBooleanQuestion() {
-    this.queueQuestion(this.generateRandomQuestion({
-      type: QuestionType.Boolean,
-    }))
+  public mockBooleanQuestion(onSession: SessionCode) {
+    this.queueQuestion(
+      onSession,
+      this.generateRandomQuestion({
+        type: QuestionType.Boolean,
+      }),
+    )
   }
 
-  public mockBinaryQuestion() {
-    this.queueQuestion(this.generateRandomQuestion({
-      type: QuestionType.Binary,
-    }))
+  public mockBinaryQuestion(onSession: SessionCode) {
+    this.queueQuestion(
+      onSession,
+      this.generateRandomQuestion({
+        type: QuestionType.Binary,
+      }),
+    )
   }
 
-  public mockQuizzQuestion() {
-    this.queueQuestion(this.generateRandomQuestion({
-      type: QuestionType.Quizz,
-    }))
+  public mockQuizzQuestion(onSession: SessionCode) {
+    this.queueQuestion(
+      onSession,
+      this.generateRandomQuestion({
+        type: QuestionType.Quizz,
+      }),
+    )
   }
 
-  public mockNoMoreQuestions() {
-    this.queueQuestion({ type: 'NoMoreQuestions' })
+  public mockNoMoreQuestions(onSession: SessionCode) {
+    this.queueQuestion(onSession, { type: 'NoMoreQuestions' })
   }
 
   private generateRandomParticipant(): Participant {
@@ -175,16 +196,23 @@ export class SessionObserverMockService implements SessionObserverService {
     return themes[Math.floor(Math.random() * themes.length)]
   }
 
-  private queueQuestion(question: MixedQuestion | NoMoreQuestions) {
-    this.startSession()
+  private queueQuestion(
+    session: SessionCode,
+    question: MixedQuestion | NoMoreQuestions,
+  ) {
+    this.startSession(session)
     setTimeout(() => {
       this.questionSubject.next(question)
     }, this.MOCK_DELAY())
   }
 
-  private startSession() {
+  private startSession(session: SessionCode) {
+    this.sessions.startSession(session)
     setTimeout(() => {
-      this.setSessionRunState('running')
+      this.setSessionRunState({
+        session,
+        state: 'running',
+      })
       this.sessionSubject.next({
         type: 'SessionStarted',
         session: {
@@ -194,9 +222,13 @@ export class SessionObserverMockService implements SessionObserverService {
     }, this.MOCK_DELAY())
   }
 
-  private endSession() {
+  private endSession(session: SessionCode) {
+    this.sessions.endSession(session)
     setTimeout(() => {
-      this.setSessionRunState('ended')
+      this.setSessionRunState({
+        session,
+        state: 'ended',
+      })
       this.sessionSubject.next({
         type: 'SessionEnded',
         session: {
@@ -207,14 +239,20 @@ export class SessionObserverMockService implements SessionObserverService {
   }
 
   private getSessionRunState() {
-    if (sessionStorage.getItem(this.#sessionRunStatePersistKey)) {
-      this.#sessionRunState = sessionStorage.getItem(this.#sessionRunStatePersistKey) as SessionRunState
+    try {
+      const previousState = sessionStorage.getItem(this.#sessionRunStatePersistKey)
+      if (previousState) {
+        this.#sessionRunState = JSON.parse(previousState) as SessionRunState
+      }
+      return this.#sessionRunState
     }
-    return this.#sessionRunState
+    catch {
+      return undefined
+    }
   }
 
   private setSessionRunState(state: SessionRunState) {
     this.#sessionRunState = state
-    sessionStorage.setItem(this.#sessionRunStatePersistKey, state)
+    sessionStorage.setItem(this.#sessionRunStatePersistKey, JSON.stringify(state))
   }
 }

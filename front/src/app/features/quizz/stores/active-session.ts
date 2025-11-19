@@ -2,11 +2,12 @@ import { computed, ErrorHandler, inject, Injector, runInInjectionContext } from 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
 import { patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
-import { catchError, concatMap, firstValueFrom, Observable, of, retry, throwError } from 'rxjs'
+import { catchError, concatMap, firstValueFrom, Observable, of, retry, tap, throwError } from 'rxjs'
 
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
+import { ExpiredError } from '@quezap/core/errors/expired-error'
 import { isFailure } from '@quezap/core/types'
-import { Participant, Session, SessionCode, sessionIsRunning } from '@quezap/domain/models'
+import { Participant, Session, SessionCode, sessionHasEnded, sessionIsRunning, sessionMayStart } from '@quezap/domain/models'
 
 import { SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE, sessionEnded, sessionStarted } from '../services'
 
@@ -38,6 +39,9 @@ export const ActiveSessionStore = signalStore(
     participants: computed(() => store._participants()),
     sessionIsRunning: computed(() => {
       const session = store._session?.()
+      if (!session) {
+        console.log('No active session found.')
+      }
       return session ? sessionIsRunning(session) : false
     }),
   })),
@@ -56,16 +60,15 @@ export const ActiveSessionStore = signalStore(
   withMethods((
     store,
     sessionApi = inject(SESSION_API_SERVICE),
-    sessionObserver = inject(SESSION_OBSERVER_SERVICE),
     activeSessionPersistence = inject(ActiveSessionPersistence),
-    errorHandler = inject(ErrorHandler),
   ) => ({
 
-    joinSession: (code: SessionCode): Observable<void | NotFoundError> => {
+    joinSession: (code: SessionCode): Observable<void | NotFoundError | ExpiredError> => {
       return sessionApi.find(code).pipe(
         concatMap((response) => {
           if (isFailure(response)) {
             patchState(store, initialState)
+            patchState(store, { _sessionIsLoaded: true })
 
             const error = response.error
             if (error instanceof NotFoundError) {
@@ -75,14 +78,33 @@ export const ActiveSessionStore = signalStore(
             return throwError(() => response.error)
           }
 
-          patchState(store, { _session: response.result })
+          const session = response.result
 
+          if (sessionHasEnded(session)) {
+            patchState(store, initialState)
+            patchState(store, { _sessionIsLoaded: true })
+
+            console.debug('Session has already ended.')
+
+            return of(new ExpiredError('Session has expired'))
+          }
+
+          if (sessionMayStart(session)) {
+            console.debug('Session may start soon.')
+          }
+
+          if (sessionIsRunning(session)) {
+            console.debug('Session is already running.')
+          }
+
+          patchState(store, { _session: session })
           activeSessionPersistence.patch({ code })
-
           return of(void 0)
         }),
         catchError((err) => {
+          activeSessionPersistence.clear()
           patchState(store, initialState)
+          patchState(store, { _sessionIsLoaded: true })
 
           return throwError(() => err)
         }),
@@ -124,66 +146,15 @@ export const ActiveSessionStore = signalStore(
         }),
       )
     },
-
-    _listenSessionStatus: (): Observable<void> => {
-      return sessionObserver.sessionEvents().pipe(
-        // retry(5),
-        concatMap((response) => {
-          if (isFailure(response)) {
-            return throwError(() => response.error)
-          }
-
-          const session = store.session()
-          const event = response.result
-
-          if (!session) {
-            return of(void 0)
-          }
-
-          if (sessionStarted(event)) {
-            patchState(store, {
-              _session: {
-                ...session,
-                startedAt: event.session.startedAt,
-              },
-            })
-          }
-
-          if (sessionEnded(event)) {
-            patchState(store, {
-              _session: {
-                ...session,
-                endedAt: event.session.endedAt,
-              },
-            })
-          }
-
-          return of(void 0)
-        }),
-      )
-    },
-
-    _loadParticipantsStream: (): Observable<Participant[]> => {
-      return sessionObserver.participants().pipe(
-        // retry(5),
-        concatMap((response) => {
-          if (isFailure(response)) {
-            return throwError(() => response.error)
-          }
-
-          return of(response.result)
-        }),
-        catchError((err) => {
-          console.error('Erreur du flux des participants', err)
-          errorHandler.handleError(err)
-          return of([])
-        }),
-      )
-    },
   })),
 
   withHooks({
-    onInit(store, activeSessionPersistence = inject(ActiveSessionPersistence), injector = inject(Injector)) {
+    onInit(store,
+      sessionObserver = inject(SESSION_OBSERVER_SERVICE),
+      activeSessionPersistence = inject(ActiveSessionPersistence),
+      injector = inject(Injector),
+      errorHandler = inject(ErrorHandler),
+    ) {
       const data = activeSessionPersistence.retrieve()
       if (data === null) {
         patchState(store, { _sessionIsLoaded: true })
@@ -198,27 +169,88 @@ export const ActiveSessionStore = signalStore(
         }),
       })
 
-      // ! FIXME: Error in there should be handled somehow else than just blocking the app
+      // * Run Listeners in injection context
+      runInInjectionContext(injector, () => {
+        console.log('Active session restored from persistence.')
+        // * Listen to session status updates
+        sessionObserver.participants().pipe(
+          // Prevent memory leaks if the store is destroyed
+          takeUntilDestroyed(),
+          retry({ delay: 1000, count: Infinity }),
+          tap((response) => {
+            if (isFailure(response)) {
+              const error = response.error
+              console.error('Error in participants stream:', error)
+              errorHandler.handleError(error)
+              return of([])
+            }
+
+            const participants = response.result
+            patchState(store, { _participants: participants })
+
+            return response.result
+          }),
+          catchError((err) => {
+            console.error('Error in participants stream:', err)
+            errorHandler.handleError(err)
+            return of([])
+          }),
+        ).subscribe()
+
+        // * Listen to session status updates
+        sessionObserver.sessionEvents().pipe(
+          // Prevent memory leaks if the store is destroyed
+          takeUntilDestroyed(),
+          retry({ delay: 1000, count: Infinity }),
+          concatMap((response) => {
+            if (isFailure(response)) {
+              const error = response.error
+              console.error('Error listening to session status:', error)
+              errorHandler.handleError(error)
+              return of(void 0)
+            }
+
+            const session = store.session()
+            const event = response.result
+
+            if (!session) {
+              return of(void 0)
+            }
+
+            if (sessionStarted(event)) {
+              console.log('Session started event received.')
+              patchState(store, {
+                _session: {
+                  ...session,
+                  startedAt: event.session.startedAt,
+                },
+              })
+            }
+
+            if (sessionEnded(event)) {
+              console.log('Session ended event received.')
+              patchState(store, {
+                _session: {
+                  ...session,
+                  endedAt: event.session.endedAt,
+                },
+              })
+            }
+
+            return of(void 0)
+          }),
+          catchError((err) => {
+            console.error('Error listening to session status:', err)
+            errorHandler.handleError(err)
+            return of(void 0)
+          }),
+        ).subscribe()
+      })
+
       firstValueFrom(
         store.joinSession(data.code).pipe(retry(1)),
-      ).then(() => {
-        // In order to be destroyed with the store
-        runInInjectionContext(injector, () => {
-          // Listen to session status updates
-          store._loadParticipantsStream().pipe(
-            // Prevent memory leaks if the store is destroyed
-            takeUntilDestroyed(),
-          ).subscribe((participants) => {
-            patchState(store, { _participants: participants })
-          })
-
-          // Listen to session status updates
-          store._listenSessionStatus().pipe(
-            // Prevent memory leaks if the store is destroyed
-            takeUntilDestroyed(),
-          ).subscribe()
-        })
-      }).catch(() => {
+      ).catch(() => {
+        console.warn('Failed to restore active session from persistence, clearing persisted data.')
         activeSessionPersistence.clearKeepingNickname()
       }).finally(() => {
         patchState(store, { _sessionIsLoaded: true })

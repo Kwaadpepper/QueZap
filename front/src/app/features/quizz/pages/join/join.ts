@@ -6,7 +6,7 @@ import { Message } from 'primeng/message'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { catchError, filter, finalize, map, of, switchMap, tap } from 'rxjs'
 
-import { NotFoundError } from '@quezap/core/errors'
+import { ExpiredError, NotFoundError } from '@quezap/core/errors'
 import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
 
 import { JoinForm } from '../../components'
@@ -79,6 +79,13 @@ export class Join {
 
         if (result instanceof NotFoundError) {
           this.sessionNotFound.set(true)
+          return
+        }
+
+        if (result instanceof ExpiredError) {
+          this.router.navigate(['/quizz/expired'], {
+            skipLocationChange: true,
+          })
           return
         }
 
