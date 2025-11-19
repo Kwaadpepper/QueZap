@@ -3,20 +3,30 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
+import { Message } from 'primeng/message'
 import { catchError, map, of, retry, switchMap, throwError } from 'rxjs'
 
 import { Config } from '@quezap/core/services'
 import { isFailure } from '@quezap/core/types'
-import { MixedQuestion, Question, QuestionType } from '@quezap/domain/models'
+import { isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, Question, QuestionType } from '@quezap/domain/models'
+import { Spinner } from '@quezap/shared/components'
 
 import { DebugToolbar } from '../../components'
+import { BinaryQuestionView, BooleanQuestionView, QuizzQuestionView } from '../../components/question-view'
 import { isNoMoreQuestions, NoMoreQuestions, SESSION_OBSERVER_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-quizz-runner',
   templateUrl: './quizz-runner.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DebugToolbar],
+  imports: [
+    DebugToolbar,
+    BinaryQuestionView,
+    BooleanQuestionView,
+    QuizzQuestionView,
+    Message,
+    Spinner,
+  ],
 })
 export class QuizzRunner {
   readonly #endedUrl = '/quizz/ended'
@@ -29,6 +39,10 @@ export class QuizzRunner {
 
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly question = signal<Question | null>(null)
+
+  protected readonly isBinary = isBinaryQuestion
+  protected readonly isBoolean = isBooleanQuestion
+  protected readonly isQuizz = isQuizzQuestion
 
   constructor() {
     this.sessionObserver.questions().pipe(

@@ -1,23 +1,39 @@
-<div class="flex relative flex-col items-center">
-  <div class="top-0 right-0 absolute p-4 flex">
-    @if(isDebug()) {
-    <quizz-debug-toolbar />
+<div class="relative flex flex-col items-center">
+  <div class="absolute top-0 right-0 flex p-4">
+    @if (isDebug()) {
+      <quizz-debug-toolbar />
     }
   </div>
-  <div class="mt-4">
+  <div class="mt-4 py-4">
     <div>
-      @if(question() === null) {
-      <span>En attente de la question suivante</span>
-      } @else { @switch (question()!.type) { @case (QuestionType.Binary) {
-      <span>binaire</span>
-      <!-- <quizz-question-binary question={question()!} /> -->
-      } @case (QuestionType.Boolean) { choix multiple
-      <span>boolean</span>
-      <!-- <quizz-question-multiple-choice question={question()!} /> -->
-      } @case (QuestionType.Quizz) { choix multiple
-      <span>boolean</span>
-      <!-- <quizz-question-multiple-choice question={question()!} /> -->
-      } @default { Type de question inconnu } } }
+      @let questionToShow = question();
+      @if (questionToShow === null) {
+        <div class="flex flex-col items-center gap-4">
+          <span class="h2">En attente de la question suivante</span>
+          <quizz-spinner />
+        </div>
+      } @else {
+        @defer {
+          @if (isBoolean(questionToShow)) {
+            <span>boolean</span>
+            <quizz-question-boolean [question]="questionToShow" />
+          } @else if (isBinary(questionToShow)) {
+            <span>binary</span>
+            <quizz-question-binary [question]="questionToShow" />
+          } @else if (isQuizz(questionToShow)) {
+            <span>quizz</span>
+            <quizz-question-quizz [question]="questionToShow" />
+          } @else {
+            <p-message type="error" class="mx-auto max-w-md">
+              <span> Type de question non géré : {{ questionToShow.type }} </span>
+            </p-message>
+          }
+        } @loading {
+          <quizz-spinner />
+        } @error {
+          <span>Type de question inconnu : {{ questionToShow.type }}</span>
+        }
+      }
     </div>
   </div>
 </div>
