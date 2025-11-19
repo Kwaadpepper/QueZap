@@ -1,9 +1,7 @@
 <div class="flex relative flex-col items-center">
-  <div class="top-0 right-0">
+  <div class="top-0 right-0 absolute p-4 flex">
     @if(isDebug()) {
-    <button class="btn btn-sm btn-primary mr-2" onClick="{onNextQuestion.bind(this)}">
-      Question suivante (debug)
-    </button>
+    <quizz-debug-toolbar />
     }
   </div>
   <div class="mt-4">

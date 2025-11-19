@@ -1,0 +1,42 @@
+<p-buttongroup>
+  <p-button
+    class="btn btn-sm btn-primary"
+    severity="info"
+    icon="pi pi-arrow-right"
+    size="small"
+    ariaLabel="Question suivante"
+    (onClick)="onMockAction('nextQuestion')"
+  />
+  <p-button
+    class="btn btn-sm btn-primary"
+    severity="info"
+    icon="pi pi-question"
+    size="small"
+    ariaLabel="Question Vrai/Faux"
+    (onClick)="onMockAction('booleanQuestion')"
+  />
+  <p-button
+    class="btn btn-sm btn-primary"
+    severity="info"
+    icon="pi pi-question-circle"
+    size="small"
+    ariaLabel="Question Binaire"
+    (onClick)="onMockAction('binaryQuestion')"
+  />
+  <p-button
+    class="btn btn-sm btn-primary"
+    severity="info"
+    icon="pi pi-check-square"
+    size="small"
+    ariaLabel="Question QCM"
+    (onClick)="onMockAction('quizzQuestion')"
+  />
+  <p-button
+    class="btn btn-sm btn-primary"
+    severity="info"
+    icon="pi pi-stop"
+    size="small"
+    ariaLabel="Fin de session"
+    (onClick)="onMockAction('mockNoMoreQuestions')"
+  />
+</p-buttongroup>

@@ -1,21 +1,28 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { Router } from '@angular/router'
+
+import { MessageService } from 'primeng/api'
+import { catchError, map, of, retry, switchMap, throwError } from 'rxjs'
 
 import { Config } from '@quezap/core/services'
-import { Question, QuestionType } from '@quezap/domain/models'
+import { isFailure } from '@quezap/core/types'
+import { MixedQuestion, Question, QuestionType } from '@quezap/domain/models'
 
-import { SESSION_OBSERVER_SERVICE, SessionObserverMockService } from '../../services'
-import { ActiveSessionStore } from '../../stores'
+import { DebugToolbar } from '../../components'
+import { isNoMoreQuestions, NoMoreQuestions, SESSION_OBSERVER_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-quizz-runner',
-  imports: [],
   templateUrl: './quizz-runner.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DebugToolbar],
 })
 export class QuizzRunner {
+  readonly #endedUrl = '/quizz/ended'
+  private readonly router = inject(Router)
   private readonly config = inject(Config)
-  private readonly sessionStore = inject(ActiveSessionStore)
+  private readonly message = inject(MessageService)
   private readonly sessionObserver = inject(SESSION_OBSERVER_SERVICE)
 
   protected readonly QuestionType = QuestionType
@@ -26,20 +33,44 @@ export class QuizzRunner {
   constructor() {
     this.sessionObserver.questions().pipe(
       takeUntilDestroyed(),
-    ).subscribe((questions) => {
-      console.log('Questions updated:', questions)
-    })
+      switchMap((response) => {
+        return isFailure(response)
+          ? throwError(() => response.error)
+          : of(response.result)
+      }),
+      retry({ count: 3, delay: 1000, resetOnSuccess: true }),
+      map(question => this.handleQuestion(question)),
+      catchError((error) => {
+        this.message.add({
+          severity: 'error',
+          summary: 'Erreur de chargement',
+          detail: `Impossible de charger la question : ${error.message}`,
+          sticky: true,
+        })
+        return []
+      }),
+    ).subscribe()
   }
 
-  /** Debug function */
-  protected onNextQuestion() {
-    if (!(this.sessionObserver instanceof SessionObserverMockService)) {
-      alert('Cette fonctionnalité n\'est disponible qu\'avec le service de mock')
+  private handleQuestion(question: MixedQuestion | NoMoreQuestions) {
+    if (isNoMoreQuestions(question)) {
+      this.message.add({
+        severity: 'info',
+        summary: 'Fin du quizz',
+        detail: 'Le quizz est terminé, bravo à tous les participants !',
+      })
+      this.router.navigate([this.#endedUrl])
       return
     }
 
-    this.sessionObserver.mockNextQuestion(
-      this.sessionStore.session()!.code,
-    )
+    switch (question.type) {
+      case QuestionType.Boolean:
+      case QuestionType.Binary:
+      case QuestionType.Quizz:
+        this.question.set(question)
+        break
+      default:
+        throw new Error('Unknown question type')
+    }
   }
 }

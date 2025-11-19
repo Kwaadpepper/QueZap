@@ -37,6 +37,9 @@ export function sessionEnded(session: SessionEvent): session is SessionEnded {
 export function sessionSwitchedQuestion(session: SessionEvent): session is SessionSwitchedQuestion {
   return session.type === 'SessionSwitchedQuestion'
 }
+export function isNoMoreQuestions(question: MixedQuestion | NoMoreQuestions): question is NoMoreQuestions {
+  return question.type === 'NoMoreQuestions'
+}
 
 export interface SessionObserverService {
   sessionEvents(): ServiceObservable<SessionEvent>

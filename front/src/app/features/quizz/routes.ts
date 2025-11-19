@@ -19,6 +19,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/expired/expired').then(m => m.Expired),
   },
   {
+    path: 'ended',
+    title: 'Quizz terminé',
+    loadComponent: () => import('./pages/ended/ended').then(m => m.Ended),
+  },
+  {
     path: 'lobby',
     title: 'Salle d\'attente',
     canActivate: [

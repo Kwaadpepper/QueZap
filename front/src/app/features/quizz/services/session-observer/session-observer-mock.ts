@@ -4,7 +4,7 @@ import { delay, map, of, Subject, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { ServiceObservable } from '@quezap/core/types'
-import { MixedQuestion, Participant, ParticipantId, QuestionId, QuestionType, Score, SessionCode, Theme, ThemeId } from '@quezap/domain/models'
+import { MixedQuestion, Participant, ParticipantId, QuestionId, QuestionType, Score, SessionCode, sessionIsRunning, Theme, ThemeId } from '@quezap/domain/models'
 
 import { SessionMocks } from '../session.mock'
 
@@ -206,11 +206,18 @@ export class SessionObserverMockService implements SessionObserverService {
     }, this.MOCK_DELAY())
   }
 
-  private startSession(session: SessionCode) {
-    this.sessions.startSession(session)
+  private startSession(code: SessionCode) {
+    const session = this.sessions.getSessionByCode(code)
+    if (!session) {
+      throw new Error(`Session with code ${code} not found.`)
+    }
+    if (sessionIsRunning(session)) {
+      return
+    }
+    this.sessions.startSession(code)
     setTimeout(() => {
       this.setSessionRunState({
-        session,
+        session: code,
         state: 'running',
       })
       this.sessionSubject.next({
