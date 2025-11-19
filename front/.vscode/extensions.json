@@ -3,6 +3,7 @@
   "recommendations": [
     "angular.ng-template",
     "firefox-devtools.vscode-firefox-debug",
-    "oven.bun-vscode"
+    "oven.bun-vscode",
+    "esbenp.prettier-vscode"
   ]
 }
