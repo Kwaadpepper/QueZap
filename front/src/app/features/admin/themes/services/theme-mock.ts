@@ -56,7 +56,7 @@ export class ThemeMockService implements ThemeService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new ServiceError('Mock service error: themes')
         }
       }),
       map((obs) => {

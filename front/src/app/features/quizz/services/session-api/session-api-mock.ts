@@ -22,7 +22,7 @@ export class SessionApiMockService implements SessionApiService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new ServiceError('Mock service error: find session')
         }
       }),
       map((code) => {
@@ -43,7 +43,7 @@ export class SessionApiMockService implements SessionApiService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new ServiceError('Mock service error: choose nickname')
         }
       }),
       map((nickname) => {

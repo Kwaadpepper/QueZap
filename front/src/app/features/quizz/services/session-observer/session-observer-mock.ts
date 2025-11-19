@@ -45,7 +45,7 @@ export class SessionObserverMockService implements SessionObserverService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new ServiceError('Mock service error: participants')
         }
       }),
       map(participants => ({
@@ -66,7 +66,7 @@ export class SessionObserverMockService implements SessionObserverService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new ServiceError('Mock service error: session events')
         }
       }),
       map(event => ({
@@ -81,7 +81,7 @@ export class SessionObserverMockService implements SessionObserverService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
-          throw new ServiceError('Mock service error')
+          throw new ServiceError('Mock service error: questions')
         }
       }),
       map(question => ({
