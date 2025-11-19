@@ -3,11 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router'
 
 import { Message } from 'primeng/message'
-import { ProgressSpinner } from 'primeng/progressspinner'
 import { catchError, filter, finalize, map, of, switchMap, tap } from 'rxjs'
 
 import { ExpiredError, NotFoundError } from '@quezap/core/errors'
 import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
+import { Spinner } from '@quezap/shared/components'
 
 import { JoinForm } from '../../components'
 import { ActiveSessionStore } from '../../stores'
@@ -16,8 +16,8 @@ import { ActiveSessionStore } from '../../stores'
   selector: 'quizz-join',
   imports: [
     Message,
-    ProgressSpinner,
     JoinForm,
+    Spinner,
   ],
   templateUrl: './join.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -8,6 +8,7 @@ import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { isSuccess } from '@quezap/core/types'
+import { Spinner } from '@quezap/shared/components'
 
 import { ACCOUNT_ACTIVATION_SERVICE } from '../services'
 
@@ -16,6 +17,7 @@ import { ACCOUNT_ACTIVATION_SERVICE } from '../services'
   imports: [
     ProgressSpinnerModule,
     Message,
+    Spinner,
   ],
   templateUrl: './account-activation.html',
 })
