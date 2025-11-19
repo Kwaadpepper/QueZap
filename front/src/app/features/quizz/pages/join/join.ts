@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { ActivatedRoute, Router } from '@angular/router'
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router'
 
 import { Message } from 'primeng/message'
 import { ProgressSpinner } from 'primeng/progressspinner'
-import { catchError, filter, map, switchMap, tap } from 'rxjs'
+import { catchError, filter, finalize, map, of, switchMap, tap } from 'rxjs'
 
+import { NotFoundError } from '@quezap/core/errors'
 import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
 
 import { JoinForm } from '../../components'
@@ -34,44 +35,65 @@ export class Join {
   protected readonly isLoading = signal(false)
 
   constructor() {
-    this.activatedRoute.paramMap.pipe(
-      map(params => params.get('session-code') as SessionCode | null),
+    this.router.events.pipe(
+      takeUntilDestroyed(this.destroyToken),
+      filter(event => event instanceof NavigationEnd),
+      map(() => this.activatedRoute.snapshot.paramMap.get('session-code') as SessionCode | null),
+      switchMap(code => this.handleSessionCode(code)),
+      catchError(() => {
+        this.isLoading.set(false)
+        this.errorOccured.set(true)
+        return []
+      }),
+    ).subscribe()
+  }
+
+  private handleSessionCode(code: SessionCode | null) {
+    return of(code).pipe(
       tap((code) => {
         this.sessionCode.set(code ?? 'NON FOURNI')
         this.sessionNotFound.set(false)
         this.errorOccured.set(false)
-        this.isLoading.set(false)
       }),
       filter((code): code is SessionCode => {
         const sessionCodeIsValid = code !== null && isValidSessionCode(code)
         if (!sessionCodeIsValid) {
           this.sessionNotFound.set(true)
         }
+
+        if (this.activatedRoute.snapshot.queryParamMap.get('failure')) {
+          this.errorOccured.set(true)
+          return false
+        }
         return sessionCodeIsValid
       }),
-      switchMap(code => this.loadSession(code).pipe(
-        catchError(() => {
-          this.isLoading.set(false)
-          this.errorOccured.set(true)
-          return []
-        }),
-      )),
-      takeUntilDestroyed(this.destroyToken),
-    ).subscribe()
+      switchMap(code => this.loadSession(code)),
+    )
   }
 
   private loadSession(code: SessionCode) {
     this.isLoading.set(true)
-
     return this.sessionStore.joinSession(code).pipe(
-      tap(() => {
+      tap((result) => {
         this.isLoading.set(false)
+
+        if (result instanceof NotFoundError) {
+          this.sessionNotFound.set(true)
+          return
+        }
+
         setTimeout(() => {
           this.router.navigate([this.#lobbyUrl], {
             skipLocationChange: true,
           })
         }, 200)
       }),
+      catchError(() => {
+        this.isLoading.set(false)
+        this.errorOccured.set(true)
+        return []
+      }),
+      finalize(() => this.isLoading.set(false)),
     )
   }
 }

@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { catchError, concatMap, firstValueFrom, Observable, of, retry, throwError } from 'rxjs'
 
-import { ValidationError } from '@quezap/core/errors'
+import { NotFoundError, ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
 import { Participant, Session, SessionCode, sessionIsRunning } from '@quezap/domain/models'
 
@@ -61,10 +61,17 @@ export const ActiveSessionStore = signalStore(
     errorHandler = inject(ErrorHandler),
   ) => ({
 
-    joinSession: (code: SessionCode): Observable<void> => {
+    joinSession: (code: SessionCode): Observable<void | NotFoundError> => {
       return sessionApi.find(code).pipe(
         concatMap((response) => {
           if (isFailure(response)) {
+            patchState(store, initialState)
+
+            const error = response.error
+            if (error instanceof NotFoundError) {
+              return of(error)
+            }
+
             return throwError(() => response.error)
           }
 
@@ -120,7 +127,7 @@ export const ActiveSessionStore = signalStore(
 
     _listenSessionStatus: (): Observable<void> => {
       return sessionObserver.sessionEvents().pipe(
-        retry(5),
+        // retry(5),
         concatMap((response) => {
           if (isFailure(response)) {
             return throwError(() => response.error)
@@ -158,7 +165,7 @@ export const ActiveSessionStore = signalStore(
 
     _loadParticipantsStream: (): Observable<Participant[]> => {
       return sessionObserver.participants().pipe(
-        retry(5),
+        // retry(5),
         concatMap((response) => {
           if (isFailure(response)) {
             return throwError(() => response.error)

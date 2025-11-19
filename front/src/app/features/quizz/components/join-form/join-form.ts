@@ -49,7 +49,9 @@ export class JoinForm {
       return
     }
 
-    this.router.navigate([this.#joinUrl, this.joinCodeForm().value().code])
+    this.router.navigate([this.#joinUrl, this.joinCodeForm().value().code], {
+      onSameUrlNavigation: 'reload',
+    })
   }
 
   protected onFillMockedValue() {

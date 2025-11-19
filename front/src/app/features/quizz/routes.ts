@@ -4,6 +4,11 @@ import { hasActiveSessionGuard } from './guards'
 
 export const routes: Routes = [
   {
+    path: 'join',
+    title: 'Rejoindre une session',
+    loadComponent: () => import('./pages/join/join').then(m => m.Join),
+  },
+  {
     path: 'join/:session-code',
     title: 'Rejoindre une session',
     loadComponent: () => import('./pages/join/join').then(m => m.Join),

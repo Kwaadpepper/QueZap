@@ -4,6 +4,8 @@ import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router' // I
 
 import { filter, map, Observable, take } from 'rxjs'
 
+import { Session } from '@quezap/domain/models'
+
 import { ActiveSessionStore } from '../../stores'
 
 const handleMissingActiveSession = (options?: GuardOptions) =>
@@ -12,24 +14,44 @@ const handleMissingActiveSession = (options?: GuardOptions) =>
     const sessionStore = inject(ActiveSessionStore)
     const unAuthRoute = router.parseUrl('/quizz/expired')
 
+    // ? Session restoration already done
+    if (sessionStore.restorationComplete()) {
+      return new Observable<boolean | ReturnType<Router['parseUrl']>>((subscriber) => {
+        subscriber.next(
+          isSessionActive(sessionStore.session(), options)
+            ? true
+            : unAuthRoute,
+        )
+        subscriber.complete()
+      })
+    }
+
+    // * Wait for session restoration to complete
     return toObservable(sessionStore.restorationComplete).pipe(
       filter(isComplete => isComplete),
       take(1),
       map(() => {
-        const session = sessionStore.session()
-        if (session === undefined) {
-          return unAuthRoute
-        }
-        if (options?.withQuizzRunning) {
-          return session.endedAt === null || session.startedAt !== null
-            ? true
-            : unAuthRoute
-        }
-
-        return true
+        return isSessionActive(sessionStore.session(), options)
+          ? true
+          : unAuthRoute
       }),
     )
   }
+
+function isSessionActive(
+  session: Session | undefined,
+  options?: GuardOptions,
+): boolean {
+  if (session === undefined) {
+    return false
+  }
+
+  if (options?.withQuizzRunning) {
+    return session.endedAt === null || session.startedAt !== null
+  }
+
+  return true
+}
 
 interface GuardOptions {
   withQuizzRunning?: true
