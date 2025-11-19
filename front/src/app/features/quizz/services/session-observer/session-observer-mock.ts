@@ -8,8 +8,12 @@ import { MixedQuestion, Participant, ParticipantId, QuestionId, QuestionType, Sc
 
 import { NoMoreQuestions, SessionEvent, SessionObserverService } from './session-observer'
 
+type SessionRunState = 'not_started' | 'running' | 'ended'
+
 @Injectable()
 export class SessionObserverMockService implements SessionObserverService {
+  readonly #sessionRunStatePersistKey = 'mockSessionRunState'
+  #sessionRunState: SessionRunState = 'not_started'
   private readonly MOCK_ERROR = (failureProbability = 0.2) => Math.random() < failureProbability
   private readonly MOCK_DELAY = () => Math.max(1000, Math.random() * 3000)
   readonly #participantsNames = [
@@ -52,6 +56,12 @@ export class SessionObserverMockService implements SessionObserverService {
   }
 
   public sessionEvents(): ServiceObservable<SessionEvent> {
+    if (this.getSessionRunState() === 'not_started') {
+      this.endSession()
+    }
+    else if (this.getSessionRunState() === 'running') {
+      this.startSession()
+    }
     return this.sessionSubject.pipe(
       delay(this.MOCK_DELAY()),
       tap(() => {
@@ -174,6 +184,7 @@ export class SessionObserverMockService implements SessionObserverService {
 
   private startSession() {
     setTimeout(() => {
+      this.setSessionRunState('running')
       this.sessionSubject.next({
         type: 'SessionStarted',
         session: {
@@ -185,6 +196,7 @@ export class SessionObserverMockService implements SessionObserverService {
 
   private endSession() {
     setTimeout(() => {
+      this.setSessionRunState('ended')
       this.sessionSubject.next({
         type: 'SessionEnded',
         session: {
@@ -192,5 +204,17 @@ export class SessionObserverMockService implements SessionObserverService {
         },
       })
     }, this.MOCK_DELAY())
+  }
+
+  private getSessionRunState() {
+    if (sessionStorage.getItem(this.#sessionRunStatePersistKey)) {
+      this.#sessionRunState = sessionStorage.getItem(this.#sessionRunStatePersistKey) as SessionRunState
+    }
+    return this.#sessionRunState
+  }
+
+  private setSessionRunState(state: SessionRunState) {
+    this.#sessionRunState = state
+    sessionStorage.setItem(this.#sessionRunStatePersistKey, state)
   }
 }
