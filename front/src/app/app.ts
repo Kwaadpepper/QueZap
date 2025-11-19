@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
 
 import { Button } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 import { Drawer } from 'primeng/drawer'
+import { FocusTrapModule } from 'primeng/focustrap'
 import { ImageModule } from 'primeng/image'
 import { Toast } from 'primeng/toast'
 
@@ -12,6 +13,7 @@ import { LoadingStatus } from '@quezap/core/services'
 
 import { LayoutSettings } from './core/services'
 import { LogoutButton } from './features/auth/components'
+import { ExitButton } from './features/quizz/components'
 import { Footer } from './layout/footer/footer'
 import { AdminNav, SiteNav } from './layout/navigation'
 import { Debugbar, LoadingBar, ScrollTopComponent } from './shared/components'
@@ -34,6 +36,8 @@ import { AuthenticatedUserStore } from './shared/stores'
     Button,
     LogoutButton,
     ScrollTopComponent,
+    ExitButton,
+    FocusTrapModule,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -51,10 +55,15 @@ export class App {
   protected readonly inContainer = computed(() => this.layout.inContainer())
   protected readonly asWebsite = computed(() => this.layout.asWebsite())
 
-  protected readonly onAdminPath = computed(() => this.router.url.startsWith('/admin'))
-  private readonly onQuizzPath = computed(() => this.router.url.startsWith('/quizz'))
+  protected readonly onAdminPath = signal(false)
+  protected readonly onQuizzPath = signal(false)
 
   constructor() {
+    effect(() => {
+      this.layout.asWebsite.set(!this.onQuizzPath())
+      this.layout.inContainer.set(!this.onQuizzPath())
+    })
+    // * Update layout settings based on current path
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.LoadingStatus.start()
@@ -63,9 +72,8 @@ export class App {
         this.drawerVisible.set(false)
         this.LoadingStatus.stop()
 
-        // * Update layout settings based on current path
-        this.layout.asWebsite.update(() => !this.onAdminPath() && !this.onQuizzPath())
-        this.layout.inContainer.update(() => !this.onQuizzPath())
+        this.onAdminPath.set(event.url.startsWith('/admin'))
+        this.onQuizzPath.set(event.url.startsWith('/quizz'))
       }
       if (event instanceof NavigationCancel) {
         this.LoadingStatus.stop()

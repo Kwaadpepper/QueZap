@@ -49,13 +49,19 @@
 <quizz-loading-bar class="absolute top-0 left-0 z-10 w-full" />
 <main
   class="grow"
+  pFocusTrap
+  [pFocusTrapDisabled]="!onQuizzPath()"
   [class]="{
     'main-as-website': asWebsite(),
     'main-in-container': inContainer(),
   }"
 >
   <quizz-debugbar />
-  <router-outlet></router-outlet>
+  <router-outlet />
+
+  @if (onQuizzPath()) {
+    <quizz-exit-button />
+  }
 
   <p-toast
     position="bottom-left"
