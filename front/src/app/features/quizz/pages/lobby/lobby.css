@@ -47,9 +47,9 @@
   background-repeat: no-repeat;
   background-size: 20rem;
 
-  @media (width <= 768px) {
-    background-position: bottom center;
-    background-size: 60vw;
+  @media (width >= 768px) {
+    background-position: bottom -8rem left;
+    background-size: 60%;
   }
 }
 
