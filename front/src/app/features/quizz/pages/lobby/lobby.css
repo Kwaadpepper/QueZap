@@ -1,12 +1,18 @@
 :host {
-  --lobby-circle-size: 40rem;
-  --lobby-circle-min-size: 40rem;
-  --lobby-circle-max-size: 40rem;
+  --lobby-circle-size: 20rem;
+  --lobby-circle-min-size: 20rem;
+  --lobby-circle-max-size: 20rem;
   --lobby-circle-external-circle-width: calc(var(--lobby-circle-min-size) * 0.1);
 
   @media (prefers-color-scheme: dark) {
     --lobby-circle-color: var(--p-surface-100);
     --lobby-gradient-color: var(--p-primary-color);
+  }
+
+  @media (width >= 768px) {
+    --lobby-circle-size: 40rem;
+    --lobby-circle-min-size: 40rem;
+    --lobby-circle-max-size: 40rem;
   }
 }
 
@@ -36,6 +42,15 @@
     transparent 50%,
     transparent 100%
   );
+  background-image: url('/images/ferns.webp');
+  background-position: bottom left;
+  background-repeat: no-repeat;
+  background-size: 20rem;
+
+  @media (width <= 768px) {
+    background-position: bottom center;
+    background-size: 60vw;
+  }
 }
 
 .waiting-room-background::before {

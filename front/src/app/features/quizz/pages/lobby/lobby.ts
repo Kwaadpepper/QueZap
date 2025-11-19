@@ -28,7 +28,7 @@ export class Lobby {
 
   protected readonly isDebug = computed(() => this.config.debug())
 
-  private readonly nickname = computed(() => this.sessionStore.session()?.name)
+  private readonly nickname = computed(() => this.sessionStore.nickname()?.value())
 
   private readonly hasNickname = computed(() => {
     const name = this.nickname()
