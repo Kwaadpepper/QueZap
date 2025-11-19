@@ -16,7 +16,7 @@ import { ActiveSessionPersistence } from './../services/active-session-persisten
 interface ActiveSessionState {
   _session?: Session
   _nickname: SignalState<{
-    value: string
+    value: string | undefined
     remembered: boolean
   }> | undefined
   _sessionIsLoaded: boolean
@@ -164,8 +164,8 @@ export const ActiveSessionStore = signalStore(
       patchState(store, {
         ...initialState,
         _nickname: signalState({
-          value: data.nickname ?? '',
-          remembered: !!data.nickname,
+          value: data.nickname?.trim(),
+          remembered: data.nickname !== undefined && data.nickname.trim() !== '',
         }),
       })
 
