@@ -46,11 +46,13 @@ export class App {
   protected readonly layout = inject(LayoutSettings)
 
   protected readonly drawerVisible = signal(false)
-  protected readonly onAdminPath = signal(false)
   protected readonly isLoggedIn = computed(() => this.authenticatedUser.isLoggedIn())
 
   protected readonly inContainer = computed(() => this.layout.inContainer())
   protected readonly asWebsite = computed(() => this.layout.asWebsite())
+
+  protected readonly onAdminPath = computed(() => this.router.url.startsWith('/admin'))
+  private readonly onQuizzPath = computed(() => this.router.url.startsWith('/quizz'))
 
   constructor() {
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
@@ -60,7 +62,10 @@ export class App {
       if (event instanceof NavigationEnd) {
         this.drawerVisible.set(false)
         this.LoadingStatus.stop()
-        this.onAdminPath.set(this.router.url.startsWith('/admin'))
+
+        // * Update layout settings based on current path
+        this.layout.asWebsite.update(() => !this.onAdminPath() && !this.onQuizzPath())
+        this.layout.inContainer.update(() => !this.onQuizzPath())
       }
       if (event instanceof NavigationCancel) {
         this.LoadingStatus.stop()
