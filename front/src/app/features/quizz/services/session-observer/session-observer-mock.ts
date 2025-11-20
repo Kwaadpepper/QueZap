@@ -4,7 +4,7 @@ import { delay, map, of, Subject, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { ServiceObservable } from '@quezap/core/types'
-import { MixedQuestion, Participant, ParticipantId, QuestionId, QuestionType, Score, SessionCode, sessionIsRunning, Theme, ThemeId } from '@quezap/domain/models'
+import { MixedQuestion, Participant, ParticipantId, PictureUrl, QuestionId, QuestionType, Score, SessionCode, sessionIsRunning, Theme, ThemeId } from '@quezap/domain/models'
 
 import { SessionMocks } from '../session.mock'
 
@@ -168,6 +168,7 @@ export class SessionObserverMockService implements SessionObserverService {
           type: QuestionType.Boolean,
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
+          picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
         }
       case QuestionType.Binary:
         return {
@@ -176,6 +177,7 @@ export class SessionObserverMockService implements SessionObserverService {
           type: QuestionType.Binary,
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
+          picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
         }
       case QuestionType.Quizz:
         return {
@@ -184,6 +186,7 @@ export class SessionObserverMockService implements SessionObserverService {
           type: QuestionType.Quizz,
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
+          picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
         }
       default:
         throw new Error('Unsupported question type')
