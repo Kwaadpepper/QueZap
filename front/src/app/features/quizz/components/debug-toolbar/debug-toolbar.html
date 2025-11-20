@@ -1,7 +1,7 @@
 <p-buttongroup>
   <p-button
     class="btn btn-sm btn-primary"
-    severity="info"
+    severity="warn"
     icon="pi pi-arrow-right"
     size="small"
     ariaLabel="Question suivante"
@@ -10,7 +10,7 @@
   />
   <p-button
     class="btn btn-sm btn-primary"
-    severity="info"
+    severity="primary"
     icon="pi pi-question"
     size="small"
     ariaLabel="Question Vrai/Faux"
@@ -19,7 +19,7 @@
   />
   <p-button
     class="btn btn-sm btn-primary"
-    severity="info"
+    severity="primary"
     icon="pi pi-question-circle"
     size="small"
     ariaLabel="Question Binaire"
@@ -28,7 +28,7 @@
   />
   <p-button
     class="btn btn-sm btn-primary"
-    severity="info"
+    severity="primary"
     icon="pi pi-check-square"
     size="small"
     ariaLabel="Question QCM"
@@ -38,10 +38,11 @@
   <p-button
     class="btn btn-sm btn-primary"
     severity="info"
-    icon="pi pi-stop"
+    icon="pi pi-sign-out"
     size="small"
     ariaLabel="Fin de session"
     title="Fin de session"
+    severity="danger"
     (onClick)="onMockAction('mockNoMoreQuestions')"
   />
 </p-buttongroup>
