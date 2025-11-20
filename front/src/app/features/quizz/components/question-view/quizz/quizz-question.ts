@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, signal } f
 
 import { PictureUrl, QuizzQuestion, Theme, Timer } from '@quezap/domain/models'
 
-import { Picture, QuestionTimer } from '../parts'
+import { Picture, QuestionTheme, QuestionTimer } from '../parts'
 
 @Component({
   selector: 'quizz-question-quizz',
-  imports: [QuestionTimer, Picture],
+  imports: [QuestionTimer, Picture, QuestionTheme],
   templateUrl: './quizz-question.html',
   styles: [`
     :host {
