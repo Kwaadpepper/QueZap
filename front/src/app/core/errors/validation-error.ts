@@ -1,4 +1,4 @@
-import { FieldTree, ValidationError as SignalValidationError, ValidationErrorWithOptionalField } from '@angular/forms/signals'
+import { FieldTree, ValidationError as SignalValidationError } from '@angular/forms/signals'
 
 import { Failure } from '../types'
 
@@ -33,8 +33,8 @@ export class ValidationError extends ServiceError implements Failure<ValidationE
     )
   }
 
-  public getErrorsForForm<T>(form: FieldTree<T>): ValidationErrorWithOptionalField[] {
-    const result: ValidationErrorWithOptionalField[] = []
+  public getErrorsForForm<T>(form: FieldTree<T>): SignalValidationError.WithOptionalField[] {
+    const result: SignalValidationError.WithOptionalField[] = []
 
     for (const [field, errors] of this.errors.entries()) {
       const formField = form[field as keyof typeof form] ?? null

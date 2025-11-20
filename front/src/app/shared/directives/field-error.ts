@@ -1,5 +1,5 @@
 import { ComponentRef, Directive, effect, inject, input, OnDestroy, ViewContainerRef } from '@angular/core'
-import { FieldState, StandardSchemaValidationError, ValidationErrorWithField } from '@angular/forms/signals'
+import { FieldState, StandardSchemaValidationError, ValidationError } from '@angular/forms/signals'
 
 import { Message, MessageModule } from 'primeng/message'
 
@@ -42,7 +42,7 @@ export class FieldError implements OnDestroy {
     return input.errors().map(this.getErrorMessage)
   }
 
-  private getErrorMessage(error: ValidationErrorWithField): string {
+  private getErrorMessage(error: ValidationError.WithField): string {
     const field = error.field().name
     const kind = error.kind
     const message = error.message
