@@ -1,4 +1,6 @@
-import { ComponentRef, Directive, effect, inject, input, OnDestroy, ViewContainerRef } from '@angular/core'
+import {
+  ComponentRef, Directive, effect, inject, input, OnDestroy, ViewContainerRef,
+} from '@angular/core'
 import { FieldState, StandardSchemaValidationError, ValidationError } from '@angular/forms/signals'
 
 import { Message, MessageModule } from 'primeng/message'

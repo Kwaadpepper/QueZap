@@ -6,9 +6,7 @@ import { ServiceOutput, Tried } from '@quezap/core/types'
 
 import { RegisterService } from './register'
 
-const validationSchema = zod.object({
-  email: zod.email().check(zod.regex(/@quezap\.com$/)),
-})
+const validationSchema = zod.object({ email: zod.email().check(zod.regex(/@quezap\.com$/)) })
 
 export class RegisterMockService implements RegisterService {
   private readonly MOCK_DELAY = () => Math.max(100, Math.random() * 3000)

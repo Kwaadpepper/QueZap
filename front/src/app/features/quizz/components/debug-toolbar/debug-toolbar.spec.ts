@@ -7,9 +7,7 @@ describe('DebugToolbar', () => {
   let fixture: ComponentFixture<DebugToolbar>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [DebugToolbar],
-    })
+    await TestBed.configureTestingModule({ imports: [DebugToolbar] })
       .compileComponents()
 
     fixture = TestBed.createComponent(DebugToolbar)

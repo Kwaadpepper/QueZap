@@ -7,9 +7,7 @@ describe('BinaryQuestionView', () => {
   let fixture: ComponentFixture<BinaryQuestionView>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [BinaryQuestionView],
-    })
+    await TestBed.configureTestingModule({ imports: [BinaryQuestionView] })
       .compileComponents()
 
     fixture = TestBed.createComponent(BinaryQuestionView)

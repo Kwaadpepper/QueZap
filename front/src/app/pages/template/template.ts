@@ -161,8 +161,6 @@ export class Template {
    */
   getCardBackgroundStyles(baseName: string, shade: number): Record<string, string> {
     const cssVarName = `--p-${baseName}-${shade}`
-    return {
-      'background-color': `var(${cssVarName})`,
-    }
+    return { 'background-color': `var(${cssVarName})` }
   }
 }

@@ -3,7 +3,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router'
 
 import { Message } from 'primeng/message'
-import { catchError, filter, finalize, map, of, switchMap, tap } from 'rxjs'
+import {
+  catchError, filter, finalize, map, of, switchMap, tap,
+} from 'rxjs'
 
 import { ExpiredError, NotFoundError } from '@quezap/core/errors'
 import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
@@ -83,16 +85,12 @@ export class Join {
         }
 
         if (result instanceof ExpiredError) {
-          this.router.navigate(['/quizz/expired'], {
-            skipLocationChange: true,
-          })
+          this.router.navigate(['/quizz/expired'], { skipLocationChange: true })
           return
         }
 
         setTimeout(() => {
-          this.router.navigate([this.#lobbyUrl], {
-            skipLocationChange: true,
-          })
+          this.router.navigate([this.#lobbyUrl], { skipLocationChange: true })
         }, 200)
       }),
       catchError(() => {

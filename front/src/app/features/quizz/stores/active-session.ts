@@ -1,13 +1,19 @@
 import { computed, ErrorHandler, inject, Injector, runInInjectionContext } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
-import { patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
-import { catchError, concatMap, firstValueFrom, Observable, of, retry, tap, throwError } from 'rxjs'
+import {
+  patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState,
+} from '@ngrx/signals'
+import {
+  catchError, concatMap, firstValueFrom, Observable, of, retry, tap, throwError,
+} from 'rxjs'
 
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
 import { ExpiredError } from '@quezap/core/errors/expired-error'
 import { isFailure } from '@quezap/core/types'
-import { Participant, Session, SessionCode, sessionHasEnded, sessionIsRunning, sessionMayStart } from '@quezap/domain/models'
+import {
+  Participant, Session, SessionCode, sessionHasEnded, sessionIsRunning, sessionMayStart,
+} from '@quezap/domain/models'
 
 import { SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE, sessionEnded, sessionStarted } from '../services'
 

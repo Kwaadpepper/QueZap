@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, effect, input, output, signal,
+} from '@angular/core'
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop'
 
 import { concatMap, filter, interval, take, tap } from 'rxjs'
@@ -40,8 +42,6 @@ export class QuestionTimer {
         take(this.limit()),
         tap(() => this.remainingSeconds.update(seconds => seconds - 1)),
       )),
-    ).subscribe({
-      complete: () => this.exhausted.emit(true),
-    })
+    ).subscribe({ complete: () => this.exhausted.emit(true) })
   }
 }

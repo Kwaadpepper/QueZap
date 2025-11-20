@@ -3,7 +3,9 @@ import { toObservable } from '@angular/core/rxjs-interop'
 
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { debounceTime, distinctUntilChanged, filter, of, pipe, retry, switchMap, tap } from 'rxjs'
+import {
+  debounceTime, distinctUntilChanged, filter, of, pipe, retry, switchMap, tap,
+} from 'rxjs'
 
 import { LoadingStatus } from '@quezap/core/services'
 import { isFailure, pageComparator, Pagination, validatePagination } from '@quezap/core/types'

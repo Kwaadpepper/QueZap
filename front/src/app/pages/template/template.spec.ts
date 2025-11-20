@@ -7,9 +7,7 @@ describe('Template', () => {
   let fixture: ComponentFixture<Template>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Template],
-    })
+    await TestBed.configureTestingModule({ imports: [Template] })
       .compileComponents()
 
     fixture = TestBed.createComponent(Template)

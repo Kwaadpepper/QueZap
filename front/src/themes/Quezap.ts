@@ -397,9 +397,7 @@ const Quezap = definePreset({
     list: {
       padding: '0.25rem 0.25rem',
       gap: '2px',
-      header: {
-        padding: '0.5rem 1rem 0.25rem 1rem',
-      },
+      header: { padding: '0.5rem 1rem 0.25rem 1rem' },
       option: {
         padding: '0.5rem 0.75rem',
         borderRadius: '{border.radius.sm}',
@@ -409,12 +407,8 @@ const Quezap = definePreset({
         fontWeight: '600',
       },
     },
-    content: {
-      borderRadius: '{border.radius.md}',
-    },
-    mask: {
-      transitionDuration: '0.15s',
-    },
+    content: { borderRadius: '{border.radius.md}' },
+    mask: { transitionDuration: '0.15s' },
     navigation: {
       list: {
         padding: '0.25rem 0.25rem',
@@ -429,9 +423,7 @@ const Quezap = definePreset({
         padding: '0.5rem 0.75rem',
         fontWeight: '600',
       },
-      submenuIcon: {
-        size: '0.875rem',
-      },
+      submenuIcon: { size: '0.875rem' },
     },
     overlay: {
       select: {
@@ -448,9 +440,7 @@ const Quezap = definePreset({
         padding: '1.25rem',
         shadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
       },
-      navigation: {
-        shadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
-      },
+      navigation: { shadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)' },
     },
     colorScheme: {
       light: {
@@ -707,9 +697,7 @@ const Quezap = definePreset({
   },
   components: {
     accordion: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       panel: {
         borderWidth: '0 0 1px 0',
         borderColor: '{content.border.color}',
@@ -815,12 +803,8 @@ const Quezap = definePreset({
       },
       dropdown: {
         width: '2.5rem',
-        sm: {
-          width: '2rem',
-        },
-        lg: {
-          width: '3rem',
-        },
+        sm: { width: '2rem' },
+        lg: { width: '3rem' },
         borderColor: '{form.field.border.color}',
         hoverBorderColor: '{form.field.border.color}',
         activeBorderColor: '{form.field.border.color}',
@@ -833,12 +817,8 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      chip: {
-        borderRadius: '{border.radius.sm}',
-      },
-      emptyMessage: {
-        padding: '{list.option.padding}',
-      },
+      chip: { borderRadius: '{border.radius.sm}' },
+      emptyMessage: { padding: '{list.option.padding}' },
       colorScheme: {
         light: {
           chip: {
@@ -879,9 +859,7 @@ const Quezap = definePreset({
         color: '{content.color}',
         borderRadius: '{content.border.radius}',
       },
-      icon: {
-        size: '1rem',
-      },
+      icon: { size: '1rem' },
       group: {
         borderColor: '{content.background}',
         offset: '-0.75rem',
@@ -890,23 +868,15 @@ const Quezap = definePreset({
         width: '3rem',
         height: '3rem',
         fontSize: '1.5rem',
-        icon: {
-          size: '1.5rem',
-        },
-        group: {
-          offset: '-1rem',
-        },
+        icon: { size: '1.5rem' },
+        group: { offset: '-1rem' },
       },
       xl: {
         width: '4rem',
         height: '4rem',
         fontSize: '2rem',
-        icon: {
-          size: '2rem',
-        },
-        group: {
-          offset: '-1.5rem',
-        },
+        icon: { size: '2rem' },
+        group: { offset: '-1.5rem' },
       },
     },
     badge: {
@@ -918,9 +888,7 @@ const Quezap = definePreset({
         minWidth: '1.5rem',
         height: '1.5rem',
       },
-      dot: {
-        size: '0.5rem',
-      },
+      dot: { size: '0.5rem' },
       sm: {
         fontSize: '0.625rem',
         minWidth: '1.25rem',
@@ -999,11 +967,7 @@ const Quezap = definePreset({
         },
       },
     },
-    blockui: {
-      root: {
-        borderRadius: '{content.border.radius}',
-      },
-    },
+    blockui: { root: { borderRadius: '{content.border.radius}' } },
     breadcrumb: {
       root: {
         padding: '1rem',
@@ -1028,9 +992,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      separator: {
-        color: '{navigation.item.icon.color}',
-      },
+      separator: { color: '{navigation.item.icon.color}' },
     },
     button: {
       root: {
@@ -1050,9 +1012,8 @@ const Quezap = definePreset({
           paddingX: '{form.field.lg.padding.x}',
           paddingY: '{form.field.lg.padding.y}',
         },
-        label: {
-          fontWeight: '500',
-        },
+        label: { fontWeight: '500' },
+        // eslint-disable-next-line max-len
         raisedShadow: '0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12)',
         focusRing: {
           width: '{focus.ring.width}',
@@ -1530,9 +1491,7 @@ const Quezap = definePreset({
       },
     },
     datepicker: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       panel: {
         background: '{content.background}',
         borderColor: '{content.border.color}',
@@ -1553,12 +1512,8 @@ const Quezap = definePreset({
       },
       dropdown: {
         width: '2.5rem',
-        sm: {
-          width: '2rem',
-        },
-        lg: {
-          width: '3rem',
-        },
+        sm: { width: '2rem' },
+        lg: { width: '3rem' },
         borderColor: '{form.field.border.color}',
         hoverBorderColor: '{form.field.border.color}',
         activeBorderColor: '{form.field.border.color}',
@@ -1571,9 +1526,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      inputIcon: {
-        color: '{form.field.icon.color}',
-      },
+      inputIcon: { color: '{form.field.icon.color}' },
       selectMonth: {
         hoverBackground: '{content.hover.background}',
         color: '{content.color}',
@@ -1592,9 +1545,7 @@ const Quezap = definePreset({
         borderColor: '{content.border.color}',
         gap: '{overlay.popover.padding}',
       },
-      dayView: {
-        margin: '0.5rem 0 0 0',
-      },
+      dayView: { margin: '0.5rem 0 0 0' },
       weekDay: {
         padding: '0.25rem',
         fontWeight: '500',
@@ -1620,16 +1571,12 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      monthView: {
-        margin: '0.5rem 0 0 0',
-      },
+      monthView: { margin: '0.5rem 0 0 0' },
       month: {
         padding: '0.375rem',
         borderRadius: '{content.border.radius}',
       },
-      yearView: {
-        margin: '0.5rem 0 0 0',
-      },
+      yearView: { margin: '0.5rem 0 0 0' },
       year: {
         padding: '0.375rem',
         borderRadius: '{content.border.radius}',
@@ -1686,24 +1633,16 @@ const Quezap = definePreset({
         padding: '1.25rem',
         gap: '0.5rem',
       },
-      caption: {
-        gap: '0.5rem',
-      },
+      caption: { gap: '0.5rem' },
       title: {
         fontSize: '1.25rem',
         fontWeight: '500',
       },
-      subtitle: {
-        color: '{text.muted.color}',
-      },
+      subtitle: { color: '{text.muted.color}' },
     },
     carousel: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
-      content: {
-        gap: '0.25rem',
-      },
+      root: { transitionDuration: '{transition.duration}' },
+      content: { gap: '0.25rem' },
       indicatorList: {
         padding: '1rem',
         gap: '0.5rem',
@@ -1807,9 +1746,7 @@ const Quezap = definePreset({
           size: '0.875rem',
         },
       },
-      clearIcon: {
-        color: '{form.field.icon.color}',
-      },
+      clearIcon: { color: '{form.field.icon.color}' },
     },
     checkbox: {
       root: {
@@ -1853,12 +1790,8 @@ const Quezap = definePreset({
         checkedColor: '{primary.contrast.color}',
         checkedHoverColor: '{primary.contrast.color}',
         disabledColor: '{form.field.disabled.color}',
-        sm: {
-          size: '0.75rem',
-        },
-        lg: {
-          size: '1rem',
-        },
+        sm: { size: '0.75rem' },
+        lg: { size: '1rem' },
       },
     },
     chip: {
@@ -1873,9 +1806,7 @@ const Quezap = definePreset({
         width: '2rem',
         height: '2rem',
       },
-      icon: {
-        size: '1rem',
-      },
+      icon: { size: '1rem' },
       removeIcon: {
         size: '1rem',
         focusRing: {
@@ -1892,31 +1823,21 @@ const Quezap = definePreset({
             background: '{surface.100}',
             color: '{surface.800}',
           },
-          icon: {
-            color: '{surface.800}',
-          },
-          removeIcon: {
-            color: '{surface.800}',
-          },
+          icon: { color: '{surface.800}' },
+          removeIcon: { color: '{surface.800}' },
         },
         dark: {
           root: {
             background: '{surface.800}',
             color: '{surface.0}',
           },
-          icon: {
-            color: '{surface.0}',
-          },
-          removeIcon: {
-            color: '{surface.0}',
-          },
+          icon: { color: '{surface.0}' },
+          removeIcon: { color: '{surface.0}' },
         },
       },
     },
     colorpicker: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       preview: {
         width: '1.5rem',
         height: '1.5rem',
@@ -1939,18 +1860,14 @@ const Quezap = definePreset({
             background: '{surface.800}',
             borderColor: '{surface.900}',
           },
-          handle: {
-            color: '{surface.0}',
-          },
+          handle: { color: '{surface.0}' },
         },
         dark: {
           panel: {
             background: '{surface.900}',
             borderColor: '{surface.700}',
           },
-          handle: {
-            color: '{surface.0}',
-          },
+          handle: { color: '{surface.0}' },
         },
       },
     },
@@ -1959,9 +1876,7 @@ const Quezap = definePreset({
         size: '2rem',
         color: '{overlay.modal.color}',
       },
-      content: {
-        gap: '1rem',
-      },
+      content: { gap: '1rem' },
     },
     confirmpopup: {
       root: {
@@ -2014,18 +1929,14 @@ const Quezap = definePreset({
           activeColor: '{navigation.item.icon.active.color}',
         },
       },
-      submenu: {
-        mobileIndent: '1rem',
-      },
+      submenu: { mobileIndent: '1rem' },
       submenuIcon: {
         size: '{navigation.submenu.icon.size}',
         color: '{navigation.submenu.icon.color}',
         focusColor: '{navigation.submenu.icon.focus.color}',
         activeColor: '{navigation.submenu.icon.active.color}',
       },
-      separator: {
-        borderColor: '{content.border.color}',
-      },
+      separator: { borderColor: '{content.border.color}' },
     },
     dataview: {
       root: {
@@ -2068,9 +1979,7 @@ const Quezap = definePreset({
       },
     },
     datatable: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       header: {
         background: '{content.background}',
         borderColor: '{datatable.border.color}',
@@ -2096,9 +2005,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      columnTitle: {
-        fontWeight: '600',
-      },
+      columnTitle: { fontWeight: '600' },
       row: {
         background: '{content.background}',
         hoverBackground: '{content.hover.background}',
@@ -2124,9 +2031,7 @@ const Quezap = definePreset({
         color: '{content.color}',
         padding: '0.75rem 1rem',
       },
-      columnFooter: {
-        fontWeight: '600',
-      },
+      columnFooter: { fontWeight: '600' },
       footer: {
         background: '{content.background}',
         borderColor: '{datatable.border.color}',
@@ -2134,12 +2039,8 @@ const Quezap = definePreset({
         borderWidth: '0 0 1px 0',
         padding: '0.75rem 1rem',
       },
-      dropPoint: {
-        color: '{primary.color}',
-      },
-      columnResizer: {
-        width: '0.5rem',
-      },
+      dropPoint: { color: '{primary.color}' },
+      columnResizer: { width: '0.5rem' },
       resizeIndicator: {
         width: '1px',
         color: '{primary.color}',
@@ -2149,9 +2050,7 @@ const Quezap = definePreset({
         hoverColor: '{text.hover.muted.color}',
         size: '0.875rem',
       },
-      loadingIcon: {
-        size: '2rem',
-      },
+      loadingIcon: { size: '2rem' },
       rowToggleButton: {
         hoverBackground: '{content.hover.background}',
         selectedHoverBackground: '{content.background}',
@@ -2186,9 +2085,7 @@ const Quezap = definePreset({
           padding: '{overlay.popover.padding}',
           gap: '0.5rem',
         },
-        rule: {
-          borderColor: '{content.border.color}',
-        },
+        rule: { borderColor: '{content.border.color}' },
         constraintList: {
           padding: '{list.padding}',
           gap: '{list.gap}',
@@ -2201,9 +2098,7 @@ const Quezap = definePreset({
           focusColor: '{list.option.focus.color}',
           selectedColor: '{list.option.selected.color}',
           selectedFocusColor: '{list.option.selected.focus.color}',
-          separator: {
-            borderColor: '{content.border.color}',
-          },
+          separator: { borderColor: '{content.border.color}' },
           padding: '{list.option.padding}',
           borderRadius: '{list.option.border.radius}',
         },
@@ -2218,26 +2113,14 @@ const Quezap = definePreset({
       },
       colorScheme: {
         light: {
-          root: {
-            borderColor: '{content.border.color}',
-          },
-          row: {
-            stripedBackground: '{surface.50}',
-          },
-          bodyCell: {
-            selectedBorderColor: '{primary.100}',
-          },
+          root: { borderColor: '{content.border.color}' },
+          row: { stripedBackground: '{surface.50}' },
+          bodyCell: { selectedBorderColor: '{primary.100}' },
         },
         dark: {
-          root: {
-            borderColor: '{surface.800}',
-          },
-          row: {
-            stripedBackground: '{surface.950}',
-          },
-          bodyCell: {
-            selectedBorderColor: '{primary.900}',
-          },
+          root: { borderColor: '{surface.800}' },
+          row: { stripedBackground: '{surface.950}' },
+          bodyCell: { selectedBorderColor: '{primary.900}' },
         },
       },
     },
@@ -2257,18 +2140,14 @@ const Quezap = definePreset({
         fontSize: '1.25rem',
         fontWeight: '600',
       },
-      content: {
-        padding: '0 {overlay.modal.padding} {overlay.modal.padding} {overlay.modal.padding}',
-      },
+      content: { padding: '0 {overlay.modal.padding} {overlay.modal.padding} {overlay.modal.padding}' },
       footer: {
         padding: '0 {overlay.modal.padding} {overlay.modal.padding} {overlay.modal.padding}',
         gap: '0.5rem',
       },
     },
     divider: {
-      root: {
-        borderColor: '{content.border.color}',
-      },
+      root: { borderColor: '{content.border.color}' },
       content: {
         background: '{content.background}',
         color: '{text.color}',
@@ -2276,16 +2155,12 @@ const Quezap = definePreset({
       horizontal: {
         margin: '1rem 0',
         padding: '0 1rem',
-        content: {
-          padding: '0 0.5rem',
-        },
+        content: { padding: '0 0.5rem' },
       },
       vertical: {
         margin: '0 1rem',
         padding: '0.5rem 0',
-        content: {
-          padding: '0.5rem 0',
-        },
+        content: { padding: '0.5rem 0' },
       },
     },
     dock: {
@@ -2315,19 +2190,13 @@ const Quezap = definePreset({
         color: '{overlay.modal.color}',
         shadow: '{overlay.modal.shadow}',
       },
-      header: {
-        padding: '{overlay.modal.padding}',
-      },
+      header: { padding: '{overlay.modal.padding}' },
       title: {
         fontSize: '1.5rem',
         fontWeight: '600',
       },
-      content: {
-        padding: '0 {overlay.modal.padding} {overlay.modal.padding} {overlay.modal.padding}',
-      },
-      footer: {
-        padding: '{overlay.modal.padding}',
-      },
+      content: { padding: '0 {overlay.modal.padding} {overlay.modal.padding} {overlay.modal.padding}' },
+      footer: { padding: '{overlay.modal.padding}' },
     },
     editor: {
       toolbar: {
@@ -2394,9 +2263,7 @@ const Quezap = definePreset({
         color: '{text.muted.color}',
         hoverColor: '{text.hover.muted.color}',
       },
-      content: {
-        padding: '0',
-      },
+      content: { padding: '0' },
     },
     fileupload: {
       root: {
@@ -2424,19 +2291,11 @@ const Quezap = definePreset({
         padding: '1rem',
         gap: '1rem',
         borderColor: '{content.border.color}',
-        info: {
-          gap: '0.5rem',
-        },
+        info: { gap: '0.5rem' },
       },
-      fileList: {
-        gap: '0.5rem',
-      },
-      progressbar: {
-        height: '0.25rem',
-      },
-      basic: {
-        gap: '0.5rem',
-      },
+      fileList: { gap: '0.5rem' },
+      progressbar: { height: '0.25rem' },
+      basic: { gap: '0.5rem' },
     },
     iftalabel: {
       root: {
@@ -2469,19 +2328,13 @@ const Quezap = definePreset({
           fontWeight: '400',
         },
       },
-      over: {
-        active: {
-          top: '-1.25rem',
-        },
-      },
+      over: { active: { top: '-1.25rem' } },
       in: {
         input: {
           paddingTop: '1.5rem',
           paddingBottom: '{form.field.padding.y}',
         },
-        active: {
-          top: '{form.field.padding.y}',
-        },
+        active: { top: '{form.field.padding.y}' },
       },
       on: {
         borderRadius: '{border.radius.xs}',
@@ -2505,12 +2358,8 @@ const Quezap = definePreset({
         hoverColor: '{surface.0}',
         size: '3rem',
         gutter: '0.5rem',
-        prev: {
-          borderRadius: '50%',
-        },
-        next: {
-          borderRadius: '50%',
-        },
+        prev: { borderRadius: '50%' },
+        next: { borderRadius: '50%' },
         focusRing: {
           width: '{focus.ring.width}',
           style: '{focus.ring.style}',
@@ -2519,9 +2368,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      navIcon: {
-        size: '1.5rem',
-      },
+      navIcon: { size: '1.5rem' },
       thumbnailsContent: {
         background: '{content.background}',
         padding: '1rem 0.25rem',
@@ -2538,9 +2385,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      thumbnailNavButtonIcon: {
-        size: '1rem',
-      },
+      thumbnailNavButtonIcon: { size: '1rem' },
       caption: {
         background: 'rgba(0, 0, 0, 0.5)',
         color: '{surface.100}',
@@ -2563,9 +2408,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      insetIndicatorList: {
-        background: 'rgba(0, 0, 0, 0.5)',
-      },
+      insetIndicatorList: { background: 'rgba(0, 0, 0, 0.5)' },
       insetIndicatorButton: {
         background: 'rgba(255, 255, 255, 0.4)',
         hoverBackground: 'rgba(255, 255, 255, 0.6)',
@@ -2587,9 +2430,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      closeButtonIcon: {
-        size: '1.5rem',
-      },
+      closeButtonIcon: { size: '1.5rem' },
       colorScheme: {
         light: {
           thumbnailNavButton: {
@@ -2615,19 +2456,11 @@ const Quezap = definePreset({
         },
       },
     },
-    iconfield: {
-      icon: {
-        color: '{form.field.icon.color}',
-      },
-    },
+    iconfield: { icon: { color: '{form.field.icon.color}' } },
     image: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       preview: {
-        icon: {
-          size: '1.5rem',
-        },
+        icon: { size: '1.5rem' },
         mask: {
           background: '{mask.background}',
           color: '{mask.color}',
@@ -2690,12 +2523,8 @@ const Quezap = definePreset({
         borderRadius: '{content.border.radius}',
         gap: '0.5rem',
       },
-      text: {
-        fontWeight: '500',
-      },
-      icon: {
-        size: '1rem',
-      },
+      text: { fontWeight: '500' },
+      icon: { size: '1rem' },
       colorScheme: {
         light: {
           info: {
@@ -2819,9 +2648,7 @@ const Quezap = definePreset({
         },
         transitionDuration: '{form.field.transition.duration}',
       },
-      chip: {
-        borderRadius: '{border.radius.sm}',
-      },
+      chip: { borderRadius: '{border.radius.sm}' },
       colorScheme: {
         light: {
           chip: {
@@ -2848,9 +2675,7 @@ const Quezap = definePreset({
       },
     },
     inputnumber: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       button: {
         width: '2.5rem',
         borderRadius: '{form.field.border.radius}',
@@ -2886,17 +2711,11 @@ const Quezap = definePreset({
       },
     },
     inputotp: {
-      root: {
-        gap: '0.5rem',
-      },
+      root: { gap: '0.5rem' },
       input: {
         width: '2.5rem',
-        sm: {
-          width: '2rem',
-        },
-        lg: {
-          width: '3rem',
-        },
+        sm: { width: '2rem' },
+        lg: { width: '3rem' },
       },
     },
     inputtext: {
@@ -2949,15 +2768,9 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      value: {
-        background: '{primary.color}',
-      },
-      range: {
-        background: '{content.border.color}',
-      },
-      text: {
-        color: '{text.muted.color}',
-      },
+      value: { background: '{primary.color}' },
+      range: { background: '{content.border.color}' },
+      text: { color: '{text.muted.color}' },
     },
     listbox: {
       root: {
@@ -2974,9 +2787,7 @@ const Quezap = definePreset({
       list: {
         padding: '{list.padding}',
         gap: '{list.gap}',
-        header: {
-          padding: '{list.header.padding}',
-        },
+        header: { padding: '{list.header.padding}' },
       },
       option: {
         focusBackground: '{list.option.focus.background}',
@@ -3000,20 +2811,10 @@ const Quezap = definePreset({
         gutterStart: '-0.375rem',
         gutterEnd: '0.375rem',
       },
-      emptyMessage: {
-        padding: '{list.option.padding}',
-      },
+      emptyMessage: { padding: '{list.option.padding}' },
       colorScheme: {
-        light: {
-          option: {
-            stripedBackground: '{surface.50}',
-          },
-        },
-        dark: {
-          option: {
-            stripedBackground: '{surface.900}',
-          },
-        },
+        light: { option: { stripedBackground: '{surface.50}' } },
+        dark: { option: { stripedBackground: '{surface.900}' } },
       },
     },
     megamenu: {
@@ -3077,9 +2878,7 @@ const Quezap = definePreset({
         focusColor: '{navigation.submenu.icon.focus.color}',
         activeColor: '{navigation.submenu.icon.active.color}',
       },
-      separator: {
-        borderColor: '{content.border.color}',
-      },
+      separator: { borderColor: '{content.border.color}' },
       mobileButton: {
         borderRadius: '50%',
         size: '1.75rem',
@@ -3126,9 +2925,7 @@ const Quezap = definePreset({
         background: '{navigation.submenu.label.background}',
         color: '{navigation.submenu.label.color}',
       },
-      separator: {
-        borderColor: '{content.border.color}',
-      },
+      separator: { borderColor: '{content.border.color}' },
     },
     menubar: {
       root: {
@@ -3174,9 +2971,7 @@ const Quezap = definePreset({
           activeColor: '{navigation.submenu.icon.active.color}',
         },
       },
-      separator: {
-        borderColor: '{content.border.color}',
-      },
+      separator: { borderColor: '{content.border.color}' },
       mobileButton: {
         borderRadius: '50%',
         size: '1.75rem',
@@ -3201,31 +2996,19 @@ const Quezap = definePreset({
       content: {
         padding: '0.5rem 0.75rem',
         gap: '0.5rem',
-        sm: {
-          padding: '0.375rem 0.625rem',
-        },
-        lg: {
-          padding: '0.625rem 0.875rem',
-        },
+        sm: { padding: '0.375rem 0.625rem' },
+        lg: { padding: '0.625rem 0.875rem' },
       },
       text: {
         fontSize: '1rem',
         fontWeight: '500',
-        sm: {
-          fontSize: '0.875rem',
-        },
-        lg: {
-          fontSize: '1.125rem',
-        },
+        sm: { fontSize: '0.875rem' },
+        lg: { fontSize: '1.125rem' },
       },
       icon: {
         size: '1.125rem',
-        sm: {
-          size: '1rem',
-        },
-        lg: {
-          size: '1.25rem',
-        },
+        sm: { size: '1rem' },
+        lg: { size: '1.25rem' },
       },
       closeButton: {
         width: '1.75rem',
@@ -3239,23 +3022,11 @@ const Quezap = definePreset({
       },
       closeIcon: {
         size: '1rem',
-        sm: {
-          size: '0.875rem',
-        },
-        lg: {
-          size: '1.125rem',
-        },
+        sm: { size: '0.875rem' },
+        lg: { size: '1.125rem' },
       },
-      outlined: {
-        root: {
-          borderWidth: '1px',
-        },
-      },
-      simple: {
-        content: {
-          padding: '0',
-        },
-      },
+      outlined: { root: { borderWidth: '1px' } },
+      simple: { content: { padding: '0' } },
       colorScheme: {
         light: {
           info: {
@@ -3274,9 +3045,7 @@ const Quezap = definePreset({
               color: '{teal.700}',
               borderColor: '{teal.700}',
             },
-            simple: {
-              color: '{teal.700}',
-            },
+            simple: { color: '{teal.700}' },
           },
           success: {
             background: 'color-mix(in srgb, {green.50}, transparent 5%)',
@@ -3294,9 +3063,7 @@ const Quezap = definePreset({
               color: '{green.700}',
               borderColor: '{green.700}',
             },
-            simple: {
-              color: '{green.700}',
-            },
+            simple: { color: '{green.700}' },
           },
           warn: {
             background: 'color-mix(in srgb,{amber.50}, transparent 5%)',
@@ -3314,9 +3081,7 @@ const Quezap = definePreset({
               color: '{amber.700}',
               borderColor: '{amber.700}',
             },
-            simple: {
-              color: '{amber.700}',
-            },
+            simple: { color: '{amber.700}' },
           },
           error: {
             background: 'color-mix(in srgb, {red.50}, transparent 5%)',
@@ -3334,9 +3099,7 @@ const Quezap = definePreset({
               color: '{red.700}',
               borderColor: '{red.700}',
             },
-            simple: {
-              color: '{red.700}',
-            },
+            simple: { color: '{red.700}' },
           },
           secondary: {
             background: '{surface.100}',
@@ -3354,9 +3117,7 @@ const Quezap = definePreset({
               color: '{surface.500}',
               borderColor: '{surface.500}',
             },
-            simple: {
-              color: '{surface.500}',
-            },
+            simple: { color: '{surface.500}' },
           },
           contrast: {
             background: '{surface.900}',
@@ -3374,9 +3135,7 @@ const Quezap = definePreset({
               color: '{surface.950}',
               borderColor: '{surface.950}',
             },
-            simple: {
-              color: '{surface.950}',
-            },
+            simple: { color: '{surface.950}' },
           },
         },
         dark: {
@@ -3396,9 +3155,7 @@ const Quezap = definePreset({
               color: '{teal.200}',
               borderColor: '{teal.200}',
             },
-            simple: {
-              color: '{teal.200}',
-            },
+            simple: { color: '{teal.200}' },
           },
           success: {
             background: 'color-mix(in srgb, {green.500}, transparent 84%)',
@@ -3416,9 +3173,7 @@ const Quezap = definePreset({
               color: '{green.200}',
               borderColor: '{green.200}',
             },
-            simple: {
-              color: '{green.200}',
-            },
+            simple: { color: '{green.200}' },
           },
           warn: {
             background: 'color-mix(in srgb, {amber.500}, transparent 84%)',
@@ -3436,9 +3191,7 @@ const Quezap = definePreset({
               color: '{amber.200}',
               borderColor: '{amber.200}',
             },
-            simple: {
-              color: '{amber.200}',
-            },
+            simple: { color: '{amber.200}' },
           },
           error: {
             background: 'color-mix(in srgb, {red.500}, transparent 84%)',
@@ -3456,9 +3209,7 @@ const Quezap = definePreset({
               color: '{red.200}',
               borderColor: '{red.200}',
             },
-            simple: {
-              color: '{red.200}',
-            },
+            simple: { color: '{red.200}' },
           },
           secondary: {
             background: '{surface.800}',
@@ -3476,9 +3227,7 @@ const Quezap = definePreset({
               color: '{surface.400}',
               borderColor: '{surface.400}',
             },
-            simple: {
-              color: '{surface.400}',
-            },
+            simple: { color: '{surface.400}' },
           },
           contrast: {
             background: '{surface.0}',
@@ -3496,9 +3245,7 @@ const Quezap = definePreset({
               color: '{surface.0}',
               borderColor: '{surface.0}',
             },
-            simple: {
-              color: '{surface.0}',
-            },
+            simple: { color: '{surface.0}' },
           },
         },
       },
@@ -3512,15 +3259,9 @@ const Quezap = definePreset({
         background: '{content.border.color}',
         size: '0.5rem',
       },
-      label: {
-        gap: '0.5rem',
-      },
-      labelMarker: {
-        size: '0.5rem',
-      },
-      labelIcon: {
-        size: '1rem',
-      },
+      label: { gap: '0.5rem' },
+      labelMarker: { size: '0.5rem' },
+      labelIcon: { size: '1rem' },
       labelList: {
         verticalGap: '0.5rem',
         horizontalGap: '1rem',
@@ -3578,9 +3319,7 @@ const Quezap = definePreset({
       list: {
         padding: '{list.padding}',
         gap: '{list.gap}',
-        header: {
-          padding: '{list.header.padding}',
-        },
+        header: { padding: '{list.header.padding}' },
       },
       option: {
         focusBackground: '{list.option.focus.background}',
@@ -3600,23 +3339,13 @@ const Quezap = definePreset({
         fontWeight: '{list.option.group.font.weight}',
         padding: '{list.option.group.padding}',
       },
-      clearIcon: {
-        color: '{form.field.icon.color}',
-      },
-      chip: {
-        borderRadius: '{border.radius.sm}',
-      },
-      emptyMessage: {
-        padding: '{list.option.padding}',
-      },
+      clearIcon: { color: '{form.field.icon.color}' },
+      chip: { borderRadius: '{border.radius.sm}' },
+      emptyMessage: { padding: '{list.option.padding}' },
     },
     orderlist: {
-      root: {
-        gap: '1.125rem',
-      },
-      controls: {
-        gap: '0.5rem',
-      },
+      root: { gap: '1.125rem' },
+      controls: { gap: '0.5rem' },
     },
     organizationchart: {
       root: {
@@ -3675,9 +3404,7 @@ const Quezap = definePreset({
         gutter: '10px',
         arrowOffset: '1.25rem',
       },
-      content: {
-        padding: '{overlay.popover.padding}',
-      },
+      content: { padding: '{overlay.popover.padding}' },
     },
     paginator: {
       root: {
@@ -3706,12 +3433,8 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      currentPageReport: {
-        color: '{text.muted.color}',
-      },
-      jumpToPageInput: {
-        maxWidth: '2.5rem',
-      },
+      currentPageReport: { color: '{text.muted.color}' },
+      jumpToPageInput: { maxWidth: '2.5rem' },
     },
     password: {
       meter: {
@@ -3719,9 +3442,7 @@ const Quezap = definePreset({
         borderRadius: '{content.border.radius}',
         height: '.75rem',
       },
-      icon: {
-        color: '{form.field.icon.color}',
-      },
+      icon: { color: '{form.field.icon.color}' },
       overlay: {
         background: '{overlay.popover.background}',
         borderColor: '{overlay.popover.border.color}',
@@ -3730,9 +3451,7 @@ const Quezap = definePreset({
         padding: '{overlay.popover.padding}',
         shadow: '{overlay.popover.shadow}',
       },
-      content: {
-        gap: '0.5rem',
-      },
+      content: { gap: '0.5rem' },
       colorScheme: {
         light: {
           strength: {
@@ -3765,18 +3484,10 @@ const Quezap = definePreset({
         borderWidth: '0',
         borderRadius: '0',
       },
-      toggleableHeader: {
-        padding: '0.375rem 1.125rem',
-      },
-      title: {
-        fontWeight: '600',
-      },
-      content: {
-        padding: '0 1.125rem 1.125rem 1.125rem',
-      },
-      footer: {
-        padding: '0 1.125rem 1.125rem 1.125rem',
-      },
+      toggleableHeader: { padding: '0.375rem 1.125rem' },
+      title: { fontWeight: '600' },
+      content: { padding: '0 1.125rem 1.125rem 1.125rem' },
+      footer: { padding: '0 1.125rem 1.125rem 1.125rem' },
     },
     panelmenu: {
       root: {
@@ -3811,21 +3522,15 @@ const Quezap = definePreset({
           focusColor: '{navigation.item.icon.focus.color}',
         },
       },
-      submenu: {
-        indent: '1rem',
-      },
+      submenu: { indent: '1rem' },
       submenuIcon: {
         color: '{navigation.submenu.icon.color}',
         focusColor: '{navigation.submenu.icon.focus.color}',
       },
     },
     picklist: {
-      root: {
-        gap: '1.125rem',
-      },
-      controls: {
-        gap: '0.5rem',
-      },
+      root: { gap: '1.125rem' },
+      controls: { gap: '0.5rem' },
     },
     progressbar: {
       root: {
@@ -3833,9 +3538,7 @@ const Quezap = definePreset({
         borderRadius: '{content.border.radius}',
         height: '1.25rem',
       },
-      value: {
-        background: '{primary.color}',
-      },
+      value: { background: '{primary.color}' },
       label: {
         color: '{primary.contrast.color}',
         fontSize: '0.75rem',
@@ -3902,12 +3605,8 @@ const Quezap = definePreset({
         checkedColor: '{primary.contrast.color}',
         checkedHoverColor: '{primary.contrast.color}',
         disabledColor: '{form.field.disabled.color}',
-        sm: {
-          size: '0.5rem',
-        },
-        lg: {
-          size: '1rem',
-        },
+        sm: { size: '0.5rem' },
+        lg: { size: '1rem' },
       },
     },
     rating: {
@@ -3930,9 +3629,7 @@ const Quezap = definePreset({
       },
     },
     scrollpanel: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       bar: {
         size: '9px',
         borderRadius: '{border.radius.sm}',
@@ -3945,16 +3642,8 @@ const Quezap = definePreset({
         },
       },
       colorScheme: {
-        light: {
-          bar: {
-            background: '{surface.100}',
-          },
-        },
-        dark: {
-          bar: {
-            background: '{surface.800}',
-          },
-        },
+        light: { bar: { background: '{surface.100}' } },
+        dark: { bar: { background: '{surface.800}' } },
       },
     },
     select: {
@@ -4009,9 +3698,7 @@ const Quezap = definePreset({
       list: {
         padding: '{list.padding}',
         gap: '{list.gap}',
-        header: {
-          padding: '{list.header.padding}',
-        },
+        header: { padding: '{list.header.padding}' },
       },
       option: {
         focusBackground: '{list.option.focus.background}',
@@ -4030,39 +3717,23 @@ const Quezap = definePreset({
         fontWeight: '{list.option.group.font.weight}',
         padding: '{list.option.group.padding}',
       },
-      clearIcon: {
-        color: '{form.field.icon.color}',
-      },
+      clearIcon: { color: '{form.field.icon.color}' },
       checkmark: {
         color: '{list.option.color}',
         gutterStart: '-0.375rem',
         gutterEnd: '0.375rem',
       },
-      emptyMessage: {
-        padding: '{list.option.padding}',
-      },
+      emptyMessage: { padding: '{list.option.padding}' },
     },
     selectbutton: {
-      root: {
-        borderRadius: '{form.field.border.radius}',
-      },
+      root: { borderRadius: '{form.field.border.radius}' },
       colorScheme: {
-        light: {
-          root: {
-            invalidBorderColor: '{form.field.invalid.border.color}',
-          },
-        },
-        dark: {
-          root: {
-            invalidBorderColor: '{form.field.invalid.border.color}',
-          },
-        },
+        light: { root: { invalidBorderColor: '{form.field.invalid.border.color}' } },
+        dark: { root: { invalidBorderColor: '{form.field.invalid.border.color}' } },
       },
     },
     skeleton: {
-      root: {
-        borderRadius: '{content.border.radius}',
-      },
+      root: { borderRadius: '{content.border.radius}' },
       colorScheme: {
         light: {
           root: {
@@ -4079,17 +3750,13 @@ const Quezap = definePreset({
       },
     },
     slider: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       track: {
         background: '{content.border.color}',
         borderRadius: '{content.border.radius}',
         size: '3px',
       },
-      range: {
-        background: '{primary.color}',
-      },
+      range: { background: '{primary.color}' },
       handle: {
         width: '20px',
         height: '20px',
@@ -4112,20 +3779,8 @@ const Quezap = definePreset({
         },
       },
       colorScheme: {
-        light: {
-          handle: {
-            content: {
-              background: '{surface.0}',
-            },
-          },
-        },
-        dark: {
-          handle: {
-            content: {
-              background: '{surface.950}',
-            },
-          },
-        },
+        light: { handle: { content: { background: '{surface.0}' } } },
+        dark: { handle: { content: { background: '{surface.950}' } } },
       },
     },
     speeddial: {
@@ -4141,9 +3796,7 @@ const Quezap = definePreset({
         color: '{content.color}',
         transitionDuration: '{transition.duration}',
       },
-      gutter: {
-        background: '{content.border.color}',
-      },
+      gutter: { background: '{content.border.color}' },
       handle: {
         size: '24px',
         background: 'transparent',
@@ -4161,13 +3814,12 @@ const Quezap = definePreset({
       root: {
         borderRadius: '{form.field.border.radius}',
         roundedBorderRadius: '2rem',
+        // eslint-disable-next-line max-len
         raisedShadow: '0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12)',
       },
     },
     stepper: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       separator: {
         background: '{content.border.color}',
         activeBackground: '{primary.color}',
@@ -4208,9 +3860,7 @@ const Quezap = definePreset({
         borderRadius: '50%',
         shadow: '0px 0.5px 0px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.12)',
       },
-      steppanels: {
-        padding: '0.875rem 0.5rem 1.125rem 0.5rem',
-      },
+      steppanels: { padding: '0.875rem 0.5rem 1.125rem 0.5rem' },
       steppanel: {
         background: '{content.background}',
         color: '{content.color}',
@@ -4219,12 +3869,8 @@ const Quezap = definePreset({
       },
     },
     steps: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
-      separator: {
-        background: '{content.border.color}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
+      separator: { background: '{content.border.color}' },
       itemLink: {
         borderRadius: '{content.border.radius}',
         focusRing: {
@@ -4256,9 +3902,7 @@ const Quezap = definePreset({
       },
     },
     tabmenu: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       tablist: {
         borderWidth: '0 0 1px 0',
         background: '{content.background}',
@@ -4299,9 +3943,7 @@ const Quezap = definePreset({
       },
     },
     tabs: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       tablist: {
         borderWidth: '0 0 1px 0',
         background: '{content.background}',
@@ -4361,25 +4003,15 @@ const Quezap = definePreset({
         background: '{primary.color}',
       },
       colorScheme: {
-        light: {
-          navButton: {
-            shadow: '0px 0px 10px 50px rgba(255, 255, 255, 0.6)',
-          },
-        },
+        light: { navButton: { shadow: '0px 0px 10px 50px rgba(255, 255, 255, 0.6)' } },
         dark: {
-          tab: {
-            activeColor: '{green.400}',
-          },
-          navButton: {
-            shadow: '0px 0px 10px 50px color-mix(in srgb, {content.background}, transparent 50%)',
-          },
+          tab: { activeColor: '{green.400}' },
+          navButton: { shadow: '0px 0px 10px 50px color-mix(in srgb, {content.background}, transparent 50%)' },
         },
       },
     },
     tabview: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       tabList: {
         background: '{content.background}',
         borderColor: '{content.border.color}',
@@ -4401,18 +4033,10 @@ const Quezap = definePreset({
         hoverColor: '{text.color}',
       },
       colorScheme: {
-        light: {
-          navButton: {
-            shadow: '0px 0px 10px 50px rgba(255, 255, 255, 0.6)',
-          },
-        },
+        light: { navButton: { shadow: '0px 0px 10px 50px rgba(255, 255, 255, 0.6)' } },
         dark: {
-          tab: {
-            activeColor: '{green.400}',
-          },
-          navButton: {
-            shadow: '0px 0px 10px 50px color-mix(in srgb, {content.background}, transparent 50%)',
-          },
+          tab: { activeColor: '{green.400}' },
+          navButton: { shadow: '0px 0px 10px 50px color-mix(in srgb, {content.background}, transparent 50%)' },
         },
       },
     },
@@ -4483,18 +4107,14 @@ const Quezap = definePreset({
           activeColor: '{navigation.item.icon.active.color}',
         },
       },
-      submenu: {
-        mobileIndent: '1rem',
-      },
+      submenu: { mobileIndent: '1rem' },
       submenuIcon: {
         size: '{navigation.submenu.icon.size}',
         color: '{navigation.submenu.icon.color}',
         focusColor: '{navigation.submenu.icon.focus.color}',
         activeColor: '{navigation.submenu.icon.active.color}',
       },
-      separator: {
-        borderColor: '{content.border.color}',
-      },
+      separator: { borderColor: '{content.border.color}' },
     },
     tag: {
       root: {
@@ -4505,9 +4125,7 @@ const Quezap = definePreset({
         borderRadius: '{content.border.radius}',
         roundedBorderRadius: '{border.radius.xl}',
       },
-      icon: {
-        size: '0.75rem',
-      },
+      icon: { size: '0.75rem' },
       colorScheme: {
         light: {
           primary: {
@@ -4580,27 +4198,13 @@ const Quezap = definePreset({
         padding: '{form.field.padding.y} {form.field.padding.x}',
         borderRadius: '{form.field.border.radius}',
       },
-      prompt: {
-        gap: '0.25rem',
-      },
-      commandResponse: {
-        margin: '2px 0',
-      },
+      prompt: { gap: '0.25rem' },
+      commandResponse: { margin: '2px 0' },
     },
     timeline: {
-      event: {
-        minHeight: '5rem',
-      },
-      horizontal: {
-        eventContent: {
-          padding: '1rem 0',
-        },
-      },
-      vertical: {
-        eventContent: {
-          padding: '0 1rem',
-        },
-      },
+      event: { minHeight: '5rem' },
+      horizontal: { eventContent: { padding: '1rem 0' } },
+      vertical: { eventContent: { padding: '0 1rem' } },
       eventMarker: {
         size: '1.125rem',
         borderRadius: '50%',
@@ -4646,9 +4250,7 @@ const Quezap = definePreset({
           padding: '0.625rem 1.25rem',
         },
       },
-      icon: {
-        disabledColor: '{form.field.disabled.color}',
-      },
+      icon: { disabledColor: '{form.field.disabled.color}' },
       content: {
         padding: '0.25rem',
         checkedShadow: '0px 1px 2px 0px rgba(0, 0, 0, 0.02), 0px 1px 2px 0px rgba(0, 0, 0, 0.04)',
@@ -4665,9 +4267,7 @@ const Quezap = definePreset({
             checkedColor: '{surface.900}',
             checkedBorderColor: '{surface.100}',
           },
-          content: {
-            checkedBackground: '{surface.0}',
-          },
+          content: { checkedBackground: '{surface.0}' },
           icon: {
             color: '{surface.500}',
             hoverColor: '{surface.700}',
@@ -4685,9 +4285,7 @@ const Quezap = definePreset({
             checkedColor: '{surface.0}',
             checkedBorderColor: '{surface.950}',
           },
-          content: {
-            checkedBackground: '{surface.800}',
-          },
+          content: { checkedBackground: '{surface.800}' },
           icon: {
             color: '{surface.400}',
             hoverColor: '{surface.300}',
@@ -4813,12 +4411,8 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      loadingIcon: {
-        size: '2rem',
-      },
-      filter: {
-        margin: '0 0 0.5rem 0',
-      },
+      loadingIcon: { size: '2rem' },
+      filter: { margin: '0 0 0.5rem 0' },
     },
     treeselect: {
       root: {
@@ -4869,23 +4463,13 @@ const Quezap = definePreset({
         color: '{overlay.select.color}',
         shadow: '{overlay.select.shadow}',
       },
-      tree: {
-        padding: '{list.padding}',
-      },
-      clearIcon: {
-        color: '{form.field.icon.color}',
-      },
-      emptyMessage: {
-        padding: '{list.option.padding}',
-      },
-      chip: {
-        borderRadius: '{border.radius.sm}',
-      },
+      tree: { padding: '{list.padding}' },
+      clearIcon: { color: '{form.field.icon.color}' },
+      emptyMessage: { padding: '{list.option.padding}' },
+      chip: { borderRadius: '{border.radius.sm}' },
     },
     treetable: {
-      root: {
-        transitionDuration: '{transition.duration}',
-      },
+      root: { transitionDuration: '{transition.duration}' },
       header: {
         background: '{content.background}',
         borderColor: '{treetable.border.color}',
@@ -4911,9 +4495,7 @@ const Quezap = definePreset({
           shadow: '{focus.ring.shadow}',
         },
       },
-      columnTitle: {
-        fontWeight: '600',
-      },
+      columnTitle: { fontWeight: '600' },
       row: {
         background: '{content.background}',
         hoverBackground: '{content.hover.background}',
@@ -4940,9 +4522,7 @@ const Quezap = definePreset({
         color: '{content.color}',
         padding: '0.75rem 1rem',
       },
-      columnFooter: {
-        fontWeight: '600',
-      },
+      columnFooter: { fontWeight: '600' },
       footer: {
         background: '{content.background}',
         borderColor: '{treetable.border.color}',
@@ -4950,9 +4530,7 @@ const Quezap = definePreset({
         borderWidth: '0 0 1px 0',
         padding: '0.75rem 1rem',
       },
-      columnResizer: {
-        width: '0.5rem',
-      },
+      columnResizer: { width: '0.5rem' },
       resizeIndicator: {
         width: '1px',
         color: '{primary.color}',
@@ -4962,9 +4540,7 @@ const Quezap = definePreset({
         hoverColor: '{text.hover.muted.color}',
         size: '0.875rem',
       },
-      loadingIcon: {
-        size: '2rem',
-      },
+      loadingIcon: { size: '2rem' },
       nodeToggleButton: {
         hoverBackground: '{content.hover.background}',
         selectedHoverBackground: '{content.background}',
@@ -4991,20 +4567,12 @@ const Quezap = definePreset({
       },
       colorScheme: {
         light: {
-          root: {
-            borderColor: '{content.border.color}',
-          },
-          bodyCell: {
-            selectedBorderColor: '{primary.100}',
-          },
+          root: { borderColor: '{content.border.color}' },
+          bodyCell: { selectedBorderColor: '{primary.100}' },
         },
         dark: {
-          root: {
-            borderColor: '{surface.800}',
-          },
-          bodyCell: {
-            selectedBorderColor: '{primary.900}',
-          },
+          root: { borderColor: '{surface.800}' },
+          bodyCell: { selectedBorderColor: '{primary.900}' },
         },
       },
     },
@@ -5015,16 +4583,12 @@ const Quezap = definePreset({
         borderWidth: '1px',
         transitionDuration: '{transition.duration}',
       },
-      icon: {
-        size: '1.125rem',
-      },
+      icon: { size: '1.125rem' },
       content: {
         padding: '{overlay.popover.padding}',
         gap: '0.5rem',
       },
-      text: {
-        gap: '0.5rem',
-      },
+      text: { gap: '0.5rem' },
       summary: {
         fontWeight: '500',
         fontSize: '1rem',
@@ -5043,9 +4607,7 @@ const Quezap = definePreset({
           offset: '{focus.ring.offset}',
         },
       },
-      closeIcon: {
-        size: '1rem',
-      },
+      closeIcon: { size: '1rem' },
       colorScheme: {
         light: {
           info: {
@@ -5237,9 +4799,7 @@ const Quezap = definePreset({
           background: '{content.background}',
           color: '{text.muted.color}',
         },
-        icon: {
-          size: '2rem',
-        },
+        icon: { size: '2rem' },
       },
     },
     tooltip: {
@@ -5267,16 +4827,8 @@ const Quezap = definePreset({
     },
     ripple: {
       colorScheme: {
-        light: {
-          root: {
-            background: 'rgba(0,0,0,0.1)',
-          },
-        },
-        dark: {
-          root: {
-            background: 'rgba(255,255,255,0.3)',
-          },
-        },
+        light: { root: { background: 'rgba(0,0,0,0.1)' } },
+        dark: { root: { background: 'rgba(255,255,255,0.3)' } },
       },
     },
   },

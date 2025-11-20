@@ -7,9 +7,7 @@ describe('ThemeList', () => {
   let fixture: ComponentFixture<ThemeList>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ThemeList],
-    })
+    await TestBed.configureTestingModule({ imports: [ThemeList] })
       .compileComponents()
 
     fixture = TestBed.createComponent(ThemeList)

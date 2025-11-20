@@ -7,9 +7,7 @@ describe('Spinner', () => {
   let fixture: ComponentFixture<Spinner>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Spinner],
-    })
+    await TestBed.configureTestingModule({ imports: [Spinner] })
       .compileComponents()
 
     fixture = TestBed.createComponent(Spinner)

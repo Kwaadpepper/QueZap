@@ -4,7 +4,9 @@ import { Router } from '@angular/router'
 
 import { MessageModule } from 'primeng/message'
 import { ProgressSpinner } from 'primeng/progressspinner'
-import { catchError, finalize, firstValueFrom, of, retry, tap } from 'rxjs'
+import {
+  catchError, finalize, firstValueFrom, of, retry, tap,
+} from 'rxjs'
 
 import { ForbidenError, HandledFrontError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'

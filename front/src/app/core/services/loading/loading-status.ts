@@ -1,12 +1,12 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 
-import { BehaviorSubject, EMPTY, interval, switchMap, takeWhile, tap } from 'rxjs'
+import {
+  BehaviorSubject, EMPTY, interval, switchMap, takeWhile, tap,
+} from 'rxjs'
 
 import { Easing, ProgressionEase } from '../easing/easing'
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class LoadingStatus {
   private readonly easing = inject(Easing)
   private readonly ticker = new BehaviorSubject<number>(0)

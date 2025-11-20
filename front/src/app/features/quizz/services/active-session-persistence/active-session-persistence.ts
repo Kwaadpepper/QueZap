@@ -7,9 +7,7 @@ export interface PersistedSessionData {
   nickname?: string
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ActiveSessionPersistence {
   readonly #storageKey = 'activeSessionCode'
 

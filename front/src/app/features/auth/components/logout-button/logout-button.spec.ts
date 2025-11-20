@@ -7,9 +7,7 @@ describe('LogoutButton', () => {
   let fixture: ComponentFixture<LogoutButton>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [LogoutButton],
-    })
+    await TestBed.configureTestingModule({ imports: [LogoutButton] })
       .compileComponents()
 
     fixture = TestBed.createComponent(LogoutButton)

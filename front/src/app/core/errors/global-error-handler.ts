@@ -6,9 +6,7 @@ import { Config } from '../services'
 import { ERROR_NOTIFIER } from './error-notifier'
 import { HandledFrontError } from './handled-front-error'
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class GlobalErrorHandler implements ErrorHandler {
   private readonly config = inject(Config)
   private readonly notifier = inject(ERROR_NOTIFIER)

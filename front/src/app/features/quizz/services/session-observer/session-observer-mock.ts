@@ -4,7 +4,11 @@ import { delay, map, of, Subject, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { ServiceObservable } from '@quezap/core/types'
-import { Answer, MixedQuestion, Participant, ParticipantId, PictureUrl, QuestionId, QuestionType, QuestionWithAnswers, Score, SessionCode, sessionIsRunning, Theme, ThemeId } from '@quezap/domain/models'
+import {
+  Answer, MixedQuestion, Participant, ParticipantId, PictureUrl,
+  QuestionId, QuestionType, QuestionWithAnswers, Score, SessionCode,
+  sessionIsRunning, Theme, ThemeId,
+} from '@quezap/domain/models'
 
 import { SessionMocks } from '../session.mock'
 
@@ -40,9 +44,9 @@ export class SessionObserverMockService implements SessionObserverService {
 
   private readonly sessions = inject(SessionMocks)
 
-  private readonly mockParticipants: Participant[] = Array.from({
-    length: Math.max(3, Math.random() * 25),
-  }).map(() => this.generateRandomParticipant())
+  private readonly mockParticipants: Participant[] = Array
+    .from({ length: Math.max(3, Math.random() * 25) })
+    .map(() => this.generateRandomParticipant())
 
   private readonly sessionSubject = new Subject<SessionEvent>()
   private readonly questionSubject = new Subject<MixedQuestion & QuestionWithAnswers | NoMoreQuestions>()
@@ -112,27 +116,21 @@ export class SessionObserverMockService implements SessionObserverService {
   public mockBooleanQuestion(onSession: SessionCode) {
     this.queueQuestion(
       onSession,
-      this.generateRandomQuestion({
-        type: QuestionType.Boolean,
-      }),
+      this.generateRandomQuestion({ type: QuestionType.Boolean }),
     )
   }
 
   public mockBinaryQuestion(onSession: SessionCode) {
     this.queueQuestion(
       onSession,
-      this.generateRandomQuestion({
-        type: QuestionType.Binary,
-      }),
+      this.generateRandomQuestion({ type: QuestionType.Binary }),
     )
   }
 
   public mockQuizzQuestion(onSession: SessionCode) {
     this.queueQuestion(
       onSession,
-      this.generateRandomQuestion({
-        type: QuestionType.Quizz,
-      }),
+      this.generateRandomQuestion({ type: QuestionType.Quizz }),
     )
   }
 
@@ -262,9 +260,7 @@ export class SessionObserverMockService implements SessionObserverService {
       })
       this.sessionSubject.next({
         type: 'SessionStarted',
-        session: {
-          startedAt: new Date(),
-        },
+        session: { startedAt: new Date() },
       })
     }, this.MOCK_DELAY())
   }
@@ -278,9 +274,7 @@ export class SessionObserverMockService implements SessionObserverService {
       })
       this.sessionSubject.next({
         type: 'SessionEnded',
-        session: {
-          endedAt: new Date(),
-        },
+        session: { endedAt: new Date() },
       })
     }, this.MOCK_DELAY())
   }

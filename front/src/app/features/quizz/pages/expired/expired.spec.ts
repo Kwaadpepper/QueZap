@@ -7,9 +7,7 @@ describe('Expired', () => {
   let fixture: ComponentFixture<Expired>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Expired],
-    })
+    await TestBed.configureTestingModule({ imports: [Expired] })
       .compileComponents()
 
     fixture = TestBed.createComponent(Expired)

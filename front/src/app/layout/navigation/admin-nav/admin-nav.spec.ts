@@ -7,9 +7,7 @@ describe('AdminNav', () => {
   let fixture: ComponentFixture<AdminNav>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AdminNav],
-    })
+    await TestBed.configureTestingModule({ imports: [AdminNav] })
       .compileComponents()
 
     fixture = TestBed.createComponent(AdminNav)

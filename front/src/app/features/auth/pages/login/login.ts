@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, ErrorHandler, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, DestroyRef, ErrorHandler, inject, signal,
+} from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router, RouterModule } from '@angular/router'
@@ -106,9 +108,7 @@ export class Login {
   }
 
   protected onFillMockedCredentials() {
-    this.loginInfo.set({
-      ...this.#mockedCredentials,
-    })
+    this.loginInfo.set({ ...this.#mockedCredentials })
     this.loginForm().markAsDirty()
   }
 

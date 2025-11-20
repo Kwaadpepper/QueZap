@@ -1,6 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, effect, inject, signal,
+} from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet } from '@angular/router'
+import {
+  NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet,
+} from '@angular/router'
 
 import { Button } from 'primeng/button'
 import { Divider } from 'primeng/divider'

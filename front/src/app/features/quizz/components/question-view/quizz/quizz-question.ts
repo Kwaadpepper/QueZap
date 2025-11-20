@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, effect, input, signal,
+} from '@angular/core'
 
 import { PictureUrl, QuizzQuestion, Theme, Timer } from '@quezap/domain/models'
 

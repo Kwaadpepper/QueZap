@@ -7,9 +7,7 @@ describe('Paginator', () => {
   let fixture: ComponentFixture<Paginator>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Paginator],
-    })
+    await TestBed.configureTestingModule({ imports: [Paginator] })
       .compileComponents()
 
     fixture = TestBed.createComponent(Paginator)

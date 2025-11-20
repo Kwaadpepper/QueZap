@@ -83,9 +83,7 @@ export class ThemeMockService implements ThemeService {
         }
 
         if (this.themeExists(newTheme.name)) {
-          return new ValidationError({
-            name: ['Un thème avec ce nom existe déjà'],
-          }, 'Un thème avec ce nom existe déjà')
+          return new ValidationError({ name: ['Un thème avec ce nom existe déjà'] }, 'Un thème avec ce nom existe déjà')
         }
 
         const newId = crypto.randomUUID() as ThemeId
@@ -120,9 +118,7 @@ export class ThemeMockService implements ThemeService {
         }
 
         if (this.themeExists(theme.name, theme.id)) {
-          return new ValidationError({
-            name: ['Un thème avec ce nom existe déjà'],
-          }, 'Un thème avec ce nom existe déjà')
+          return new ValidationError({ name: ['Un thème avec ce nom existe déjà'] }, 'Un thème avec ce nom existe déjà')
         }
 
         const existingTheme = this.getTheme(theme.id)

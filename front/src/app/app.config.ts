@@ -1,5 +1,8 @@
 import { provideHttpClient } from '@angular/common/http'
-import { ApplicationConfig, enableProdMode, ErrorHandler, provideAppInitializer, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'
+import {
+  ApplicationConfig, enableProdMode, ErrorHandler, provideAppInitializer,
+  provideBrowserGlobalErrorListeners, provideZonelessChangeDetection,
+} from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { provideRouter, TitleStrategy } from '@angular/router'
 

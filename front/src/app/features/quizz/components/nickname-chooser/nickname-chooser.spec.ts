@@ -7,9 +7,7 @@ describe('NicknameChooser', () => {
   let fixture: ComponentFixture<NicknameChooser>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NicknameChooser],
-    })
+    await TestBed.configureTestingModule({ imports: [NicknameChooser] })
       .compileComponents()
 
     fixture = TestBed.createComponent(NicknameChooser)

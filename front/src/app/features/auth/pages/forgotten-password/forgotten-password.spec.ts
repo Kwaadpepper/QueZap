@@ -15,13 +15,9 @@ describe('ForgottenPassword', () => {
   let fixture: ComponentFixture<ForgottenPassword>
   const resetPipe = of(undefined)
 
-  const mockConfig = {
-    debug: signal(false),
-  }
+  const mockConfig = { debug: signal(false) }
 
-  const mockAuthenticationService = {
-    askToResetPassword: jest.fn().mockReturnValue(resetPipe),
-  }
+  const mockAuthenticationService = { askToResetPassword: jest.fn().mockReturnValue(resetPipe) }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

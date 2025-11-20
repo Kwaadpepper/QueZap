@@ -7,9 +7,7 @@ describe('JoinForm', () => {
   let fixture: ComponentFixture<JoinForm>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [JoinForm],
-    })
+    await TestBed.configureTestingModule({ imports: [JoinForm] })
       .compileComponents()
 
     fixture = TestBed.createComponent(JoinForm)

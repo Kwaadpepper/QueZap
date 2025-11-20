@@ -7,9 +7,7 @@ describe('ParticipantIcon', () => {
   let fixture: ComponentFixture<ParticipantIcon>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ParticipantIcon],
-    })
+    await TestBed.configureTestingModule({ imports: [ParticipantIcon] })
       .compileComponents()
 
     fixture = TestBed.createComponent(ParticipantIcon)

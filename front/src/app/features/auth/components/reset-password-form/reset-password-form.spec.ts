@@ -22,13 +22,9 @@ describe('ResetPasswordForm', () => {
   const validJwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG'
     + '4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp - QV30'
 
-  const router = {
-    navigateByUrl: jest.fn<void, [string]>(),
-  }
+  const router = { navigateByUrl: jest.fn<void, [string]>() }
 
-  const message$ = {
-    add: jest.fn<void, [unknown]>(),
-  }
+  const message$ = { add: jest.fn<void, [unknown]>() }
 
   const authService: Pick<AuthenticationService, 'resetPassword'> = {
     resetPassword: jest.fn<ServiceOutput<void>, [string, string]>(() => {

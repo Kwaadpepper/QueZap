@@ -2,9 +2,7 @@ import { Injectable } from '@angular/core'
 
 import { AuthTokens } from '@quezap/domain/models'
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class TokenPersitance {
   readonly #TOKEN_KEY = 'auth_tokens'
 

@@ -19,9 +19,7 @@ const validationLoginSchema = zod.object({
   password: zod.string().refine(v => v === 'password'),
 })
 const validationRefreshSchema = zod.jwt()
-const validationAskResetPasswordSchema = zod.object({
-  email: zod.email().refine(v => v === 'user@example.net'),
-})
+const validationAskResetPasswordSchema = zod.object({ email: zod.email().refine(v => v === 'user@example.net') })
 
 const validationVerifyResetTokenSchema = zod.jwt()
 
@@ -175,9 +173,7 @@ export class AuthenticationMockService implements AuthenticationService {
 
     setTimeout(() => {
       if (validationVerifyResetTokenSchema.safeParse(token).success === false) {
-        response.next(new ValidationError({
-          token: ['The reset token is invalid'],
-        }, 'Invalid reset token'))
+        response.next(new ValidationError({ token: ['The reset token is invalid'] }, 'Invalid reset token'))
         response.complete()
         return
       }

@@ -7,9 +7,7 @@ describe('MarkdownViewer', () => {
   let fixture: ComponentFixture<MarkdownViewer>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MarkdownViewer],
-    })
+    await TestBed.configureTestingModule({ imports: [MarkdownViewer] })
       .compileComponents()
 
     fixture = TestBed.createComponent(MarkdownViewer)

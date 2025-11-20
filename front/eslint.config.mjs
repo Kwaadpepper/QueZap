@@ -60,6 +60,25 @@ export default tseslint.config(
       ],
       semi: ["error", "never"],
 
+      "max-len": ["error", {
+        comments: 120,
+        code: 120,
+        // ignorePattern: true,
+        // ignoreComments: false,
+        // ignoreTrailingComments: true,
+        // ignoreUrls: true,
+        // ignoreStrings: true,
+        // ignoreTemplateLiterals: true,
+        // ignoreRegExpLiterals: true,
+      }],
+
+      "object-curly-newline": ["error", {
+        "ObjectExpression": { "multiline": true, "minProperties": 6},
+        "ObjectPattern": { "multiline": true, "minProperties": 6 },
+        "ImportDeclaration": { "multiline": true, "minProperties": 6 },
+        "ExportDeclaration": { "multiline": true, "minProperties": 6 }
+      }],
+
       // Ordonne les imports: externals (avec @angular et primeng en tête), puis internes (~...), puis relatifs
       "import/order": [
         "error",

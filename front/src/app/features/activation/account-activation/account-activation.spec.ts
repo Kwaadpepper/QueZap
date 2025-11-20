@@ -7,9 +7,7 @@ describe('AccountActivation', () => {
   let fixture: ComponentFixture<AccountActivation>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AccountActivation],
-    })
+    await TestBed.configureTestingModule({ imports: [AccountActivation] })
       .compileComponents()
 
     fixture = TestBed.createComponent(AccountActivation)

@@ -7,9 +7,7 @@ describe('BackButton', () => {
   let component: BackButton
   let fixture: ComponentFixture<BackButton>
 
-  const mockRouter = {
-    navigateByUrl: jest.fn(),
-  }
+  const mockRouter = { navigateByUrl: jest.fn() }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

@@ -5,13 +5,9 @@ import { AuthenticatedUserStore } from '@quezap/shared/stores'
 
 import { isUnauthenticatedChildGuard, isUnauthenticatedGuard } from './unauthenticated-guard'
 
-const mockAuthenticatedUserStore = {
-  isLoggedIn: jest.fn(),
-}
+const mockAuthenticatedUserStore = { isLoggedIn: jest.fn() }
 
-const mockRouter = {
-  parseUrl: jest.fn(url => url),
-}
+const mockRouter = { parseUrl: jest.fn(url => url) }
 
 describe('Unauthenticated Function Guards', () => {
   beforeEach(() => {

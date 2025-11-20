@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, input, model, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, input, model, signal,
+} from '@angular/core'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
@@ -46,9 +48,7 @@ export class ThemeEditor {
   protected readonly errorOccurred = signal(false)
   protected readonly forUpdateAction = computed(() => this.theme().id !== undefined)
 
-  protected readonly themeData = signal({
-    name: '',
-  })
+  protected readonly themeData = signal({ name: '' })
 
   protected readonly themeForm = form(this.themeData, (path) => {
     validateStandardSchema(path, zod.object({
@@ -58,9 +58,7 @@ export class ThemeEditor {
   })
 
   protected onShow() {
-    this.themeData.update(() => ({
-      name: this.theme().name,
-    }))
+    this.themeData.update(() => ({ name: this.theme().name }))
     this.themeForm().reset()
     this.errorOccurred.set(false)
   }
@@ -74,9 +72,7 @@ export class ThemeEditor {
     this.errorOccurred.set(false)
 
     if (this.theme().id === undefined) {
-      this.createTheme({
-        name: this.themeForm.name().value(),
-      })
+      this.createTheme({ name: this.themeForm.name().value() })
       return
     }
 

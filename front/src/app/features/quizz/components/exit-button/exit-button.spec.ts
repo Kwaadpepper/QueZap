@@ -7,9 +7,7 @@ describe('ExitButton', () => {
   let fixture: ComponentFixture<ExitButton>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ExitButton],
-    })
+    await TestBed.configureTestingModule({ imports: [ExitButton] })
       .compileComponents()
 
     fixture = TestBed.createComponent(ExitButton)

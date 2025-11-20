@@ -28,9 +28,7 @@ export class JoinForm {
 
   protected readonly isDebug = computed(() => this.config.debug())
 
-  protected readonly joinCode = signal({
-    code: '',
-  })
+  protected readonly joinCode = signal({ code: '' })
 
   protected readonly joinCodeForm = form(this.joinCode, (path) => {
     validate(path.code, ({ value }) => {
@@ -49,15 +47,11 @@ export class JoinForm {
       return
     }
 
-    this.router.navigate([this.#joinUrl, this.joinCodeForm().value().code], {
-      onSameUrlNavigation: 'reload',
-    })
+    this.router.navigate([this.#joinUrl, this.joinCodeForm().value().code], { onSameUrlNavigation: 'reload' })
   }
 
   protected onFillMockedValue() {
-    this.joinCode.update(() => ({
-      code: this.#mockedCode,
-    }))
+    this.joinCode.update(() => ({ code: this.#mockedCode }))
     this.joinCodeForm().markAsDirty()
     this.joinCodeForm().markAsTouched()
   }

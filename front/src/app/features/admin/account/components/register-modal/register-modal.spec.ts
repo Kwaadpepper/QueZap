@@ -7,9 +7,7 @@ describe('RegisterModal', () => {
   let fixture: ComponentFixture<RegisterModal>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RegisterModal],
-    })
+    await TestBed.configureTestingModule({ imports: [RegisterModal] })
       .compileComponents()
 
     fixture = TestBed.createComponent(RegisterModal)

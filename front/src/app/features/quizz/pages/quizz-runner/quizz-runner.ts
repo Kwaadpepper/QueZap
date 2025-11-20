@@ -5,11 +5,15 @@ import { Router } from '@angular/router'
 import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Message } from 'primeng/message'
-import { catchError, map, of, retry, switchMap, throwError } from 'rxjs'
+import {
+  catchError, map, of, retry, switchMap, throwError,
+} from 'rxjs'
 
 import { Config } from '@quezap/core/services'
 import { isFailure } from '@quezap/core/types'
-import { isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, Question, QuestionType } from '@quezap/domain/models'
+import {
+  isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, QuestionType, QuestionWithAnswers,
+} from '@quezap/domain/models'
 import { Spinner } from '@quezap/shared/components'
 
 import { DebugToolbar } from '../../components'
@@ -40,7 +44,7 @@ export class QuizzRunner {
   protected readonly QuestionType = QuestionType
 
   protected readonly isDebug = computed(() => this.config.debug())
-  protected readonly question = signal<Question | null>(null)
+  protected readonly question = signal<QuestionWithAnswers | null>(null)
 
   protected readonly isBinary = isBinaryQuestion
   protected readonly isBoolean = isBooleanQuestion
@@ -73,7 +77,7 @@ export class QuizzRunner {
     throw new Error('Method not implemented.')
   }
 
-  private handleQuestion(question: MixedQuestion | NoMoreQuestions) {
+  private handleQuestion(question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions) {
     if (isNoMoreQuestions(question)) {
       this.message.add({
         severity: 'info',

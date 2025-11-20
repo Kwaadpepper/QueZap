@@ -36,22 +36,16 @@ export class RegisterModal {
   private readonly registerService = inject(REGISTER_SERVICE)
   private readonly errorHandler = inject(ErrorHandler)
 
-  private readonly userInfo = signal({
-    email: '',
-  })
+  private readonly userInfo = signal({ email: '' })
 
   protected readonly registerForm = form(this.userInfo, (path) => {
-    validateStandardSchema(path, zod.object({
-      email: zod.email('Email invalide'),
-    }))
+    validateStandardSchema(path, zod.object({ email: zod.email('Email invalide') }))
   })
 
   public readonly visible = model(false)
 
   protected onModalHide() {
-    this.userInfo.set({
-      email: '',
-    })
+    this.userInfo.set({ email: '' })
     this.registerForm().reset()
   }
 

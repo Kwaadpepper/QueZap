@@ -1,4 +1,6 @@
-import { Component, computed, ErrorHandler, inject, input, signal } from '@angular/core'
+import {
+  Component, computed, ErrorHandler, inject, input, signal,
+} from '@angular/core'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 

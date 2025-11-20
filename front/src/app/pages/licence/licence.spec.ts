@@ -7,9 +7,7 @@ describe('Licence', () => {
   let fixture: ComponentFixture<Licence>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Licence],
-    })
+    await TestBed.configureTestingModule({ imports: [Licence] })
       .compileComponents()
 
     fixture = TestBed.createComponent(Licence)

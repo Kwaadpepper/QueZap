@@ -8,11 +8,7 @@ import { AuthTokens } from '@quezap/domain/models'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 function cloneRequestWithAuthHeader(req: HttpRequest<unknown>, tokens: AuthTokens) {
-  return req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${tokens.accessToken}`,
-    },
-  })
+  return req.clone({ setHeaders: { Authorization: `Bearer ${tokens.accessToken}` } })
 }
 
 export const refreshSessionInterceptor: HttpInterceptorFn = (req, next) => {

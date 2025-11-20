@@ -7,9 +7,7 @@ describe('QuestionTimer', () => {
   let fixture: ComponentFixture<QuestionTimer>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [QuestionTimer],
-    })
+    await TestBed.configureTestingModule({ imports: [QuestionTimer] })
       .compileComponents()
 
     fixture = TestBed.createComponent(QuestionTimer)

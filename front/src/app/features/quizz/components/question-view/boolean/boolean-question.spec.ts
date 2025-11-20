@@ -7,9 +7,7 @@ describe('BooleanQuestionView', () => {
   let fixture: ComponentFixture<BooleanQuestionView>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [BooleanQuestionView],
-    })
+    await TestBed.configureTestingModule({ imports: [BooleanQuestionView] })
       .compileComponents()
 
     fixture = TestBed.createComponent(BooleanQuestionView)

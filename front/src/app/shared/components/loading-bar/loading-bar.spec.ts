@@ -7,9 +7,7 @@ describe('LoadingBar', () => {
   let fixture: ComponentFixture<LoadingBar>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [LoadingBar],
-    })
+    await TestBed.configureTestingModule({ imports: [LoadingBar] })
       .compileComponents()
 
     fixture = TestBed.createComponent(LoadingBar)

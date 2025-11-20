@@ -64,8 +64,6 @@ export class Lobby {
   }
 
   private navigateToQuizz() {
-    this.router.navigateByUrl('/quizz', {
-      skipLocationChange: true,
-    })
+    this.router.navigateByUrl('/quizz', { skipLocationChange: true })
   }
 }

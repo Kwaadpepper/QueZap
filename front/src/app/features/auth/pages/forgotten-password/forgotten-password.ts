@@ -1,4 +1,6 @@
-import { Component, computed, DestroyRef, ErrorHandler, inject, signal } from '@angular/core'
+import {
+  Component, computed, DestroyRef, ErrorHandler, inject, signal,
+} from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
@@ -27,22 +29,16 @@ export class ForgottenPassword {
   private readonly errorHandler = inject(ErrorHandler)
   private readonly destroyRef = inject(DestroyRef)
 
-  readonly #mockedCredentials = {
-    email: 'user@example.net',
-  }
+  readonly #mockedCredentials = { email: 'user@example.net' }
 
-  private readonly resetInfo = signal({
-    email: '',
-  })
+  private readonly resetInfo = signal({ email: '' })
 
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly hasBeenAskedToReset = signal(false)
   protected readonly errorHasOccured = signal(false)
 
   protected readonly resetForm = form(this.resetInfo, (path) => {
-    validateStandardSchema(path, zod.object({
-      email: zod.email('Email invalide'),
-    }))
+    validateStandardSchema(path, zod.object({ email: zod.email('Email invalide') }))
   })
 
   protected onAskToReset() {
@@ -96,16 +92,12 @@ export class ForgottenPassword {
   }
 
   protected onFillMockedValue() {
-    this.resetInfo.set({
-      ...this.#mockedCredentials,
-    })
+    this.resetInfo.set({ ...this.#mockedCredentials })
     this.resetForm().markAsDirty()
   }
 
   private resetFormInput() {
-    this.resetInfo.set({
-      email: '',
-    })
+    this.resetInfo.set({ email: '' })
     this.resetForm().markAsDirty()
   }
 }

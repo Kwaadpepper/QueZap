@@ -73,9 +73,7 @@ export class AccountActivation implements OnInit {
           }
 
           throw HandledFrontError.from(
-            new Error('Activation failed with unexpected error', {
-              cause: result.error,
-            }),
+            new Error('Activation failed with unexpected error', { cause: result.error }),
           )
         }),
         catchError((err) => {

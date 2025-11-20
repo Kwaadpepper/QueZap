@@ -7,9 +7,7 @@ describe('SiteNav', () => {
   let fixture: ComponentFixture<SiteNav>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [SiteNav],
-    })
+    await TestBed.configureTestingModule({ imports: [SiteNav] })
       .compileComponents()
 
     fixture = TestBed.createComponent(SiteNav)

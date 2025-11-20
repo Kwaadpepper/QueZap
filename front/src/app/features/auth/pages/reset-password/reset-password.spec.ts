@@ -20,18 +20,11 @@ describe('ResetPassword', () => {
   const queryTokenValue = signal<string | null>(null)
 
   const router = {
-    currentNavigation: jest.fn().mockReturnValue({
-      extractedUrl: {
-        queryParamMap: {
-          get: jest.fn(() => queryTokenValue()),
-        },
-      },
-    }),
+    currentNavigation: jest.fn()
+      .mockReturnValue({ extractedUrl: { queryParamMap: { get: jest.fn(() => queryTokenValue()) } } }),
   }
 
-  const message$ = {
-    add: jest.fn<void, [unknown]>(),
-  }
+  const message$ = { add: jest.fn<void, [unknown]>() }
 
   const verifyResetSeviceFails = signal(false)
   const auth$: Pick<AuthenticationService, 'verifyResetToken'> = {

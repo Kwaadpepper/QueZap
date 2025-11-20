@@ -1,5 +1,7 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal,
+} from '@angular/core'
 import { RouterLink } from '@angular/router'
 
 import { ButtonDirective, ButtonLabel } from 'primeng/button'

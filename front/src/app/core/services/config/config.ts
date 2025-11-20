@@ -20,9 +20,7 @@ const configSchema = z.object({
 
 type AppConfig = z.infer<typeof configSchema>
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class Config {
   public readonly appConfig: ResourceRef<AppConfig> = resource({
     defaultValue: configSchema.parse({

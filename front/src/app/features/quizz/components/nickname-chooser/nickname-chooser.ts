@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, signal,
+} from '@angular/core'
 import { Field, form, minLength, required, submit } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'

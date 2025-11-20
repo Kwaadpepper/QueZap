@@ -1,7 +1,9 @@
 import { computed, inject } from '@angular/core'
 
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
-import { catchError, concatMap, map, of, tap, throwError } from 'rxjs'
+import {
+  catchError, concatMap, map, of, tap, throwError,
+} from 'rxjs'
 
 import { isFailure } from '@quezap/core/types'
 import { AuthenticatedUser, AuthTokens } from '@quezap/domain/models'

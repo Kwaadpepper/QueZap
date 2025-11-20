@@ -1,6 +1,8 @@
 import { signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
-import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, GuardResult, Router, RouterStateSnapshot } from '@angular/router'
+import {
+  ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, GuardResult, Router, RouterStateSnapshot,
+} from '@angular/router'
 
 import { firstValueFrom, Observable } from 'rxjs'
 
@@ -13,9 +15,7 @@ const mockActiveSessionStore = {
   restorationComplete: signal(false),
 }
 
-const mockRouter = {
-  parseUrl: jest.fn(url => url),
-}
+const mockRouter = { parseUrl: jest.fn(url => url) }
 
 describe('Has active session Function Guards', () => {
   beforeEach(() => {

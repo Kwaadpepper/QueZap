@@ -35,9 +35,7 @@ export enum ProgressionEase {
 }
 
 /** @url <https://nicmulvaney.com/easing> */
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class Easing {
   public ease(x: number, ease: ProgressionEase = ProgressionEase.LINEAR): number {
     switch (ease) { // NOSONAR
@@ -108,7 +106,9 @@ export class Easing {
 
   private readonly easeInCirc = (x: number) => 1 - Math.sqrt(1 - Math.pow(x, 2))
   private readonly easeOutCirc = (x: number) => Math.sqrt(1 - Math.pow(x - 1, 2))
-  private readonly easeInOutCirc = (x: number) => x < 0.5 ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2 : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2
+  private readonly easeInOutCirc = (x: number) => x < 0.5
+    ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
+    : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2
 
   private readonly easeInBack = (x: number) => {
     const c1 = 1.70158
@@ -125,7 +125,9 @@ export class Easing {
   private readonly easeInOutBack = (x: number) => {
     const c1 = 1.70158
     const c2 = c1 * 1.525
-    return x < 0.5 ? (Math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2
+    return x < 0.5
+      ? (Math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+      : (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2
   }
 
   private readonly easeOutBounce = (x: number) => {
@@ -149,7 +151,9 @@ export class Easing {
   }
 
   private readonly easeInBounce = (x: number) => 1 - this.easeOutBounce(1 - x)
-  private readonly easeInOutBounce = (x: number) => x < 0.5 ? (1 - this.easeOutBounce(1 - 2 * x)) / 2 : (1 + this.easeOutBounce(2 * x - 1)) / 2
+  private readonly easeInOutBounce = (x: number) => x < 0.5
+    ? (1 - this.easeOutBounce(1 - 2 * x)) / 2
+    : (1 + this.easeOutBounce(2 * x - 1)) / 2
 
   private readonly easeInElastic = (x: number) => {
     const c4 = (2 * Math.PI) / 3
