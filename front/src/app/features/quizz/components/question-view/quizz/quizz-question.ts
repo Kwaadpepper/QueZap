@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core'
 
-import { QuizzQuestion } from '@quezap/domain/models'
+import { PictureUrl, QuizzQuestion, Theme, Timer } from '@quezap/domain/models'
+
+import { Picture, QuestionTimer } from '../parts'
 
 @Component({
   selector: 'quizz-question-quizz',
-  imports: [],
+  imports: [QuestionTimer, Picture],
   templateUrl: './quizz-question.html',
   styles: [`
     :host {
@@ -15,5 +17,25 @@ import { QuizzQuestion } from '@quezap/domain/models'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuizzQuestionView {
-  readonly question = input<QuizzQuestion>()
+  readonly question = input.required<QuizzQuestion>()
+
+  protected readonly phrase = computed<string>(() => this.question().value)
+  protected readonly picture = computed<PictureUrl | undefined>(() => this.question().picture)
+  protected readonly theme = computed<Theme>(() => this.question().theme)
+
+  protected readonly started = signal<boolean>(false)
+  protected readonly timer = computed<Timer | undefined>(() => this.question().limit)
+
+  constructor() {
+    effect(() => {
+      // Start the timer when the question is set
+      if (this.question()) {
+        this.started.set(true)
+      }
+    })
+  }
+
+  protected onTimeExhausted() {
+    console.log('Time exhausted for question:', this.question().id)
+  }
 }

@@ -15,5 +15,5 @@ import { BooleanQuestion } from '@quezap/domain/models'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BooleanQuestionView {
-  readonly question = input<BooleanQuestion>()
+  readonly question = input.required<BooleanQuestion>()
 }

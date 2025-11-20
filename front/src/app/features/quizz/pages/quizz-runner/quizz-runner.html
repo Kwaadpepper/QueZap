@@ -5,33 +5,43 @@
     }
   </div>
   <div class="flex h-dvh w-full flex-row items-center justify-center">
-      @let questionToShow = question();
-      @if (questionToShow === null) {
-        <div class="flex flex-col items-center gap-4">
-          <span class="h2">En attente de la question suivante</span>
-          <quizz-spinner />
-        </div>
-      } @else {
-        @defer {
-          @if (isBoolean(questionToShow)) {
-            <span>boolean</span>
-            <quizz-question-boolean [question]="questionToShow" />
-          } @else if (isBinary(questionToShow)) {
-            <span>binary</span>
-            <quizz-question-binary [question]="questionToShow" />
-          } @else if (isQuizz(questionToShow)) {
-            <span>quizz</span>
-            <quizz-question-quizz [question]="questionToShow" />
-          } @else {
+    @let questionToShow = question();
+    @if (questionToShow === null) {
+      <div class="flex flex-col items-center justify-center gap-4 p-4">
+        <span class="h1 text-center">En attente de la question suivante</span>
+        <quizz-spinner />
+      </div>
+    } @else {
+      @defer {
+        @if (isBoolean(questionToShow)) {
+          <span>boolean</span>
+          <quizz-question-boolean [question]="questionToShow" />
+        } @else if (isBinary(questionToShow)) {
+          <span>binary</span>
+          <quizz-question-binary [question]="questionToShow" />
+        } @else if (isQuizz(questionToShow)) {
+          <quizz-question-quizz [question]="questionToShow" />
+        } @else {
+          <div class="flex flex-col items-center justify-center p-4">
             <p-message type="error" class="mx-auto max-w-md">
               <span> Type de question non géré : {{ questionToShow.type }} </span>
             </p-message>
-          }
-        } @loading {
-          <quizz-spinner />
-        } @error {
-          <span>Type de question inconnu : {{ questionToShow.type }}</span>
+          </div>
         }
+      } @loading {
+        <div class="flex flex-col items-center justify-center p-4">
+          <quizz-spinner />
+        </div>
+      } @error {
+        <div class="flex flex-col items-center justify-center p-4">
+          <p-message type="error" class="mx-auto max-w-md">
+            <span> Une erreur est survenue lors du chargement de la question. </span>
+            <p-button class="mt-4" severity="warn" (onClick)="reloadQuestion()">
+              <span>Recharger la question</span>
+            </p-button>
+          </p-message>
+        </div>
       }
+    }
   </div>
 </div>

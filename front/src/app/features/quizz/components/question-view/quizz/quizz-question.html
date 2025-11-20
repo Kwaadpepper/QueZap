@@ -1,1 +1,46 @@
-<p>quizz-question works!</p>
+<div class="flex h-dvh flex-col items-center justify-center p-6">
+  <div class="question-background mb-2 w-full rounded px-4 py-2 pt-15 shadow-md md:pt-2">
+    <h1
+      class="font-body text-color-emphasis text-center text-2xl tracking-tighter italic md:text-3xl"
+    >
+      {{ phrase() }}
+    </h1>
+  </div>
+
+  <div
+    class="relative mb-5 w-full grow rounded-lg border border-amber-600 p-6 shadow-md dark:border-amber-300"
+  >
+    @let pictureUrl = picture();
+    @if (pictureUrl !== undefined) {
+      <div>
+        <quizz-picture [pictureUrl]="pictureUrl" />
+      </div>
+    }
+
+    @let quizzTimer = timer();
+    @if (quizzTimer !== undefined) {
+      <quizz-timer
+        class="pointer-events-none absolute right-5 bottom-5"
+        [started]="started()"
+        [timer]="quizzTimer"
+        (exhausted)="onTimeExhausted()"
+      />
+    }
+
+    <div class="space-y-4">
+      <!-- @for (let answer of question().answers) {
+        <div class="answer-option">
+          <label class="flex items-center space-x-3">
+            <input
+              type="radio"
+              name="answer"
+              [value]="answer.id"
+              class="form-radio h-5 w-5 text-blue-600"
+            />
+            <span class="text-lg">{{ answer.text }}</span>
+          </label>
+        </div>
+      } -->
+    </div>
+  </div>
+</div>

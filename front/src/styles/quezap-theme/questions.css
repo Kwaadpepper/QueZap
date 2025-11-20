@@ -1,0 +1,19 @@
+.question-background {
+  @apply bg-slate-300 dark:bg-slate-700;
+}
+
+.answer-option-1 {
+  @apply bg-amber-300 dark:bg-amber-800;
+}
+
+.answer-option-2 {
+  @apply bg-green-300 dark:bg-green-800;
+}
+
+.answer-option-3 {
+  @apply bg-blue-300 dark:bg-blue-800;
+}
+
+.answer-option-4 {
+  @apply bg-purple-300 dark:bg-purple-800;
+}

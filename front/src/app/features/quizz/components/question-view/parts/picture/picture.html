@@ -1,0 +1,18 @@
+<p-image
+  class="rounded-md shadow-xl hover:rounded-md"
+  [alt]="altText() ?? 'Image d\'illustration'"
+  [src]="pictureUrl()"
+  [preview]="true"
+  [pt]="{
+    image: {
+      style: 'object-fit: contain; border-radius: 1rem; border: var(--p-surface-100) 2px solid;',
+    },
+    previewMask: {
+      style: 'border-radius: 1rem;',
+    },
+    original: {
+      style:
+        'object-fit: contain; width: 100dvh; border-radius: 1rem; border: var(--p-surface-100) 4px solid;',
+    },
+  }"
+/>

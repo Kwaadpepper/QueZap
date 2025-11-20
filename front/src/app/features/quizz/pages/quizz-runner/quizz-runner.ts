@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
+import { Button } from 'primeng/button'
 import { Message } from 'primeng/message'
 import { catchError, map, of, retry, switchMap, throwError } from 'rxjs'
 
@@ -26,6 +27,7 @@ import { isNoMoreQuestions, NoMoreQuestions, SESSION_OBSERVER_SERVICE } from '..
     QuizzQuestionView,
     Message,
     Spinner,
+    Button,
   ],
 })
 export class QuizzRunner {
@@ -64,6 +66,11 @@ export class QuizzRunner {
         return []
       }),
     ).subscribe()
+  }
+
+  protected reloadQuestion() {
+    // FIXME: implement reload logic
+    throw new Error('Method not implemented.')
   }
 
   private handleQuestion(question: MixedQuestion | NoMoreQuestions) {

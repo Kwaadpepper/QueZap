@@ -15,5 +15,5 @@ import { BinaryQuestion } from '@quezap/domain/models'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BinaryQuestionView {
-  readonly question = input<BinaryQuestion>()
+  readonly question = input.required<BinaryQuestion>()
 }
