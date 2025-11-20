@@ -14,8 +14,9 @@
   >
     @let pictureUrl = picture();
     @if (pictureUrl !== undefined) {
-      <div>
-        <quizz-picture [pictureUrl]="pictureUrl" />
+      <div class="question-background mb-4 flex w-fit flex-col rounded-xl p-2 shadow-md">
+        <quizz-picture aria-labelledby="question-image-desc" [pictureUrl]="pictureUrl" />
+        <span id="question-image-desc" class="ms-4 text-xl">Image de la question</span>
       </div>
     }
 
