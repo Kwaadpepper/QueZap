@@ -1,7 +1,7 @@
 import { InjectionToken } from '@angular/core'
 
 import { ServiceObservable } from '@quezap/core/types'
-import { MixedQuestion, Participant, QuestionId } from '@quezap/domain/models'
+import { MixedQuestion, Participant, QuestionId, QuestionWithAnswers } from '@quezap/domain/models'
 
 export interface SessionStarted {
   readonly type: 'SessionStarted'
@@ -46,7 +46,7 @@ export interface SessionObserverService {
 
   participants(): ServiceObservable<Participant[]>
 
-  questions(): ServiceObservable<MixedQuestion | NoMoreQuestions>
+  questions(): ServiceObservable<MixedQuestion & QuestionWithAnswers | NoMoreQuestions>
 }
 
 export const SESSION_OBSERVER_SERVICE = new InjectionToken<SessionObserverService>('SessionObserverService')

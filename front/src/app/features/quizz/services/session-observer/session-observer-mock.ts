@@ -4,7 +4,7 @@ import { delay, map, of, Subject, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { ServiceObservable } from '@quezap/core/types'
-import { MixedQuestion, Participant, ParticipantId, PictureUrl, QuestionId, QuestionType, Score, SessionCode, sessionIsRunning, Theme, ThemeId } from '@quezap/domain/models'
+import { Answer, MixedQuestion, Participant, ParticipantId, PictureUrl, QuestionId, QuestionType, QuestionWithAnswers, Score, SessionCode, sessionIsRunning, Theme, ThemeId } from '@quezap/domain/models'
 
 import { SessionMocks } from '../session.mock'
 
@@ -45,7 +45,7 @@ export class SessionObserverMockService implements SessionObserverService {
   }).map(() => this.generateRandomParticipant())
 
   private readonly sessionSubject = new Subject<SessionEvent>()
-  private readonly questionSubject = new Subject<MixedQuestion | NoMoreQuestions>()
+  private readonly questionSubject = new Subject<MixedQuestion & QuestionWithAnswers | NoMoreQuestions>()
 
   public participants(): ServiceObservable<Participant[]> {
     return of(this.mockParticipants).pipe(
@@ -85,7 +85,7 @@ export class SessionObserverMockService implements SessionObserverService {
     )
   }
 
-  public questions(): ServiceObservable<MixedQuestion | NoMoreQuestions> {
+  public questions(): ServiceObservable<MixedQuestion & QuestionWithAnswers | NoMoreQuestions> {
     return this.questionSubject.pipe(
       delay(this.MOCK_DELAY()),
       tap(() => {
@@ -155,7 +155,7 @@ export class SessionObserverMockService implements SessionObserverService {
   }: {
     type?: QuestionType
     theme?: Theme
-  }): MixedQuestion {
+  }): MixedQuestion & QuestionWithAnswers {
     const questionTypes = Object.values(QuestionType)
     const questionType = type ?? questionTypes[Math.floor(Math.random() * questionTypes.length)]
     const questionTheme = theme ?? this.generateRandomTheme()
@@ -169,6 +169,7 @@ export class SessionObserverMockService implements SessionObserverService {
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
           picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
+          answers: [],
         }
       case QuestionType.Binary:
         return {
@@ -178,6 +179,10 @@ export class SessionObserverMockService implements SessionObserverService {
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
           picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
+          answers: [
+            this.generateAnwer(0, QuestionType.Binary, 'Type A'),
+            this.generateAnwer(1, QuestionType.Binary, 'Type B'),
+          ],
         }
       case QuestionType.Quizz:
         return {
@@ -187,9 +192,38 @@ export class SessionObserverMockService implements SessionObserverService {
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
           picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
+          answers: [
+            this.generateAnwer(0, QuestionType.Quizz, 'Réponse A'),
+            this.generateAnwer(1, QuestionType.Quizz, 'Réponse B'),
+            this.generateAnwer(2, QuestionType.Quizz, 'Réponse C'),
+            this.generateAnwer(3, QuestionType.Quizz, 'Réponse D'),
+          ],
         }
       default:
         throw new Error('Unsupported question type')
+    }
+  }
+
+  private generateAnwer(
+    index: number,
+    questionType: QuestionType,
+    phrase?: string,
+  ): Answer {
+    let points = 0
+    if (questionType === QuestionType.Boolean) {
+      throw new Error('Boolean questions do not have answers')
+    }
+    else if (questionType === QuestionType.Binary) {
+      points = Math.random() < 0.5 ? 1 : 0
+    }
+    else if (questionType === QuestionType.Quizz) {
+      points = Math.random() < 0.25 ? 1 : 0
+    }
+    return {
+      index,
+      points,
+      value: phrase,
+      picture: phrase ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
     }
   }
 
@@ -204,7 +238,7 @@ export class SessionObserverMockService implements SessionObserverService {
 
   private queueQuestion(
     session: SessionCode,
-    question: MixedQuestion | NoMoreQuestions,
+    question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions,
   ) {
     this.startSession(session)
     setTimeout(() => {
