@@ -164,22 +164,25 @@ export class SessionObserverMockService implements SessionObserverService {
       case QuestionType.Boolean:
         return {
           id: crypto.randomUUID() as QuestionId,
-          value: 'Vrai ou faux ?',
+          value: 'Vrai ou faux ?' + Math.floor(Math.random() * 100),
           type: QuestionType.Boolean,
+          limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
         }
       case QuestionType.Binary:
         return {
           id: crypto.randomUUID() as QuestionId,
-          value: 'Cette plante est plutot...',
+          value: 'Cette plante est plutot...' + Math.floor(Math.random() * 100),
           type: QuestionType.Binary,
+          limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
         }
       case QuestionType.Quizz:
         return {
           id: crypto.randomUUID() as QuestionId,
-          value: 'Quel est la bonne réponse ?',
+          value: 'Quel est la bonne réponse ? ' + Math.floor(Math.random() * 100),
           type: QuestionType.Quizz,
+          limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
           theme: questionTheme,
         }
       default:
