@@ -5,6 +5,7 @@
     icon="pi pi-arrow-right"
     size="small"
     ariaLabel="Question suivante"
+    title="Question suivante"
     (onClick)="onMockAction('nextQuestion')"
   />
   <p-button
@@ -13,6 +14,7 @@
     icon="pi pi-question"
     size="small"
     ariaLabel="Question Vrai/Faux"
+    title="Question Vrai/Faux"
     (onClick)="onMockAction('booleanQuestion')"
   />
   <p-button
@@ -21,6 +23,7 @@
     icon="pi pi-question-circle"
     size="small"
     ariaLabel="Question Binaire"
+    title="Question Binaire"
     (onClick)="onMockAction('binaryQuestion')"
   />
   <p-button
@@ -29,6 +32,7 @@
     icon="pi pi-check-square"
     size="small"
     ariaLabel="Question QCM"
+    title="Question QCM"
     (onClick)="onMockAction('quizzQuestion')"
   />
   <p-button
@@ -37,6 +41,7 @@
     icon="pi pi-stop"
     size="small"
     ariaLabel="Fin de session"
+    title="Fin de session"
     (onClick)="onMockAction('mockNoMoreQuestions')"
   />
 </p-buttongroup>

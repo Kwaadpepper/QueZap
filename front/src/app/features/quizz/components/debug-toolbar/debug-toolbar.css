@@ -1,0 +1,26 @@
+/deep/ .p-buttongroup {
+  flex-direction: column;
+
+  @media (width >= 640px) {
+    flex-direction: row;
+  }
+
+  button {
+    border: var(--color-surface-700) 1px solid;
+
+    @media (prefers-color-scheme: dark) {
+      border-color: var(--color-surface-0);
+    }
+  }
+
+  @media (width <= 639px) {
+    max-width: 4rem;
+    max-height: 6rem;
+    flex-wrap: wrap;
+
+    button {
+      border: inherit;
+      border-radius: inherit;
+    }
+  }
+}

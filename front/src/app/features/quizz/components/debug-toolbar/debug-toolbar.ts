@@ -10,6 +10,7 @@ import { ActiveSessionStore } from '../../stores'
   selector: 'quizz-debug-toolbar',
   imports: [ButtonGroup, Button],
   templateUrl: './debug-toolbar.html',
+  styleUrl: './debug-toolbar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DebugToolbar {
