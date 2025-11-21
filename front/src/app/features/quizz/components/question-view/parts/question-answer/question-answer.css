@@ -23,11 +23,17 @@ input {
   @apply m-0 p-0;
 
   background-color: transparent;
+
+
 }
 
 input:focus {
   @apply outline-none;
-  @apply ring-4 ring-offset-2 ring-[var(--question-icon-color)] rounded-lg;
+  @apply ring-4 ring-offset-2 ring-surface-100 rounded-lg;
+
+  @media (prefers-color-scheme: dark) {
+    @apply ring-4 ring-surface-0 ring-offset-2;
+  }
 }
 
 /* CHECKED ICON */
