@@ -1,1 +1,68 @@
-<p>binary-question works!</p>
+<div class="flex h-dvh flex-col items-center justify-center p-2">
+  <!-- QUESTION TITLE -->
+  <div
+    class="question-background mt-5 mb-2 w-full rounded px-4 py-2 pt-15 shadow-md md:w-fit md:pt-2"
+  >
+    <h1
+      class="font-body text-color-emphasis mb-0 p-4 text-center text-2xl tracking-tighter italic md:text-3xl"
+    >
+      {{ phrase() }}
+    </h1>
+  </div>
+
+  <!-- CONTENT FRAME -->
+  <div
+    class="relative flex w-full grow flex-col rounded-lg border border-amber-600 p-6 shadow-md lg:flex-row dark:border-amber-300"
+  >
+    <!-- QUESTION ELEMENTS -->
+    @let pictureUrl = picture();
+    @if (pictureUrl !== undefined) {
+      <div class="flex w-full flex-col items-center justify-center px-5 lg:w-1/3">
+        <div class="question-background mb-4 flex w-fit flex-col rounded-xl p-2 shadow-md">
+          <quizz-picture aria-labelledby="question-image-desc" [pictureUrl]="pictureUrl" />
+          <span id="question-image-desc" class="ms-4 text-xl select-none"
+            >Image de la question</span
+          >
+        </div>
+        <!-- TIMER -->
+        @let quizzTimer = timer();
+        @if (quizzTimer !== undefined) {
+          <quizz-timer
+            class="pointer-events-none absolute right-5 bottom-5 z-10"
+            [started]="started()"
+            [timer]="quizzTimer"
+            (timeLeft)="timeLeft.set($event)"
+            (exhausted)="onTimeExhausted()"
+          />
+          <quizz-question-alert [timeLeft]="timeLeft()" />
+        }
+      </div>
+    }
+
+    <!-- ANSWERS -->
+    <form
+      class="flex h-full w-full grow flex-col items-center justify-center gap-4 pb-20 md:pb-0"
+      [inert]="cannotAnswerAnymore()"
+    >
+      @for (answer of answers(); track answer.index) {
+        @let response = responseForm[answer.index];
+        @if (response !== undefined) {
+          <quizz-question-answer
+            class="h-full max-h-40 w-full max-w-3xl"
+            [questionId]="questionId()"
+            [answer]="answer"
+            [field]="response"
+          />
+        } @else {
+          pas de reponse
+        }
+      }
+    </form>
+
+    <!-- THEME -->
+    <quizz-question-theme
+      class="pointer-events-none absolute bottom-5 left-5 z-10"
+      [theme]="theme()"
+    />
+  </div>
+</div>
