@@ -1,19 +1,89 @@
+:root {
+  /* Bleu foncé par défaut, bonne base pour le contraste sur fond clair */
+  --question-icon-color: #1D4ED8;
+}
+
 .question-background {
-  @apply bg-slate-300 dark:bg-slate-700;
+  /* Fond très clair / très sombre pour un bon contraste général */
+  @apply bg-slate-100 dark:bg-slate-900;
+}
+
+.answer-option-0 {
+  @apply bg-cyan-200 dark:bg-cyan-900;
+
+  &:hover {
+    @apply bg-cyan-300 dark:bg-cyan-800;
+  }
+
+  --question-icon-color: theme('colors.cyan.800');
 }
 
 .answer-option-1 {
-  @apply bg-amber-300 dark:bg-amber-800;
+  @apply bg-green-200 dark:bg-green-900;
+
+  &:hover {
+    @apply bg-green-300 dark:bg-green-800;
+  }
+
+  --question-icon-color: theme('colors.green.800');
 }
 
 .answer-option-2 {
-  @apply bg-green-300 dark:bg-green-800;
+  @apply bg-purple-200 dark:bg-purple-900;
+
+  &:hover {
+    @apply bg-purple-300 dark:bg-purple-800;
+  }
+
+  --question-icon-color: theme('colors.purple.800');
 }
 
 .answer-option-3 {
-  @apply bg-blue-300 dark:bg-blue-800;
+  @apply bg-red-200 dark:bg-red-900;
+
+  &:hover {
+    @apply bg-red-300 dark:bg-red-800;
+  }
+
+  --question-icon-color: theme('colors.red.800');
 }
 
 .answer-option-4 {
-  @apply bg-purple-300 dark:bg-purple-800;
+  @apply bg-amber-200 dark:bg-amber-900;
+
+  &:hover {
+    @apply bg-amber-300 dark:bg-amber-800;
+  }
+
+  --question-icon-color: theme('colors.amber.800');
+}
+
+.answer-option-5 {
+  @apply bg-blue-200 dark:bg-blue-900;
+
+  &:hover {
+    @apply bg-blue-300 dark:bg-blue-800;
+  }
+
+  --question-icon-color: theme('colors.blue.800');
+}
+
+.answer-option-6 {
+  @apply bg-pink-200 dark:bg-pink-900;
+
+  &:hover {
+    @apply bg-pink-300 dark:bg-pink-800;
+  }
+
+  --question-icon-color: theme('colors.pink.800');
+}
+
+.answer-option-7 {
+  @apply bg-teal-200 dark:bg-teal-900;
+
+  &:hover {
+    @apply bg-teal-300 dark:bg-teal-800;
+  }
+
+  --question-icon-color: theme('colors.teal.800');
 }

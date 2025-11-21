@@ -1,0 +1,64 @@
+/* stylelint-disable */
+@reference "#tailwind.css";
+/* stylelint-enable */
+
+.answer-option {
+  @apply relative;
+  @apply w-full;
+  @apply border-2 cursor-pointer;
+  @apply rounded-lg transition-all duration-200;
+  @apply grayscale-100;
+}
+
+.answer-option:has(input:checked) {
+  @apply shadow-lg shadow-current/20;
+  @apply grayscale-0!;
+}
+
+/* NATIVE CHECKBOX HIDE */
+input {
+  @apply appearance-none;
+  @apply absolute;
+  @apply w-full h-full;
+  @apply m-0 p-0;
+
+  background-color: transparent;
+}
+
+input:focus {
+  @apply outline-none;
+  @apply ring-4 ring-offset-2 ring-[var(--question-icon-color)] rounded-lg;
+}
+
+/* CHECKED ICON */
+quizz-question-icon /deep/ {
+  --base-color: theme('colors.slate.900');
+  --stroke-color: theme('colors.white');
+
+  @media (prefers-color-scheme: dark) {
+    --base-color: theme('colors.slate.300');
+    --stroke-color: theme('colors.slate.900');
+  }
+
+  path, polygon, circle, rect {
+    fill: var(--base-color);
+    stroke: var(--stroke-color);
+    stroke-width: 0.2rem;
+    transition: all 0.2s;
+  }
+}
+
+input:checked + div quizz-question-icon /deep/ {
+  --checked-fill: color-mix(in srgb, var(--question-icon-color) 100%, white 30%);
+  --checked-stroke: theme('colors.slate.900');
+
+  @media (prefers-color-scheme: dark) {
+    --checked-fill: color-mix(in srgb, var(--question-icon-color) 100%, white 90%);
+    --checked-stroke: theme('colors.white');
+  }
+
+  path, polygon, circle, rect {
+    fill: var(--checked-fill);
+    stroke: var(--checked-stroke);
+  }
+}

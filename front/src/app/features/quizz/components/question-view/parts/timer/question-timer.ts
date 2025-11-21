@@ -20,6 +20,7 @@ export class QuestionTimer {
   readonly timer = input.required<Timer>()
   /** When timer reaches 0 */
   readonly exhausted = output<boolean>()
+  readonly timeLeft = output<number>()
 
   readonly limit = computed<number>(() => this.timer().seconds)
   protected readonly remainingSeconds = signal<number>(0)
@@ -29,6 +30,10 @@ export class QuestionTimer {
       if (this.started()) {
         this.remainingSeconds.set(this.limit())
       }
+    })
+
+    effect(() => {
+      this.timeLeft.emit(this.remainingSeconds())
     })
 
     toObservable(this.started).pipe(
