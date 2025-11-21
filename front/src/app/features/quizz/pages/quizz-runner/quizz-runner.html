@@ -14,7 +14,6 @@
     } @else {
       @defer {
         @if (isBoolean(questionToShow)) {
-          <span>boolean</span>
           <quizz-question-boolean [question]="questionToShow" />
         } @else if (isBinary(questionToShow)) {
           <quizz-question-binary [question]="questionToShow" />

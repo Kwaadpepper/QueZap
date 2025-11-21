@@ -1,14 +1,14 @@
 import {
-  ChangeDetectionStrategy, Component, computed, effect, input, signal,
+  ChangeDetectionStrategy, Component, computed, effect, input, model, signal,
 } from '@angular/core'
 import { form, validateStandardSchema } from '@angular/forms/signals'
 
 import { zod } from '@quezap/core/tools'
 import {
-  Answer, PictureUrl, QuestionId, QuestionWithAnswers, QuizzQuestion, Theme, Timer,
+  PictureUrl, QuestionId, QuestionWithAnswers, QuizzQuestion, Theme, Timer,
 } from '@quezap/domain/models'
 
-import { Picture, QuestionAnswer, QuestionTheme, QuestionTimer } from '../parts'
+import { Picture, PrintableAnswer, QuestionAnswer, QuestionTheme, QuestionTimer } from '../parts'
 import { QuestionAlert } from '../parts/question-alert/question-alert'
 
 type Responses = Record<number, boolean>
@@ -45,8 +45,8 @@ export class QuizzQuestionView {
   protected readonly timeLeft = signal<number>(0)
 
   // Answers related signals
-  protected readonly answers = computed<Answer[]>(() => this.question().answers)
-  protected readonly responses = signal<Responses>({})
+  protected readonly answers = computed<PrintableAnswer[]>(() => this.question().answers)
+  protected readonly responses = model<Responses>({})
 
   protected readonly hasAnswered = computed<boolean>(() => this.responseForm().valid())
   protected readonly cannotAnswerAnymore = computed<boolean>(() => this.timeLeft() <= 0 && this.timer() !== undefined)

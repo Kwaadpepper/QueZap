@@ -1,15 +1,21 @@
 import {
-  ChangeDetectionStrategy, Component, computed, input,
+  ChangeDetectionStrategy, Component, computed, effect, input,
   signal,
 } from '@angular/core'
 import { Field, FieldTree } from '@angular/forms/signals'
 
 import { CheckboxModule } from 'primeng/checkbox'
 
-import { Answer, PictureUrl, QuestionId } from '@quezap/domain/models'
+import { PictureUrl, QuestionId } from '@quezap/domain/models'
 
 import { Picture } from '../picture/picture'
 import { QuestionIcon } from '../question-icon/question-icon'
+
+export interface PrintableAnswer {
+  readonly index: number
+  readonly value?: string
+  readonly picture?: PictureUrl
+}
 
 @Component({
   selector: 'quizz-question-answer',
@@ -25,8 +31,9 @@ import { QuestionIcon } from '../question-icon/question-icon'
 })
 export class QuestionAnswer {
   readonly questionId = input.required<QuestionId>()
-  readonly answer = input.required<Answer>()
+  readonly answer = input.required<PrintableAnswer>()
   readonly field = input.required<FieldTree<boolean>>()
+  readonly radio = input<boolean>(false)
 
   protected readonly identifier = computed<number>(() => this.answer()?.index ?? 0)
   protected readonly phrase = computed<string>(() => this.answer()?.value ?? '')
@@ -53,4 +60,12 @@ export class QuestionAnswer {
   ) % this.forms().length)
 
   protected readonly currentForm = computed<string>(() => this.forms()[this.currentFormIndex()])
+
+  constructor() {
+    effect(() => {
+      const fieldValue = this.field()
+      // For debugging purposes
+      console.log(`Question ${this.questionId()} - Answer ${this.identifier()} - Field value:`, fieldValue)
+    })
+  }
 }

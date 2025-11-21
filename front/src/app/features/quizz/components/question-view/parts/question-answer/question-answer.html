@@ -2,8 +2,7 @@
   class="answer-option relative flex h-full w-full"
   [class]="`answer-option-${currentFormIndex()}`"
 >
-  <input type="checkbox" class="checkbox" [field]="field()" />
-
+  <input type="checkbox" class="checkbox" [field]="field()" [multiple]="!radio()" />
   <div class="flex w-full items-center gap-4 px-2 py-3">
     <quizz-question-icon
       class="w-1/5 max-w-15 min-w-5"
