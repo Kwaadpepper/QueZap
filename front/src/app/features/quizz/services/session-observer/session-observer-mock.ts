@@ -7,6 +7,7 @@ import { ServiceObservable } from '@quezap/core/types'
 import {
   Answer, MixedQuestion, Participant, ParticipantId, PictureUrl,
   QuestionId, QuestionType, QuestionWithAnswers, Score, SessionCode,
+  sessionHasEnded,
   sessionIsRunning, Theme, ThemeId,
 } from '@quezap/domain/models'
 
@@ -251,6 +252,9 @@ export class SessionObserverMockService implements SessionObserverService {
       throw new Error(`Session with code ${code} not found.`)
     }
     if (sessionIsRunning(session)) {
+      return
+    }
+    if (sessionHasEnded(session)) {
       return
     }
     this.sessions.startSession(code)
