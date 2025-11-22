@@ -1,7 +1,11 @@
 import { InjectionToken } from '@angular/core'
 
-import { ServiceObservable } from '@quezap/core/types'
+import { ServiceObservable, ServiceState } from '@quezap/core/types'
 import { MixedQuestion, Participant, QuestionId, QuestionWithAnswers } from '@quezap/domain/models'
+
+export interface SessionWaitingStart {
+  readonly type: 'SessionWaitingStart'
+}
 
 export interface SessionStarted {
   readonly type: 'SessionStarted'
@@ -22,12 +26,19 @@ export interface SessionSwitchedQuestion {
   readonly questionId: QuestionId
 }
 
-export type SessionEvent = SessionStarted | SessionSwitchedQuestion | SessionEnded
+export type SessionEvent = SessionWaitingStart | SessionStarted | SessionSwitchedQuestion | SessionEnded
+export type CurrentQuestion = WaitingQuestion | MixedQuestion & QuestionWithAnswers | NoMoreQuestions
+
+export interface WaitingQuestion {
+  readonly type: 'WaitingQuestion'
+}
 
 export interface NoMoreQuestions {
   readonly type: 'NoMoreQuestions'
 }
-
+export function sessionWaitingStart(session: SessionEvent): session is SessionWaitingStart {
+  return session.type === 'SessionWaitingStart'
+}
 export function sessionStarted(session: SessionEvent): session is SessionStarted {
   return session.type === 'SessionStarted'
 }
@@ -37,16 +48,25 @@ export function sessionEnded(session: SessionEvent): session is SessionEnded {
 export function sessionSwitchedQuestion(session: SessionEvent): session is SessionSwitchedQuestion {
   return session.type === 'SessionSwitchedQuestion'
 }
-export function isNoMoreQuestions(question: MixedQuestion | NoMoreQuestions): question is NoMoreQuestions {
+
+type AllQuestionTypes = MixedQuestion | WaitingQuestion | NoMoreQuestions
+
+export function isMixedQuestion(question: AllQuestionTypes): question is MixedQuestion {
+  return question.type !== 'WaitingQuestion' && question.type !== 'NoMoreQuestions'
+}
+export function isWaitingQuestion(question: AllQuestionTypes): question is WaitingQuestion {
+  return question.type === 'WaitingQuestion'
+}
+export function isNoMoreQuestions(question: AllQuestionTypes): question is NoMoreQuestions {
   return question.type === 'NoMoreQuestions'
 }
 
 export interface SessionObserverService {
   sessionEvents(): ServiceObservable<SessionEvent>
 
-  participants(): ServiceObservable<Participant[]>
+  participants: ServiceState<Participant[]>
 
-  questions(): ServiceObservable<MixedQuestion & QuestionWithAnswers | NoMoreQuestions>
+  question: ServiceState<CurrentQuestion>
 }
 
 export const SESSION_OBSERVER_SERVICE = new InjectionToken<SessionObserverService>('SessionObserverService')

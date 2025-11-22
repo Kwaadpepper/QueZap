@@ -1,19 +1,28 @@
-import { inject, Injectable } from '@angular/core'
+import { inject, Injectable, signal } from '@angular/core'
 
-import { delay, map, of, Subject, tap } from 'rxjs'
+import {
+  BehaviorSubject,
+  delay, map,
+  tap,
+} from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
-import { ServiceObservable } from '@quezap/core/types'
+import { ServiceObservable, ServiceState } from '@quezap/core/types'
 import {
   Answer, MixedQuestion, Participant, ParticipantId, PictureUrl,
   QuestionId, QuestionType, QuestionWithAnswers, Score, SessionCode,
   sessionHasEnded,
-  sessionIsRunning, Theme, ThemeId,
+  sessionHasStarted,
+  Theme, ThemeId,
 } from '@quezap/domain/models'
 
 import { SessionMocks } from '../session.mock'
 
-import { NoMoreQuestions, SessionEvent, SessionObserverService } from './session-observer'
+import {
+  CurrentQuestion, isMixedQuestion,
+  NoMoreQuestions,
+  SessionEvent, SessionObserverService, WaitingQuestion,
+} from './session-observer'
 
 interface SessionRunState {
   session: SessionCode
@@ -45,28 +54,13 @@ export class SessionObserverMockService implements SessionObserverService {
 
   private readonly sessions = inject(SessionMocks)
 
-  private readonly mockParticipants: Participant[] = Array
-    .from({ length: Math.max(3, Math.random() * 25) })
-    .map(() => this.generateRandomParticipant())
+  private readonly mockQuestion = signal<CurrentQuestion>({ type: 'WaitingQuestion' })
+  private readonly mockParticipantsState = signal<Participant[]>([])
 
-  private readonly sessionSubject = new Subject<SessionEvent>()
-  private readonly questionSubject = new Subject<MixedQuestion & QuestionWithAnswers | NoMoreQuestions>()
+  private readonly sessionSubject = new BehaviorSubject<SessionEvent>({ type: 'SessionWaitingStart' })
 
-  public participants(): ServiceObservable<Participant[]> {
-    return of(this.mockParticipants).pipe(
-      delay(this.MOCK_DELAY()),
-      tap(() => {
-        if (this.MOCK_ERROR()) {
-          console.debug('Mock: error while participants')
-          throw new ServiceError('Mock service error: participants')
-        }
-      }),
-      map(participants => ({
-        kind: 'success',
-        result: participants,
-      })),
-    )
-  }
+  public participants: ServiceState<Participant[]> = this.mockParticipantsState.asReadonly()
+  public question: ServiceState<CurrentQuestion> = this.mockQuestion.asReadonly()
 
   public sessionEvents(): ServiceObservable<SessionEvent> {
     const previousState = this.getSessionRunState()
@@ -92,23 +86,21 @@ export class SessionObserverMockService implements SessionObserverService {
     )
   }
 
-  public questions(): ServiceObservable<MixedQuestion & QuestionWithAnswers | NoMoreQuestions> {
-    return this.questionSubject.pipe(
-      delay(this.MOCK_DELAY()),
-      tap(() => {
-        if (this.MOCK_ERROR()) {
-          console.debug('Mock: error while questions')
-          throw new ServiceError('Mock service error: questions')
-        }
-      }),
-      map(question => ({
-        kind: 'success',
-        result: question,
-      })),
-    )
+  // --- Specific to mock service ---
+
+  public mockSessionStart(onSession: SessionCode) {
+    this.startSession(onSession)
   }
 
-  // --- Specific to mock service ---
+  public mockParticipants() {
+    this.mockParticipantsState.set(Array
+      .from({ length: Math.max(3, Math.random() * 25) })
+      .map(() => this.generateRandomParticipant()))
+  }
+
+  public mockWaitingQuestion(onSession: SessionCode) {
+    this.queueQuestion(onSession, { type: 'WaitingQuestion' })
+  }
 
   public mockNextQuestion(onSession: SessionCode) {
     this.queueQuestion(
@@ -142,6 +134,8 @@ export class SessionObserverMockService implements SessionObserverService {
     this.queueQuestion(onSession, { type: 'NoMoreQuestions' })
     this.endSession(onSession)
   }
+
+  // --- Internal generators ---
 
   private generateRandomParticipant(): Participant {
     const nickname = this.#participantsNames[Math.floor(Math.random() * this.#participantsNames.length)]
@@ -239,14 +233,27 @@ export class SessionObserverMockService implements SessionObserverService {
     return themes[Math.floor(Math.random() * themes.length)]
   }
 
+  // --- Internal methods ---
+
   private queueQuestion(
-    session: SessionCode,
-    question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions,
+    code: SessionCode,
+    question: WaitingQuestion | MixedQuestion & QuestionWithAnswers | NoMoreQuestions,
   ) {
-    this.startSession(session)
+    const session = this.sessions.getSessionByCode(code)
+    if (!session) {
+      throw new Error(`Session with code ${code} not found.`)
+    }
     setTimeout(() => {
       console.debug('Mock: emitting question', question)
-      this.questionSubject.next(question)
+      this.mockQuestion.set(question)
+
+      if (isMixedQuestion(question)) {
+        console.debug('Mock: session switched question', question.id)
+        this.sessionSubject.next({
+          type: 'SessionSwitchedQuestion',
+          questionId: question.id,
+        })
+      }
     }, this.MOCK_DELAY())
   }
 
@@ -255,11 +262,11 @@ export class SessionObserverMockService implements SessionObserverService {
     if (!session) {
       throw new Error(`Session with code ${code} not found.`)
     }
-    if (sessionIsRunning(session)) {
-      return
+    if (sessionHasStarted(session)) {
+      throw new Error(`Session with code ${code} has already started.`)
     }
     if (sessionHasEnded(session)) {
-      return
+      throw new Error(`Session with code ${code} has already ended.`)
     }
     this.sessions.startSession(code)
     setTimeout(() => {

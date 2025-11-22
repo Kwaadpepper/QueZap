@@ -25,7 +25,7 @@ export function sessionMayStart(session: Session): boolean {
   return session.startedAt === null && session.endedAt === null
 }
 
-export function sessionIsRunning(session: Session): boolean {
+export function sessionHasStarted(session: Session): boolean {
   return session.startedAt !== null && session.endedAt === null
 }
 

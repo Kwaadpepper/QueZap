@@ -1,3 +1,5 @@
+import { Signal } from '@angular/core'
+
 import { Observable } from 'rxjs'
 
 import { ServiceError } from '../errors'
@@ -9,6 +11,7 @@ export type ServiceOutput<T, E extends ServiceError = ServiceError> = Observable
 
 /** A service that does not complete */
 export type ServiceObservable<T> = Observable<Tried<T, ServiceError>>
+export type ServiceState<T> = Signal<T>
 
 export function isSuccess<T, E extends ServiceError>(tried: Tried<T, E>): tried is Success<T> {
   return tried.kind === 'success'

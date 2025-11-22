@@ -18,7 +18,7 @@ import {
   BinaryQuestionView, BooleanQuestionView,
   QuestionTimer, QuizzQuestionView,
 } from '../../components/question-view'
-import { isNoMoreQuestions, NoMoreQuestions } from '../../services'
+import { isNoMoreQuestions, isWaitingQuestion, NoMoreQuestions } from '../../services'
 import { ActiveSessionStore, TimerStore } from '../../stores'
 
 @Component({
@@ -57,7 +57,13 @@ export class QuizzRunner {
   constructor() {
     effect((onCleanup) => {
       const question = this.sessionStore.question()
-      if (question) {
+      if (!question) {
+        return
+      }
+      if (isWaitingQuestion(question)) {
+        this.question.set(undefined)
+      }
+      else {
         this.handleQuestion(question)
       }
       onCleanup(() => {

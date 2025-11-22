@@ -40,12 +40,12 @@ export class Lobby {
   protected readonly readyTonJoinQuizz = computed(() => this.hasNickname())
 
   constructor() {
-    if (this.sessionStore.sessionIsRunning()) {
+    if (this.sessionStore.sessionHasStarted()) {
       this.navigateToQuizz()
     }
 
     effect(() => {
-      if (this.sessionStore.sessionIsRunning()) {
+      if (this.sessionStore.sessionHasStarted()) {
         this.navigateToQuizz()
       }
     })
@@ -58,6 +58,10 @@ export class Lobby {
         this.layout.inContainer.set(true)
       })
     })
+
+    if (this.sessionObserver instanceof SessionObserverMockService) {
+      this.sessionObserver.mockParticipants()
+    }
   }
 
   /** Debug function */
@@ -67,7 +71,8 @@ export class Lobby {
       return
     }
 
-    this.sessionObserver.mockNextQuestion(this.sessionStore.session()!.code)
+    this.sessionObserver.mockSessionStart(this.sessionStore.session()!.code)
+    this.sessionObserver.mockWaitingQuestion(this.sessionStore.session()!.code)
   }
 
   private navigateToQuizz() {

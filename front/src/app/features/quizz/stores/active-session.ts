@@ -1,5 +1,5 @@
 import {
-  computed, ErrorHandler, inject, Injector, isDevMode, runInInjectionContext,
+  computed, effect, ErrorHandler, inject, Injector, isDevMode, runInInjectionContext,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
@@ -7,8 +7,10 @@ import {
   patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState,
 } from '@ngrx/signals'
 import {
-  catchError, concatMap, firstValueFrom,
-  Observable, of, retry, switchMap, tap, throwError,
+  catchError, concatMap,
+  Observable, of,
+  retry,
+  throwError,
 } from 'rxjs'
 
 import { ForbidenError, NotFoundError, ValidationError } from '@quezap/core/errors'
@@ -17,24 +19,27 @@ import { isFailure } from '@quezap/core/types'
 import {
   MixedQuestion,
   Participant, QuestionWithAnswers, Session, SessionCode,
-  sessionIsRunning, sessionMayStart,
+  sessionHasStarted, sessionMayStart,
 } from '@quezap/domain/models'
 
 import {
   NoMoreQuestions, SESSION_API_SERVICE,
   SESSION_OBSERVER_SERVICE, sessionEnded, sessionStarted,
+  sessionWaitingStart,
+  WaitingQuestion,
 } from '../services'
 
 import { ActiveSessionPersistence } from './../services/active-session-persistence/active-session-persistence'
 
 interface ActiveSessionState {
   _session: Session | undefined
-  question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions | undefined
+  question: WaitingQuestion | MixedQuestion & QuestionWithAnswers | NoMoreQuestions | undefined
   _nickname: SignalState<{
     value: string | undefined
     remembered: boolean
   }> | undefined
   _sessionIsLoaded: boolean
+  _sessionIsRunning: boolean
   _participants: Participant[]
 }
 
@@ -43,6 +48,7 @@ const initialState: ActiveSessionState = {
   question: undefined,
   _nickname: undefined,
   _sessionIsLoaded: false,
+  _sessionIsRunning: false,
   _participants: [],
 }
 
@@ -53,13 +59,7 @@ export const ActiveSessionStore = signalStore(
     nickname: computed(() => store._nickname?.()),
     restorationComplete: computed(() => store._sessionIsLoaded()),
     participants: computed(() => store._participants()),
-    sessionIsRunning: computed(() => {
-      const session = store._session?.()
-      if (!session) {
-        console.log('No active session found.')
-      }
-      return session ? sessionIsRunning(session) : false
-    }),
+    sessionHasStarted: computed(() => store._sessionIsRunning()),
   })),
 
   withMethods((
@@ -92,7 +92,7 @@ export const ActiveSessionStore = signalStore(
             console.debug('Session may start soon.')
           }
 
-          if (sessionIsRunning(session)) {
+          if (sessionHasStarted(session)) {
             console.debug('Session is already running.')
           }
 
@@ -157,56 +157,31 @@ export const ActiveSessionStore = signalStore(
       injector = inject(Injector),
       errorHandler = inject(ErrorHandler),
     ) {
-      const data = activeSessionPersistence.retrieve()
-      if (data === null) {
-        patchState(store, { _sessionIsLoaded: true })
-        return
-      }
-
-      patchState(store, {
-        ...initialState,
-        _nickname: signalState({
-          value: data.nickname?.trim(),
-          remembered: data.nickname !== undefined && data.nickname.trim() !== '',
-        }),
-      })
-
       // * Run Listeners in injection context
       runInInjectionContext(injector, () => {
-        console.log('Active session restored from persistence.')
-        // * Listen to session status updates
-        sessionObserver.participants().pipe(
-          // Prevent memory leaks if the store is destroyed
-          takeUntilDestroyed(),
-          retry({ delay: 1000, count: Infinity }),
-          tap((response) => {
-            if (isDevMode()) {
-              console.debug('Participants stream response:', JSON.stringify(response))
-            }
-            if (isFailure(response)) {
-              const error = response.error
-              console.error('Error in participants stream:', error)
-              errorHandler.handleError(error)
-              return of([])
-            }
+        if (isDevMode()) {
+          console.debug('Running listeners')
+        }
 
-            const participants = response.result
-            patchState(store, { _participants: participants })
+        // * React to participants updates
+        effect(() => {
+          const participants = sessionObserver.participants()
+          console.debug('Updating participants list from session observer', participants)
+          patchState(store, { _participants: participants })
+        })
 
-            return response.result
-          }),
-          catchError((err) => {
-            console.error('Error in participants stream:', err)
-            errorHandler.handleError(err)
-            return of([])
-          }),
-        ).subscribe()
+        // * React to question updates
+        effect(() => {
+          const question = sessionObserver.question()
+          console.debug('Updating current question from session observer', question)
+          patchState(store, { question })
+        })
 
         // * Listen to session status updates
         sessionObserver.sessionEvents().pipe(
           // Prevent memory leaks if the store is destroyed
           takeUntilDestroyed(),
-          retry({ delay: 1000, count: Infinity }),
+          retry({ count: Infinity, delay: 1000 }),
           concatMap((response) => {
             if (isDevMode()) {
               console.debug('Session events stream response:', JSON.stringify(response))
@@ -225,23 +200,30 @@ export const ActiveSessionStore = signalStore(
               return of(void 0)
             }
 
+            if (sessionWaitingStart(event)) {
+              patchState(store, {
+                _session: { ...session },
+                _sessionIsRunning: false,
+              })
+            }
+
             if (sessionStarted(event)) {
-              console.log('Session started event received.')
               patchState(store, {
                 _session: {
                   ...session,
                   startedAt: event.session.startedAt,
                 },
+                _sessionIsRunning: true,
               })
             }
 
             if (sessionEnded(event)) {
-              console.log('Session ended event received.')
               patchState(store, {
                 _session: {
                   ...session,
                   endedAt: event.session.endedAt,
                 },
+                _sessionIsRunning: false,
               })
             }
 
@@ -253,39 +235,27 @@ export const ActiveSessionStore = signalStore(
             return of(void 0)
           }),
         ).subscribe()
-
-        // * Listen to questions updates
-        sessionObserver.questions().pipe(
-          // Prevent memory leaks if the store is destroyed
-          takeUntilDestroyed(),
-          retry({ delay: 1000, count: Infinity }),
-          switchMap((response) => {
-            if (isDevMode()) {
-              console.debug('Questions stream response:', JSON.stringify(response))
-            }
-            return isFailure(response)
-              ? throwError(() => response.error)
-              : of(response.result)
-          }),
-          tap((question) => {
-            patchState(store, { question })
-          }),
-          catchError((err) => {
-            console.error('Error listening to question status:', err)
-            errorHandler.handleError(err)
-            return of(void 0)
-          }),
-        ).subscribe()
       })
 
-      firstValueFrom(
-        store.joinSession(data.code).pipe(retry(1)),
-      ).catch(() => {
-        console.warn('Failed to restore active session from persistence, clearing persisted data.')
-        activeSessionPersistence.clearKeepingNickname()
-      }).finally(() => {
+      const data = activeSessionPersistence.retrieve()
+      if (data === null) {
         patchState(store, { _sessionIsLoaded: true })
+        return
+      }
+
+      if (isDevMode()) {
+        console.debug('Restoring active session from persistence:', data)
+      }
+
+      patchState(store, {
+        ...initialState,
+        _nickname: signalState({
+          value: data.nickname?.trim(),
+          remembered: data.nickname !== undefined && data.nickname.trim() !== '',
+        }),
       })
+
+      patchState(store, { _sessionIsLoaded: true })
     },
   }),
 )

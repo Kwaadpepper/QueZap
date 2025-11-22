@@ -42,7 +42,6 @@ export class SessionApiMockService implements SessionApiService {
         }
 
         this.currentSession.set(session)
-        this.sessions.startSession(code)
 
         console.log('Mock session joined:', session)
         return {
