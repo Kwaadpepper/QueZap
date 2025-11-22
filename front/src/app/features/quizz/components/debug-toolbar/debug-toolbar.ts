@@ -30,6 +30,8 @@ export class DebugToolbar {
 
     const sessionCode = this.sessionStore.session()!.code
 
+    console.debug('Mock action triggered:', action, 'for session', sessionCode)
+
     switch (action) {
       case 'nextQuestion': this.sessionObserver.mockNextQuestion(sessionCode)
         break

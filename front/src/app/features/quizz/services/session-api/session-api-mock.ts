@@ -25,23 +25,26 @@ export class SessionApiMockService implements SessionApiService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while joining session')
           throw new ServiceError('Mock service error: find session')
         }
       }),
       map((code) => {
         const session = this.sessions.getSessionByCode(code)
         if (!session) {
+          console.debug('Mock: session not found')
           return new NotFoundError(`Session with code ${code} not found`)
         }
 
         if (sessionHasEnded(session)) {
+          console.debug('Mock: session has expired')
           return new ExpiredError('Session has expired')
         }
 
         this.currentSession.set(session)
         this.sessions.startSession(code)
 
-        console.log('Mock session found:', session)
+        console.log('Mock session joined:', session)
         return {
           kind: 'success',
           result: session,
@@ -55,6 +58,7 @@ export class SessionApiMockService implements SessionApiService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while choosing nickname')
           throw new ServiceError('Mock service error: choose nickname')
         }
       }),
@@ -73,11 +77,13 @@ export class SessionApiMockService implements SessionApiService {
         }
 
         if (Object.keys(errors).length > 0) {
+          console.debug('Mock: validation error on nickname', errors)
           return new ValidationError(errors, 'Validation failed')
         }
 
         const session = this.currentSession()
         if (session === null) {
+          console.debug('Mock: no active session to join with nickname')
           return new ForbidenError('No active session to join with nickname')
         }
 

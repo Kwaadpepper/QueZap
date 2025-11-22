@@ -57,6 +57,7 @@ export class SessionObserverMockService implements SessionObserverService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while participants')
           throw new ServiceError('Mock service error: participants')
         }
       }),
@@ -80,6 +81,7 @@ export class SessionObserverMockService implements SessionObserverService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while session events')
           throw new ServiceError('Mock service error: session events')
         }
       }),
@@ -95,6 +97,7 @@ export class SessionObserverMockService implements SessionObserverService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while questions')
           throw new ServiceError('Mock service error: questions')
         }
       }),
@@ -242,6 +245,7 @@ export class SessionObserverMockService implements SessionObserverService {
   ) {
     this.startSession(session)
     setTimeout(() => {
+      console.debug('Mock: emitting question', question)
       this.questionSubject.next(question)
     }, this.MOCK_DELAY())
   }
@@ -267,6 +271,7 @@ export class SessionObserverMockService implements SessionObserverService {
         type: 'SessionStarted',
         session: { startedAt: new Date() },
       })
+      console.debug('Mock: session started')
     }, this.MOCK_DELAY())
   }
 
@@ -281,6 +286,7 @@ export class SessionObserverMockService implements SessionObserverService {
         type: 'SessionEnded',
         session: { endedAt: new Date() },
       })
+      console.debug('Mock: session ended')
     }, this.MOCK_DELAY())
   }
 
