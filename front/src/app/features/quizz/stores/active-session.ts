@@ -1,4 +1,6 @@
-import { computed, ErrorHandler, inject, Injector, runInInjectionContext } from '@angular/core'
+import {
+  computed, ErrorHandler, inject, Injector, isDevMode, runInInjectionContext,
+} from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
 import {
@@ -178,6 +180,9 @@ export const ActiveSessionStore = signalStore(
           takeUntilDestroyed(),
           retry({ delay: 1000, count: Infinity }),
           tap((response) => {
+            if (isDevMode()) {
+              console.debug('Participants stream response:', JSON.stringify(response))
+            }
             if (isFailure(response)) {
               const error = response.error
               console.error('Error in participants stream:', error)
@@ -203,6 +208,9 @@ export const ActiveSessionStore = signalStore(
           takeUntilDestroyed(),
           retry({ delay: 1000, count: Infinity }),
           concatMap((response) => {
+            if (isDevMode()) {
+              console.debug('Session events stream response:', JSON.stringify(response))
+            }
             if (isFailure(response)) {
               const error = response.error
               console.error('Error listening to session status:', error)
@@ -251,6 +259,9 @@ export const ActiveSessionStore = signalStore(
           // Prevent memory leaks if the store is destroyed
           takeUntilDestroyed(),
           switchMap((response) => {
+            if (isDevMode()) {
+              console.debug('Questions stream response:', JSON.stringify(response))
+            }
             return isFailure(response)
               ? throwError(() => response.error)
               : of(response.result)
