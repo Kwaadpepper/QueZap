@@ -17,8 +17,12 @@ import {
 import { Spinner } from '@quezap/shared/components'
 
 import { DebugToolbar } from '../../components'
-import { BinaryQuestionView, BooleanQuestionView, QuizzQuestionView } from '../../components/question-view'
+import {
+  BinaryQuestionView, BooleanQuestionView,
+  QuestionTimer, QuizzQuestionView,
+} from '../../components/question-view'
 import { isNoMoreQuestions, NoMoreQuestions, SESSION_OBSERVER_SERVICE } from '../../services'
+import { TimerStore } from '../../stores'
 
 @Component({
   selector: 'quizz-quizz-runner',
@@ -32,6 +36,7 @@ import { isNoMoreQuestions, NoMoreQuestions, SESSION_OBSERVER_SERVICE } from '..
     Message,
     Spinner,
     Button,
+    QuestionTimer,
   ],
 })
 export class QuizzRunner {
@@ -39,16 +44,16 @@ export class QuizzRunner {
   private readonly router = inject(Router)
   private readonly config = inject(Config)
   private readonly message = inject(MessageService)
+  private readonly timerStore = inject(TimerStore)
   private readonly sessionObserver = inject(SESSION_OBSERVER_SERVICE)
 
   protected readonly QuestionType = QuestionType
-
-  protected readonly isDebug = computed(() => this.config.debug())
-  protected readonly question = signal<QuestionWithAnswers | null>(null)
-
   protected readonly isBinary = isBinaryQuestion
   protected readonly isBoolean = isBooleanQuestion
   protected readonly isQuizz = isQuizzQuestion
+
+  protected readonly isDebug = computed(() => this.config.debug())
+  protected readonly question = signal<QuestionWithAnswers | undefined>(undefined)
 
   constructor() {
     this.sessionObserver.questions().pipe(
@@ -77,6 +82,12 @@ export class QuizzRunner {
     throw new Error('Method not implemented.')
   }
 
+  // TODO: Implement behavior for when time is exhausted (e.g., mark question as unanswered, move to next question)
+  protected onTimeExhausted() {
+    throw new Error('Method not implemented.')
+    console.log('Time exhausted for question', this.question()?.id)
+  }
+
   private handleQuestion(question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions) {
     if (isNoMoreQuestions(question)) {
       this.message.add({
@@ -93,6 +104,7 @@ export class QuizzRunner {
       case QuestionType.Binary:
       case QuestionType.Quizz:
         this.question.set(question)
+        this.timerStore.setTimer(question.limit)
         break
       default:
         throw new Error('Unknown question type')

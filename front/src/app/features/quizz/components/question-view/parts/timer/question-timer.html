@@ -3,6 +3,7 @@
   [class.bg-red-700]="remainingSeconds() <= 5"
   [class.bg-amber-700]="remainingSeconds() > 5 && remainingSeconds() <= 15"
   [class.bg-green-700]="remainingSeconds() > 15"
+  [class.hidden]="timer() === undefined"
   [class.text-white]="true"
   [title]="`${remainingSeconds()} secondes restantes`"
 >

@@ -6,7 +6,7 @@
   </div>
   <div class="flex h-dvh w-full flex-row items-center justify-center">
     @let questionToShow = question();
-    @if (questionToShow === null) {
+    @if (questionToShow === undefined) {
       <div class="flex flex-col items-center justify-center gap-4 p-4">
         <span class="h1 text-center">En attente de la question suivante</span>
         <quizz-spinner />
@@ -41,5 +41,9 @@
         </div>
       }
     }
+    <quizz-timer
+      class="pointer-events-none absolute right-5 bottom-5 z-10"
+      (exhausted)="onTimeExhausted()"
+    />
   </div>
 </div>

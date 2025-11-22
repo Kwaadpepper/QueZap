@@ -1,23 +1,19 @@
 import {
-  ChangeDetectionStrategy, Component, computed, effect, input, model, signal,
+  ChangeDetectionStrategy, Component, computed, effect, inject, input, model, signal,
 } from '@angular/core'
 import { form, validateStandardSchema } from '@angular/forms/signals'
 
 import { zod } from '@quezap/core/tools'
-import {
-  BinaryQuestion, PictureUrl, QuestionId, QuestionWithAnswers, Theme, Timer,
-} from '@quezap/domain/models'
+import { BinaryQuestion, PictureUrl, QuestionId, QuestionWithAnswers, Theme } from '@quezap/domain/models'
+import { TimerStore } from '@quezap/features/quizz/stores'
 
-import {
-  Picture, PrintableAnswer, QuestionAlert, QuestionAnswer, QuestionTheme, QuestionTimer,
-} from '../parts'
+import { Picture, PrintableAnswer, QuestionAlert, QuestionAnswer, QuestionTheme } from '../parts'
 
 type Responses = Record<number, boolean>
 
 @Component({
   selector: 'quizz-question-binary',
   imports: [
-    QuestionTimer,
     Picture,
     QuestionTheme,
     QuestionAnswer,
@@ -33,6 +29,10 @@ type Responses = Record<number, boolean>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BinaryQuestionView {
+  private readonly timerStore = inject(TimerStore)
+
+  protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
+
   // Question related signals
   readonly question = input.required<BinaryQuestion & QuestionWithAnswers>()
   protected readonly questionId = computed<QuestionId>(() => this.question().id)
@@ -40,17 +40,13 @@ export class BinaryQuestionView {
   protected readonly picture = computed<PictureUrl | undefined>(() => this.question().picture)
   protected readonly theme = computed<Theme>(() => this.question().theme)
 
-  // Timer related signals
-  protected readonly started = signal<boolean>(false)
-  protected readonly timer = computed<Timer | undefined>(() => this.question().limit)
-  protected readonly timeLeft = signal<number>(0)
-
   // Answers related signals
   protected readonly answers = computed<PrintableAnswer[]>(() => this.question().answers)
   protected readonly responses = model<Responses>({})
 
   protected readonly hasAnswered = computed<boolean>(() => this.responseForm().valid())
-  protected readonly cannotAnswerAnymore = computed<boolean>(() => this.timeLeft() <= 0 && this.timer() !== undefined)
+  protected readonly cannotAnswerAnymore = computed<boolean>(() =>
+    this.timeLeft() === 0 && this.timeLeft() !== undefined)
 
   protected readonly responseForm = form(this.responses, (path) => {
     validateStandardSchema(path, zod.record(
@@ -73,12 +69,6 @@ export class BinaryQuestionView {
       })
     })
     effect(() => {
-      // * Start the timer when the question is set
-      if (this.question()) {
-        this.started.set(true)
-      }
-    })
-    effect(() => {
       // * Handle RADIO behavior
       const currentResponses = this.responseForm().value()
 
@@ -99,9 +89,5 @@ export class BinaryQuestionView {
         })
       }
     })
-  }
-
-  protected onTimeExhausted() {
-    console.log('Time exhausted for question:', this.question().id)
   }
 }

@@ -6,7 +6,7 @@ import {
   ActiveSessionPersistence, SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE,
   SessionApiMockService, SessionMocks, SessionObserverMockService,
 } from './quizz/services'
-import { ActiveSessionStore } from './quizz/stores'
+import { ActiveSessionStore, TimerStore } from './quizz/stores'
 
 export const routes: Routes = [
   {
@@ -39,6 +39,7 @@ export const routes: Routes = [
     providers: [
       ActiveSessionStore,
       ActiveSessionPersistence,
+      TimerStore,
       SessionMocks,
       { provide: SESSION_API_SERVICE, useClass: SessionApiMockService },
       { provide: SESSION_OBSERVER_SERVICE, useClass: SessionObserverMockService },

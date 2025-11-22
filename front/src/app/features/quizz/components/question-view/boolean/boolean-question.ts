@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, computed,
   effect,
+  inject,
   input, model, signal,
 } from '@angular/core'
 import { form, validateStandardSchema } from '@angular/forms/signals'
@@ -8,19 +9,17 @@ import { form, validateStandardSchema } from '@angular/forms/signals'
 import { zod } from '@quezap/core/tools'
 import {
   BooleanQuestion, PictureUrl, QuestionId,
-  Theme, Timer,
+  Theme,
 } from '@quezap/domain/models'
+import { TimerStore } from '@quezap/features/quizz/stores'
 
-import {
-  Picture, PrintableAnswer, QuestionAlert, QuestionAnswer, QuestionTheme, QuestionTimer,
-} from '../parts'
+import { Picture, PrintableAnswer, QuestionAlert, QuestionAnswer, QuestionTheme } from '../parts'
 
 type Responses = Record<number, boolean>
 
 @Component({
   selector: 'quizz-question-boolean',
   imports: [
-    QuestionTimer,
     Picture,
     QuestionTheme,
     QuestionAnswer,
@@ -36,17 +35,16 @@ type Responses = Record<number, boolean>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BooleanQuestionView {
+  private readonly timerStore = inject(TimerStore)
+
+  protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
+
   // Question related signals
   readonly question = input.required<BooleanQuestion>()
   protected readonly questionId = computed<QuestionId>(() => this.question().id)
   protected readonly phrase = computed<string>(() => this.question().value)
   protected readonly picture = computed<PictureUrl | undefined>(() => this.question().picture)
   protected readonly theme = computed<Theme>(() => this.question().theme)
-
-  // Timer related signals
-  protected readonly started = signal<boolean>(false)
-  protected readonly timer = computed<Timer | undefined>(() => this.question().limit)
-  protected readonly timeLeft = signal<number>(0)
 
   // Answers related signals
   readonly #defaultAnswers: PrintableAnswer[] = [
@@ -62,7 +60,8 @@ export class BooleanQuestionView {
   })
 
   protected readonly hasAnswered = computed<boolean>(() => this.responseForm().valid())
-  protected readonly cannotAnswerAnymore = computed<boolean>(() => this.timeLeft() <= 0 && this.timer() !== undefined)
+  protected readonly cannotAnswerAnymore = computed<boolean>(() => this.timeLeft() === 0
+    && this.timeLeft() !== undefined)
 
   protected readonly responseForm = form(this.responses, (path) => {
     validateStandardSchema(path, zod.record(
@@ -78,10 +77,6 @@ export class BooleanQuestionView {
 
   constructor() {
     effect(() => {
-      // * Start the timer when the question is set
-      if (this.question()) {
-        this.started.set(true)
-      }
       // * Initialize responses when question changes
       this.responses.set({
         0: false,
@@ -110,9 +105,5 @@ export class BooleanQuestionView {
         })
       }
     })
-  }
-
-  protected onTimeExhausted() {
-    console.log('Time exhausted for question:', this.question().id)
   }
 }
