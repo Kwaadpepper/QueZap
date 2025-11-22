@@ -26,6 +26,7 @@ import { ActiveSessionStore } from '../../stores'
 })
 export class Join {
   readonly #lobbyUrl = '/quizz/lobby'
+  readonly #expiredUrl = '/quizz/expired'
   private readonly router = inject(Router)
   private readonly activatedRoute = inject(ActivatedRoute)
   private readonly sessionStore = inject(ActiveSessionStore)
@@ -85,13 +86,15 @@ export class Join {
         }
 
         if (result instanceof ExpiredError) {
-          this.router.navigate(['/quizz/expired'], { skipLocationChange: true })
+          setTimeout(() => {
+            this.router.navigate([this.#expiredUrl], { skipLocationChange: true })
+          }, 0)
           return
         }
 
         setTimeout(() => {
           this.router.navigate([this.#lobbyUrl], { skipLocationChange: true })
-        }, 200)
+        }, 0)
       }),
       catchError(() => {
         this.isLoading.set(false)
