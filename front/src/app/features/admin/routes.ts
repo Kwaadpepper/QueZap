@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router'
 
+import { QUEZAP_SERVICE, QuezapMockService } from './quezaps/services'
+import { QuezapPageStore } from './quezaps/stores'
 import { THEME_SERVICE, ThemeMockService } from './themes/services'
 import { ThemePageStore } from './themes/stores'
 
@@ -8,6 +10,15 @@ export const routes: Routes = [
     path: 'dashboard',
     title: 'Tableau de bord',
     loadChildren: () => import('./dashboard/routes').then(m => m.routes),
+  },
+  {
+    path: 'quezaps',
+    title: 'Quezaps',
+    providers: [
+      QuezapPageStore,
+      { provide: QUEZAP_SERVICE, useClass: QuezapMockService },
+    ],
+    loadChildren: () => import('./quezaps/routes').then(m => m.routes),
   },
   {
     path: 'themes',
