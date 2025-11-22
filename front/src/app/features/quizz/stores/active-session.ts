@@ -5,22 +5,28 @@ import {
   patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState,
 } from '@ngrx/signals'
 import {
-  catchError, concatMap, firstValueFrom, Observable, of, retry, tap, throwError,
+  catchError, concatMap, firstValueFrom,
+  Observable, of, retry, switchMap, tap, throwError,
 } from 'rxjs'
 
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
 import { ExpiredError } from '@quezap/core/errors/expired-error'
 import { isFailure } from '@quezap/core/types'
 import {
-  Participant, Session, SessionCode, sessionHasEnded, sessionIsRunning, sessionMayStart,
+  MixedQuestion,
+  Participant, QuestionWithAnswers, Session, SessionCode, sessionHasEnded, sessionIsRunning, sessionMayStart,
 } from '@quezap/domain/models'
 
-import { SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE, sessionEnded, sessionStarted } from '../services'
+import {
+  NoMoreQuestions, SESSION_API_SERVICE,
+  SESSION_OBSERVER_SERVICE, sessionEnded, sessionStarted,
+} from '../services'
 
 import { ActiveSessionPersistence } from './../services/active-session-persistence/active-session-persistence'
 
 interface ActiveSessionState {
-  _session?: Session
+  _session: Session | undefined
+  question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions | undefined
   _nickname: SignalState<{
     value: string | undefined
     remembered: boolean
@@ -31,6 +37,7 @@ interface ActiveSessionState {
 
 const initialState: ActiveSessionState = {
   _session: undefined,
+  question: undefined,
   _nickname: undefined,
   _sessionIsLoaded: false,
   _participants: [],
@@ -51,17 +58,6 @@ export const ActiveSessionStore = signalStore(
       return session ? sessionIsRunning(session) : false
     }),
   })),
-
-  // Add current question as linked state
-  // withLinkedState(({ options }) => ({
-  //   selectedOption: linkedSignal<Option[], Option>({
-  //     source: options,
-  //     computation: (newOptions, previous) => {
-  //       const option = newOptions.find((o) => o.id === previous?.value.id);
-  //       return option ?? newOptions[0];
-  //     },
-  //   })
-  // }))
 
   withMethods((
     store,
@@ -247,6 +243,26 @@ export const ActiveSessionStore = signalStore(
           }),
           catchError((err) => {
             console.error('Error listening to session status:', err)
+            errorHandler.handleError(err)
+            return of(void 0)
+          }),
+        ).subscribe()
+
+        // * Listen to questions updates
+        sessionObserver.questions().pipe(
+          // Prevent memory leaks if the store is destroyed
+          takeUntilDestroyed(),
+          switchMap((response) => {
+            return isFailure(response)
+              ? throwError(() => response.error)
+              : of(response.result)
+          }),
+          retry({ delay: 1000, count: Infinity }),
+          tap((question) => {
+            patchState(store, { question })
+          }),
+          catchError((err) => {
+            console.error('Error listening to question status:', err)
             errorHandler.handleError(err)
             return of(void 0)
           }),

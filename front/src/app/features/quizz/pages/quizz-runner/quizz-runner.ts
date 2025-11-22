@@ -1,16 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import {
+  ChangeDetectionStrategy, Component, computed, effect, inject, signal,
+} from '@angular/core'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Message } from 'primeng/message'
-import {
-  catchError, map, of, retry, switchMap, throwError,
-} from 'rxjs'
 
 import { Config } from '@quezap/core/services'
-import { isFailure } from '@quezap/core/types'
 import {
   isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, QuestionType, QuestionWithAnswers,
 } from '@quezap/domain/models'
@@ -21,8 +18,8 @@ import {
   BinaryQuestionView, BooleanQuestionView,
   QuestionTimer, QuizzQuestionView,
 } from '../../components/question-view'
-import { isNoMoreQuestions, NoMoreQuestions, SESSION_OBSERVER_SERVICE } from '../../services'
-import { TimerStore } from '../../stores'
+import { isNoMoreQuestions, NoMoreQuestions } from '../../services'
+import { ActiveSessionStore, TimerStore } from '../../stores'
 
 @Component({
   selector: 'quizz-quizz-runner',
@@ -45,7 +42,7 @@ export class QuizzRunner {
   private readonly config = inject(Config)
   private readonly message = inject(MessageService)
   private readonly timerStore = inject(TimerStore)
-  private readonly sessionObserver = inject(SESSION_OBSERVER_SERVICE)
+  private readonly sessionStore = inject(ActiveSessionStore)
 
   protected readonly QuestionType = QuestionType
   protected readonly isBinary = isBinaryQuestion
@@ -56,25 +53,15 @@ export class QuizzRunner {
   protected readonly question = signal<QuestionWithAnswers | undefined>(undefined)
 
   constructor() {
-    this.sessionObserver.questions().pipe(
-      takeUntilDestroyed(),
-      switchMap((response) => {
-        return isFailure(response)
-          ? throwError(() => response.error)
-          : of(response.result)
-      }),
-      retry({ count: 3, delay: 1000, resetOnSuccess: true }),
-      map(question => this.handleQuestion(question)),
-      catchError((error) => {
-        this.message.add({
-          severity: 'error',
-          summary: 'Erreur de chargement',
-          detail: `Impossible de charger la question : ${error.message}`,
-          sticky: true,
-        })
-        return []
-      }),
-    ).subscribe()
+    effect((onCleanup) => {
+      const question = this.sessionStore.question()
+      if (question) {
+        this.handleQuestion(question)
+      }
+      onCleanup(() => {
+        this.timerStore.clearTimer()
+      })
+    })
   }
 
   protected reloadQuestion() {

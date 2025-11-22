@@ -47,5 +47,8 @@ export const TimerStore = signalStore(
     setTimeLeft: (timeLeft: number | undefined) => {
       patchState(store, { timeLeft })
     },
+    clearTimer: () => {
+      patchState(store, { timer: undefined, timeLeft: undefined })
+    },
   })),
 )
