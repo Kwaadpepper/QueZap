@@ -9,12 +9,13 @@ import {
   Observable, of, retry, switchMap, tap, throwError,
 } from 'rxjs'
 
-import { NotFoundError, ValidationError } from '@quezap/core/errors'
+import { ForbidenError, NotFoundError, ValidationError } from '@quezap/core/errors'
 import { ExpiredError } from '@quezap/core/errors/expired-error'
 import { isFailure } from '@quezap/core/types'
 import {
   MixedQuestion,
-  Participant, QuestionWithAnswers, Session, SessionCode, sessionHasEnded, sessionIsRunning, sessionMayStart,
+  Participant, QuestionWithAnswers, Session, SessionCode,
+  sessionIsRunning, sessionMayStart,
 } from '@quezap/domain/models'
 
 import {
@@ -66,7 +67,7 @@ export const ActiveSessionStore = signalStore(
   ) => ({
 
     joinSession: (code: SessionCode): Observable<void | NotFoundError | ExpiredError> => {
-      return sessionApi.find(code).pipe(
+      return sessionApi.joinSessionWith(code).pipe(
         concatMap((response) => {
           if (isFailure(response)) {
             patchState(store, initialState)
@@ -76,20 +77,14 @@ export const ActiveSessionStore = signalStore(
             if (error instanceof NotFoundError) {
               return of(error)
             }
+            if (error instanceof ExpiredError) {
+              return of(error)
+            }
 
             return throwError(() => response.error)
           }
 
           const session = response.result
-
-          if (sessionHasEnded(session)) {
-            patchState(store, initialState)
-            patchState(store, { _sessionIsLoaded: true })
-
-            console.debug('Session has already ended.')
-
-            return of(new ExpiredError('Session has expired'))
-          }
 
           if (sessionMayStart(session)) {
             console.debug('Session may start soon.')
@@ -113,15 +108,18 @@ export const ActiveSessionStore = signalStore(
       )
     },
 
-    chooseNickname: (nickname: string, remember: boolean): Observable<void | ValidationError> => {
+    chooseNickname: (nickname: string, remember: boolean): Observable<void | ForbidenError | ValidationError> => {
       return sessionApi.chooseNickname(nickname).pipe(
         concatMap((response) => {
           if (isFailure(response)) {
-            activeSessionPersistence.persistNickname(remember ? nickname : undefined)
-
             if (response.error instanceof ValidationError) {
               return of(response.error)
             }
+            if (response.error instanceof ForbidenError) {
+              return of(response.error)
+            }
+
+            activeSessionPersistence.persistNickname(remember ? nickname : undefined)
 
             patchState(store, { _nickname: undefined })
 

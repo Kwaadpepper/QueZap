@@ -9,7 +9,7 @@ import { CheckboxModule } from 'primeng/checkbox'
 import { InputText } from 'primeng/inputtext'
 import { catchError, exhaustMap, finalize, firstValueFrom, of } from 'rxjs'
 
-import { HandledFrontError, ValidationError } from '@quezap/core/errors'
+import { ForbidenError, HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { FieldError } from '@quezap/shared/directives'
 
@@ -59,6 +59,19 @@ export class NicknameChooser {
         exhaustMap((result) => {
           if (result instanceof ValidationError) {
             return of(result.getErrorsForForm(this.nicknameForm))
+          }
+          if (result instanceof ForbidenError) {
+            this.errorHandler.handleError(
+              HandledFrontError.from(result),
+            )
+
+            this.message.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: 'Vous devrez rejoindre une session avant de choisir un pseudo.',
+              life: 5000,
+            })
+            return of(void 0)
           }
 
           this.nicknameValidated.set(true)

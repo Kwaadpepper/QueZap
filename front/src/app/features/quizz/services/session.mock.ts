@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core'
+import { Injectable, signal } from '@angular/core'
 
 import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 
@@ -42,6 +42,10 @@ const MOCK_SESSIONS: Session[] = [
 
 @Injectable()
 export class SessionMocks {
+  readonly #sessionRunStatePersistKey = 'mockSessionApiRunState'
+
+  private readonly runnningSessions = signal(new Map<SessionCode, string[]>())
+
   private readonly sessions = new Map<SessionCode, Session>(
     MOCK_SESSIONS.map(session => [session.code, session]),
   )
@@ -52,6 +56,10 @@ export class SessionMocks {
 
   public getSessionByCode(code: SessionCode): Session | undefined {
     return this.sessions.get(code)
+  }
+
+  public getParticipantsOfSession(code: SessionCode): string[] {
+    return this.runnningSessions().get(code) ?? []
   }
 
   public startSession(code: SessionCode): void {
@@ -67,6 +75,17 @@ export class SessionMocks {
       ...session,
       startedAt: new Date(),
     })
+
+    this.addRunningSession(code, [])
+  }
+
+  public addParticipantToSession(code: SessionCode, nickname: string): void {
+    const session = this.sessions.get(code)
+    if (!session) {
+      throw new Error(`Session with code ${code} not found.`)
+    }
+
+    this.addParticipantToRunningSession(code, nickname)
   }
 
   public endSession(code: SessionCode): void {
@@ -82,5 +101,53 @@ export class SessionMocks {
       ...session,
       endedAt: new Date(),
     })
+
+    this.removeRunningSession(code)
+  }
+
+  // --- Running Sessions Management for Mock Persistence ---
+  private addRunningSession(code: SessionCode, participants: string[]) {
+    this.runnningSessions.update((sessions) => {
+      sessions.set(code, participants)
+      return sessions
+    })
+    this.persistRunningSessions()
+  }
+
+  private addParticipantToRunningSession(code: SessionCode, nickname: string) {
+    this.runnningSessions.update((sessions) => {
+      const participants = sessions.get(code) ?? []
+      participants.push(nickname)
+      sessions.set(code, participants)
+      return sessions
+    })
+    this.persistRunningSessions()
+  }
+
+  private removeRunningSession(code: SessionCode) {
+    this.runnningSessions.update((sessions) => {
+      sessions.delete(code)
+      return sessions
+    })
+    this.persistRunningSessions()
+  }
+
+  private persistRunningSessions() {
+    const runningSessionsArray = Array.from(this.runnningSessions().entries())
+    sessionStorage.setItem(this.#sessionRunStatePersistKey, JSON.stringify(runningSessionsArray))
+  }
+
+  private loadRunningSessions() {
+    try {
+      const previousState = sessionStorage.getItem(this.#sessionRunStatePersistKey)
+      this.runnningSessions.set(new Map<SessionCode, string[]>())
+      if (previousState) {
+        const runningSessionsArray = JSON.parse(previousState) as [SessionCode, string[]][]
+        this.runnningSessions.set(new Map<SessionCode, string[]>(runningSessionsArray))
+      }
+    }
+    catch {
+      this.runnningSessions.set(new Map<SessionCode, string[]>())
+    }
   }
 }

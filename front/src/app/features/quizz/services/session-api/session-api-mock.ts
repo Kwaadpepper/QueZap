@@ -1,10 +1,10 @@
-import { inject, Injectable } from '@angular/core'
+import { inject, Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
-import { NotFoundError, ServiceError, ValidationError } from '@quezap/core/errors'
+import { ExpiredError, ForbidenError, NotFoundError, ServiceError, ValidationError } from '@quezap/core/errors'
 import { ServiceOutput } from '@quezap/core/types'
-import { Session, SessionCode } from '@quezap/domain/models'
+import { Session, SessionCode, sessionHasEnded } from '@quezap/domain/models'
 
 import { SessionMocks } from '../session.mock'
 
@@ -16,9 +16,11 @@ export class SessionApiMockService implements SessionApiService {
   private readonly MOCK_DELAY = () => Math.max(2000, Math.random() * 5000)
   readonly #validPseudos = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Hannah']
 
+  private readonly currentSession = signal<Session | null>(null)
+
   private readonly sessions = inject(SessionMocks)
 
-  find(code: SessionCode): ServiceOutput<Session, NotFoundError> {
+  joinSessionWith(code: SessionCode): ServiceOutput<Session, NotFoundError | ExpiredError> {
     return of(code).pipe(
       delay(this.MOCK_DELAY()),
       tap(() => {
@@ -32,6 +34,13 @@ export class SessionApiMockService implements SessionApiService {
           return new NotFoundError(`Session with code ${code} not found`)
         }
 
+        if (sessionHasEnded(session)) {
+          return new ExpiredError('Session has expired')
+        }
+
+        this.currentSession.set(session)
+        this.sessions.startSession(code)
+
         console.log('Mock session found:', session)
         return {
           kind: 'success',
@@ -41,7 +50,7 @@ export class SessionApiMockService implements SessionApiService {
     )
   }
 
-  chooseNickname(nickname: string): ServiceOutput<void, ValidationError> {
+  chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError> {
     return of(nickname).pipe(
       delay(this.MOCK_DELAY()),
       tap(() => {
@@ -66,6 +75,13 @@ export class SessionApiMockService implements SessionApiService {
         if (Object.keys(errors).length > 0) {
           return new ValidationError(errors, 'Validation failed')
         }
+
+        const session = this.currentSession()
+        if (session === null) {
+          return new ForbidenError('No active session to join with nickname')
+        }
+
+        this.sessions.addParticipantToSession(session.code, nickname)
 
         return {
           kind: 'success',
