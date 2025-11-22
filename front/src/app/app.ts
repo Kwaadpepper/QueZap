@@ -1,5 +1,6 @@
 import {
-  ChangeDetectionStrategy, Component, computed, effect, inject, signal,
+  ChangeDetectionStrategy, Component, computed,
+  inject, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import {
@@ -60,13 +61,8 @@ export class App {
   protected readonly asWebsite = computed(() => this.layout.asWebsite())
 
   protected readonly onAdminPath = signal(false)
-  protected readonly onQuizzPath = signal(false)
 
   constructor() {
-    effect(() => {
-      this.layout.asWebsite.set(!this.onQuizzPath())
-      this.layout.inContainer.set(!this.onQuizzPath())
-    })
     // * Update layout settings based on current path
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationStart) {
@@ -77,7 +73,6 @@ export class App {
         this.LoadingStatus.stop()
 
         this.onAdminPath.set(event.url.startsWith('/admin'))
-        this.onQuizzPath.set(event.url.startsWith('/quizz'))
       }
       if (event instanceof NavigationCancel) {
         this.LoadingStatus.stop()

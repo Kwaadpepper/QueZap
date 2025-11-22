@@ -50,7 +50,7 @@
 <main
   class="grow"
   pFocusTrap
-  [pFocusTrapDisabled]="!onQuizzPath()"
+  [pFocusTrapDisabled]="asWebsite()"
   [class]="{
     'main-as-website': asWebsite(),
     'main-in-container': inContainer(),
@@ -58,10 +58,6 @@
 >
   <quizz-debugbar />
   <router-outlet />
-
-  @if (onQuizzPath()) {
-    <quizz-exit-button />
-  }
 
   <p-toast
     position="bottom-left"

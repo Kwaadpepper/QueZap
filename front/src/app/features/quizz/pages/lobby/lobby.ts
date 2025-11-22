@@ -3,9 +3,9 @@ import { Router } from '@angular/router'
 
 import { Button } from 'primeng/button'
 
-import { Config } from '@quezap/core/services'
+import { Config, LayoutSettings } from '@quezap/core/services'
 
-import { NicknameChooser, ParticipantList } from '../../components'
+import { ExitButton, NicknameChooser, ParticipantList } from '../../components'
 import { SESSION_OBSERVER_SERVICE, SessionObserverMockService } from '../../services'
 import { ActiveSessionStore } from '../../stores'
 
@@ -15,6 +15,7 @@ import { ActiveSessionStore } from '../../stores'
     NicknameChooser,
     ParticipantList,
     Button,
+    ExitButton,
   ],
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
@@ -23,6 +24,7 @@ import { ActiveSessionStore } from '../../stores'
 export class Lobby {
   private readonly router = inject(Router)
   private readonly config = inject(Config)
+  private readonly layout = inject(LayoutSettings)
   private readonly sessionStore = inject(ActiveSessionStore)
   private readonly sessionObserver = inject(SESSION_OBSERVER_SERVICE)
 
@@ -50,6 +52,15 @@ export class Lobby {
       if (this.sessionStore.sessionIsRunning()) {
         this.navigateToQuizz()
       }
+    })
+
+    effect((onCleanUp) => {
+      this.layout.asWebsite.set(false)
+      this.layout.inContainer.set(false)
+      onCleanUp(() => {
+        this.layout.asWebsite.set(true)
+        this.layout.inContainer.set(true)
+      })
     })
   }
 

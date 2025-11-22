@@ -7,13 +7,13 @@ import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Message } from 'primeng/message'
 
-import { Config } from '@quezap/core/services'
+import { Config, LayoutSettings } from '@quezap/core/services'
 import {
   isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, QuestionType, QuestionWithAnswers,
 } from '@quezap/domain/models'
 import { Spinner } from '@quezap/shared/components'
 
-import { DebugToolbar } from '../../components'
+import { DebugToolbar, ExitButton } from '../../components'
 import {
   BinaryQuestionView, BooleanQuestionView,
   QuestionTimer, QuizzQuestionView,
@@ -34,12 +34,14 @@ import { ActiveSessionStore, TimerStore } from '../../stores'
     Spinner,
     Button,
     QuestionTimer,
+    ExitButton,
   ],
 })
 export class QuizzRunner {
   readonly #endedUrl = '/quizz/ended'
   private readonly router = inject(Router)
   private readonly config = inject(Config)
+  private readonly layout = inject(LayoutSettings)
   private readonly message = inject(MessageService)
   private readonly timerStore = inject(TimerStore)
   private readonly sessionStore = inject(ActiveSessionStore)
@@ -60,6 +62,15 @@ export class QuizzRunner {
       }
       onCleanup(() => {
         this.timerStore.clearTimer()
+      })
+    })
+
+    effect((onCleanUp) => {
+      this.layout.asWebsite.set(false)
+      this.layout.inContainer.set(false)
+      onCleanUp(() => {
+        this.layout.asWebsite.set(true)
+        this.layout.inContainer.set(true)
       })
     })
   }
