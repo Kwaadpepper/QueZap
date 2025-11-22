@@ -3,7 +3,7 @@ import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
-import { ServiceError, ValidationError } from '@quezap/core/errors'
+import { NotFoundError, ServiceError, ValidationError } from '@quezap/core/errors'
 import { zod, zodToExternalValidationError } from '@quezap/core/tools'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Theme, ThemeId } from '@quezap/domain/models'
@@ -56,10 +56,12 @@ export class ThemeMockService implements ThemeService {
       delay(this.MOCK_DELAY()),
       tap(() => {
         if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while fetching themes')
           throw new ServiceError('Mock service error: themes')
         }
       }),
       map((obs) => {
+        console.debug('Mock: fetched themes page', pageOfThemes)
         return {
           kind: 'success',
           result: obs,
@@ -73,16 +75,19 @@ export class ThemeMockService implements ThemeService {
       delay(this.MOCK_DELAY()),
       map((newTheme) => {
         if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while creating theme')
           throw new HttpErrorResponse({})
         }
 
         const parsed = newThemeValidationschema.safeParse(newTheme)
 
         if (parsed.success === false) {
+          console.debug('Mock: invalid new theme data')
           return zodToExternalValidationError(parsed.error)
         }
 
         if (this.themeExists(newTheme.name)) {
+          console.debug('Mock: theme name already exists')
           return new ValidationError({ name: ['Un thème avec ce nom existe déjà'] }, 'Un thème avec ce nom existe déjà')
         }
 
@@ -95,6 +100,7 @@ export class ThemeMockService implements ThemeService {
           ...themes,
         ])
 
+        console.debug('Mock: created new theme with id', newId)
         return {
           kind: 'success',
           result: newId,
@@ -114,17 +120,20 @@ export class ThemeMockService implements ThemeService {
         const parsed = themeValidationschema.safeParse(theme)
 
         if (parsed.success === false) {
+          console.debug('Mock: invalid theme data')
           return zodToExternalValidationError(parsed.error)
         }
 
         if (this.themeExists(theme.name, theme.id)) {
+          console.debug('Mock: theme name already exists')
           return new ValidationError({ name: ['Un thème avec ce nom existe déjà'] }, 'Un thème avec ce nom existe déjà')
         }
 
         const existingTheme = this.getTheme(theme.id)
 
         if (!existingTheme) {
-          return new ServiceError('Thème non trouvé')
+          console.debug('Mock: theme not found')
+          return new NotFoundError('Thème non trouvé')
         }
 
         this.mockedThemes.update(themes => themes.map((t) => {
