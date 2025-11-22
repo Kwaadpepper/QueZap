@@ -136,6 +136,7 @@ export class SessionObserverMockService implements SessionObserverService {
 
   public mockNoMoreQuestions(onSession: SessionCode) {
     this.queueQuestion(onSession, { type: 'NoMoreQuestions' })
+    this.endSession(onSession)
   }
 
   private generateRandomParticipant(): Participant {
