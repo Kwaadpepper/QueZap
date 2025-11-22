@@ -10,7 +10,7 @@ import { zod } from '@quezap/core/tools'
 import { BooleanQuestion, PictureUrl, QuestionId } from '@quezap/domain/models'
 import { TimerStore } from '@quezap/features/quizz/stores'
 
-import { Picture, PrintableAnswer, QuestionAlert, QuestionAnswer, QuestionTheme } from '../parts'
+import { Picture, PrintableAnswer, QuestionAlert, QuestionAnswer } from '../parts'
 
 type Responses = Record<number, boolean>
 
@@ -18,7 +18,6 @@ type Responses = Record<number, boolean>
   selector: 'quizz-question-boolean',
   imports: [
     Picture,
-    QuestionTheme,
     QuestionAnswer,
     QuestionAlert,
   ],

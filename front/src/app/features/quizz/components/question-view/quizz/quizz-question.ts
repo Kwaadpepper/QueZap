@@ -7,7 +7,7 @@ import { zod } from '@quezap/core/tools'
 import { PictureUrl, QuestionId, QuestionWithAnswers, QuizzQuestion } from '@quezap/domain/models'
 import { TimerStore } from '@quezap/features/quizz/stores'
 
-import { Picture, PrintableAnswer, QuestionAnswer, QuestionTheme } from '../parts'
+import { Picture, PrintableAnswer, QuestionAnswer } from '../parts'
 import { QuestionAlert } from '../parts/question-alert/question-alert'
 
 type Responses = Record<number, boolean>
@@ -16,7 +16,6 @@ type Responses = Record<number, boolean>
   selector: 'quizz-question-quizz',
   imports: [
     Picture,
-    QuestionTheme,
     QuestionAnswer,
     QuestionAlert,
   ],
