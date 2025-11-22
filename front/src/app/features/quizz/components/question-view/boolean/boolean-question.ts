@@ -7,10 +7,7 @@ import {
 import { form, validateStandardSchema } from '@angular/forms/signals'
 
 import { zod } from '@quezap/core/tools'
-import {
-  BooleanQuestion, PictureUrl, QuestionId,
-  Theme,
-} from '@quezap/domain/models'
+import { BooleanQuestion, PictureUrl, QuestionId } from '@quezap/domain/models'
 import { TimerStore } from '@quezap/features/quizz/stores'
 
 import { Picture, PrintableAnswer, QuestionAlert, QuestionAnswer, QuestionTheme } from '../parts'
@@ -44,7 +41,6 @@ export class BooleanQuestionView {
   protected readonly questionId = computed<QuestionId>(() => this.question().id)
   protected readonly phrase = computed<string>(() => this.question().value)
   protected readonly picture = computed<PictureUrl | undefined>(() => this.question().picture)
-  protected readonly theme = computed<Theme>(() => this.question().theme)
 
   // Answers related signals
   readonly #defaultAnswers: PrintableAnswer[] = [

@@ -1,7 +1,5 @@
 import { UUID } from '../types'
 
-import { Theme } from './theme'
-
 export interface Timer {
   readonly seconds: number
 }
@@ -26,7 +24,6 @@ export interface Question {
   readonly picture?: PictureUrl
   readonly type: QuestionType
   readonly limit?: Timer
-  readonly theme: Theme
 }
 
 export interface BooleanQuestion extends Question {

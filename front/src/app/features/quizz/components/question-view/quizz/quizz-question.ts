@@ -4,7 +4,7 @@ import {
 import { form, validateStandardSchema } from '@angular/forms/signals'
 
 import { zod } from '@quezap/core/tools'
-import { PictureUrl, QuestionId, QuestionWithAnswers, QuizzQuestion, Theme } from '@quezap/domain/models'
+import { PictureUrl, QuestionId, QuestionWithAnswers, QuizzQuestion } from '@quezap/domain/models'
 import { TimerStore } from '@quezap/features/quizz/stores'
 
 import { Picture, PrintableAnswer, QuestionAnswer, QuestionTheme } from '../parts'
@@ -39,7 +39,6 @@ export class QuizzQuestionView {
   protected readonly questionId = computed<QuestionId>(() => this.question().id)
   protected readonly phrase = computed<string>(() => this.question().value)
   protected readonly picture = computed<PictureUrl | undefined>(() => this.question().picture)
-  protected readonly theme = computed<Theme>(() => this.question().theme)
 
   // Answers related signals
   protected readonly answers = computed<PrintableAnswer[]>(() => this.question().answers)

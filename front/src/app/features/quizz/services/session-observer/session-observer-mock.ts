@@ -13,7 +13,7 @@ import {
   QuestionId, QuestionType, QuestionWithAnswers, Score, SessionCode,
   sessionHasEnded,
   sessionHasStarted,
-  Theme, ThemeId,
+  Theme,
 } from '@quezap/domain/models'
 
 import { SessionMocks } from '../session.mock'
@@ -44,12 +44,6 @@ export class SessionObserverMockService implements SessionObserverService {
     'Mason', 'Nora', 'Owen', 'Piper', 'Quincy', 'Riley',
     'Sophia', 'Tyler', 'Ursula', 'Victor', 'Willow', 'Xenia',
     'Yusuf', 'Zara',
-  ]
-
-  readonly #themeNames = [
-    'Arbres caducques', 'Fleurs sauvages', 'PLantes médicinales', 'Champignons comestibles',
-    'Oiseaux communs', 'Insectes pollinisateurs', 'Mammifères nocturnes', 'Reptiles et amphibiens',
-    'Fruits et légumes', 'Herbes aromatiques', 'Plantes aquatiques', 'Plantes carnivores',
   ]
 
   private readonly sessions = inject(SessionMocks)
@@ -146,16 +140,12 @@ export class SessionObserverMockService implements SessionObserverService {
     }
   }
 
-  private generateRandomQuestion({
-    type,
-    theme,
-  }: {
+  private generateRandomQuestion({ type }: {
     type?: QuestionType
     theme?: Theme
   }): MixedQuestion & QuestionWithAnswers {
     const questionTypes = Object.values(QuestionType)
     const questionType = type ?? questionTypes[Math.floor(Math.random() * questionTypes.length)]
-    const questionTheme = theme ?? this.generateRandomTheme()
 
     switch (questionType) {
       case QuestionType.Boolean:
@@ -164,7 +154,6 @@ export class SessionObserverMockService implements SessionObserverService {
           value: 'Vrai ou faux ?' + Math.floor(Math.random() * 100),
           type: QuestionType.Boolean,
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
-          theme: questionTheme,
           picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
           answers: [],
         }
@@ -174,7 +163,6 @@ export class SessionObserverMockService implements SessionObserverService {
           value: 'Cette plante est plutot...' + Math.floor(Math.random() * 100),
           type: QuestionType.Binary,
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
-          theme: questionTheme,
           picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
           answers: [
             this.generateAnwer(0, QuestionType.Binary, 'Type A'),
@@ -187,7 +175,6 @@ export class SessionObserverMockService implements SessionObserverService {
           value: 'Quel est la bonne réponse ? ' + Math.floor(Math.random() * 100),
           type: QuestionType.Quizz,
           limit: Math.random() < 0.5 ? { seconds: 30 } : undefined,
-          theme: questionTheme,
           picture: Math.random() < 0.5 ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
           answers: [
             this.generateAnwer(0, QuestionType.Quizz, 'Réponse A'),
@@ -222,15 +209,6 @@ export class SessionObserverMockService implements SessionObserverService {
       value: phrase,
       picture: phrase ? undefined : 'https://picsum.photos/400/300' as PictureUrl,
     }
-  }
-
-  private generateRandomTheme(): Theme {
-    const themes = Object.values(this.#themeNames).map(name => ({
-      id: crypto.randomUUID() as ThemeId,
-      name,
-    }))
-
-    return themes[Math.floor(Math.random() * themes.length)]
   }
 
   // --- Internal methods ---
