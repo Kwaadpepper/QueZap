@@ -1,5 +1,6 @@
 import {
-  ChangeDetectionStrategy, Component, computed, effect, input,
+  ChangeDetectionStrategy, Component, computed,
+  input,
   signal,
 } from '@angular/core'
 import { Field, FieldTree } from '@angular/forms/signals'
@@ -60,12 +61,4 @@ export class QuestionAnswer {
   ) % this.forms().length)
 
   protected readonly currentForm = computed<string>(() => this.forms()[this.currentFormIndex()])
-
-  constructor() {
-    effect(() => {
-      const fieldValue = this.field()
-      // For debugging purposes
-      console.log(`Question ${this.questionId()} - Answer ${this.identifier()} - Field value:`, fieldValue)
-    })
-  }
 }
