@@ -258,6 +258,7 @@ export const ActiveSessionStore = signalStore(
         sessionObserver.questions().pipe(
           // Prevent memory leaks if the store is destroyed
           takeUntilDestroyed(),
+          retry({ delay: 1000, count: Infinity }),
           switchMap((response) => {
             if (isDevMode()) {
               console.debug('Questions stream response:', JSON.stringify(response))
@@ -266,7 +267,6 @@ export const ActiveSessionStore = signalStore(
               ? throwError(() => response.error)
               : of(response.result)
           }),
-          retry({ delay: 1000, count: Infinity }),
           tap((question) => {
             patchState(store, { question })
           }),
