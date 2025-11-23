@@ -18,7 +18,6 @@ import { LoadingStatus } from '@quezap/core/services'
 
 import { LayoutSettings } from './core/services'
 import { LogoutButton } from './features/auth/components'
-import { ExitButton } from './features/quizz/components'
 import { Footer } from './layout/footer/footer'
 import { AdminNav, SiteNav } from './layout/navigation'
 import { Debugbar, LoadingBar, ScrollTopComponent } from './shared/components'
@@ -41,7 +40,6 @@ import { AuthenticatedUserStore } from './shared/stores'
     Button,
     LogoutButton,
     ScrollTopComponent,
-    ExitButton,
     FocusTrapModule,
   ],
   templateUrl: './app.html',
