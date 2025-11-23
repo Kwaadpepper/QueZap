@@ -1,9 +1,7 @@
 import {
   ChangeDetectionStrategy, Component,
-  effect,
   inject,
-  input, output,
-  signal,
+  input, model,
   ViewChild,
 } from '@angular/core'
 
@@ -38,9 +36,7 @@ export class QuestionListView {
   private readonly confirmationService = inject(ConfirmationService)
 
   readonly questions = input.required<QuestionListViewInput>()
-  readonly selectedIdx = output<number>()
-
-  protected readonly _selectedIdx = signal<number>(0)
+  readonly selectedIdx = model<number>(0)
 
   protected readonly QuestionTypeFrom = QuestionTypeFrom
 
@@ -50,24 +46,8 @@ export class QuestionListView {
   @ViewChild('deleteQuestionCancelButton')
   protected readonly deleteQuestionCancelButton!: { nativeElement: HTMLButtonElement } | undefined
 
-  constructor() {
-    this.selectedIdx.subscribe((index) => {
-      this._selectedIdx.set(index)
-    })
-
-    // * Ensure at least one question exists
-    effect(() => {
-      if (this.questions().length === 0) {
-        this.questions().push(
-          QuestionTypeFrom(QuestionType.Quizz)
-            .getNewWithAnswers(),
-        )
-      }
-    })
-  }
-
   protected onSelectQuestion(index: number) {
-    this.selectedIdx.emit(index)
+    this.selectedIdx.set(index)
     this.scrollToQuestion(index)
   }
 
@@ -113,7 +93,7 @@ export class QuestionListView {
       accept: () => {
         this.questions().splice(index, 1)
         const newIndex = Math.min(
-          this._selectedIdx(),
+          this.selectedIdx(),
           this.questions().length - 1,
         )
         this.onSelectQuestion(newIndex)
@@ -126,7 +106,7 @@ export class QuestionListView {
   }
 
   protected onKeyDown(event: KeyboardEvent) {
-    const index = this._selectedIdx()
+    const index = this.selectedIdx()
     if (event.key === 'ArrowDown' || event.key === 'Down') {
       event.preventDefault()
       const nextIndex = Math.min(this.questions().length - 1, index + 1)
