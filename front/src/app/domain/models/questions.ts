@@ -18,6 +18,59 @@ export enum QuestionType {
   Quizz = 'QUIZZ',
 }
 
+export const QuestionTypeFrom = (enumObj: QuestionType) => ({
+  getNewWithAnswers: (): QuestionWithAnswers => {
+    switch (enumObj) {
+      case QuestionType.Boolean:
+        return {
+          id: '' as QuestionId,
+          value: '',
+          type: QuestionType.Boolean,
+          answers: [
+            { index: 0, points: 0 },
+            { index: 1, points: 1 },
+          ],
+        }
+      case QuestionType.Binary:
+        return {
+          id: '' as QuestionId,
+          value: '',
+          type: QuestionType.Binary,
+          answers: [
+            { index: 0, points: 0 },
+            { index: 1, points: 0 },
+          ],
+        }
+      case QuestionType.Quizz:
+        return {
+          id: '' as QuestionId,
+          value: '',
+          type: QuestionType.Quizz,
+          answers: [
+            { index: 0, points: 0 },
+            { index: 1, points: 0 },
+            { index: 2, points: 0 },
+            { index: 3, points: 0 },
+          ],
+        }
+      default:
+        throw new Error(`Unhandled QuestionType: ${enumObj}`)
+    }
+  },
+  toString: () => {
+    switch (enumObj) {
+      case QuestionType.Boolean:
+        return 'Vrai / Faux'
+      case QuestionType.Binary:
+        return 'Deux Options'
+      case QuestionType.Quizz:
+        return 'Quizz'
+      default:
+        throw new Error(`Unhandled QuestionType: ${enumObj}`)
+    }
+  },
+})
+
 export interface Question {
   readonly id: QuestionId
   readonly value: string

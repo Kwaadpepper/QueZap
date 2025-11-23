@@ -1,0 +1,96 @@
+<div
+  class="container-question-list-view flex h-dvh w-full flex-col"
+  tabindex="0"
+  aria-label="Panneau de sélection des questions"
+  role="menu"
+  (keydown)="onKeyDown($event)"
+>
+  <div #questionContainer class="flex flex-col gap-3 overflow-y-auto px-3 py-4">
+    @for (question of questions(); track $index) {
+      <div class="flex flex-row">
+        <!-- QUESTION ACTION BAR -->
+        <div class="w-13">
+          <div
+            class="h-full rounded-l-lg py-2 text-center"
+            [class.hidden]="_selectedIdx() !== $index"
+          >
+            <button
+              class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
+              pButton
+              ariaLabel="Dupliquer la question"
+              text
+              raised
+              severity="contrast"
+              size="small"
+              rounded
+              (click)="onDuplicateQuestion($index)"
+            >
+              <i class="pi pi-copy"></i>
+            </button>
+            <button
+              class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
+              pButton
+              ariaLabel="Supprimer la question"
+              text
+              raised
+              severity="danger"
+              size="small"
+              rounded
+              [disabled]="questions().length <= 1"
+              (click)="onDeleteQuestion($event, $index)"
+            >
+              <i class="pi pi-trash"></i>
+            </button>
+            <p-confirmpopup
+              #cp
+              [pt]="{
+                root: { 'aria-label': 'Confirmez vouloir supprimer la question', tabindex: 0 },
+              }"
+            />
+          </div>
+        </div>
+
+        <!-- QUESTION PREVIEW BUTTON -->
+        <button
+          class="question-frame relative w-50 flex-col"
+          pButton
+          text
+          [aria-label]="
+            `Sélectionner la question ${$index + 1} de type ${QuestionTypeFrom(question.type).toString()}`
+          "
+          [class.selected]="_selectedIdx() === $index"
+          (click)="onSelectQuestion($index)"
+        >
+          <div class="mb-2 flex h-full w-full justify-between">
+            <span class="font-mono">{{ $index + 1 }}</span>
+            <span>{{ QuestionTypeFrom(question.type).toString() }}</span>
+          </div>
+          <p class="mb-8 line-clamp-2 min-h-13 grow">
+            {{ question.value }} asdasd asd;kajsbd kajsdbkajsbd kajsbd kajsd kasn dlkajsndb lkasjd
+          </p>
+          <p-tag
+            class="badge-question-count absolute bottom-1 left-1 font-mono"
+            rounded="true"
+            [value]="`${question.answers.length}`"
+            [ariaLabel]="`${question.answers.length} réponses`"
+          />
+          <p-tag
+            class="badge-limit absolute right-1 bottom-1 font-mono"
+            rounded="true"
+            [value]="`${question.limit?.seconds ?? '∞'}`"
+            [ariaLabel]="
+              question.limit
+                ? `Durée de la question : ${question.limit.seconds} secondes`
+                : 'Pas de durée définie pour cette question'
+            "
+          />
+        </button>
+      </div>
+    }
+  </div>
+
+  <button pButton severity="primary" class="m-4 ms-10" (click)="onAddQuestion()">
+    <i class="pi pi-plus mr-2"></i>
+    <span>Ajouter une question</span>
+  </button>
+</div>
