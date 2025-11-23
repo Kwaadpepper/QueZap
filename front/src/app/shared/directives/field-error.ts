@@ -12,7 +12,6 @@ type InputFieldState = FieldState<string, string | number>
   providers: [
     MessageModule,
   ],
-  standalone: true,
 })
 export class FieldError implements OnDestroy {
   readonly fieldState = input.required<() => InputFieldState>()

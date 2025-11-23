@@ -1,8 +1,14 @@
 <div class="flex h-full w-full flex-row justify-between">
+  <!-- QUESTION EDITOR -->
   <main class="grow">
     <span>{{ question().value }}</span>
     <hr />
-    <span>{{ question().limit ?? '∞' }}</span>
+    @let seconds = question().limit?.seconds ?? undefined;
+    @if (seconds === undefined) {
+      <span>∞ secs</span>
+    } @else {
+      <span>{{ seconds | minutes }}</span>
+    }
     <hr />
     <span>{{ QuestionTypeFrom(question().type).toString() }}</span>
     <hr />
@@ -15,9 +21,13 @@
       }
     </div>
   </main>
+
+  <!-- LEFT SIDE PANEL -->
   <div class="question-details flex h-full flex-col p-2">
     <div class="grow">
-      <quizz-type-selector [(question)]="question" />
+      <quizz-type-selector class="my-4 block" [(question)]="question" />
+      <p-divider />
+      <quizz-limit-selector class="my-4 block" [(question)]="question" />
     </div>
     <hr />
     <div class="flex flex-col flex-wrap gap-2">

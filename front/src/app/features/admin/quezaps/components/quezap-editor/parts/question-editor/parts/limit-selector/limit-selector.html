@@ -1,0 +1,12 @@
+<div class="flex flex-col">
+  <span class="mb-2" [id]="selectId">⏱️ Minuteur</span>
+  <p-select
+    class="w-full md:w-56"
+    optionValue="value"
+    optionLabel="label"
+    [ariaLabelledBy]="selectId"
+    [options]="availableLimitSeconds()"
+    (onChange)="onLimitChange($event)"
+    [(ngModel)]="selectedLimit"
+  />
+</div>
