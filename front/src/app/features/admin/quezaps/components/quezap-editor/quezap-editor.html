@@ -1,4 +1,4 @@
 <div class="flex h-full w-full flex-row items-center justify-center">
-  <quizz-question-list-view [questions]="questions()" />
-  <quizz-question-editor />
+  <quizz-question-list-view [questions]="questions()" [(selectedIdx)]="selectedIdx" />
+  <quizz-question-editor [(question)]="selectedQuestion" />
 </div>

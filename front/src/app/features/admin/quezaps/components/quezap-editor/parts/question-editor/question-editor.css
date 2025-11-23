@@ -1,0 +1,8 @@
+/* stylelint-disable */
+@reference "#tailwind.css";
+/* stylelint-enable */
+
+.question-details {
+  @apply bg-surface-200 dark:bg-surface-800;
+  @apply shadow-xl shadow-amber-500/200;
+}
