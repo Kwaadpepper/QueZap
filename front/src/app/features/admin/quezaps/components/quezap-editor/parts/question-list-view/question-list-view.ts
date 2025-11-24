@@ -13,6 +13,7 @@ import { Tag } from 'primeng/tag'
 
 import { scrollToElementInContainer } from '@quezap/core/tools'
 import { QuestionType, QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
+import { MinutesPipe } from '@quezap/shared/pipes'
 
 export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
 
@@ -23,6 +24,7 @@ export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
     Tag,
     ConfirmPopup,
     FocusTrapModule,
+    MinutesPipe,
   ],
   providers: [
     ConfirmationService,

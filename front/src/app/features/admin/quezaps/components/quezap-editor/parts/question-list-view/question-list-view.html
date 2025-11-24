@@ -77,7 +77,7 @@
           <p-tag
             class="badge-limit absolute right-1 bottom-1 font-mono"
             rounded="true"
-            [value]="`${question.limit?.seconds ?? '∞'}`"
+            [value]="`${question.limit?.seconds ? (question.limit!.seconds | minutes) : '∞'}`"
             [ariaLabel]="
               question.limit
                 ? `Durée de la question : ${question.limit.seconds} secondes`
