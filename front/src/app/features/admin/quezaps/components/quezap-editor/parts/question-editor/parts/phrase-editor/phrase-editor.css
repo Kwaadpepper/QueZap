@@ -1,0 +1,10 @@
+/* stylelint-disable */
+@reference "#tailwind.css";
+/* stylelint-enable */
+
+.inplace-question-phrase {
+  /* RESET NGPRIME INPLACE BUTTONS STYLES */
+  --p-inplace-display-hover-background: var(--p-inplace-display-background);
+  --p-inplace-display-hover-color: var(--p-inplace-display-color);
+
+}

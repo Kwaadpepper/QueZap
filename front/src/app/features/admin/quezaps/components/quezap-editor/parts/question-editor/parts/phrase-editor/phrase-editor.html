@@ -1,0 +1,33 @@
+<div class="question-background">
+  <p-inplace
+    #inplaceRef
+    class="inplace-question-phrase"
+    [pt]="{
+      display: {
+        class: 'w-full',
+      },
+    }"
+    (onActivate)="openCallback()"
+    (onDeactivate)="closeCallback()"
+  >
+    <ng-template #display class="w-full">
+      <h1 class="question-phrase">{{ phrase() }}</h1>
+    </ng-template>
+    <ng-template #content>
+      <div>
+        <input
+          #inputRef
+          type="text"
+          pInputText
+          fluid
+          variant="filled"
+          class="h-20 text-center! text-3xl! tracking-tighter! uppercase! italic!"
+          [pAutoFocus]="true"
+          (blur)="inplaceRef.deactivate()"
+          (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate() : ''"
+          [(ngModel)]="editedPhrase"
+        />
+      </div>
+    </ng-template>
+  </p-inplace>
+</div>

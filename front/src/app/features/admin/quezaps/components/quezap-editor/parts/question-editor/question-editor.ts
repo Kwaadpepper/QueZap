@@ -5,13 +5,19 @@ import { Divider } from 'primeng/divider'
 import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
 import { MinutesPipe } from '@quezap/shared/pipes'
 
-import { LimitSelector, TypeSelector } from './parts'
+import { LimitSelector, PhraseEditor, TypeSelector } from './parts'
 
 export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
 
 @Component({
   selector: 'quizz-question-editor',
-  imports: [TypeSelector, LimitSelector, Divider, MinutesPipe],
+  imports: [
+    TypeSelector,
+    LimitSelector,
+    Divider,
+    MinutesPipe,
+    PhraseEditor,
+  ],
   templateUrl: './question-editor.html',
   styleUrl: './question-editor.css',
   styles: ':host { display: block; height: 100%; width: 100%; }',
