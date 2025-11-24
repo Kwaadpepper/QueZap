@@ -28,13 +28,7 @@ export class PhraseEditor {
 
   protected readonly editedPhrase = signal<string>('')
 
-  protected readonly phrase = computed(() => {
-    const content = this.question().value
-    if (content.trim().length === 0) {
-      return 'Cliquez pour éditer la phrase de la question...'
-    }
-    return content
-  })
+  protected readonly phrase = computed(() => this.question().value)
 
   protected openCallback() {
     this.editedPhrase.set(this.question().value)
@@ -44,7 +38,7 @@ export class PhraseEditor {
   protected closeCallback() {
     this.question.update(q => ({
       ...q,
-      value: this.editedPhrase(),
+      value: this.editedPhrase().trim(),
     }))
   }
 }

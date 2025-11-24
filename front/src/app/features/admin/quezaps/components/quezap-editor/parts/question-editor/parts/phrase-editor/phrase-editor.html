@@ -4,14 +4,20 @@
     class="inplace-question-phrase"
     [pt]="{
       display: {
-        class: 'w-full',
+        class: 'w-full ',
       },
     }"
     (onActivate)="openCallback()"
     (onDeactivate)="closeCallback()"
   >
     <ng-template #display class="w-full">
-      <h1 class="question-phrase">{{ phrase() }}</h1>
+      <h1 class="question-phrase">
+        @if (phrase().length > 0) {
+          <span>{{ phrase() }}</span>
+        } @else {
+          <span class="opacity-80">Titre du QueZap (cliquez pour éditer)...</span>
+        }
+      </h1>
     </ng-template>
     <ng-template #content>
       <div>
@@ -21,7 +27,8 @@
           pInputText
           fluid
           variant="filled"
-          class="h-20 text-center! text-3xl! tracking-tighter! uppercase! italic!"
+          class="border-0! border-transparent! p-6! text-center! text-3xl! tracking-tighter! uppercase! italic!"
+          placeholder="Titre du QueZap (cliquez pour éditer)..."
           [pAutoFocus]="true"
           (blur)="inplaceRef.deactivate()"
           (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate() : ''"
