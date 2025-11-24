@@ -1,28 +1,34 @@
 import {
   ChangeDetectionStrategy, Component,
   effect,
-  input,
+  model,
+  output,
   signal,
 } from '@angular/core'
+
+import { ButtonDirective } from 'primeng/button'
 
 import {
   QuestionType, QuestionTypeFrom, QuestionWithAnswers,
   QuezapWithQuestionsAndAnswers,
 } from '@quezap/domain/models'
 
-import { QuestionEditor, QuestionListView } from './parts'
+import { QuestionEditor, QuestionListView, TitleEditor } from './parts'
 
 export type QuezapEditorInput = Omit<QuezapWithQuestionsAndAnswers, 'id'>
 
 @Component({
   selector: 'quizz-quezap-editor',
-  imports: [QuestionListView, QuestionEditor],
+  imports: [QuestionListView, QuestionEditor, TitleEditor, ButtonDirective],
   templateUrl: './quezap-editor.html',
   styles: ':host { display: block; height: 100%; width: 100%; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuezapEditor {
-  readonly quezap = input.required<QuezapEditorInput>()
+  readonly quezap = model.required<QuezapEditorInput>()
+
+  readonly closeEvent = output<void>()
+  readonly saveEvent = output<void>()
 
   protected readonly selectedIdx = signal<number>(0)
   protected readonly selectedQuestion = signal<QuestionWithAnswers>(
@@ -51,6 +57,14 @@ export class QuezapEditor {
       const question = this.selectedQuestion()
       this.onQuestionUpdated(question)
     }, { debugName: 'Selected question changed' })
+  }
+
+  protected onSaveQuezap() {
+    this.saveEvent.emit()
+  }
+
+  protected onCloseEditor() {
+    this.closeEvent.emit()
   }
 
   private onQuezapChanged(input: QuezapEditorInput) {

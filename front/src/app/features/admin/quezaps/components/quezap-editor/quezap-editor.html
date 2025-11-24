@@ -1,4 +1,22 @@
-<div class="flex h-full w-full flex-row items-center justify-center">
-  <quizz-question-list-view [questions]="questions()" [(selectedIdx)]="selectedIdx" />
-  <quizz-question-editor [(question)]="selectedQuestion" />
+<div class="flex h-dvh flex-col">
+  <nav class="bg-surface-200 dark:bg-surface-800 flex p-2 drop-shadow-md">
+    <quizz-title-editor class="mx-4" [(quezap)]="quezap" />
+
+    <menu class="ms-auto">
+      <button pButton raised severity="success" class="ml-4" (click)="onSaveQuezap()">
+        <span>Enregistrer</span>
+      </button>
+      <button pButton raised severity="danger" class="ml-4" (click)="onCloseEditor()">
+        <span>Fermer</span>
+      </button>
+    </menu>
+  </nav>
+  <div class="flex grow flex-row">
+    <quizz-question-list-view
+      class="basis-1/6"
+      [questions]="questions()"
+      [(selectedIdx)]="selectedIdx"
+    />
+    <quizz-question-editor class="w-full" [(question)]="selectedQuestion" />
+  </div>
 </div>

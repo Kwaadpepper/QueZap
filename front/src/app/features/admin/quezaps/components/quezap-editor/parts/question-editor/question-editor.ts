@@ -20,7 +20,6 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
   ],
   templateUrl: './question-editor.html',
   styleUrl: './question-editor.css',
-  styles: ':host { display: block; height: 100%; width: 100%; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionEditor {

@@ -1,6 +1,6 @@
 <div class="flex h-full w-full flex-row justify-between">
   <!-- QUESTION EDITOR -->
-  <main class="grow">
+  <main class="grow p-4">
     <quizz-phrase-editor class="w-full" [(question)]="question" />
     <hr />
     @let seconds = question().limit?.seconds ?? undefined;

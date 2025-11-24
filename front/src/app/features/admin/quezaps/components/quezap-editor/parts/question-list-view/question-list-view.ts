@@ -29,7 +29,6 @@ export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
   ],
   templateUrl: './question-list-view.html',
   styleUrl: './question-list-view.css',
-  styles: ':host { display: block; height: 100%; width: fit-content; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionListView {

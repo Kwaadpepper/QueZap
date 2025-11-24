@@ -1,0 +1,40 @@
+<div class="inline-block w-sm rounded border-2 border-gray-300 dark:border-gray-600">
+  <p-inplace
+    #inplaceRef
+    class="inplace-quezap-title"
+    [pt]="{
+      display: {
+        class: 'w-full',
+      },
+    }"
+    (onActivate)="openCallback()"
+    (onDeactivate)="closeCallback()"
+  >
+    <ng-template #display class="w-full">
+      <span class="line-clamp-1 w-xs">
+        @if (phrase().length > 0) {
+          <span>{{ phrase() }}</span>
+        } @else {
+          <span class="opacity-80">Titre du QueZap (cliquez pour éditer)...</span>
+        }
+      </span>
+    </ng-template>
+    <ng-template #content>
+      <div>
+        <input
+          #inputRef
+          type="text"
+          pInputText
+          fluid
+          variant="filled"
+          class="bg-surface-0! dark:bg-surface-700/50! line-clamp-1! rounded-sm! border-transparent!"
+          placeholder="Titre du QueZap (cliquez pour éditer)..."
+          [pAutoFocus]="true"
+          (blur)="inplaceRef.deactivate()"
+          (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate() : ''"
+          [(ngModel)]="editedTitle"
+        />
+      </div>
+    </ng-template>
+  </p-inplace>
+</div>
