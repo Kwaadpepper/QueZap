@@ -7,9 +7,9 @@ import {
   NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet,
 } from '@angular/router'
 
-import { Button } from 'primeng/button'
-import { Divider } from 'primeng/divider'
-import { Drawer } from 'primeng/drawer'
+import { ButtonModule } from 'primeng/button'
+import { DividerModule } from 'primeng/divider'
+import { DrawerModule } from 'primeng/drawer'
 import { FocusTrapModule } from 'primeng/focustrap'
 import { ImageModule } from 'primeng/image'
 import { Toast } from 'primeng/toast'
@@ -37,10 +37,10 @@ import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
     Toast,
     AdminNav,
     SiteNav,
-    Divider,
+    DividerModule,
     Footer,
-    Drawer,
-    Button,
+    DrawerModule,
+    ButtonModule,
     LogoutButton,
     ScrollTopComponent,
     FocusTrapModule,
