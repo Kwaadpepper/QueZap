@@ -1,4 +1,4 @@
-import { Component, effect, input } from '@angular/core'
+import { Component, computed, effect, input } from '@angular/core'
 
 import { type AnimationProp, FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 import type {
@@ -18,6 +18,7 @@ import {
   faCheck,
   faCheckCircle,
   faCheckSquare,
+  faCircleExclamation,
   faCog,
   faCopy,
   faDownLeftAndUpRightToCenter,
@@ -67,11 +68,21 @@ export const ICON_MAP = {
   'cancel': faTimes,
   'confirm': faCheck,
   'exit': faTimes,
-  'error': faTriangleExclamation,
+  'error': faCircleExclamation,
   'info': faInfoCircle,
+  'warn': faTriangleExclamation,
 }
 
 export type IconName = keyof typeof ICON_MAP
+export type IconSeverity
+  = | 'success'
+    | 'info'
+    | 'warn'
+    | 'danger'
+    | 'help'
+    | 'primary'
+    | 'secondary'
+    | 'contrast'
 
 @Component({
   selector: 'quizz-icon',
@@ -95,12 +106,23 @@ export type IconName = keyof typeof ICON_MAP
       [rotate]="rotate()"
       [fixedWidth]="fixedWidth()"
       [transform]="transform()"
-      [classList]="class()"
+      [class]="class() + ' ' + (severtyText() || '')"
     />}
   `,
   styles: ':host { display: inline-block; }',
 })
 export class IconFacade {
+  private readonly severityBackgroundMap = new Map<IconSeverity, string>([
+    ['success', 'text-green-100 bg-green-700 rounded-full p-1'],
+    ['info', 'text-blue-100 bg-blue-700 rounded-full p-1'],
+    ['warn', 'text-yellow-100 bg-yellow-700 rounded-full p-1'],
+    ['danger', 'text-red-100 bg-red-700 rounded-full p-1'],
+    ['help', 'text-purple-100 bg-purple-700 rounded-full p-1'],
+    ['primary', 'text-indigo-100 bg-indigo-700 rounded-full p-1'],
+    ['secondary', 'text-gray-100 bg-gray-700 rounded-full p-1'],
+    ['contrast', 'text-black bg-white rounded-full p-1'],
+  ])
+
   readonly name = input.required<IconName>()
 
   readonly title = input<string | undefined>(undefined)
@@ -117,6 +139,15 @@ export class IconFacade {
   readonly transform = input<string | Transform | undefined>(undefined)
 
   readonly class = input<string | undefined>(undefined)
+
+  readonly severity = input<IconSeverity | undefined>(undefined)
+  readonly severtyText = computed(() => {
+    const severity = this.severity()
+    if (!severity) {
+      return undefined
+    }
+    return this.severityBackgroundMap.get(severity)
+  })
 
   protected icon: IconDefinition | undefined
 

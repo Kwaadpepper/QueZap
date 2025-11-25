@@ -4,12 +4,17 @@
 
     <menu class="ms-auto">
       <button pButton raised severity="success" class="ml-4" (click)="onSaveQuezap()">
-        <span>Enregistrer</span>
+        <span pButtonLabel>Enregistrer</span>
       </button>
-      <button pButton raised severity="danger" class="ml-4" (click)="onCloseEditor()">
-        <span>Fermer</span>
+      <button pButton raised severity="secondary" class="ml-4" (click)="onCloseEditor()">
+        <span pButtonLabel>Fermer</span>
       </button>
     </menu>
+    <p-confirmdialog>
+      <ng-template pTemplate="icon">
+        <quizz-icon name="warn" severity="warn" />
+      </ng-template>
+    </p-confirmdialog>
   </nav>
   <div class="flex grow flex-row">
     <quizz-question-list-view

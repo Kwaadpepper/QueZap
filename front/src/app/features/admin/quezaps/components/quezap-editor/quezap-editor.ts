@@ -1,18 +1,22 @@
 import {
   ChangeDetectionStrategy, Component,
   effect,
+  inject,
   model,
   output,
   signal,
 } from '@angular/core'
 
-import { ButtonDirective } from 'primeng/button'
+import { ConfirmationService } from 'primeng/api'
+import { ButtonModule } from 'primeng/button'
+import { ConfirmDialogModule } from 'primeng/confirmdialog'
 
 import {
   QuestionType, QuestionTypeFrom,
   QuestionWithAnswersAndResponses,
   QuezapWithQuestionsAndAnswers,
 } from '@quezap/domain/models'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { QuestionEditor, QuestionListView, TitleEditor } from './parts'
 
@@ -20,14 +24,27 @@ export type QuezapEditorInput = Omit<QuezapWithQuestionsAndAnswers, 'id'>
 
 @Component({
   selector: 'quizz-quezap-editor',
-  imports: [QuestionListView, QuestionEditor, TitleEditor, ButtonDirective],
+  imports: [
+    QuestionListView,
+    QuestionEditor,
+    TitleEditor,
+    ButtonModule,
+    ConfirmDialogModule,
+    IconFacade,
+  ],
+  providers: [
+    ConfirmationService,
+  ],
   templateUrl: './quezap-editor.html',
   styles: ':host { display: block; height: 100%; width: 100%; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuezapEditor {
+  private readonly confirmation = inject(ConfirmationService)
+
   readonly quezap = model.required<QuezapEditorInput>()
 
+  private readonly saveEmitted = signal(false)
   readonly closeEvent = output<void>()
   readonly saveEvent = output<void>()
 
@@ -46,25 +63,43 @@ export class QuezapEditor {
   constructor() {
     effect(() => {
       const input = this.quezap()
+      this.saveEmitted.set(false)
       this.onQuezapChanged(input)
     }, { debugName: 'Quezap changed' })
 
     effect(() => {
       const idx = this.selectedIdx()
+      this.saveEmitted.set(false)
       this.onQuestionSelected(idx)
     }, { debugName: 'Selected question idx' })
 
     effect(() => {
       const question = this.selectedQuestion()
+      this.saveEmitted.set(false)
       this.onQuestionUpdated(question)
     }, { debugName: 'Selected question changed' })
   }
 
   protected onSaveQuezap() {
     this.saveEvent.emit()
+    this.saveEmitted.set(true)
   }
 
   protected onCloseEditor() {
+    if (!this.saveEmitted()) {
+      this.confirmation.confirm({
+        message: 'Voulez-vous quitter sans enregistrer les modifications ?',
+        header: 'Confirmation',
+        acceptButtonStyleClass: 'p-button-danger p-button-text',
+        acceptLabel: 'Oui',
+        rejectLabel: 'Non',
+        accept: () => {
+          this.closeEvent.emit()
+        },
+      })
+      return
+    }
+
     this.closeEvent.emit()
   }
 
