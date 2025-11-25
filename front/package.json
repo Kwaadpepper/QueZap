@@ -52,7 +52,7 @@
     "@primeuix/themes": "^1.2.5",
     "ngx-markdown": "^20.1.0",
     "primeicons": "^7.0.0",
-    "primeng": "^20.3.0",
+    "primeng": "21.0.0-beta.1",
     "rxjs": "~7.8.2",
     "tailwindcss": "^4.1.17",
     "tailwindcss-primeui": "^0.6.1",
