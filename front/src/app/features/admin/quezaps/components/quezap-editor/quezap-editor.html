@@ -2,6 +2,7 @@
   <nav class="bg-surface-200 dark:bg-surface-800 flex p-2 drop-shadow-md">
     <quizz-title-editor class="mx-4" [(quezap)]="quezap" />
 
+    <!-- Editorial buttons -->
     <menu class="ms-auto">
       <button pButton raised severity="success" class="ml-4" (click)="onSaveQuezap()">
         <span pButtonLabel>Enregistrer</span>
@@ -10,18 +11,24 @@
         <span pButtonLabel>Fermer</span>
       </button>
     </menu>
+
+    <!-- Confirmation dialog for unsaved changes -->
     <p-confirmdialog>
       <ng-template pTemplate="icon">
         <quizz-icon name="warn" severity="warn" />
       </ng-template>
     </p-confirmdialog>
   </nav>
+
   <div class="flex grow flex-row">
+    <!-- Sidebar with questions list -->
     <quizz-question-list-view
       class="basis-1/6"
       [questions]="questions()"
       [(selectedIdx)]="selectedIdx"
     />
+
+    <!-- Question editor -->
     <quizz-question-editor class="w-full" [(question)]="selectedQuestion" />
   </div>
 </div>
