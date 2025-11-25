@@ -1,11 +1,11 @@
 <div
-  class="container-question-list-view flex max-h-[calc(100dvh-4rem)] w-full flex-col"
+  class="container-question-list-view flex h-full w-full flex-col"
   tabindex="0"
   aria-label="Panneau de sélection des questions"
   role="menu"
   (keydown)="onKeyDown($event)"
 >
-  <div #questionContainer class="flex max-h-10/12 flex-col gap-3 overflow-y-auto px-3 py-4">
+  <div #questionContainer class="flex flex-col gap-3 overflow-y-auto px-3 py-4">
     @for (question of questions(); track $index) {
       <div class="flex flex-row">
         <!-- QUESTION ACTION BAR -->
