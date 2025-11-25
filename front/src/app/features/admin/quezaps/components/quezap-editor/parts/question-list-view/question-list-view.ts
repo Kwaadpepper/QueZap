@@ -6,13 +6,14 @@ import {
 } from '@angular/core'
 
 import { ConfirmationService } from 'primeng/api'
-import { ButtonDirective } from 'primeng/button'
+import { ButtonModule } from 'primeng/button'
 import { ConfirmPopup } from 'primeng/confirmpopup'
 import { FocusTrapModule } from 'primeng/focustrap'
 import { Tag } from 'primeng/tag'
 
 import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
 import { QuestionType, QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
 export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
@@ -20,11 +21,12 @@ export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
 @Component({
   selector: 'quizz-question-list-view',
   imports: [
-    ButtonDirective,
+    ButtonModule,
     Tag,
     ConfirmPopup,
     FocusTrapModule,
     MinutesPipe,
+    IconFacade,
   ],
   providers: [
     ConfirmationService,
@@ -80,11 +82,6 @@ export class QuestionListView {
 
     this.confirmationService.confirm({
       target: $event.currentTarget ?? undefined,
-      icon: 'pi pi-trash',
-      rejectIcon: 'pi pi-times',
-      rejectLabel: ' ',
-      acceptIcon: 'pi pi-check',
-      acceptLabel: ' ',
       blockScroll: true,
       rejectButtonProps: {
         severity: 'primary',

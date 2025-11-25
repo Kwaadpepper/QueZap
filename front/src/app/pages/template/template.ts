@@ -30,6 +30,8 @@ import { TagModule } from 'primeng/tag'
 import { ToastModule } from 'primeng/toast'
 import { ToggleSwitchModule } from 'primeng/toggleswitch'
 
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
+
 interface City {
   name: string
   code: string
@@ -72,6 +74,7 @@ interface Plant {
     TagModule,
     ToastModule,
     ToggleSwitchModule,
+    IconFacade,
   ],
   providers: [MessageService],
   templateUrl: './template.html',

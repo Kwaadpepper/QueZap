@@ -2,7 +2,7 @@ import { Component, ErrorHandler, inject, model, signal } from '@angular/core'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { Dialog } from 'primeng/dialog'
 import { InputText } from 'primeng/inputtext'
 import { catchError, exhaustMap, firstValueFrom, of, throwError } from 'rxjs'
@@ -10,6 +10,7 @@ import * as zod from 'zod/v4'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { REGISTER_SERVICE, RegisterMockService } from '../../services'
@@ -22,6 +23,8 @@ import { REGISTER_SERVICE, RegisterMockService } from '../../services'
     Button,
     Field,
     FieldError,
+    IconFacade,
+    ButtonIcon,
   ],
   providers: [
     {

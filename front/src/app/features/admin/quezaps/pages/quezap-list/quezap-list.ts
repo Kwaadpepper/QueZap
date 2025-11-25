@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { ButtonDirective } from 'primeng/button'
+import { ButtonModule } from 'primeng/button'
 
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { Paginator } from '@quezap/shared/components/paginator/paginator'
 
 import { QuezapCard } from '../../components/quezap-card/quezap-card'
@@ -10,7 +11,7 @@ import { QuezapPageStore } from '../../stores'
 
 @Component({
   selector: 'quizz-quezap-list',
-  imports: [Paginator, QuezapCard, ButtonDirective],
+  imports: [Paginator, QuezapCard, ButtonModule, IconFacade],
   templateUrl: './quezap-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

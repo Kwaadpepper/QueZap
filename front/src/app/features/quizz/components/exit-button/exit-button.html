@@ -3,7 +3,6 @@
   title="Quitter le quizz"
   severity="info"
   class="fixed top-4 right-4 z-50"
-  icon="pi pi-times"
   rounded="true"
   raised="true"
   [pt]="{
@@ -12,7 +11,9 @@
     },
   }"
   (onClick)="onQuitQuizz($event)"
-/>
+>
+  <quizz-icon name="exit" pButtonIcon />
+</p-button>
 <p-confirmpopup
   #cp
   [pt]="{ root: { 'aria-label': 'Confirmez vouloir quitter la session', tabindex: 0 } }"
@@ -25,19 +26,21 @@
           ariaLabel="Oui je veux quitter la session"
           title="Oui je veux quitter la session"
           size="small"
-          icon="pi pi-check"
           severity="danger"
           [text]="true"
           (onClick)="cp.onAccept()"
-        />
+        >
+          <quizz-icon name="check" pButtonIcon />
+        </p-button>
         <p-button
           ariaLabel="Retour"
           title="Retour"
           size="small"
-          icon="pi pi-times"
           severity="primary"
           (onClick)="cp.onReject()"
-        />
+        >
+          <quizz-icon name="exit" pButtonIcon />
+        </p-button>
       </div>
     </div>
   </ng-template>

@@ -1,65 +1,65 @@
-@if(nicknameValidated()) {
-<span class="block text-4xl">{{ selectedNickname() }}</span>
+@if (nicknameValidated()) {
+  <span class="block text-4xl">{{ selectedNickname() }}</span>
 } @else {
-<form
-  class="max-w-xs p-4 rounded-lg bg-surface-100 dark:bg-surface-800 border border-surface-500 dark:border-surface-500 shadow-sm"
-  (submit)="onChooseNickname(); $event.preventDefault()"
->
-  <h3 class="text-xl font-medium mb-3">Vous êtes attendu !</h3>
-  <div
-    class="flex flex-col gap-2"
-    aria-labelledby="nickname-value-label"
-    aria-describedby="join-help"
+  <form
+    class="bg-surface-100 dark:bg-surface-800 border-surface-500 dark:border-surface-500 max-w-xs rounded-lg border p-4 shadow-sm"
+    (submit)="onChooseNickname(); $event.preventDefault()"
   >
-    <label id="nickname-value-label" for="nickname-value" class="text-sm"
-      >Choisissez un pseudonyme</label
-    >
-    <input
-      pInputText
-      id="nickname-value"
-      placeholder="Ex: P.Antoine"
-      class="w-full"
-      autocomplete="off"
-      inputmode="text"
+    <h3 class="mb-3 text-xl font-medium">Vous êtes attendu !</h3>
+    <div
+      class="flex flex-col gap-2"
+      aria-labelledby="nickname-value-label"
       aria-describedby="join-help"
-      quizzFieldError
-      [fieldState]="nicknameForm.nicknameValue"
-      [field]="nicknameForm.nicknameValue"
-    />
-    <div class="flex justify-center gap-2">
-      <p-checkbox inputId="remember-me" [binary]="true" [field]="nicknameForm.rememberMe" />
-      <label for="remember-me" class="text-sm">Mémoriser ce pseudo</label>
-    </div>
-    <div class="flex justify-center gap-2 mt-2 relative">
-      @if(isDebug()) {
-      <p-button
-        type="button"
-        class="left-0 top--1/2 translate-y--1/2 absolute"
-        title="Utiliser un pseudo de test"
-        severity="info"
-        outlined
-        (onClick)="onFillMockedValue()"
+    >
+      <label id="nickname-value-label" for="nickname-value" class="text-sm"
+        >Choisissez un pseudonyme</label
       >
-        <i class="pi pi-user" pButtonIcon></i>
-      </p-button>
-      }
-      <p-button
-        label="Valider"
-        type="submit"
-        aria-label="Valider le pseudonyme et rejoindre la session"
-        [disabled]="nicknameForm().invalid() || loading()"
-      >
-        @if(loading()) {
-        <i class="pi pi-cog pi-spin" pButtonIcon></i>
+      <input
+        pInputText
+        id="nickname-value"
+        placeholder="Ex: P.Antoine"
+        class="w-full"
+        autocomplete="off"
+        inputmode="text"
+        aria-describedby="join-help"
+        quizzFieldError
+        [fieldState]="nicknameForm.nicknameValue"
+        [field]="nicknameForm.nicknameValue"
+      />
+      <div class="flex justify-center gap-2">
+        <p-checkbox inputId="remember-me" [binary]="true" [field]="nicknameForm.rememberMe" />
+        <label for="remember-me" class="text-sm">Mémoriser ce pseudo</label>
+      </div>
+      <div class="relative mt-2 flex justify-center gap-2">
+        @if (isDebug()) {
+          <p-button
+            type="button"
+            class="top--1/2 translate-y--1/2 absolute left-0"
+            title="Utiliser un pseudo de test"
+            severity="info"
+            outlined
+            (onClick)="onFillMockedValue()"
+          >
+            <quizz-icon name="debug" pButtonIcon />
+          </p-button>
         }
-      </p-button>
+        <p-button
+          label="Valider"
+          type="submit"
+          aria-label="Valider le pseudonyme et rejoindre la session"
+          [disabled]="nicknameForm().invalid() || loading()"
+        >
+          @if (loading()) {
+            <quizz-icon name="cog" animation="spin" pButtonIcon />
+          }
+        </p-button>
+      </div>
+      <p class="text-surface-600 dark:text-surface-300 mt-2 text-xs">
+        Renseignez un pseudonyme pour rejoindre la session.
+        <span id="join-help">
+          Il sera visible par l'animateur et les autres participants. Restez humain et respectueux !
+        </span>
+      </p>
     </div>
-    <p class="text-xs text-surface-600 dark:text-surface-300 mt-2">
-      Renseignez un pseudonyme pour rejoindre la session.
-      <span id="join-help">
-        Il sera visible par l'animateur et les autres participants. Restez humain et respectueux !
-      </span>
-    </p>
-  </div>
-</form>
+  </form>
 }

@@ -4,7 +4,7 @@ import {
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { Dialog } from 'primeng/dialog'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
@@ -14,6 +14,7 @@ import * as zod from 'zod/v4'
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
 import { Theme, ThemeId } from '@quezap/domain/models'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { NewThemeDTO, THEME_SERVICE, ThemesEventsBus } from '../../services'
@@ -32,6 +33,8 @@ export interface ThemeInputModel {
     Field,
     Button,
     Message,
+    IconFacade,
+    ButtonIcon,
   ],
   templateUrl: './theme-editor.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

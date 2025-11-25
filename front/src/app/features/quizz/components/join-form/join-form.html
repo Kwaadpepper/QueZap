@@ -1,8 +1,8 @@
 <form
-  class="p-4 rounded-lg bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+  class="bg-surface-0 dark:bg-surface-900 border-surface-200 dark:border-surface-800 rounded-lg border p-4"
   (submit)="onSubmitJoinForm(); $event.preventDefault()"
 >
-  <h3 class="text-xl font-medium mb-3">Rejoindre une partie</h3>
+  <h3 class="mb-3 text-xl font-medium">Rejoindre une partie</h3>
   <div class="flex flex-col gap-2" aria-labelledby="join-label" aria-describedby="join-help">
     <label id="join-label" for="join-code" class="text-sm">Code de la partie</label>
     <input
@@ -17,21 +17,21 @@
       [fieldState]="joinCodeForm.code"
       [field]="joinCodeForm.code"
     />
-    <p id="join-help" class="text-xs text-surface-600 dark:text-surface-300">
+    <p id="join-help" class="text-surface-600 dark:text-surface-300 text-xs">
       Entrez le code affiché à l’écran de l’animateur.
     </p>
-    <div class="flex gap-2 items-center mt-2">
-      @if(isDebug()) {
-      <p-button
-        type="button"
-        class="me-2"
-        title="Utiliser un code de test"
-        severity="info"
-        outlined
-        (onClick)="onFillMockedValue()"
-      >
-        <i class="pi pi-user" pButtonIcon></i>
-      </p-button>
+    <div class="mt-2 flex items-center gap-2">
+      @if (isDebug()) {
+        <p-button
+          type="button"
+          class="me-2"
+          title="Utiliser un code de test"
+          severity="info"
+          outlined
+          (onClick)="onFillMockedValue()"
+        >
+          <quizz-icon name="debug" pButtonIcon />
+        </p-button>
       }
       <p-button
         label="Rejoindre"
@@ -40,7 +40,7 @@
         [disabled]="joinCodeForm().invalid()"
       />
     </div>
-    <p class="text-xs text-surface-600 dark:text-surface-300 mt-2">
+    <p class="text-surface-600 dark:text-surface-300 mt-2 text-xs">
       Ou scannez le QR code affiché par l’animateur pour rejoindre automatiquement.
     </p>
   </div>

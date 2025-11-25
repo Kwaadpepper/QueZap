@@ -1,15 +1,19 @@
-<div class="flex flex-col justify-center items-center h-full">
+<div class="flex h-full flex-col items-center justify-center">
   <h1 class="mb-15">Le quizz est terminé</h1>
 
   <p-message
     severity="info"
-    class="w-full max-w-md flex flex-col items-center text-center"
+    class="flex w-full max-w-md flex-col items-center text-center"
     size="large"
   >
-    <i class="pi pi-check-circle mr-2"></i>
-    Félicitations à tous les participants pour avoir terminé le quizz ! <br />
-    Merci d'avoir participé.
+    <ng-template #icon>
+      <quizz-icon name="check-circle" />
+    </ng-template>
+    <p>
+      Félicitations à tous les participants pour avoir terminé le quizz ! <br />
+      Merci d'avoir participé.
+    </p>
   </p-message>
 
-  <quizz-join-form class="w-full max-w-md mt-10" />
+  <quizz-join-form class="mt-10 w-full max-w-md" />
 </div>

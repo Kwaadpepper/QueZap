@@ -5,29 +5,29 @@
   [(visible)]="visible"
 >
   <ng-template #header>
-    <div class="inline-flex items-center justify-center gap-2 mx-4">
-      @if(forUpdateAction()) {
-      <i class="pi pi-pencil text-2xl" aria-hidden="true"></i>
-      <span class="font-bold whitespace-nowrap">Modifier le thème</span>
+    <div class="mx-4 inline-flex items-center justify-center gap-2">
+      @if (forUpdateAction()) {
+        <quizz-icon name="pencil" size="lg" />
+        <span class="font-bold whitespace-nowrap">Modifier le thème</span>
       } @else {
-      <i class="pi pi-plus text-2xl" aria-hidden="true"></i>
-      <span class="font-bold whitespace-nowrap">Créer un nouveau thème</span>
+        <quizz-icon name="plus" size="lg" />
+        <span class="font-bold whitespace-nowrap">Créer un nouveau thème</span>
       }
     </div>
   </ng-template>
 
-  @if(errorOccurred()) {
-  <p-message severity="error" class="mb-4">
-    <span> Une erreur est survenue. Veuillez réessayer. </span>
-  </p-message>
+  @if (errorOccurred()) {
+    <p-message severity="error" class="mb-4">
+      <span> Une erreur est survenue. Veuillez réessayer. </span>
+    </p-message>
   }
   <form
     class="flex flex-col justify-center"
     [inert]="this.themeForm().submitting()"
     (submit)="onSave(); $event.preventDefault()"
   >
-    <div class="flex flex-col items-center gap-4 mb-8 mx-auto">
-      <label for="name" class="font-semibold w-24 me-30">Nom du thème</label>
+    <div class="mx-auto mb-8 flex flex-col items-center gap-4">
+      <label for="name" class="me-30 w-24 font-semibold">Nom du thème</label>
       <input
         pInputText
         id="text"
@@ -46,8 +46,8 @@
         type="submit"
         [disabled]="this.themeForm().invalid() || this.themeForm().submitting()"
       >
-        @if(this.themeForm().submitting()) {
-        <i class="pi pi-cog pi-spin" pButtonIcon></i>
+        @if (this.themeForm().submitting()) {
+          <quizz-icon name="cog" animation="spin" pButtonIcon />
         }
       </p-button>
     </div>

@@ -4,13 +4,14 @@ import {
 import { Field, form, minLength, required, submit } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { CheckboxModule } from 'primeng/checkbox'
 import { InputText } from 'primeng/inputtext'
 import { catchError, exhaustMap, finalize, firstValueFrom, of } from 'rxjs'
 
 import { ForbidenError, HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { ActiveSessionStore } from '../../stores'
@@ -19,6 +20,8 @@ import { ActiveSessionStore } from '../../stores'
   selector: 'quizz-nickname-chooser',
   imports: [
     Button, Field, FieldError, InputText, CheckboxModule,
+    IconFacade,
+    ButtonIcon,
   ],
   templateUrl: './nickname-chooser.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

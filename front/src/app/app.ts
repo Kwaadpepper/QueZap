@@ -21,6 +21,7 @@ import { LogoutButton } from './features/auth/components/logout-button/logout-bu
 import { Footer } from './layout/footer/footer'
 import { AdminNav, SiteNav } from './layout/navigation'
 import { Debugbar } from './shared/components/debugbar/debugbar'
+import { IconFacade } from './shared/components/icon/icon-facade'
 import { LoadingBar } from './shared/components/loading-bar/loading-bar'
 import { ScrollTopComponent } from './shared/components/scroll-top/scroll-top'
 import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
@@ -43,6 +44,7 @@ import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
     LogoutButton,
     ScrollTopComponent,
     FocusTrapModule,
+    IconFacade,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',

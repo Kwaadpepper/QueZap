@@ -4,7 +4,7 @@ import {
 } from '@angular/core'
 import { RouterLink } from '@angular/router'
 
-import { ButtonDirective, ButtonLabel } from 'primeng/button'
+import { ButtonModule } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 
 import { Config } from '@quezap/core/services/config/config'
@@ -18,8 +18,7 @@ import { JoinForm } from '@quezap/features/quizz/components/join-form/join-form'
     NgOptimizedImage,
     RouterLink,
     Divider,
-    ButtonDirective,
-    ButtonLabel,
+    ButtonModule,
     RegisterModal,
     JoinForm,
   ],

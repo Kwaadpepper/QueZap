@@ -1,17 +1,18 @@
 <p-card [style]="{ '--p-card-body-padding': '.4rem .2rem .4rem .8rem' }">
-  <div class="flex flex-row gap-2 items-center justify-center">
+  <div class="flex flex-row items-center justify-center gap-2">
     <span class="text-lg-center py-2 pe-2">{{ theme().name }}</span>
 
     @if (editable()) {
-    <p-button
-      icon="pi pi-pencil"
-      severity="primary"
-      text
-      title="Changer le nom du thème"
-      size="small"
-      (onClick)="onOpenEditor()"
-    />
-    <quizz-theme-editor [theme]="theme()" [(visible)]="editorIsVisible" />
+      <p-button
+        severity="primary"
+        text
+        title="Changer le nom du thème"
+        size="small"
+        (onClick)="onOpenEditor()"
+      >
+        <quizz-icon name="pencil" pButtonIcon />
+      </p-button>
+      <quizz-theme-editor [theme]="theme()" [(visible)]="editorIsVisible" />
     }
   </div>
 </p-card>

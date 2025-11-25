@@ -10,11 +10,9 @@
   (click)="onLogout()"
   (keydown)="onLogout()"
 >
-  <span pButtonIcon aria-hidden="true">
-    @if(running()) {
-    <span class="pi pi-cog pi-spin"></span>
-    } @else {
-    <span class="pi pi-sign-out"></span>
-    }
-  </span>
+  @if (running()) {
+    <quizz-icon name="cog" animation="spin" size="lg" pButtonIcon />
+  } @else {
+    <quizz-icon name="sign-out" size="lg" pButtonIcon />
+  }
 </button>

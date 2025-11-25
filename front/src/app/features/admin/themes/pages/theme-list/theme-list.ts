@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
-import { ButtonDirective, ButtonIcon } from 'primeng/button'
+import { ButtonModule } from 'primeng/button'
 
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { Paginator } from '@quezap/shared/components/paginator/paginator'
 
 import { ThemeCard } from '../../components/theme-card/theme-card'
@@ -15,9 +16,9 @@ import { ThemePageStore } from '../../stores'
   imports: [
     ThemeCard,
     Paginator,
-    ButtonDirective,
-    ButtonIcon,
+    ButtonModule,
     ThemeEditor,
+    IconFacade,
   ],
   templateUrl: './theme-list.html',
   styleUrl: './theme-list.css',

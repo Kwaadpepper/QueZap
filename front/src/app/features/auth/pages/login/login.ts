@@ -6,7 +6,7 @@ import { Field, form, submit, validateStandardSchema } from '@angular/forms/sign
 import { Router, RouterModule } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
@@ -14,6 +14,7 @@ import * as zod from 'zod/v4'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({
@@ -24,6 +25,8 @@ import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user
     Button,
     InputText,
     Message,
+    ButtonIcon,
+    IconFacade,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',

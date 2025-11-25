@@ -2,17 +2,18 @@ import { Component, ErrorHandler, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
-import { ButtonDirective, ButtonIcon } from 'primeng/button'
+import { ButtonModule } from 'primeng/button'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError } from '@quezap/core/errors'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({
   selector: 'quizz-logout-button',
   imports: [
-    ButtonDirective,
-    ButtonIcon,
+    ButtonModule,
+    IconFacade,
   ],
   templateUrl: './logout-button.html',
 })

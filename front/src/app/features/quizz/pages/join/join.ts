@@ -9,6 +9,7 @@ import {
 
 import { ExpiredError, NotFoundError } from '@quezap/core/errors'
 import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
 import { JoinForm } from '../../components/join-form/join-form'
@@ -20,6 +21,7 @@ import { ActiveSessionStore } from '../../stores'
     Message,
     JoinForm,
     Spinner,
+    IconFacade,
   ],
   templateUrl: './join.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

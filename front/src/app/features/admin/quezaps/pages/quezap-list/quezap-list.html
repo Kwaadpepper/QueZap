@@ -5,7 +5,7 @@
 <div class="flex justify-center">
   <div class="flex flex-wrap items-center gap-3">
     <button pButton title="Créer un quezap" class="me-10" (click)="onCreateTheme()">
-      <span pButtonIcon class="pi pi-plus"></span>
+      <quizz-icon name="plus" pButtonIcon />
     </button>
   </div>
   <quizz-paginator [pageInfo]="pageInfo()" (paginationChanged)="onPaginationChanged($event)" />

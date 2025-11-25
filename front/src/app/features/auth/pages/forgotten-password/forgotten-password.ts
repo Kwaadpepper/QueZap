@@ -4,7 +4,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
 
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, switchMap } from 'rxjs'
@@ -14,13 +14,14 @@ import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { isFailure } from '@quezap/core/types'
 import { BackButton } from '@quezap/shared/components/back-button/back-button'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { AUTHENTICATION_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-forgotten-password',
-  imports: [InputText, Field, Button, Message, BackButton, FieldError],
+  imports: [InputText, Field, Button, Message, BackButton, FieldError, IconFacade, ButtonIcon],
   templateUrl: './forgotten-password.html',
 })
 export class ForgottenPassword {

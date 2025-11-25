@@ -3,9 +3,11 @@ import { Router } from '@angular/router'
 
 import { Button } from 'primeng/button'
 
+import { IconFacade } from '../icon/icon-facade'
+
 @Component({
   selector: 'quizz-back-button',
-  imports: [Button],
+  imports: [Button, IconFacade],
   templateUrl: './back-button.html',
   styleUrl: './back-button.css',
 })

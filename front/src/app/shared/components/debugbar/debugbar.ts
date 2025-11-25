@@ -1,16 +1,20 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 import { RouterModule } from '@angular/router'
 
-import { ButtonDirective } from 'primeng/button'
+import { ButtonIcon, ButtonModule } from 'primeng/button'
 
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
+import { IconFacade } from '../icon/icon-facade'
+
 @Component({
   selector: 'quizz-debugbar',
   imports: [
-    ButtonDirective,
+    ButtonModule,
     RouterModule,
+    ButtonIcon,
+    IconFacade,
   ],
   templateUrl: './debugbar.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

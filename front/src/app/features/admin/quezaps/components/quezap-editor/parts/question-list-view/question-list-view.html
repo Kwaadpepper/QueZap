@@ -1,11 +1,11 @@
 <div
-  class="container-question-list-view flex h-full w-full flex-col"
+  class="container-question-list-view flex max-h-[calc(100dvh-4rem)] w-full flex-col"
   tabindex="0"
   aria-label="Panneau de sélection des questions"
   role="menu"
   (keydown)="onKeyDown($event)"
 >
-  <div #questionContainer class="flex flex-col gap-3 overflow-y-auto px-3 py-4">
+  <div #questionContainer class="flex max-h-10/12 flex-col gap-3 overflow-y-auto px-3 py-4">
     @for (question of questions(); track $index) {
       <div class="flex flex-row">
         <!-- QUESTION ACTION BAR -->
@@ -25,7 +25,7 @@
               rounded
               (click)="onDuplicateQuestion($index)"
             >
-              <i class="pi pi-copy"></i>
+              <quizz-icon name="copy" pButtonIcon />
             </button>
             <button
               class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
@@ -39,14 +39,28 @@
               [disabled]="questions().length <= 1"
               (click)="onDeleteQuestion($event, $index)"
             >
-              <i class="pi pi-trash"></i>
+              <quizz-icon name="trash" pButtonIcon />
             </button>
             <p-confirmpopup
               #cp
               [pt]="{
                 root: { 'aria-label': 'Confirmez vouloir supprimer la question', tabindex: 0 },
               }"
-            />
+            >
+              <ng-template #headless let-message>
+                <div class="rounded p-4">
+                  <span><quizz-icon name="trash" /> Supprimer ?</span>
+                  <div class="mt-4 flex items-center gap-2">
+                    <p-button size="small" severity="danger" (onClick)="cp.onAccept()">
+                      <quizz-icon name="confirm" pButtonIcon />
+                    </p-button>
+                    <p-button size="small" severity="primary" (onClick)="cp.onReject()">
+                      <quizz-icon name="cancel" pButtonIcon />
+                    </p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-confirmpopup>
           </div>
         </div>
 
@@ -90,7 +104,7 @@
   </div>
 
   <button pButton severity="primary" class="m-4 ms-10" (click)="onAddQuestion()">
-    <i class="pi pi-plus mr-2"></i>
-    <span>Ajouter une question</span>
+    <quizz-icon name="plus" pButtonIcon />
+    <span pButtonLabel>Ajouter une question</span>
   </button>
 </div>

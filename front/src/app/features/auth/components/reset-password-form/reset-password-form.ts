@@ -5,7 +5,7 @@ import { Field, form, submit, validateStandardSchema } from '@angular/forms/sign
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
@@ -14,6 +14,7 @@ import * as zod from 'zod/v4'
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { isFailure } from '@quezap/core/types'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { AUTHENTICATION_SERVICE } from '../../services'
@@ -26,6 +27,8 @@ import { AUTHENTICATION_SERVICE } from '../../services'
     Field,
     FieldError,
     Button,
+    ButtonIcon,
+    IconFacade,
   ],
   templateUrl: './reset-password-form.html',
 })

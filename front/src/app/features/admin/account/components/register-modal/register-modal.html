@@ -13,7 +13,7 @@
       [inert]="this.registerForm().submitting()"
       (submit)="onRegister(); $event.preventDefault()"
     >
-      <span class="p-text-secondary block mb-8">
+      <span class="p-text-secondary mb-8 block">
         <p>Pour créer une partie <strong>vous devez posséder un compte</strong>.</p>
         <p>
           Votre adresse <strong>e-mail est obligatoire</strong> pour la
@@ -22,8 +22,8 @@
         </p>
         <p>Vos informations sont protégées et ne seront jamais divulguées à des tiers.</p>
       </span>
-      <div class="flex flex-col items-center gap-4 mb-8 mx-auto">
-        <label for="email" class="font-semibold w-24 me-30">Email</label>
+      <div class="mx-auto mb-8 flex flex-col items-center gap-4">
+        <label for="email" class="me-30 w-24 font-semibold">Email</label>
         <input
           pInputText
           id="email"
@@ -42,8 +42,8 @@
           type="submit"
           [disabled]="this.registerForm().invalid() || this.registerForm().submitting()"
         >
-          @if(this.registerForm().submitting()) {
-          <i class="pi pi-cog pi-spin" pButtonIcon></i>
+          @if (this.registerForm().submitting()) {
+            <quizz-icon name="cog" animation="spin" pButtonIcon />
           }
         </p-button>
       </div>

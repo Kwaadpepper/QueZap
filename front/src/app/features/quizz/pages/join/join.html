@@ -6,10 +6,14 @@
       class="flex w-full max-w-md flex-col items-center text-center"
       size="large"
     >
-      <i class="pi pi-times-circle mr-2"></i>
-      Une erreur est survenue lors de la tentative de connexion à la session <br />
-      <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
-      Veuillez réessayer.
+      <ng-template #icon>
+        <quizz-icon name="error" />
+      </ng-template>
+      <p>
+        Une erreur est survenue lors de la tentative de connexion à la session <br />
+        <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
+        Veuillez réessayer.
+      </p>
     </p-message>
 
     <quizz-join-form class="mt-10 w-full max-w-md" />
@@ -19,10 +23,14 @@
       class="flex w-full max-w-md flex-col items-center text-center"
       size="large"
     >
-      <i class="pi pi-info-circle mr-2"></i>
-      Aucune session trouvée avec le code <br />
-      <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
-      Vérifiez le code et réessayez.
+      <ng-template #icon>
+        <quizz-icon name="info" />
+      </ng-template>
+      <p>
+        Aucune session trouvée avec le code <br />
+        <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
+        Vérifiez le code et réessayez.
+      </p>
     </p-message>
 
     <quizz-join-form class="mt-10 w-full max-w-md" />

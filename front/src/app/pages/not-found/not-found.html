@@ -1,9 +1,9 @@
 <div class="flex items-center justify-center">
   <div
-    class="mx-4 w-full max-w-xl rounded-3xl p-8 shadow-xl ring-1 bg-surface-50 dark:bg-surface-800 ring-emerald-800 dark:ring-emerald-50 backdrop-blur"
+    class="bg-surface-50 dark:bg-surface-800 mx-4 w-full max-w-xl rounded-3xl p-8 shadow-xl ring-1 ring-emerald-800 backdrop-blur dark:ring-emerald-50"
   >
     <div class="mb-6 flex items-center justify-center gap-3 text-emerald-700 dark:text-emerald-300">
-      <i class="pi pi-leaf text-2xl" aria-hidden="true"></i>
+      <quizz-icon name="leaf" size="xl" />
       <span class="text-sm font-medium tracking-wide uppercase">Oups, mauvaise plante…</span>
     </div>
 
@@ -24,12 +24,12 @@
 
     <div class="flex flex-row justify-center">
       <a pButton class="w-fit no-underline" routerLink="/" href="#">
-        <i class="pi pi-home" aria-hidden="true"></i>
-        <span>Revenir à l'accueil</span>
+        <quizz-icon name="home" pButtonIcon />
+        <span pButtonLabel>Revenir à l'accueil</span>
       </a>
     </div>
 
-    <p class="mt-6 text-center text-xs text-emerald-700 dark:text-emerald-300 font-bold">
+    <p class="mt-6 text-center text-xs font-bold text-emerald-700 dark:text-emerald-300">
       Si tu penses que cette page devrait exister, c'est peut-être une nouvelle espèce. Dans ce cas,
       prends une capture d'écran et préviens le jardinier.
     </p>

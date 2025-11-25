@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { ExitButton } from '../../components/exit-button/exit-button'
 import { NicknameChooser } from '../../components/nickname-chooser/nickname-chooser'
@@ -19,6 +20,8 @@ import { ActiveSessionStore } from '../../stores'
     ParticipantList,
     Button,
     ExitButton,
+    ButtonIcon,
+    IconFacade,
   ],
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',

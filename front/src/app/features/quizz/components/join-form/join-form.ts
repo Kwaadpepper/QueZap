@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { customError, Field, form, validate } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 
 import { Config } from '@quezap/core/services/config/config'
 import { isValidSessionCode } from '@quezap/domain/models'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 @Component({
@@ -16,6 +17,8 @@ import { FieldError } from '@quezap/shared/directives/field-error'
     InputText,
     FieldError,
     Field,
+    IconFacade,
+    ButtonIcon,
   ],
   templateUrl: './join-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

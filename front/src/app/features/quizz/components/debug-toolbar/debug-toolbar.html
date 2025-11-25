@@ -2,47 +2,52 @@
   <p-button
     class="btn btn-sm btn-primary"
     severity="warn"
-    icon="pi pi-arrow-right"
     size="small"
     ariaLabel="Question suivante"
     title="Question suivante"
     (onClick)="onMockAction('nextQuestion')"
-  />
+  >
+    <quizz-icon name="arrow-right" pButtonIcon />
+  </p-button>
   <p-button
     class="btn btn-sm btn-primary"
     severity="primary"
-    icon="pi pi-question"
     size="small"
     ariaLabel="Question Vrai/Faux"
     title="Question Vrai/Faux"
     (onClick)="onMockAction('booleanQuestion')"
-  />
+  >
+    <quizz-icon name="question" pButtonIcon />
+  </p-button>
   <p-button
     class="btn btn-sm btn-primary"
     severity="primary"
-    icon="pi pi-question-circle"
     size="small"
     ariaLabel="Question Binaire"
     title="Question Binaire"
     (onClick)="onMockAction('binaryQuestion')"
-  />
+  >
+    <quizz-icon name="question-circle" pButtonIcon />
+  </p-button>
   <p-button
     class="btn btn-sm btn-primary"
     severity="primary"
-    icon="pi pi-check-square"
     size="small"
     ariaLabel="Question QCM"
     title="Question QCM"
     (onClick)="onMockAction('quizzQuestion')"
-  />
+  >
+    <quizz-icon name="check-square" pButtonIcon />
+  </p-button>
   <p-button
     class="btn btn-sm btn-primary"
     severity="info"
-    icon="pi pi-sign-out"
     size="small"
     ariaLabel="Fin de session"
     title="Fin de session"
     severity="danger"
     (onClick)="onMockAction('mockNoMoreQuestions')"
-  />
+  >
+    <quizz-icon name="sign-out" pButtonIcon />
+  </p-button>
 </p-buttongroup>

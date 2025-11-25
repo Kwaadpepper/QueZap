@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, inject, ViewEncapsulation } from '@angular/core'
 
-import { Button } from 'primeng/button'
+import { Button, ButtonIcon } from 'primeng/button'
 import { ButtonGroup } from 'primeng/buttongroup'
+
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { SESSION_OBSERVER_SERVICE, SessionObserverMockService } from '../../services'
 import { ActiveSessionStore } from '../../stores'
 
 @Component({
   selector: 'quizz-debug-toolbar',
-  imports: [ButtonGroup, Button],
+  imports: [ButtonGroup, Button, ButtonIcon, IconFacade],
   templateUrl: './debug-toolbar.html',
   styleUrl: './debug-toolbar.css',
   encapsulation: ViewEncapsulation.None,

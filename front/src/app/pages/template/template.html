@@ -1,54 +1,52 @@
-<div class="p-6 space-y-8">
+<div class="space-y-8 p-6">
   <section>
-    <h1 class="text-3xl font-bold font-title mb-4">QueZap - Thème des Plantes 🌿</h1>
+    <h1 class="font-title mb-4 text-3xl font-bold">QueZap - Thème des Plantes 🌿</h1>
     <p class="text-surface-600 dark:text-surface-400 mb-6">
       Démonstration des composants PrimeNG avec le thème personnalisé
     </p>
-    <a
-      label="Accueil"
-      icon="pi pi-home"
-      routerLink="/"
-      title="Retourner sur la page d'accueil"
-      pButton
-    ></a>
+    <a label="Accueil" routerLink="/" title="Retourner sur la page d'accueil" pButton>
+      <quizz-icon name="home" pButtonIcon />
+    </a>
   </section>
 
   <div class="p-8">
-    <h2 class="text-3xl font-bold mb-6 text-surface-900 dark:text-surface-0">
+    <h2 class="text-surface-900 dark:text-surface-0 mb-6 text-3xl font-bold">
       🌈 Palette de Couleurs Complète (Variables CSS)
     </h2>
 
     @for (colorName of fullColorNames; track colorName) {
-    <section class="mb-10">
-      <h3
-        class="text-2xl font-semibold mb-4 capitalize"
-        [class]="'text-' + colorName + '-600 dark:text-' + colorName + '-400'"
-      >
-        Palette {{ colorName }}
-      </h3>
-
-      <div class="grid grid-cols-6 md:grid-cols-11 gap-4">
-        @for (shade of colorShades; track shade) {
-        <div
-          class="shadow-md rounded-lg overflow-hidden border border-surface-200 dark:border-surface-700"
+      <section class="mb-10">
+        <h3
+          class="mb-4 text-2xl font-semibold capitalize"
+          [class]="'text-' + colorName + '-600 dark:text-' + colorName + '-400'"
         >
-          <div
-            class="h-20 flex items-center justify-center"
-            [style]="getCardBackgroundStyles(colorName, shade)"
-          ></div>
-          <div class="p-2 text-center text-sm font-medium text-surface-700 dark:text-surface-200">
-            {{ getColorName(colorName, shade) }}
-          </div>
+          Palette {{ colorName }}
+        </h3>
+
+        <div class="grid grid-cols-6 gap-4 md:grid-cols-11">
+          @for (shade of colorShades; track shade) {
+            <div
+              class="border-surface-200 dark:border-surface-700 overflow-hidden rounded-lg border shadow-md"
+            >
+              <div
+                class="flex h-20 items-center justify-center"
+                [style]="getCardBackgroundStyles(colorName, shade)"
+              ></div>
+              <div
+                class="text-surface-700 dark:text-surface-200 p-2 text-center text-sm font-medium"
+              >
+                {{ getColorName(colorName, shade) }}
+              </div>
+            </div>
+          } @empty {
+            <p class="text-surface-500 col-span-11">
+              Aucune nuance de couleur à afficher pour {{ colorName }}.
+            </p>
+          }
         </div>
-        } @empty {
-        <p class="col-span-11 text-surface-500">
-          Aucune nuance de couleur à afficher pour {{ colorName }}.
-        </p>
-        }
-      </div>
-    </section>
+      </section>
     } @empty {
-    <p class="text-xl text-red-500">Erreur : Aucune palette de couleur définie.</p>
+      <p class="text-xl text-red-500">Erreur : Aucune palette de couleur définie.</p>
     }
   </div>
 
@@ -58,7 +56,7 @@
 
   <!-- Buttons Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Boutons</h2>
+    <h2 class="mb-4 text-2xl font-semibold">Boutons</h2>
     <div class="flex flex-wrap gap-3">
       <p-button label="Primary" />
       <p-button label="Large" size="large" />
@@ -75,15 +73,15 @@
 
   <!-- Form Fields Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Champs de formulaire</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <h2 class="mb-4 text-2xl font-semibold">Champs de formulaire</h2>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div>
-        <label for="input1" class="block mb-2">Input Text</label>
+        <label for="input1" class="mb-2 block">Input Text</label>
         <input pInputText id="input1" placeholder="Entrez du texte" class="w-full" />
       </div>
 
       <div>
-        <label for="autocomplete1" class="block mb-2">AutoComplete</label>
+        <label for="autocomplete1" class="mb-2 block">AutoComplete</label>
         <p-autocomplete
           id="autocomplete1"
           field="name"
@@ -96,7 +94,7 @@
       </div>
 
       <div>
-        <label for="number1" class="block mb-2">Input Number</label>
+        <label for="number1" class="mb-2 block">Input Number</label>
         <p-inputnumber
           id="number1"
           placeholder="Entrez un nombre"
@@ -106,7 +104,7 @@
       </div>
 
       <div>
-        <label for="select1" class="block mb-2">Select</label>
+        <label for="select1" class="mb-2 block">Select</label>
         <p-select
           id="select1"
           optionLabel="name"
@@ -117,7 +115,7 @@
       </div>
 
       <div>
-        <label for="multiselect1" class="block mb-2">Multi Select</label>
+        <label for="multiselect1" class="mb-2 block">Multi Select</label>
         <p-multiSelect
           id="multiselect1"
           optionLabel="name"
@@ -130,19 +128,19 @@
       </div>
 
       <div>
-        <label for="calendar1" class="block mb-2">Date Picker</label>
+        <label for="calendar1" class="mb-2 block">Date Picker</label>
         <p-datepicker id="calendar1" placeholder="Sélectionnez une date" class="w-full" />
       </div>
 
       <div class="col-span-2">
-        <label for="slider1" class="block mb-2">Slider (valeur: {{ sliderValue }})</label>
+        <label for="slider1" class="mb-2 block">Slider (valeur: {{ sliderValue }})</label>
         <p-slider id="slider1" class="w-full" [(ngModel)]="sliderValue" />
       </div>
     </div>
 
     <p-divider />
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div>
         <div class="mb-3 font-semibold">Checkbox</div>
         <div class="flex items-center gap-2">
@@ -186,9 +184,9 @@
 
   <!-- Cards Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Panels</h2>
+    <h2 class="mb-4 text-2xl font-semibold">Panels</h2>
 
-    <div class="space-y-4 mb-6">
+    <div class="mb-6 space-y-4">
       <p-panel header="Panel - Informations du Quiz" [toggleable]="true">
         <p>
           Un panel est un conteneur qui peut être réduit/étendu. Parfait pour organiser le contenu.
@@ -204,7 +202,7 @@
 
     <p-divider />
 
-    <h3 class="text-xl font-semibold mb-4 mt-6">Accordion</h3>
+    <h3 class="mt-6 mb-4 text-xl font-semibold">Accordion</h3>
     <p-accordion [value]="['0']">
       <p-accordionpanel value="0">
         <p-accordionheader>Plantes d'intérieur</p-accordionheader>
@@ -230,7 +228,7 @@
 
     <p-divider />
 
-    <h3 class="text-xl font-semibold mb-4 mt-6">Tabs</h3>
+    <h3 class="mt-6 mb-4 text-xl font-semibold">Tabs</h3>
     <p-tabs [value]="'0'">
       <p-tablist>
         <p-tab value="0">Facile</p-tab>
@@ -252,8 +250,8 @@
 
     <p-divider />
 
-    <h3 class="text-xl font-semibold mb-4 mt-6">Cards</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <h3 class="mt-6 mb-4 text-xl font-semibold">Cards</h3>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
       <p-card header="Plante 1">
         <p>Description de la première plante pour le quiz.</p>
       </p-card>
@@ -270,9 +268,9 @@
 
   <!-- Overlays Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Overlays</h2>
+    <h2 class="mb-4 text-2xl font-semibold">Overlays</h2>
     <div class="flex flex-wrap gap-3">
-      <p-button label="Ouvrir Dialog" icon="pi pi-external-link" (onClick)="showDialog()" />
+      <p-button label="Ouvrir Dialog" (onClick)="showDialog()" />
     </div>
 
     <p-dialog
@@ -293,7 +291,7 @@
 
   <!-- Messages Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Messages</h2>
+    <h2 class="mb-4 text-2xl font-semibold">Messages</h2>
     <div class="space-y-3">
       <p-message
         severity="success"
@@ -307,7 +305,7 @@
 
   <!-- Toast Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Toasts</h2>
+    <h2 class="mb-4 text-2xl font-semibold">Toasts</h2>
     <p-toast />
     <div class="flex flex-wrap gap-3">
       <p-button label="Toast Succès" severity="success" (onClick)="showToast('success')" />
@@ -319,7 +317,7 @@
 
   <!-- Chips/Tags Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Tags & Badges</h2>
+    <h2 class="mb-4 text-2xl font-semibold">Tags & Badges</h2>
     <div class="flex flex-wrap gap-2">
       <p-tag value="Botanique" />
       <p-tag value="Facile" severity="success" />
@@ -332,19 +330,19 @@
 
   <!-- Progress Section -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4">Progression</h2>
+    <h2 class="mb-4 text-2xl font-semibold">Progression</h2>
     <div class="space-y-4">
       <div>
-        <p class="block mb-2">Progression du quiz</p>
+        <p class="mb-2 block">Progression du quiz</p>
         <p-progressbar [value]="65" />
       </div>
     </div>
   </section>
 
   <!-- Debug -->
-  <section class="pt-4 border-t border-surface-200">
+  <section class="border-surface-200 border-t pt-4">
     <details>
-      <summary class="cursor-pointer text-sm text-surface-500">Données de debug</summary>
+      <summary class="text-surface-500 cursor-pointer text-sm">Données de debug</summary>
       <pre class="mt-2 text-xs">{{ selectedCities | json }}</pre>
     </details>
   </section>
