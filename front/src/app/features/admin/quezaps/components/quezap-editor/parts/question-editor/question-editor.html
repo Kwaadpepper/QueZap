@@ -1,6 +1,6 @@
 <div class="flex h-full w-full flex-row justify-between">
   <!-- QUESTION EDITOR -->
-  <main class="grow p-4">
+  <main class="relative grow p-4">
     <quizz-phrase-editor class="w-full" [(question)]="question" />
     <hr />
     @let seconds = question().limit?.seconds ?? undefined;
@@ -20,6 +20,11 @@
         <div>{{ answer.index }} - {{ answer.value }}</div>
       }
     </div>
+
+    <quizz-question-timer
+      class="pointer-events-none absolute right-5 bottom-5 z-10"
+      [question]="question()"
+    />
   </main>
 
   <!-- LEFT SIDE PANEL -->

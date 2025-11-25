@@ -1,0 +1,13 @@
+<div
+  class="border-surface-700 dark:border-surface-500 flex h-16 w-16 items-center justify-center rounded-full border-4 font-mono shadow-lg"
+  [class.bg-red-700]="remainingSeconds() <= 5"
+  [class.bg-amber-700]="remainingSeconds() > 5 && remainingSeconds() <= 15"
+  [class.bg-green-700]="remainingSeconds() > 15"
+  [class.hidden]="timer() === undefined"
+  [class.text-white]="true"
+  [title]="`${remainingSeconds()} secondes restantes`"
+>
+  <span class="text-3xl font-bold select-none">
+    {{ remainingSeconds() }}
+  </span>
+</div>

@@ -5,7 +5,7 @@ import { Divider } from 'primeng/divider'
 import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
 import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
-import { LimitSelector, PhraseEditor, TypeSelector } from './parts'
+import { LimitSelector, PhraseEditor, QuestionTimer, TypeSelector } from './parts'
 
 export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
 
@@ -17,6 +17,7 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
     Divider,
     MinutesPipe,
     PhraseEditor,
+    QuestionTimer,
   ],
   templateUrl: './question-editor.html',
   styleUrl: './question-editor.css',
