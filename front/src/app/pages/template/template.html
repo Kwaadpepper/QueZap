@@ -114,24 +114,6 @@
         />
       </div>
 
-      <div>
-        <label for="multiselect1" class="mb-2 block">Multi Select</label>
-        <p-multiSelect
-          id="multiselect1"
-          optionLabel="name"
-          placeholder="Sélectionnez des villes"
-          class="w-full"
-          [options]="cities"
-          [maxSelectedLabels]="3"
-          [(ngModel)]="selectedCities"
-        />
-      </div>
-
-      <div>
-        <label for="calendar1" class="mb-2 block">Date Picker</label>
-        <p-datepicker id="calendar1" placeholder="Sélectionnez une date" class="w-full" />
-      </div>
-
       <div class="col-span-2">
         <label for="slider1" class="mb-2 block">Slider (valeur: {{ sliderValue }})</label>
         <p-slider id="slider1" class="w-full" [(ngModel)]="sliderValue" />

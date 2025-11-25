@@ -10,7 +10,6 @@ import { BadgeModule } from 'primeng/badge'
 import { ButtonModule } from 'primeng/button'
 import { CardModule } from 'primeng/card'
 import { CheckboxModule } from 'primeng/checkbox'
-import { DatePickerModule } from 'primeng/datepicker'
 import { DialogModule } from 'primeng/dialog'
 import { DividerModule } from 'primeng/divider'
 import { FieldsetModule } from 'primeng/fieldset'
@@ -18,7 +17,6 @@ import { ImageModule } from 'primeng/image'
 import { InputNumberModule } from 'primeng/inputnumber'
 import { InputTextModule } from 'primeng/inputtext'
 import { MessageModule } from 'primeng/message'
-import { MultiSelectModule } from 'primeng/multiselect'
 import { PanelModule } from 'primeng/panel'
 import { ProgressBarModule } from 'primeng/progressbar'
 import { RadioButtonModule } from 'primeng/radiobutton'
@@ -53,7 +51,6 @@ interface Plant {
     ButtonModule,
     CardModule,
     CheckboxModule,
-    DatePickerModule,
     DialogModule,
     DividerModule,
     FieldsetModule,
@@ -63,7 +60,6 @@ interface Plant {
     InputTextModule,
     JsonPipe,
     MessageModule,
-    MultiSelectModule,
     PanelModule,
     ProgressBarModule,
     RadioButtonModule,
