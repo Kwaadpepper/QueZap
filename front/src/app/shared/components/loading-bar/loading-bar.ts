@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core'
 
 import { ProgressBar } from 'primeng/progressbar'
 
-import { LoadingStatus } from '@quezap/core/services'
+import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 
 @Component({
   selector: 'quizz-loading-bar',

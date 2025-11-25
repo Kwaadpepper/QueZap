@@ -6,7 +6,7 @@ import {
 } from '@angular/core'
 import { form, validateStandardSchema } from '@angular/forms/signals'
 
-import { zod } from '@quezap/core/tools'
+import { zod } from '@quezap/core/tools/zod'
 import { BooleanQuestion, PictureUrl, QuestionId } from '@quezap/domain/models'
 import { TimerStore } from '@quezap/features/quizz/stores'
 

@@ -5,7 +5,8 @@ import { ButtonDirective, ButtonIcon } from 'primeng/button'
 
 import { Paginator } from '@quezap/shared/components/paginator/paginator'
 
-import { ThemeCard, ThemeEditor } from '../../components'
+import { ThemeCard } from '../../components/theme-card/theme-card'
+import { ThemeEditor } from '../../components/theme-editor/theme-editor'
 import { ThemesEventsBus } from '../../services'
 import { ThemePageStore } from '../../stores'
 

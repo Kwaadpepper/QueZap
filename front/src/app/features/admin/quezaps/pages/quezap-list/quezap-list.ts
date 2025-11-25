@@ -5,7 +5,7 @@ import { ButtonDirective } from 'primeng/button'
 
 import { Paginator } from '@quezap/shared/components/paginator/paginator'
 
-import { QuezapCard } from '../../components'
+import { QuezapCard } from '../../components/quezap-card/quezap-card'
 import { QuezapPageStore } from '../../stores'
 
 @Component({

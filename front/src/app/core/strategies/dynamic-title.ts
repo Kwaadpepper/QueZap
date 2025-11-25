@@ -4,7 +4,7 @@ import { RouterStateSnapshot, TitleStrategy } from '@angular/router'
 
 import { environment } from '@quezap/env/environment'
 
-import { Config, Environment } from '../services'
+import { Config, Environment } from '../services/config/config'
 
 @Injectable({ providedIn: 'root' })
 export class DynamicTitleStrategy extends TitleStrategy {

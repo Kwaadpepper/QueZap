@@ -14,14 +14,16 @@ import { FocusTrapModule } from 'primeng/focustrap'
 import { ImageModule } from 'primeng/image'
 import { Toast } from 'primeng/toast'
 
-import { LoadingStatus } from '@quezap/core/services'
+import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 
-import { LayoutSettings } from './core/services'
-import { LogoutButton } from './features/auth/components'
+import { LayoutSettings } from './core/services/layout/layout-settings'
+import { LogoutButton } from './features/auth/components/logout-button/logout-button'
 import { Footer } from './layout/footer/footer'
 import { AdminNav, SiteNav } from './layout/navigation'
-import { Debugbar, LoadingBar, ScrollTopComponent } from './shared/components'
-import { AuthenticatedUserStore } from './shared/stores'
+import { Debugbar } from './shared/components/debugbar/debugbar'
+import { LoadingBar } from './shared/components/loading-bar/loading-bar'
+import { ScrollTopComponent } from './shared/components/scroll-top/scroll-top'
+import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
 
 @Component({
   selector: 'quizz-root',

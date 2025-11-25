@@ -3,7 +3,8 @@ import { RouterModule } from '@angular/router'
 
 import { ButtonDirective } from 'primeng/button'
 
-import { Config, LayoutSettings } from '@quezap/core/services'
+import { Config } from '@quezap/core/services/config/config'
+import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
 @Component({
   selector: 'quizz-debugbar',

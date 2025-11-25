@@ -9,7 +9,7 @@ import {
 } from 'rxjs'
 
 import { ForbidenError, HandledFrontError } from '@quezap/core/errors'
-import { zod } from '@quezap/core/tools'
+import { zod } from '@quezap/core/tools/zod'
 import { isSuccess } from '@quezap/core/types'
 
 import { ResetPasswordForm } from '../../components/reset-password-form/reset-password-form'

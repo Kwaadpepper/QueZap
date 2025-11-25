@@ -5,7 +5,7 @@ import { Router } from '@angular/router'
 import { Button } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 
-import { Config } from '@quezap/core/services'
+import { Config } from '@quezap/core/services/config/config'
 import { isValidSessionCode } from '@quezap/domain/models'
 import { FieldError } from '@quezap/shared/directives/field-error'
 

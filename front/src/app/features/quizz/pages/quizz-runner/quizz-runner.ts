@@ -7,13 +7,15 @@ import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Message } from 'primeng/message'
 
-import { Config, LayoutSettings } from '@quezap/core/services'
+import { Config } from '@quezap/core/services/config/config'
+import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 import {
   isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, QuestionType, QuestionWithAnswers,
 } from '@quezap/domain/models'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
-import { DebugToolbar, ExitButton } from '../../components'
+import { DebugToolbar } from '../../components/debug-toolbar/debug-toolbar'
+import { ExitButton } from '../../components/exit-button/exit-button'
 import {
   BinaryQuestionView, BooleanQuestionView,
   QuestionTimer, QuizzQuestionView,

@@ -4,7 +4,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations'
 
 import { of, throwError } from 'rxjs'
 
-import { Config } from '@quezap/core/services'
+import { Config } from '@quezap/core/services/config/config'
 
 import { AUTHENTICATION_SERVICE } from '../../services'
 

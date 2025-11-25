@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { ErrorHandler, inject, Injectable } from '@angular/core'
 
-import { Config } from '../services'
+import { Config } from '../services/config/config'
 
 import { ERROR_NOTIFIER } from './error-notifier'
 import { HandledFrontError } from './handled-front-error'

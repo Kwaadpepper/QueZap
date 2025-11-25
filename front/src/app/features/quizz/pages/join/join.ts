@@ -11,7 +11,7 @@ import { ExpiredError, NotFoundError } from '@quezap/core/errors'
 import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
-import { JoinForm } from '../../components'
+import { JoinForm } from '../../components/join-form/join-form'
 import { ActiveSessionStore } from '../../stores'
 
 @Component({

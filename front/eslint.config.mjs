@@ -100,18 +100,31 @@ export default tseslint.config(
         {
           "patterns": [
             {
-              "regex": String.raw`(.)/shared/(.*)index(?:\.ts)?`,
-              "message": "You have to import component directly from shared, for tree shaking"
+              "regex": String.raw`^(?:(?!@angular).*\/(?:shared|core(?!\/(?:types|tokens|errors)))\/(.*)index(?:\.ts)?)$`,
+              "message": "You have to import component directly from shared|core{any except types|tokens|errors}, for tree shaking"
             },
             {
-              "regex": String.raw`@quezap/shared(?:/[\w-]*)?$`,
-              "message": "You have to import component directly from shared, for tree shaking"
+              "regex": String.raw`^(?:(?!@angular).*\/(?:shared|core(?!\/(?:types|tokens|errors)) ?)(?:\/[\w-]*)?)$`,
+              "message": "You have to import component directly from shared|core{any except types|tokens|errors}, for tree shaking"
+            },
+            {
+              "regex": String.raw`^(?:.*)(?:components)(?:\/(?:index(?:\.ts)?)?)?$`,
+              "message": "You have to import component individually as they have to be standalones, for tree shaking"
             },
             {
               "group": ["primeng/primeng"],
               "message": "You may do a deep import for PrimeNG (ex: primeng/dialog, primeng/button) to optimize bundle size (Tree-Shaking)."
             }
           ]
+        }
+      ],
+
+      "@angular-eslint/prefer-standalone": "error",
+      "no-restricted-syntax": [
+        "error",
+        {
+          "selector": "Decorator[expression.callee.name='NgModule']",
+          "message": "Use of @NgModule is forbidden in this project. Please use Standalone Components and Direct Imports in configurations (app.config.ts, routes)."
         }
       ]
     },

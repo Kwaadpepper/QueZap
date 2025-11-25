@@ -2,8 +2,8 @@ import { DOCUMENT, inject } from '@angular/core'
 
 import { catchError, firstValueFrom, forkJoin, tap, throwError } from 'rxjs'
 
-import { Config } from './core/services'
-import { AuthenticatedUserStore } from './shared/stores'
+import { Config } from './core/services/config/config'
+import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
 
 export async function AppInitializer() {
   const config = inject(Config)

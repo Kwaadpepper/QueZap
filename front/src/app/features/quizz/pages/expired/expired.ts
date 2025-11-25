@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
 
-import { JoinForm } from '../../components'
+import { JoinForm } from '../../components/join-form/join-form'
 
 @Component({
   selector: 'quizz-expired',

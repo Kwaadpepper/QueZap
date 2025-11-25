@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 
 import { Message } from 'primeng/message'
 
-import { JoinForm } from '../../components'
+import { JoinForm } from '../../components/join-form/join-form'
 
 @Component({
   selector: 'quizz-ended',

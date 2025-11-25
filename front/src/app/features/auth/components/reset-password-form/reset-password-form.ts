@@ -11,8 +11,8 @@ import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
-import { Config } from '@quezap/core/services'
-import { zod } from '@quezap/core/tools'
+import { Config } from '@quezap/core/services/config/config'
+import { zod } from '@quezap/core/tools/zod'
 import { isFailure } from '@quezap/core/types'
 import { FieldError } from '@quezap/shared/directives/field-error'
 

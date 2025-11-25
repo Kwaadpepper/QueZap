@@ -12,8 +12,8 @@ import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
-import { Config } from '@quezap/core/services'
-import { zod } from '@quezap/core/tools'
+import { Config } from '@quezap/core/services/config/config'
+import { zod } from '@quezap/core/tools/zod'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({

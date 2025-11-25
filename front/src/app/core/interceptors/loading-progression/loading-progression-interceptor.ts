@@ -3,7 +3,7 @@ import { inject } from '@angular/core'
 
 import { finalize } from 'rxjs'
 
-import { LoadingStatus } from '@quezap/core/services'
+import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 
 export const loadingProgressionInterceptor: HttpInterceptorFn = (req, next) => {
   const progression = inject(LoadingStatus)

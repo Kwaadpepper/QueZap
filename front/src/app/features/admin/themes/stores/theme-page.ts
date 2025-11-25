@@ -7,7 +7,7 @@ import {
   debounceTime, distinctUntilChanged, filter, of, pipe, retry, switchMap, tap,
 } from 'rxjs'
 
-import { LoadingStatus } from '@quezap/core/services'
+import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 import { isFailure, pageComparator, Pagination, validatePagination } from '@quezap/core/types'
 import { Theme } from '@quezap/domain/models'
 

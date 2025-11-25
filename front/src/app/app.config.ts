@@ -15,8 +15,8 @@ import Quezap from '@quezap/themes/Quezap'
 import { AppInitializer } from './app.initializer'
 import { routes } from './app.routes'
 import { createErrorNotifier, ERROR_NOTIFIER, GlobalErrorHandler } from './core/errors'
-import { Config } from './core/services'
-import { DynamicTitleStrategy } from './core/strategies'
+import { Config } from './core/services/config/config'
+import { DynamicTitleStrategy } from './core/strategies/dynamic-title'
 import { AUTHENTICATION_SERVICE, AuthenticationMockService } from './features/auth/services'
 
 if (environment.env === 'prod') {

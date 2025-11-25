@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, model } from '@angular/core'
 
-import { LayoutSettings } from '@quezap/core/services'
+import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
 import { QuezapEditor, QuezapEditorInput } from '../../components/quezap-editor/quezap-editor'
 

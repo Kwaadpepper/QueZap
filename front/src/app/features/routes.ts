@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router'
 
-import { isAuthenticatedGuard, isUnauthenticatedGuard } from '@quezap/core/guards'
+import { isAuthenticatedGuard } from '@quezap/core/guards/auth/authenticated-guard'
+import { isUnauthenticatedGuard } from '@quezap/core/guards/auth/unauthenticated-guard'
 
 import {
   ActiveSessionPersistence, SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE,

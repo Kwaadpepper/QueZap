@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router'
 
 import { Image } from 'primeng/image'
 
-import { Config } from '@quezap/core/services'
+import { Config } from '@quezap/core/services/config/config'
 
 @Component({
   selector: 'quizz-footer',

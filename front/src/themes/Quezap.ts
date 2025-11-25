@@ -156,6 +156,4 @@ const Quezap = updatePreset(
     },
   })
 
-console.log(Quezap)
-
 export default Quezap

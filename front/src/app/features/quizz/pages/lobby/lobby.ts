@@ -3,9 +3,12 @@ import { Router } from '@angular/router'
 
 import { Button } from 'primeng/button'
 
-import { Config, LayoutSettings } from '@quezap/core/services'
+import { Config } from '@quezap/core/services/config/config'
+import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
-import { ExitButton, NicknameChooser, ParticipantList } from '../../components'
+import { ExitButton } from '../../components/exit-button/exit-button'
+import { NicknameChooser } from '../../components/nickname-chooser/nickname-chooser'
+import { ParticipantList } from '../../components/participant-list/participant-list'
 import { SESSION_OBSERVER_SERVICE, SessionObserverMockService } from '../../services'
 import { ActiveSessionStore } from '../../stores'
 
