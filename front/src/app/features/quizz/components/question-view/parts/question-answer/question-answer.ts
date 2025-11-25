@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy, Component, computed,
   input,
   signal,
+  ViewEncapsulation,
 } from '@angular/core'
 import { Field, FieldTree } from '@angular/forms/signals'
 
@@ -28,6 +29,7 @@ export interface PrintableAnswer {
   ],
   templateUrl: './question-answer.html',
   styleUrl: './question-answer.css',
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionAnswer {

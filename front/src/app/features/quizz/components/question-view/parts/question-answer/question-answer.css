@@ -16,18 +16,16 @@
 }
 
 /* NATIVE CHECKBOX HIDE */
-input {
+.answer-option input {
   @apply appearance-none;
   @apply absolute;
   @apply w-full h-full;
   @apply m-0 p-0;
 
   background-color: transparent;
-
-
 }
 
-input:focus {
+.answer-option input:focus {
   @apply outline-none;
   @apply ring-4 ring-offset-2 ring-surface-100 rounded-lg;
 
@@ -37,7 +35,7 @@ input:focus {
 }
 
 /* CHECKED ICON */
-quizz-question-icon /deep/ {
+quizz-question-icon {
   --base-color: theme('colors.slate.900');
   --stroke-color: theme('colors.white');
 
@@ -54,7 +52,7 @@ quizz-question-icon /deep/ {
   }
 }
 
-input:checked + div quizz-question-icon /deep/ {
+.answer-option input:checked + div quizz-question-icon {
   --checked-fill: color-mix(in srgb, var(--question-icon-color) 100%, white 30%);
   --checked-stroke: theme('colors.slate.900');
 

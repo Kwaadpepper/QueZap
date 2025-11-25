@@ -5,6 +5,7 @@ import {
   effect,
   inject, input,
   signal,
+  ViewEncapsulation,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser'
@@ -14,8 +15,9 @@ import { tap } from 'rxjs'
 @Component({
   selector: 'quizz-question-icon',
   imports: [],
-  template: `<span [innerHTML]="svgContent()"></span>`,
-  styles: ':host /deep/ svg { width: 100% !important; height: auto !important; }',
+  template: `<span class="question-icon" [innerHTML]="svgContent()"></span>`,
+  styles: '.question-icon svg { width: 100% !important; height: auto !important; }',
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: '' },
 })
