@@ -1,4 +1,4 @@
-/deep/ .p-buttongroup {
+.debug-toolbar .p-buttongroup {
   flex-direction: column;
 
   @media (width >= 640px) {

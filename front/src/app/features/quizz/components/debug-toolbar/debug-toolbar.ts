@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject, ViewEncapsulation } from '@angular/core'
 
 import { Button } from 'primeng/button'
 import { ButtonGroup } from 'primeng/buttongroup'
@@ -11,6 +11,7 @@ import { ActiveSessionStore } from '../../stores'
   imports: [ButtonGroup, Button],
   templateUrl: './debug-toolbar.html',
   styleUrl: './debug-toolbar.css',
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DebugToolbar {
