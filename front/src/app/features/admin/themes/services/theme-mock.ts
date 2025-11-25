@@ -2,9 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
+import * as zod from 'zod/v4'
 
 import { NotFoundError, ServiceError, ValidationError } from '@quezap/core/errors'
-import { zod } from '@quezap/core/tools/zod'
 import { zodToExternalValidationError } from '@quezap/core/tools/zod-to-external-validation-error'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Theme, ThemeId } from '@quezap/domain/models'

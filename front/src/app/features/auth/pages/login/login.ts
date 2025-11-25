@@ -10,10 +10,10 @@ import { Button } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
+import * as zod from 'zod/v4'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
-import { zod } from '@quezap/core/tools/zod'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({

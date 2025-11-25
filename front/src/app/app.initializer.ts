@@ -1,9 +1,13 @@
 import { DOCUMENT, inject } from '@angular/core'
 
-import { catchError, firstValueFrom, forkJoin, tap, throwError } from 'rxjs'
+import {
+  catchError, firstValueFrom, forkJoin,
+  tap, throwError,
+} from 'rxjs'
 
 import { Config } from './core/services/config/config'
 import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
+import { initZod } from './zod.initializer'
 
 export async function AppInitializer() {
   const config = inject(Config)
@@ -12,6 +16,7 @@ export async function AppInitializer() {
 
   // Init tasks
   const initializationTasks = [
+    initZod(),
     authStore.loadInitialState(),
   ]
 

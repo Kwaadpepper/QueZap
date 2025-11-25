@@ -7,9 +7,9 @@ import { ProgressSpinner } from 'primeng/progressspinner'
 import {
   catchError, finalize, firstValueFrom, of, retry, tap,
 } from 'rxjs'
+import * as zod from 'zod/v4'
 
 import { ForbidenError, HandledFrontError } from '@quezap/core/errors'
-import { zod } from '@quezap/core/tools/zod'
 import { isSuccess } from '@quezap/core/types'
 
 import { ResetPasswordForm } from '../../components/reset-password-form/reset-password-form'

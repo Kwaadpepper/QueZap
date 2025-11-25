@@ -2,10 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { inject } from '@angular/core'
 
 import { Subject } from 'rxjs'
+import * as zod from 'zod/v4'
 
 import { ValidationError } from '@quezap/core/errors'
 import { UnauthorizedError } from '@quezap/core/errors/unauthorized-error'
-import { zod } from '@quezap/core/tools/zod'
 import { zodToExternalValidationError } from '@quezap/core/tools/zod-to-external-validation-error'
 import { ServiceOutput, Tried } from '@quezap/core/types'
 import { AuthenticatedUser, UserId } from '@quezap/domain/models'

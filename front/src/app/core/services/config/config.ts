@@ -1,6 +1,6 @@
 import { computed, Injectable, resource, ResourceRef } from '@angular/core'
 
-import z from 'zod'
+import * as zod from 'zod/v4'
 
 import { environment } from '@quezap/env/environment'
 
@@ -9,16 +9,16 @@ export enum Environment {
   PROD = 'prod',
 }
 
-const configSchema = z.object({
-  env: z.enum(Environment),
-  useMockData: z.boolean(),
-  appName: z.string(),
-  authorName: z.string(),
-  authorEmail: z.email(),
-  apiUrl: z.url(),
+const configSchema = zod.object({
+  env: zod.enum(Environment),
+  useMockData: zod.boolean(),
+  appName: zod.string(),
+  authorName: zod.string(),
+  authorEmail: zod.email(),
+  apiUrl: zod.url(),
 })
 
-type AppConfig = z.infer<typeof configSchema>
+type AppConfig = zod.infer<typeof configSchema>
 
 @Injectable({ providedIn: 'root' })
 export class Config {

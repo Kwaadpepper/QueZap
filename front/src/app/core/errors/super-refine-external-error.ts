@@ -1,6 +1,6 @@
 import { ValidationError } from '@angular/forms/signals'
 
-import { zod } from '../tools/zod'
+import * as zod from 'zod/v4'
 
 export function superRefineExternalError<T>(externalErrors: () => ValidationError[] | undefined) {
   return (val: T, ctx: zod.core.$RefinementCtx<T>) => {

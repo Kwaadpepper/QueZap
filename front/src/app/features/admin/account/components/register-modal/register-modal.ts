@@ -6,9 +6,9 @@ import { Button } from 'primeng/button'
 import { Dialog } from 'primeng/dialog'
 import { InputText } from 'primeng/inputtext'
 import { catchError, exhaustMap, firstValueFrom, of, throwError } from 'rxjs'
+import * as zod from 'zod/v4'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
-import { zod } from '@quezap/core/tools/zod'
 import { isFailure } from '@quezap/core/types'
 import { FieldError } from '@quezap/shared/directives/field-error'
 

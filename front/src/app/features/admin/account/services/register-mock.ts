@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs'
+import * as zod from 'zod/v4'
 
-import { zod } from '@quezap/core/tools/zod'
 import { zodToExternalValidationError } from '@quezap/core/tools/zod-to-external-validation-error'
 import { ServiceOutput, Tried } from '@quezap/core/types'
 
