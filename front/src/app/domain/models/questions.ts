@@ -19,7 +19,7 @@ export enum QuestionType {
 }
 
 export const QuestionTypeFrom = (enumObj: QuestionType) => ({
-  getNewWithAnswers: (): QuestionWithAnswers => {
+  getNewWithAnswers: (): QuestionWithAnswersAndResponses => {
     switch (enumObj) {
       case QuestionType.Boolean:
         return {
@@ -27,8 +27,8 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
           value: '',
           type: QuestionType.Boolean,
           answers: [
-            { index: 0, points: 0 },
-            { index: 1, points: 1 },
+            { index: 0, points: 0, isCorrect: false },
+            { index: 1, points: 1, isCorrect: true },
           ],
         }
       case QuestionType.Binary:
@@ -37,8 +37,8 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
           value: '',
           type: QuestionType.Binary,
           answers: [
-            { index: 0, points: 0 },
-            { index: 1, points: 0 },
+            { index: 0, points: 0, isCorrect: false },
+            { index: 1, points: 0, isCorrect: false },
           ],
         }
       case QuestionType.Quizz:
@@ -47,10 +47,10 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
           value: '',
           type: QuestionType.Quizz,
           answers: [
-            { index: 0, points: 0 },
-            { index: 1, points: 0 },
-            { index: 2, points: 0 },
-            { index: 3, points: 0 },
+            { index: 0, points: 0, isCorrect: false },
+            { index: 1, points: 0, isCorrect: false },
+            { index: 2, points: 0, isCorrect: false },
+            { index: 3, points: 0, isCorrect: false },
           ],
         }
       default:

@@ -9,7 +9,8 @@ import {
 import { ButtonDirective } from 'primeng/button'
 
 import {
-  QuestionType, QuestionTypeFrom, QuestionWithAnswers,
+  QuestionType, QuestionTypeFrom,
+  QuestionWithAnswersAndResponses,
   QuezapWithQuestionsAndAnswers,
 } from '@quezap/domain/models'
 
@@ -31,13 +32,13 @@ export class QuezapEditor {
   readonly saveEvent = output<void>()
 
   protected readonly selectedIdx = signal<number>(0)
-  protected readonly selectedQuestion = signal<QuestionWithAnswers>(
+  protected readonly selectedQuestion = signal<QuestionWithAnswersAndResponses>(
     // * Initial question to avoid empty state
     QuestionTypeFrom(QuestionType.Quizz)
       .getNewWithAnswers(),
   )
 
-  protected readonly questions = signal<QuestionWithAnswers[]>([
+  protected readonly questions = signal<QuestionWithAnswersAndResponses[]>([
     // * Initial question to avoid empty state
     this.selectedQuestion(),
   ])
@@ -90,11 +91,16 @@ export class QuezapEditor {
     this.selectedQuestion.set(question)
   }
 
-  private onQuestionUpdated(updated: QuestionWithAnswers) {
+  private onQuestionUpdated(updated: QuestionWithAnswersAndResponses) {
     this.questions.update((questions) => {
       const idx = this.selectedIdx()
 
       questions[idx] = updated
+
+      this.quezap.update(q => ({
+        ...q,
+        questionWithAnswersAndResponses: [...questions],
+      }))
       return [...questions]
     })
   }
