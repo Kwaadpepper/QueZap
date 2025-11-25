@@ -3,15 +3,6 @@
   <main class="relative grow p-4">
     <quizz-phrase-editor class="w-full" [(question)]="question" />
     <hr />
-    @let seconds = question().limit?.seconds ?? undefined;
-    @if (seconds === undefined) {
-      <span>∞ secs</span>
-    } @else {
-      <span>{{ seconds | minutes }}</span>
-    }
-    <hr />
-    <span>{{ QuestionTypeFrom(question().type).toString() }}</span>
-    <hr />
     <span>{{ question().picture ?? "Pas d'image" }}</span>
     <hr />
     <span>Réponses :</span>

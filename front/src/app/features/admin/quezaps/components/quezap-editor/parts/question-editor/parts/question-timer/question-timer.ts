@@ -13,5 +13,6 @@ export class QuestionTimer {
   readonly question = input.required<QuestionTimerInput>()
 
   protected readonly timer = computed(() => this.question().limit)
-  protected readonly remainingSeconds = computed<number>(() => this.timer()?.seconds ?? 0)
+  protected readonly remainingSeconds = computed<number>(() => this.timer()?.seconds ?? -1)
+  protected readonly remainingSecondsText = computed(() => this.timer()?.seconds ?? '∞')
 }
