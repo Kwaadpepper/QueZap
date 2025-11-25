@@ -8,7 +8,7 @@ import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { isSuccess } from '@quezap/core/types'
-import { Spinner } from '@quezap/shared/components'
+import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
 import { ACCOUNT_ACTIVATION_SERVICE } from '../services'
 

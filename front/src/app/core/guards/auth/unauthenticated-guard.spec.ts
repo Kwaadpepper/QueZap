@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing'
 import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router'
 
-import { AuthenticatedUserStore } from '@quezap/shared/stores'
+import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 import { isUnauthenticatedChildGuard, isUnauthenticatedGuard } from './unauthenticated-guard'
 

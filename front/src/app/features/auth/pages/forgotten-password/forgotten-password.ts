@@ -13,8 +13,8 @@ import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
 import { isFailure } from '@quezap/core/types'
-import { BackButton } from '@quezap/shared/components'
-import { FieldError } from '@quezap/shared/directives'
+import { BackButton } from '@quezap/shared/components/back-button/back-button'
+import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { AUTHENTICATION_SERVICE } from '../../services'
 

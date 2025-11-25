@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 
-import { MarkdownViewer } from '@quezap/shared/components'
+import { MarkdownViewer } from '@quezap/shared/components/markdown-viewer/markdow-viewer'
 
 @Component({
   selector: 'quizz-about',

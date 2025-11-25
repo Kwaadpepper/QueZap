@@ -6,7 +6,7 @@ import { ButtonDirective, ButtonIcon } from 'primeng/button'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError } from '@quezap/core/errors'
-import { AuthenticatedUserStore } from '@quezap/shared/stores'
+import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({
   selector: 'quizz-logout-button',

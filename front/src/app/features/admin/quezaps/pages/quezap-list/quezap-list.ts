@@ -3,7 +3,7 @@ import { Router } from '@angular/router'
 
 import { ButtonDirective } from 'primeng/button'
 
-import { Paginator } from '@quezap/shared/components'
+import { Paginator } from '@quezap/shared/components/paginator/paginator'
 
 import { QuezapCard } from '../../components'
 import { QuezapPageStore } from '../../stores'

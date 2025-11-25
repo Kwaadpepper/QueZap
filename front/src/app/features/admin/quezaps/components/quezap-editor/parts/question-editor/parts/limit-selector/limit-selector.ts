@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms'
 import { Select, SelectChangeEvent } from 'primeng/select'
 
 import { Question } from '@quezap/domain/models'
-import { MinutesPipe } from '@quezap/shared/pipes'
+import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
 export type LimitSelectorInput = Pick<Question, 'limit'>
 

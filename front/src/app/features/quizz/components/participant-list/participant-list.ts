@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 
-import { ParticipantIcon } from '@quezap/shared/components'
+import { ParticipantIcon } from '@quezap/shared/components/participant-icon/participant-icon'
 
 import { ActiveSessionStore } from '../../stores'
 

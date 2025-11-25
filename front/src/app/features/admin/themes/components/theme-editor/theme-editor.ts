@@ -14,7 +14,7 @@ import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 import { isFailure } from '@quezap/core/types'
 import { Theme, ThemeId } from '@quezap/domain/models'
-import { FieldError } from '@quezap/shared/directives'
+import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { NewThemeDTO, THEME_SERVICE, ThemesEventsBus } from '../../services'
 

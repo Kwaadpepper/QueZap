@@ -13,7 +13,7 @@ import { Tag } from 'primeng/tag'
 
 import { scrollToElementInContainer } from '@quezap/core/tools'
 import { QuestionType, QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
-import { MinutesPipe } from '@quezap/shared/pipes'
+import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
 export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
 

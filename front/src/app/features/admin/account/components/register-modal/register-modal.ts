@@ -10,7 +10,7 @@ import { catchError, exhaustMap, firstValueFrom, of, throwError } from 'rxjs'
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { zod } from '@quezap/core/tools'
 import { isFailure } from '@quezap/core/types'
-import { FieldError } from '@quezap/shared/directives'
+import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { REGISTER_SERVICE, RegisterMockService } from '../../services'
 

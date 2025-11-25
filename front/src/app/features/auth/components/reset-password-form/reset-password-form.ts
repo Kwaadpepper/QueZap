@@ -14,7 +14,7 @@ import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
 import { isFailure } from '@quezap/core/types'
-import { FieldError } from '@quezap/shared/directives'
+import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { AUTHENTICATION_SERVICE } from '../../services'
 

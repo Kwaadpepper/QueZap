@@ -1,7 +1,7 @@
 import { inject } from '@angular/core'
 import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router'
 
-import { AuthenticatedUserStore } from '@quezap/shared/stores'
+import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 const handleAuthenticated = (): boolean | ReturnType<Router['parseUrl']> => {
   const router = inject(Router)

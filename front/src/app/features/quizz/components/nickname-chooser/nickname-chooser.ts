@@ -11,7 +11,7 @@ import { catchError, exhaustMap, finalize, firstValueFrom, of } from 'rxjs'
 
 import { ForbidenError, HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
-import { FieldError } from '@quezap/shared/directives'
+import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { ActiveSessionStore } from '../../stores'
 

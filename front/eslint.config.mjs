@@ -94,6 +94,26 @@ export default tseslint.config(
           pathGroupsExcludedImportTypes: ["builtin"],
         },
       ],
+
+      "no-restricted-imports": [
+        "error",
+        {
+          "patterns": [
+            {
+              "regex": String.raw`(.)/shared/(.*)index(?:\.ts)?`,
+              "message": "You have to import component directly from shared, for tree shaking"
+            },
+            {
+              "regex": String.raw`@quezap/shared(?:/[\w-]*)?$`,
+              "message": "You have to import component directly from shared, for tree shaking"
+            },
+            {
+              "group": ["primeng/primeng"],
+              "message": "You may do a deep import for PrimeNG (ex: primeng/dialog, primeng/button) to optimize bundle size (Tree-Shaking)."
+            }
+          ]
+        }
+      ]
     },
   },
   {

@@ -9,7 +9,7 @@ import {
 
 import { ExpiredError, NotFoundError } from '@quezap/core/errors'
 import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
-import { Spinner } from '@quezap/shared/components'
+import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
 import { JoinForm } from '../../components'
 import { ActiveSessionStore } from '../../stores'

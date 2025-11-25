@@ -7,7 +7,7 @@ import { InputText } from 'primeng/inputtext'
 
 import { Config } from '@quezap/core/services'
 import { isValidSessionCode } from '@quezap/domain/models'
-import { FieldError } from '@quezap/shared/directives'
+import { FieldError } from '@quezap/shared/directives/field-error'
 
 @Component({
   selector: 'quizz-join-form',

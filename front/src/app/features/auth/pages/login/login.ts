@@ -14,7 +14,7 @@ import { catchError, firstValueFrom, of, tap } from 'rxjs'
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services'
 import { zod } from '@quezap/core/tools'
-import { AuthenticatedUserStore } from '@quezap/shared/stores'
+import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({
   selector: 'quizz-login',

@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, effect, model } from '@angular/core
 import { Divider } from 'primeng/divider'
 
 import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
-import { MinutesPipe } from '@quezap/shared/pipes'
+import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
 import { LimitSelector, PhraseEditor, TypeSelector } from './parts'
 

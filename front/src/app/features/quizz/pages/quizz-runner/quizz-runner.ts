@@ -11,7 +11,7 @@ import { Config, LayoutSettings } from '@quezap/core/services'
 import {
   isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, QuestionType, QuestionWithAnswers,
 } from '@quezap/domain/models'
-import { Spinner } from '@quezap/shared/components'
+import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
 import { DebugToolbar, ExitButton } from '../../components'
 import {
