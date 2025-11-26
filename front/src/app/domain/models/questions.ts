@@ -27,8 +27,8 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
           value: '',
           type: QuestionType.Boolean,
           answers: [
-            { index: 0, points: 0, isCorrect: false },
-            { index: 1, points: 1, isCorrect: true },
+            getNewAnswerWithResponse(0),
+            getNewAnswerWithResponse(1),
           ],
         }
       case QuestionType.Binary:
@@ -37,8 +37,8 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
           value: '',
           type: QuestionType.Binary,
           answers: [
-            { index: 0, points: 0, isCorrect: false },
-            { index: 1, points: 0, isCorrect: false },
+            getNewAnswerWithResponse(0),
+            getNewAnswerWithResponse(1),
           ],
         }
       case QuestionType.Quizz:
@@ -47,10 +47,10 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
           value: '',
           type: QuestionType.Quizz,
           answers: [
-            { index: 0, points: 0, isCorrect: false },
-            { index: 1, points: 0, isCorrect: false },
-            { index: 2, points: 0, isCorrect: false },
-            { index: 3, points: 0, isCorrect: false },
+            getNewAnswerWithResponse(0),
+            getNewAnswerWithResponse(1),
+            getNewAnswerWithResponse(2),
+            getNewAnswerWithResponse(3),
           ],
         }
       default:
@@ -70,6 +70,20 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
     }
   },
 })
+
+export function getNewAnswerWithResponse(index: number): AnswerWithResponse {
+  if (index < 0) {
+    throw new Error('Answer index must be non-negative')
+  }
+
+  return {
+    index,
+    points: 0,
+    isCorrect: false,
+    picture: undefined,
+    value: undefined,
+  }
+}
 
 export interface Question {
   readonly id: QuestionId
