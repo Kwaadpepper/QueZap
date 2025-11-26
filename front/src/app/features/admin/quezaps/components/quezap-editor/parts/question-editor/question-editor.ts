@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 
 import { ConfirmationService } from 'primeng/api'
 import { ButtonModule } from 'primeng/button'
-import { ConfirmPopup } from 'primeng/confirmpopup'
 import { Divider } from 'primeng/divider'
 
 import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
@@ -24,7 +23,6 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
     QuestionTimer,
     ButtonModule,
     IconFacade,
-    ConfirmPopup,
   ],
   templateUrl: './question-editor.html',
   styleUrl: './question-editor.css',
