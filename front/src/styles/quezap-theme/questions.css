@@ -3,6 +3,13 @@
   --question-icon-color: #1D4ED8;
 }
 
+.quezap-theme-background {
+  background-image: url('/images/bg-quezap.optimized.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .question-background {
   @apply bg-slate-200 dark:bg-slate-800;
   @apply shadow-2xl;

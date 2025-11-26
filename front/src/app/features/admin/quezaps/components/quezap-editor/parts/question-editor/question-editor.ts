@@ -9,7 +9,7 @@ import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { QuezapEditorContainer } from '../../editor-container'
 
-import { LimitSelector, PhraseEditor, QuestionTimer, TypeSelector } from './parts'
+import { AnswerEditor, LimitSelector, PhraseEditor, QuestionTimer, TypeSelector } from './parts'
 
 export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
 
@@ -23,6 +23,7 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
     QuestionTimer,
     ButtonModule,
     IconFacade,
+    AnswerEditor,
   ],
   templateUrl: './question-editor.html',
   styleUrl: './question-editor.css',

@@ -1,16 +1,12 @@
 <div class="flex h-full w-full flex-row justify-between">
   <!-- QUESTION EDITOR -->
-  <main class="relative grow p-4">
+  <main class="quezap-theme-background relative grow p-4">
     <quizz-phrase-editor class="w-full" />
     <hr />
     <span>{{ question().picture ?? "Pas d'image" }}</span>
     <hr />
     <span>Réponses :</span>
-    <div>
-      @for (answer of question().answers; track $index) {
-        <div>{{ answer.index }} - {{ answer.value }}</div>
-      }
-    </div>
+    <quizz-answer-editor />
 
     <quizz-question-timer
       class="pointer-events-none absolute right-5 bottom-5 z-10"
