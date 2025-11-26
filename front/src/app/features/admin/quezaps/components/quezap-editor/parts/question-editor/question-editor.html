@@ -1,7 +1,7 @@
 <div class="flex h-full w-full flex-row justify-between">
   <!-- QUESTION EDITOR -->
   <main class="relative grow p-4">
-    <quizz-phrase-editor class="w-full" [(question)]="question" />
+    <quizz-phrase-editor class="w-full" />
     <hr />
     <span>{{ question().picture ?? "Pas d'image" }}</span>
     <hr />
@@ -20,15 +20,18 @@
 
   <!-- LEFT SIDE PANEL -->
   <div class="question-details flex h-full flex-col p-2">
+    <div>
+      <span>Détails</span>
+    </div>
     <div class="grow">
-      <quizz-type-selector class="my-4 block" [(question)]="question" />
+      <quizz-type-selector class="my-4 block" />
       <p-divider />
-      <quizz-limit-selector class="my-4 block" [(question)]="question" />
+      <quizz-limit-selector class="my-4 block" />
     </div>
     <hr />
-    <div class="flex flex-col flex-wrap gap-2">
+    <menu class="flex flex-col flex-wrap gap-2">
       <button>Duppliquer</button>
       <button>Supprimer</button>
-    </div>
+    </menu>
   </div>
 </div>

@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, effect, model } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core'
 
 import { Divider } from 'primeng/divider'
 
 import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
-import { MinutesPipe } from '@quezap/shared/pipes/minutes'
+
+import { QuezapEditorContainer } from '../../editor-container'
 
 import { LimitSelector, PhraseEditor, QuestionTimer, TypeSelector } from './parts'
 
@@ -15,7 +16,6 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
     TypeSelector,
     LimitSelector,
     Divider,
-    MinutesPipe,
     PhraseEditor,
     QuestionTimer,
   ],
@@ -24,7 +24,11 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionEditor {
-  readonly question = model.required<QuestionEditorInput>()
+  private readonly editorContainer = inject(QuezapEditorContainer)
+
+  protected readonly question = computed<QuestionEditorInput>(() =>
+    this.editorContainer.selectedQuestion(),
+  )
 
   protected readonly QuestionTypeFrom = QuestionTypeFrom
 

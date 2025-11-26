@@ -12,8 +12,8 @@
   >
     <ng-template #display class="w-full">
       <h1 class="question-phrase">
-        @if (phrase().length > 0) {
-          <span>{{ phrase() }}</span>
+        @if (editedPhrase().length > 0) {
+          <span>{{ editedPhrase() }}</span>
         } @else {
           <span class="opacity-80">Titre du QueZap (cliquez pour éditer)...</span>
         }

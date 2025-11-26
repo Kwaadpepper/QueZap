@@ -1,4 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, model, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed,
+  inject,
+  signal,
+} from '@angular/core'
 import { FormsModule } from '@angular/forms'
 
 import { AutoFocusModule } from 'primeng/autofocus'
@@ -6,6 +10,8 @@ import { Inplace, InplaceModule } from 'primeng/inplace'
 import { InputTextModule } from 'primeng/inputtext'
 
 import { Quezap } from '@quezap/domain/models'
+
+import { QuezapEditorContainer } from '../../editor-container'
 
 export type TitleInput = Pick<Quezap, 'title'>
 
@@ -23,12 +29,10 @@ export type TitleInput = Pick<Quezap, 'title'>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TitleEditor {
-  readonly quezap = model.required<TitleInput>()
+  private readonly editorContainer = inject(QuezapEditorContainer)
 
+  private readonly quezap = computed<TitleInput>(() => this.editorContainer.quezap())
   protected readonly editedTitle = signal<string>('')
-
-  // Le computed reste pertinent pour le texte affiché
-  protected readonly phrase = computed(() => this.quezap().title)
 
   protected openCallback() {
     this.editedTitle.set(this.quezap().title)
@@ -36,13 +40,10 @@ export class TitleEditor {
 
   // * closeCallback est appelé par PrimeNG lors de la désactivation
   protected closeCallback() {
-    console.log('Closing title editor, saving title:', {
-      ...this.quezap(),
+    const updatedQuezap = {
+      ...this.editorContainer.quezap(),
       title: this.editedTitle().trim(),
-    })
-    this.quezap.update(q => ({
-      ...q,
-      title: this.editedTitle().trim(),
-    }))
+    }
+    this.editorContainer.setQuezap(updatedQuezap)
   }
 }

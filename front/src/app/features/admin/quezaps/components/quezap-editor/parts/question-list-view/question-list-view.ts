@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy, Component,
+  computed,
   inject,
-  input, model,
   ViewChild,
 } from '@angular/core'
 
@@ -15,6 +15,8 @@ import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
 import { QuestionType, QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { MinutesPipe } from '@quezap/shared/pipes/minutes'
+
+import { QuezapEditorContainer } from '../../editor-container'
 
 export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
 
@@ -36,10 +38,16 @@ export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionListView {
+  private readonly editorContainer = inject(QuezapEditorContainer)
   private readonly confirmationService = inject(ConfirmationService)
 
-  readonly questions = input.required<QuestionListViewInput>()
-  readonly selectedIdx = model<number>(0)
+  readonly questions = computed<QuestionListViewInput>(() =>
+    this.editorContainer.quezap().questionWithAnswersAndResponses,
+  )
+
+  readonly selectedIdx = computed(() =>
+    this.editorContainer.selectionQuestionIdx(),
+  )
 
   protected readonly QuestionTypeFrom = QuestionTypeFrom
 
@@ -50,8 +58,7 @@ export class QuestionListView {
   protected readonly deleteQuestionCancelButton!: { nativeElement: HTMLButtonElement } | undefined
 
   protected onSelectQuestion(index: number) {
-    this.selectedIdx.set(index)
-    this.scrollToQuestion(index)
+    this.selectQuestion(index)
   }
 
   protected onAddQuestion() {
@@ -59,8 +66,7 @@ export class QuestionListView {
       QuestionTypeFrom(QuestionType.Quizz)
         .getNewWithAnswers(),
     )
-    this.onSelectQuestion(this.questions().length - 1)
-    this.scrollToQuestion(this.questions().length - 1)
+    this.selectQuestion(this.questions().length - 1)
   }
 
   protected onDuplicateQuestion(index: number) {
@@ -70,9 +76,9 @@ export class QuestionListView {
       answers: questionToDuplicate.answers.map(answer => ({ ...answer })),
     }
 
-    this.questions().splice(index + 1, 0, duplicatedQuestion)
-    this.onSelectQuestion(index + 1)
-    this.scrollToQuestion(index + 1)
+    const newIndex = index + 1
+    this.questions().splice(newIndex, 0, duplicatedQuestion)
+    this.selectQuestion(newIndex)
   }
 
   protected onDeleteQuestion($event: Event, index: number) {
@@ -94,11 +100,7 @@ export class QuestionListView {
           this.selectedIdx(),
           this.questions().length - 1,
         )
-        this.onSelectQuestion(newIndex)
-        this.scrollToQuestion(newIndex)
-      },
-      reject: () => {
-        console.log('Deletion cancelled')
+        this.selectQuestion(newIndex)
       },
     })
   }
@@ -108,15 +110,20 @@ export class QuestionListView {
     if (event.key === 'ArrowDown' || event.key === 'Down') {
       event.preventDefault()
       const nextIndex = Math.min(this.questions().length - 1, index + 1)
-      console.log('nextIndex', index, nextIndex)
-      this.onSelectQuestion(nextIndex)
+
+      this.selectQuestion(nextIndex)
     }
     if (event.key === 'ArrowUp' || event.key === 'Up') {
       event.preventDefault()
       const prevIndex = Math.max(0, index - 1)
-      console.log('prevIndex', index, prevIndex)
-      this.onSelectQuestion(prevIndex)
+
+      this.selectQuestion(prevIndex)
     }
+  }
+
+  private selectQuestion(index: number) {
+    this.editorContainer.setSelectionQuestionIdx(index)
+    this.scrollToQuestion(index)
   }
 
   private scrollToQuestion(index: number) {

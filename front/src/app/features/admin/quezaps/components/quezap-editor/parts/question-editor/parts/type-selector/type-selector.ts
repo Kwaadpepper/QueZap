@@ -1,9 +1,14 @@
-import { ChangeDetectionStrategy, Component, effect, model, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, effect, inject,
+  signal,
+} from '@angular/core'
 import { FormsModule } from '@angular/forms'
 
 import { SelectChangeEvent, SelectModule } from 'primeng/select'
 
 import { Question, QuestionType, QuestionTypeFrom } from '@quezap/domain/models'
+
+import { QuezapEditorContainer } from '../../../../editor-container'
 
 export type TypeSelectorInput = Pick<Question, 'type'>
 
@@ -21,9 +26,10 @@ let uniqueId = 0
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TypeSelector {
-  readonly question = model.required<TypeSelectorInput>()
+  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly question = computed<TypeSelectorInput>(() => this.editorContainer.selectedQuestion())
 
-  protected selectedType = QuestionType.Boolean
+  protected selectedType = signal<QuestionType>(QuestionType.Quizz)
 
   protected readonly selectId = `quezap-question-type-selector-${uniqueId++}`
 
@@ -36,13 +42,19 @@ export class TypeSelector {
 
   constructor() {
     effect(() => {
-      const currentType = this.question().type
-      this.selectedType = currentType
+      this.selectedType.update(() => this.question().type)
     })
   }
 
   protected onTypeChange(event: SelectChangeEvent) {
     const newType = event.value as QuestionType
-    this.question.set({ ...this.question(), type: newType })
+    const updatedQuestion = {
+      ...this.editorContainer.selectedQuestion(),
+      type: newType,
+    }
+    this.editorContainer.updateQuestionAtIdx(
+      this.editorContainer.selectionQuestionIdx(),
+      updatedQuestion,
+    )
   }
 }

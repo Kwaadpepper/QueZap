@@ -1,6 +1,6 @@
 <div class="flex h-dvh flex-col">
   <nav class="bg-surface-200 dark:bg-surface-800 flex p-2 drop-shadow-md">
-    <quizz-title-editor class="mx-4" [(quezap)]="quezap" />
+    <quizz-title-editor class="mx-4" />
 
     <!-- Editorial buttons -->
     <menu class="ms-auto">
@@ -22,13 +22,9 @@
 
   <div class="flex grow flex-row">
     <!-- Sidebar with questions list -->
-    <quizz-question-list-view
-      class="h-full max-h-[calc(100dvh-4rem)] basis-1/6"
-      [questions]="questions()"
-      [(selectedIdx)]="selectedIdx"
-    />
+    <quizz-question-list-view class="h-full max-h-[calc(100dvh-4rem)] basis-1/6" />
 
     <!-- Question editor -->
-    <quizz-question-editor class="w-full" [(question)]="selectedQuestion" />
+    <quizz-question-editor class="w-full" />
   </div>
 </div>

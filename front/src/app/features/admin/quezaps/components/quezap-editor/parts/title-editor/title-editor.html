@@ -12,8 +12,8 @@
   >
     <ng-template #display class="w-full">
       <span class="line-clamp-1 w-xs">
-        @if (phrase().length > 0) {
-          <span>{{ phrase() }}</span>
+        @if (editedTitle().length > 0) {
+          <span>{{ editedTitle() }}</span>
         } @else {
           <span class="opacity-80">Titre du QueZap (cliquez pour éditer)...</span>
         }

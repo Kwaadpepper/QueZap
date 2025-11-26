@@ -19,3 +19,11 @@ export interface QuezapWithQuestions extends Quezap {
 export interface QuezapWithQuestionsAndAnswers extends Quezap {
   readonly questionWithAnswersAndResponses: QuestionWithAnswersAndResponses[]
 }
+
+export function emptyRawQuezap(): Omit<QuezapWithQuestionsAndAnswers, 'id'> {
+  return {
+    title: '',
+    description: '',
+    questionWithAnswersAndResponses: [],
+  }
+}
