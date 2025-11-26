@@ -6,14 +6,14 @@ export function scrollToElementInContainer(
   setTimeout(() => {
     const containerTop = container.scrollTop
     const containerBottom = containerTop + container.clientHeight
-    const elementTop = element.offsetTop
-    const elementBottom = elementTop + element.clientHeight
+    const elementTop = element.offsetTop - offset
+    const elementBottom = elementTop + element.clientHeight + offset
 
     if (elementTop < containerTop) {
-      container.scrollTo({ top: elementTop - offset, behavior: 'smooth' })
+      container.scrollTo({ top: elementTop, behavior: 'smooth' })
     }
     else if (elementBottom > containerBottom) {
-      container.scrollTo({ top: elementBottom - container.clientHeight + offset, behavior: 'smooth' })
+      container.scrollTo({ top: elementBottom - container.clientHeight, behavior: 'smooth' })
     }
   }, 0)
 }
