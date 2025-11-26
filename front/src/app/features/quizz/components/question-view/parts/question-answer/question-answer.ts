@@ -1,8 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed,
   input,
-  signal,
-  ViewEncapsulation,
 } from '@angular/core'
 import { Field, FieldTree } from '@angular/forms/signals'
 
@@ -11,7 +9,7 @@ import { CheckboxModule } from 'primeng/checkbox'
 import { PictureUrl, QuestionId } from '@quezap/domain/models'
 
 import { Picture } from '../picture/picture'
-import { QuestionIcon } from '../question-icon/question-icon'
+import { QuestionIcon, QuestionIconType } from '../question-icon/question-icon'
 
 export interface PrintableAnswer {
   readonly index: number
@@ -29,7 +27,6 @@ export interface PrintableAnswer {
   ],
   templateUrl: './question-answer.html',
   styleUrl: './question-answer.css',
-  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionAnswer {
@@ -42,10 +39,8 @@ export class QuestionAnswer {
   protected readonly phrase = computed<string>(() => this.answer()?.value ?? '')
   protected readonly pictureUrl = computed<PictureUrl | undefined>(() => this.answer()?.picture ?? undefined)
 
-  private readonly forms = signal([
-    'circle', 'cross', 'diamond', 'hexagon',
-    'pentagon', 'square', 'star', 'triangle',
-  ])
+  // --- Compute icon form based on question ID and answer index ---
+  private readonly forms = Object.values(QuestionIconType)
 
   protected readonly uniqueSeed = computed<number>(() => {
     const questionId = String(this.questionId())
@@ -55,12 +50,12 @@ export class QuestionAnswer {
         .reduce((a, b) => a + b, ''),
     )
 
-    return questionIdPart % this.forms().length
+    return questionIdPart % this.forms.length
   })
 
   protected readonly currentFormIndex = computed<number>(() => (
     this.uniqueSeed() + this.identifier()
-  ) % this.forms().length)
+  ) % this.forms.length)
 
-  protected readonly currentForm = computed<string>(() => this.forms()[this.currentFormIndex()])
+  protected readonly currentForm = computed<QuestionIconType>(() => this.forms[this.currentFormIndex()])
 }
