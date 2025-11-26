@@ -83,8 +83,6 @@ export class QuestionIcon {
 
       const spanEl = this.spanElement.nativeElement
 
-      console.debug(spanEl)
-
       const svgParentElement = spanEl.querySelector('svg')
       const svgInjectChildElement = spanEl.querySelector('svg svg')
       if (!svgParentElement || !svgInjectChildElement) {
