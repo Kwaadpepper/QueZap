@@ -12,7 +12,7 @@ import { FocusTrapModule } from 'primeng/focustrap'
 import { Tag } from 'primeng/tag'
 
 import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
-import { QuestionType, QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
+import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
@@ -62,30 +62,16 @@ export class QuestionListView {
   }
 
   protected onAddQuestion() {
-    this.questions().push(
-      QuestionTypeFrom(QuestionType.Quizz)
-        .getNewWithAnswers(),
-    )
-    this.selectQuestion(this.questions().length - 1)
+    this.editorContainer.addNewQuestion()
+    this.scrollToQuestion(this.selectedIdx())
   }
 
   protected onDuplicateQuestion(index: number) {
-    const questionToDuplicate = this.questions()[index]
-    const duplicatedQuestion: QuestionListViewInput[0] = {
-      ...questionToDuplicate,
-      answers: questionToDuplicate.answers.map(answer => ({ ...answer })),
-    }
-
-    const newIndex = index + 1
-    this.questions().splice(newIndex, 0, duplicatedQuestion)
-    this.selectQuestion(newIndex)
+    this.editorContainer.duplicateQuestionAtIdx(index)
+    this.scrollToQuestion(this.selectedIdx())
   }
 
   protected onDeleteQuestion($event: Event, index: number) {
-    if (this.questions().length <= 1) {
-      throw new Error('At least one question must exist')
-    }
-
     this.confirmationService.confirm({
       target: $event.currentTarget ?? undefined,
       blockScroll: true,
@@ -95,12 +81,8 @@ export class QuestionListView {
       },
       acceptButtonProps: { severity: 'danger' },
       accept: () => {
-        this.questions().splice(index, 1)
-        const newIndex = Math.min(
-          this.selectedIdx(),
-          this.questions().length - 1,
-        )
-        this.selectQuestion(newIndex)
+        this.editorContainer.deleteQuestionAtIdx(index)
+        this.scrollToQuestion(this.selectedIdx())
       },
     })
   }

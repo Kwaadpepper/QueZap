@@ -35,6 +35,22 @@ export class QuezapEditorContainer {
     this._selectionQuestionIdx.set(idx)
   }
 
+  public addNewQuestion() {
+    const currentQuezap = this._quezap()
+    const newQuestion = QuestionTypeFrom(this.#defautQuestionType).getNewWithAnswers()
+    const updatedQuestions = [
+      ...currentQuezap.questionWithAnswersAndResponses,
+      newQuestion,
+    ]
+
+    this._quezap.set({
+      ...currentQuezap,
+      questionWithAnswersAndResponses: updatedQuestions,
+    })
+    this.markAsDirty()
+    this.setSelectionQuestionIdx(updatedQuestions.length - 1)
+  }
+
   public updateQuestionAtIdx(idx: number, updatedQuestion: QuestionWithAnswers) {
     const currentQuezap = this._quezap()
     const updatedQuestions = [...currentQuezap.questionWithAnswersAndResponses]
@@ -47,11 +63,49 @@ export class QuezapEditorContainer {
     this.markAsDirty()
   }
 
+  public duplicateQuestionAtIdx(idx: number) {
+    const currentQuezap = this._quezap()
+    const questionToDuplicate = currentQuezap.questionWithAnswersAndResponses[idx]
+    const updatedQuestions = [
+      ...currentQuezap.questionWithAnswersAndResponses.slice(0, idx + 1),
+      { ...questionToDuplicate },
+      ...currentQuezap.questionWithAnswersAndResponses.slice(idx + 1),
+    ]
+
+    this._quezap.set({
+      ...currentQuezap,
+      questionWithAnswersAndResponses: updatedQuestions,
+    })
+    this.markAsDirty()
+    this.setSelectionQuestionIdx(idx + 1)
+  }
+
+  public deleteQuestionAtIdx(idx: number) {
+    if (this.questions().length <= 1) {
+      throw new Error('At least one question must exist')
+    }
+
+    const currentQuezap = this._quezap()
+    const updatedQuestions = currentQuezap.questionWithAnswersAndResponses.filter(
+      (_, questionIdx) => questionIdx !== idx,
+    )
+
+    this._quezap.set({
+      ...currentQuezap,
+      questionWithAnswersAndResponses: updatedQuestions,
+    })
+    this.markAsDirty()
+    this._selectionQuestionIdx.set(
+      Math.min(this._selectionQuestionIdx(), updatedQuestions.length - 1),
+    )
+  }
+
   public reset() {
     this._quezap.set(
       this.createEmptyQuestion(this.#defautQuestionType),
     )
     this.markAsDirty()
+    this._selectionQuestionIdx.set(0)
   }
 
   private markAsDirty() {
@@ -71,7 +125,6 @@ export class QuezapEditorContainer {
 
     setTimeout(() => {
       this.markAsDirty()
-      this.setSelectionQuestionIdx(0)
     })
 
     return newQuezap
