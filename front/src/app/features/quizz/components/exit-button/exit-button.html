@@ -15,7 +15,7 @@
   <quizz-icon name="exit" pButtonIcon />
 </p-button>
 <p-confirmpopup
-  #cp
+  #confirmQuitQuizz
   [pt]="{ root: { 'aria-label': 'Confirmez vouloir quitter la session', tabindex: 0 } }"
 >
   <ng-template #headless let-message>
@@ -28,7 +28,7 @@
           size="small"
           severity="danger"
           [text]="true"
-          (onClick)="cp.onAccept()"
+          (onClick)="confirmQuitQuizz.onAccept()"
         >
           <quizz-icon name="check" pButtonIcon />
         </p-button>
@@ -37,7 +37,7 @@
           title="Retour"
           size="small"
           severity="primary"
-          (onClick)="cp.onReject()"
+          (onClick)="confirmQuitQuizz.onReject()"
         >
           <quizz-icon name="exit" pButtonIcon />
         </p-button>

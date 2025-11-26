@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy, Component,
   computed,
+  effect,
   inject,
   ViewChild,
 } from '@angular/core'
@@ -57,18 +58,23 @@ export class QuestionListView {
   @ViewChild('deleteQuestionCancelButton')
   protected readonly deleteQuestionCancelButton!: { nativeElement: HTMLButtonElement } | undefined
 
+  constructor() {
+    effect(() => {
+      const selectedIdx = this.selectedIdx()
+      this.scrollToQuestion(selectedIdx)
+    }, { debugName: 'Scroll to selected question' })
+  }
+
   protected onSelectQuestion(index: number) {
     this.selectQuestion(index)
   }
 
   protected onAddQuestion() {
     this.editorContainer.addNewQuestion()
-    this.scrollToQuestion(this.selectedIdx())
   }
 
   protected onDuplicateQuestion(index: number) {
     this.editorContainer.duplicateQuestionAtIdx(index)
-    this.scrollToQuestion(this.selectedIdx())
   }
 
   protected onDeleteQuestion($event: Event, index: number) {
@@ -82,7 +88,6 @@ export class QuestionListView {
       acceptButtonProps: { severity: 'danger' },
       accept: () => {
         this.editorContainer.deleteQuestionAtIdx(index)
-        this.scrollToQuestion(this.selectedIdx())
       },
     })
   }
@@ -105,7 +110,6 @@ export class QuestionListView {
 
   private selectQuestion(index: number) {
     this.editorContainer.setSelectionQuestionIdx(index)
-    this.scrollToQuestion(index)
   }
 
   private scrollToQuestion(index: number) {
@@ -117,7 +121,7 @@ export class QuestionListView {
         return
       }
 
-      const scrollPadding = 50
+      const scrollPadding = 80
 
       scrollToElementInContainer(
         container,

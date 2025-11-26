@@ -42,7 +42,7 @@
               <quizz-icon name="trash" pButtonIcon />
             </button>
             <p-confirmpopup
-              #cp
+              #confirmDeleteQuestionFromViewList
               [pt]="{
                 root: { 'aria-label': 'Confirmez vouloir supprimer la question', tabindex: 0 },
               }"
@@ -51,10 +51,18 @@
                 <div class="rounded p-4">
                   <span><quizz-icon name="trash" /> Supprimer ?</span>
                   <div class="mt-4 flex items-center gap-2">
-                    <p-button size="small" severity="danger" (onClick)="cp.onAccept()">
+                    <p-button
+                      size="small"
+                      severity="danger"
+                      (onClick)="confirmDeleteQuestionFromViewList.onAccept()"
+                    >
                       <quizz-icon name="confirm" pButtonIcon />
                     </p-button>
-                    <p-button size="small" severity="primary" (onClick)="cp.onReject()">
+                    <p-button
+                      size="small"
+                      severity="primary"
+                      (onClick)="confirmDeleteQuestionFromViewList.onReject()"
+                    >
                       <quizz-icon name="cancel" pButtonIcon />
                     </p-button>
                   </div>
