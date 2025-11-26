@@ -1,0 +1,19 @@
+/* stylelint-disable */
+@reference "#tailwind.css";
+/* stylelint-enable */
+
+.phrase-input-textarea {
+  @apply bg-surface-0/50! text-surface-950! placeholder:text-surface-950/50!;
+
+  &::selection {
+    @apply bg-primary-500/40!;
+  }
+
+  &:focus {
+    @apply outline-none ring-4 ring-surface-0/50!;
+  }
+
+  &:read-only {
+    @apply bg-transparent! cursor-default! text-white! border-0! ring-0!;
+  }
+}

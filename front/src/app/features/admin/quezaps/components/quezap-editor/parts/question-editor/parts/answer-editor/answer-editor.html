@@ -1,5 +1,9 @@
 <div class="grid gap-4 xl:grid-cols-2">
   @for (answer of answers(); track $index) {
-    <quizz-answer [index]="$index" />
+    <quizz-answer
+      [answer]="answer"
+      [readonly]="answersAreReadonly()"
+      (answerChanged)="onAnswerChanged($event)"
+    />
   }
 </div>

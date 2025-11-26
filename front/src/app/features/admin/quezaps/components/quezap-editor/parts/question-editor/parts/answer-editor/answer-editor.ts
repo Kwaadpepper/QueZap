@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 
-import { QuestionType } from '@quezap/domain/models'
+import { getNewAnswerWithResponse, QuestionType } from '@quezap/domain/models'
 
 import { QuezapEditorContainer } from '../../../../editor-container'
 
-import { AnswerComponent } from './parts'
+import { AnswerComponent, AnswerInput } from './parts'
 
 @Component({
   selector: 'quizz-answer-editor',
@@ -19,7 +19,18 @@ export class AnswerEditor {
   protected readonly answers = computed(() => {
     switch (this.selectedQuestion().type) {
       case QuestionType.Boolean:
-        return this.selectedQuestion().answers.slice(0, 2)
+        return [
+          {
+            ...getNewAnswerWithResponse(0),
+            isCorrect: true,
+            value: 'Vrai',
+          },
+          {
+            ...getNewAnswerWithResponse(1),
+            isCorrect: false,
+            value: 'Faux',
+          },
+        ]
       case QuestionType.Binary:
         return this.selectedQuestion().answers.slice(0, 2)
       case QuestionType.Quizz:
@@ -27,4 +38,22 @@ export class AnswerEditor {
         return this.selectedQuestion().answers
     }
   })
+
+  protected readonly answersAreReadonly = computed(() => this.selectedQuestion().type === QuestionType.Boolean)
+
+  protected onAnswerChanged(updatedAnswer: AnswerInput) {
+    const updatedAnswers = this.answers().map(answer =>
+      answer.index === updatedAnswer.index ? updatedAnswer : answer,
+    )
+
+    const updatedQuestion = {
+      ...this.selectedQuestion(),
+      answers: updatedAnswers,
+    }
+
+    this.editorContainer.updateQuestionAtIdx(
+      this.editorContainer.selectionQuestionIdx(),
+      updatedQuestion,
+    )
+  }
 }

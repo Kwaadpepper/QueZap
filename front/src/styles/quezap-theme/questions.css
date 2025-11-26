@@ -20,6 +20,10 @@
   @apply font-body text-color-emphasis mb-0 p-4 text-center text-2xl tracking-tighter italic md:text-3xl
 }
 
+.answer-phrase {
+  @apply line-clamp-2 text-lg! md:text-xl!;
+}
+
 .answer-option-0 {
   @apply bg-cyan-200 dark:bg-cyan-900;
 

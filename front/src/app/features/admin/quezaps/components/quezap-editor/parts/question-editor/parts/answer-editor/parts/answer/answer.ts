@@ -1,22 +1,35 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed,
+  input,
+  output,
+} from '@angular/core'
 
-import { QuezapEditorContainer } from '@quezap/features/admin/quezaps/components/quezap-editor/editor-container'
+import { AnswerWithResponse } from '@quezap/domain/models'
 import { QuestionIcon, QuestionIconType } from '@quezap/features/quizz/components/question-view/parts'
+
+import { PhraseInput } from '../phrase-input/phrase-input'
+
+export type AnswerInput = AnswerWithResponse
 
 @Component({
   selector: 'quizz-answer',
   templateUrl: './answer.html',
-  imports: [QuestionIcon],
+  imports: [QuestionIcon, PhraseInput],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnswerComponent {
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  readonly answer = input.required<AnswerInput>()
+  readonly readonly = input.required<boolean>()
+  readonly answerChanged = output<AnswerInput>()
 
-  private readonly answers = computed(() => this.editorContainer.selectedQuestion().answers)
-  private readonly answer = computed(() => this.answers()[this.index()])
+  protected readonly index = computed(() => this.answer().index)
   protected readonly phrase = computed(() => this.answer().value ?? '')
-
-  readonly index = input<number>(0)
-
   protected readonly currentForm = computed(() => Object.values(QuestionIconType)[this.index()])
+
+  protected onPhraseChanged(newPhrase: string) {
+    this.answerChanged.emit({
+      ...this.answer(),
+      value: newPhrase,
+    })
+  }
 }

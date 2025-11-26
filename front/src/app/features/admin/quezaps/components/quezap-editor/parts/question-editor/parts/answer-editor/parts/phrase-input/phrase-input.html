@@ -1,0 +1,14 @@
+<textarea
+  pTextarea
+  fluid
+  class="phrase-input-textarea answer-phrase resize-none"
+  maxlength="75"
+  rows="2"
+  cols="30"
+  ondragstart="return false;"
+  ondrop="return false;"
+  [placeholder]="`Ajouter réponse ${index() + 1}`"
+  [value]="phrase()"
+  [disabled]="readonly()"
+  (input)="onPhraseChanged($any($event.target).value)"
+></textarea>

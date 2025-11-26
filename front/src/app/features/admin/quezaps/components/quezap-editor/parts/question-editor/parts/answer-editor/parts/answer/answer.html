@@ -2,19 +2,16 @@
   <div class="flex w-full items-center gap-4 px-2 py-3">
     <quizz-question-icon class="w-1/5 max-w-15 min-w-5" [form]="currentForm()" [checked]="true" />
 
-    <div class="align-items-center flex flex-col justify-center">
-      <span class="cursor-pointer text-lg select-none md:text-2xl">{{ phrase() }}</span>
+    <div class="align-items-center flex grow flex-col justify-center">
+      <quizz-phrase-input
+        class="w-full"
+        [index]="index()"
+        [phrase]="phrase()"
+        [readonly]="readonly()"
+        (phraseChanged)="onPhraseChanged($event)"
+      />
 
-      <!-- @let picture = pictureUrl();
-      @if (picture) {
-        <quizz-picture
-          [aria-labelledby]="`answer-image-desc-${identifier()}`"
-          [pictureUrl]="picture"
-        />
-        <span class="ms-4 text-xl" [id]="`answer-image-desc-${identifier()}`">
-          Image de la réponse {{ identifier() + 1 }}
-        </span>
-      } -->
+      <!-- TODO: Gestion des images -->
     </div>
   </div>
 </div>
