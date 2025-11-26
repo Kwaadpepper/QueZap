@@ -1,11 +1,12 @@
 <div class="flex h-full w-full flex-row justify-between">
   <!-- QUESTION EDITOR -->
-  <main class="quezap-theme-background relative grow p-4">
+  <main class="quezap-theme-background relative flex grow flex-col gap-4 p-4">
     <quizz-phrase-editor class="w-full" />
-    <hr />
-    <span>{{ question().picture ?? "Pas d'image" }}</span>
-    <hr />
-    <span>Réponses :</span>
+
+    <div class="grow">
+      <span>{{ question().picture ?? "Pas d'image" }}</span>
+    </div>
+
     <quizz-answer-editor />
 
     <quizz-question-timer
