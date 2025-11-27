@@ -4,7 +4,7 @@ import { delay, map, of, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
-import { Quezap } from '@quezap/domain/models'
+import { Quezap, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
 
 import { QuezapService } from './quezap'
 import { MOCK_QUEZAPS } from './quezap.mock'
@@ -51,6 +51,25 @@ export class QuezapMockService implements QuezapService {
         return {
           kind: 'success',
           result: obs,
+        }
+      }),
+    )
+  }
+
+  persistQuezap(quezap: Omit<QuezapWithQuestionsAndAnswers, 'id'>): ServiceOutput<Pick<Quezap, 'id'>> {
+    return of(quezap).pipe(
+      delay(this.MOCK_DELAY()),
+      tap(() => {
+        if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while persisting quezap')
+          throw new ServiceError('Mock service error: quezap persist')
+        }
+      }),
+      map(() => {
+        console.debug('Mock: persisted quezap')
+        return {
+          kind: 'success',
+          result: this.mockedQuezaps()[0].id,
         }
       }),
     )

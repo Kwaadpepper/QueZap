@@ -9,8 +9,12 @@
         raised
         class="ml-4"
         [severity]="isDirty() ? 'warn' : 'success'"
+        [disabled]="persisting()"
         (click)="onSaveQuezap()"
       >
+        @if (persisting()) {
+          <quizz-icon name="cog" animation="spin" pButtonIcon />
+        }
         <span pButtonLabel>Enregistrer</span>
       </button>
       <button pButton raised severity="secondary" class="ml-4" (click)="onCloseEditor()">

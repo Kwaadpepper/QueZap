@@ -8,10 +8,11 @@ import {
   signal,
 } from '@angular/core'
 
-import { ConfirmationService } from 'primeng/api'
+import { ConfirmationService, MessageService } from 'primeng/api'
 import { ButtonModule } from 'primeng/button'
 import { ConfirmDialogModule } from 'primeng/confirmdialog'
 
+import { ValidationError } from '@quezap/core/errors'
 import {
   QuestionType, QuestionTypeFrom,
   QuestionWithAnswersAndResponses,
@@ -45,12 +46,12 @@ export type QuezapEditorInput = Omit<QuezapWithQuestionsAndAnswers, 'id'>
 export class QuezapEditor {
   private readonly editorContainer = inject(QuezapEditorContainer)
   private readonly confirmation = inject(ConfirmationService)
+  private readonly message = inject(MessageService)
 
   readonly quezap = model.required<QuezapEditorInput>()
-
   readonly closeEvent = output<void>()
-  readonly saveEvent = output<void>()
 
+  protected readonly persisting = computed(() => this.editorContainer.persisting())
   protected readonly isDirty = computed(() => this.editorContainer.isDirty())
   private readonly selectedIdx = signal<number>(
     this.editorContainer.selectionQuestionIdx(),
@@ -85,8 +86,23 @@ export class QuezapEditor {
   }
 
   protected onSaveQuezap() {
-    this.saveEvent.emit()
-    this.editorContainer.isDirty.set(false)
+    this.editorContainer.persist()
+      .then(() => this.message.add({
+        summary: 'Enregistré !',
+        severity: 'success',
+      }))
+      .catch((err) => {
+        if (err instanceof ValidationError) {
+          this.message.add({
+            summary: 'Validation',
+            text: 'Vous devez corriger votre questionnaire avant qu\'il soit sauvegardé',
+            severity: 'warn',
+          })
+          return
+        }
+
+        throw new Error('Erreur lors de l\'enregistrement du questionnaire', err)
+      })
   }
 
   protected onCloseEditor() {

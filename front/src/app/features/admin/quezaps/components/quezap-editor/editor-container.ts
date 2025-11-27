@@ -1,12 +1,25 @@
-import { computed, Injectable, signal } from '@angular/core'
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
-import { emptyRawQuezap, QuestionType, QuestionTypeFrom, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
+import {
+  catchError, finalize, of, switchMap, tap, throwError,
+} from 'rxjs'
+
+import { isFailure } from '@quezap/core/types'
+import {
+  emptyRawQuezap, QuestionType, QuestionTypeFrom,
+  QuezapWithQuestionsAndAnswers,
+} from '@quezap/domain/models'
+
+import { QUEZAP_SERVICE } from '../../services'
 
 type QuezapEditorState = Omit<QuezapWithQuestionsAndAnswers, 'id'>
 type QuestionWithAnswers = QuezapWithQuestionsAndAnswers['questionWithAnswersAndResponses'][0]
 
 @Injectable()
 export class QuezapEditorContainer {
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly quezapService = inject(QUEZAP_SERVICE)
   readonly #defautQuestionType = QuestionType.Quizz
 
   private readonly _quezap = signal<QuezapEditorState>(
@@ -24,11 +37,45 @@ export class QuezapEditorContainer {
     ],
   )
 
-  readonly isDirty = signal<boolean>(false)
+  private readonly _isDirty = signal<boolean>(false)
+  readonly isDirty = this._isDirty.asReadonly()
+
+  private readonly _persisting = signal<boolean>(false)
+  readonly persisting = this._persisting.asReadonly()
+
+  public persist(): Promise<QuezapWithQuestionsAndAnswers> {
+    this._persisting.update(() => true)
+
+    return new Promise((resolve, reject) => {
+      this.quezapService.persistQuezap(this.quezap()).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((output) => {
+          if (isFailure(output)) {
+            const err = output.error
+            return throwError(() => err)
+          }
+
+          this._isDirty.set(false)
+
+          return of({
+            id: output.result.id,
+            ...this._quezap(),
+          })
+        }),
+        tap(value => resolve(value)),
+        catchError((err) => {
+          this._persisting.set(false)
+          reject(err)
+          return of(void 0)
+        }),
+        finalize(() => this._persisting.set(false)),
+      ).subscribe()
+    })
+  }
 
   public setQuezap(quezap: QuezapEditorState) {
     this._quezap.set(quezap)
-    this.isDirty.set(false)
+    this._isDirty.set(false)
   }
 
   public setSelectionQuestionIdx(idx: number) {
@@ -109,7 +156,7 @@ export class QuezapEditorContainer {
   }
 
   private markAsDirty() {
-    this.isDirty.set(true)
+    this._isDirty.set(true)
   }
 
   private createEmptyQuestion(type: QuestionType): QuezapEditorState {
