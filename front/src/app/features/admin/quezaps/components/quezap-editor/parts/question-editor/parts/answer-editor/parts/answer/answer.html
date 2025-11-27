@@ -1,8 +1,15 @@
 <div class="answer-option relative flex h-full w-full" [class]="`answer-option-${index()}`">
-  <div class="flex w-full items-center gap-4 px-2 py-3">
-    <quizz-question-icon class="w-1/5 max-w-15 min-w-5" [form]="currentForm()" [checked]="true" />
+  <div class="flex w-full items-center gap-2 px-2 py-3">
+    <quizz-question-icon [form]="currentForm()" [checked]="true" />
 
-    <div class="align-items-center flex grow flex-col justify-center">
+    <div class="align-items-center flex grow flex-row justify-center">
+      <div class="flex grow items-center justify-center px-2">
+        <quizz-answer-correctness
+          [checked]="isCorrect()"
+          (correctnessChanged)="onCorrectnessChanged($event)"
+        />
+      </div>
+
       <quizz-phrase-input
         class="w-full"
         [index]="index()"
