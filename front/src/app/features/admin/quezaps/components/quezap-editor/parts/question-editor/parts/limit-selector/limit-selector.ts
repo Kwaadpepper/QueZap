@@ -9,7 +9,7 @@ import { Select, SelectChangeEvent } from 'primeng/select'
 import { Question } from '@quezap/domain/models'
 import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
-import { QuezapEditorContainer } from '../../../../editor-container'
+import { QuezapEditorStore } from '../../../../../../stores'
 
 export type LimitSelectorInput = Pick<Question, 'limit'>
 
@@ -28,10 +28,10 @@ interface QuestionLimitOption {
 })
 export class LimitSelector {
   readonly #secondOptions = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120, 150, 180, 240, 300]
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
 
   readonly question = computed<LimitSelectorInput>(() =>
-    this.editorContainer.selectedQuestion(),
+    this.editorStore.selectedQuestion(),
   )
 
   /** Limits in seconds */
@@ -63,13 +63,13 @@ export class LimitSelector {
   protected onLimitChange(event: SelectChangeEvent) {
     const newLimit = event.value as number
     const updatedQuestion = {
-      ...this.editorContainer.selectedQuestion(),
+      ...this.editorStore.selectedQuestion(),
       limit: newLimit > 0
         ? { seconds: newLimit }
         : undefined,
     }
-    this.editorContainer.updateQuestionAtIdx(
-      this.editorContainer.selectionQuestionIdx(),
+    this.editorStore.updateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
       updatedQuestion,
     )
   }

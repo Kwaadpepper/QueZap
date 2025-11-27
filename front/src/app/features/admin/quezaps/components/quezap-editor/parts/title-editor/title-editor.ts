@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext'
 
 import { Quezap } from '@quezap/domain/models'
 
-import { QuezapEditorContainer } from '../../editor-container'
+import { QuezapEditorStore } from '../../../../stores'
 
 export type TitleInput = Pick<Quezap, 'title'>
 
@@ -29,9 +29,9 @@ export type TitleInput = Pick<Quezap, 'title'>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TitleEditor {
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
 
-  private readonly quezap = computed<TitleInput>(() => this.editorContainer.quezap())
+  private readonly quezap = computed<TitleInput>(() => this.editorStore.quezap())
   protected readonly editedTitle = signal<string>('')
 
   protected openCallback() {
@@ -41,9 +41,9 @@ export class TitleEditor {
   // * closeCallback est appelé par PrimeNG lors de la désactivation
   protected closeCallback() {
     const updatedQuezap = {
-      ...this.editorContainer.quezap(),
+      ...this.editorStore.quezap(),
       title: this.editedTitle().trim(),
     }
-    this.editorContainer.setQuezap(updatedQuezap)
+    this.editorStore.setQuezap(updatedQuezap)
   }
 }

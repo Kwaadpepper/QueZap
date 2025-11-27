@@ -8,7 +8,7 @@ import { SelectChangeEvent, SelectModule } from 'primeng/select'
 
 import { Question, QuestionType, QuestionTypeFrom } from '@quezap/domain/models'
 
-import { QuezapEditorContainer } from '../../../../editor-container'
+import { QuezapEditorStore } from '../../../../../../stores'
 
 export type TypeSelectorInput = Pick<Question, 'type'>
 
@@ -26,8 +26,8 @@ let uniqueId = 0
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TypeSelector {
-  private readonly editorContainer = inject(QuezapEditorContainer)
-  private readonly question = computed<TypeSelectorInput>(() => this.editorContainer.selectedQuestion())
+  private readonly editorStore = inject(QuezapEditorStore)
+  private readonly question = computed<TypeSelectorInput>(() => this.editorStore.selectedQuestion())
 
   protected selectedType = signal<QuestionType>(QuestionType.Quizz)
 
@@ -49,11 +49,11 @@ export class TypeSelector {
   protected onTypeChange(event: SelectChangeEvent) {
     const newType = event.value as QuestionType
     const updatedQuestion = {
-      ...this.editorContainer.selectedQuestion(),
+      ...this.editorStore.selectedQuestion(),
       type: newType,
     }
-    this.editorContainer.updateQuestionAtIdx(
-      this.editorContainer.selectionQuestionIdx(),
+    this.editorStore.updateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
       updatedQuestion,
     )
   }

@@ -10,7 +10,7 @@ import { InputTextModule } from 'primeng/inputtext'
 
 import { Question } from '@quezap/domain/models'
 
-import { QuezapEditorContainer } from '../../../../editor-container'
+import { QuezapEditorStore } from '../../../../../../stores'
 
 export type PhraseInput = Pick<Question, 'value'>
 
@@ -29,10 +29,10 @@ export type PhraseInput = Pick<Question, 'value'>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PhraseEditor {
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
 
   private readonly question = computed<PhraseInput>(() =>
-    this.editorContainer.selectedQuestion(),
+    this.editorStore.selectedQuestion(),
   )
 
   protected readonly editedPhrase = signal<string>('')
@@ -52,9 +52,9 @@ export class PhraseEditor {
 
   // * closeCallback est appelé par PrimeNG lors de la désactivation
   protected closeCallback() {
-    const question = this.editorContainer.selectedQuestion()
-    this.editorContainer.updateQuestionAtIdx(
-      this.editorContainer.selectionQuestionIdx(),
+    const question = this.editorStore.selectedQuestion()
+    this.editorStore.updateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
       {
         ...question,
         value: this.editedPhrase().trim(),

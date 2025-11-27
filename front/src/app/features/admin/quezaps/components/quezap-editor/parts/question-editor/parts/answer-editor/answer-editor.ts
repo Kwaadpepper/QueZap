@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 
 import { getNewAnswerWithResponse, QuestionType } from '@quezap/domain/models'
 
-import { QuezapEditorContainer } from '../../../../editor-container'
+import { QuezapEditorStore } from '../../../../../../stores'
 
 import { AnswerComponent, AnswerInput } from './parts'
 
@@ -13,12 +13,12 @@ import { AnswerComponent, AnswerInput } from './parts'
   imports: [AnswerComponent],
 })
 export class AnswerEditor {
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
 
   // * This is used for toggling between first and second answer in boolean or binary questions
   private readonly booleanToggle = signal(0)
 
-  protected readonly selectedQuestion = computed(() => this.editorContainer.selectedQuestion())
+  protected readonly selectedQuestion = computed(() => this.editorStore.selectedQuestion())
   // * This is used for displaying answers in the editor
   protected readonly answers = computed(() => {
     switch (this.selectedQuestion().type) {
@@ -77,8 +77,8 @@ export class AnswerEditor {
           answers: updatedAnswers,
         }
 
-    this.editorContainer.updateQuestionAtIdx(
-      this.editorContainer.selectionQuestionIdx(),
+    this.editorStore.updateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
       updatedQuestion,
     )
   }

@@ -16,7 +16,8 @@ import { ValidationError } from '@quezap/core/errors'
 import { QuestionType, QuestionTypeFrom, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
-import { QuezapEditorContainer } from './editor-container'
+import { QuezapEditorStore } from '../../stores'
+
 import { QuestionEditor, QuestionListView, TitleEditor } from './parts'
 
 export type QuezapEditorInput = Omit<QuezapWithQuestionsAndAnswers, 'id'>
@@ -33,14 +34,14 @@ export type QuezapEditorInput = Omit<QuezapWithQuestionsAndAnswers, 'id'>
   ],
   providers: [
     ConfirmationService,
-    QuezapEditorContainer,
+    QuezapEditorStore,
   ],
   templateUrl: './quezap-editor.html',
   styles: ':host { display: block; height: 100%; width: 100%; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuezapEditor {
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
   private readonly confirmation = inject(ConfirmationService)
   private readonly message = inject(MessageService)
 
@@ -56,11 +57,11 @@ export class QuezapEditor {
 
   readonly closeEvent = output<void>()
 
-  protected readonly persisting = computed(() => this.editorContainer.persisting())
-  protected readonly isDirty = computed(() => this.editorContainer.isDirty())
+  protected readonly persisting = computed(() => this.editorStore.persisting())
+  protected readonly isDirty = computed(() => this.editorStore.isDirty())
 
   constructor() {
-    this.editorContainer.setQuezap(this._quezap())
+    this.editorStore.setQuezap(this._quezap())
 
     effect(() => {
       const newInput = this.quezap()
@@ -79,12 +80,12 @@ export class QuezapEditor {
 
     effect(() => {
       const quezap = this._quezap()
-      this.editorContainer.setQuezap(quezap)
+      this.editorStore.setQuezap(quezap)
     }, { debugName: 'Internal Quezap changed' })
   }
 
   protected onSaveQuezap() {
-    this.editorContainer.persist()
+    this.editorStore.persist()
       .then(() => this.message.add({
         summary: 'Enregistré !',
         severity: 'success',

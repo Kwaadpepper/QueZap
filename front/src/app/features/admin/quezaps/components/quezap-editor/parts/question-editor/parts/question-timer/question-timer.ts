@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 
 import { Question } from '@quezap/domain/models'
 
-import { QuezapEditorContainer } from '../../../../editor-container'
+import { QuezapEditorStore } from '../../../../../../stores'
 
 export type QuestionTimerInput = Pick<Question, 'limit'>
 
@@ -12,8 +12,8 @@ export type QuestionTimerInput = Pick<Question, 'limit'>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionTimer {
-  private readonly editorContainer = inject(QuezapEditorContainer)
-  protected readonly selectedQuestion = computed(() => this.editorContainer.selectedQuestion())
+  private readonly editorStore = inject(QuezapEditorStore)
+  protected readonly selectedQuestion = computed(() => this.editorStore.selectedQuestion())
 
   protected readonly timer = computed(() => this.selectedQuestion().limit)
   protected readonly remainingSeconds = computed<number>(() => this.timer()?.seconds ?? -1)

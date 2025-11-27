@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button'
 
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
-import { QuezapEditorContainer } from '../../../../editor-container'
+import { QuezapEditorStore } from '../../../../../../stores'
 import { QuestionEditorInput } from '../../question-editor'
 
 @Component({
@@ -18,19 +18,19 @@ import { QuestionEditorInput } from '../../question-editor'
 })
 export class PanelQuestionActions {
   private readonly confirmationService = inject(ConfirmationService)
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
 
   protected readonly question = computed<QuestionEditorInput>(() =>
-    this.editorContainer.selectedQuestion(),
+    this.editorStore.selectedQuestion(),
   )
 
   protected readonly questionsCount = computed(() =>
-    this.editorContainer.questions().length,
+    this.editorStore.questions().length,
   )
 
   protected onDuplicateQuestion() {
-    this.editorContainer.duplicateQuestionAtIdx(
-      this.editorContainer.selectionQuestionIdx(),
+    this.editorStore.duplicateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
     )
   }
 
@@ -49,8 +49,8 @@ export class PanelQuestionActions {
       },
       acceptButtonProps: { severity: 'danger' },
       accept: () => {
-        this.editorContainer.deleteQuestionAtIdx(
-          this.editorContainer.selectionQuestionIdx(),
+        this.editorStore.deleteQuestionAtIdx(
+          this.editorStore.selectionQuestionIdx(),
         )
       },
     })

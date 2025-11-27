@@ -10,7 +10,7 @@ import { TagModule } from 'primeng/tag'
 import { QuestionType, QuestionTypeFrom, QuestionWithAnswersAndResponses } from '@quezap/domain/models'
 import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
-import { QuezapEditorContainer } from '../../../../editor-container'
+import { QuezapEditorStore } from '../../../../../../stores'
 
 type QuestionPreviewButtonInput = Omit<QuestionWithAnswersAndResponses, 'id'>
 
@@ -25,12 +25,12 @@ type QuestionPreviewButtonInput = Omit<QuestionWithAnswersAndResponses, 'id'>
   styleUrl: './question-preview-button.css',
 })
 export class QuestionPreviewButton {
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
   readonly question = input.required<QuestionPreviewButtonInput>()
   readonly index = input.required<number>()
   readonly selected = output()
 
-  protected readonly _selected = computed(() => this.editorContainer.selectionQuestionIdx() === this.index())
+  protected readonly _selected = computed(() => this.editorStore.selectionQuestionIdx() === this.index())
   protected readonly type = computed(() => QuestionTypeFrom(this.question().type).toString())
   protected readonly answers = computed(() => {
     switch (this.question().type) {

@@ -16,7 +16,7 @@ import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
 import { QuestionTypeFrom, QuestionWithAnswersAndResponses } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
-import { QuezapEditorContainer } from '../../editor-container'
+import { QuezapEditorStore } from '../../../../stores'
 
 import { QuestionActionBar, QuestionPreviewButton } from './parts'
 
@@ -40,14 +40,14 @@ export type QuestionListViewInput = Omit<QuestionWithAnswersAndResponses, 'id'>[
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionListView {
-  private readonly editorContainer = inject(QuezapEditorContainer)
+  private readonly editorStore = inject(QuezapEditorStore)
 
   readonly questions = computed<QuestionListViewInput>(() =>
-    this.editorContainer.quezap().questionWithAnswersAndResponses,
+    this.editorStore.quezap().questionWithAnswersAndResponses,
   )
 
   readonly selectedIdx = computed(() =>
-    this.editorContainer.selectionQuestionIdx(),
+    this.editorStore.selectionQuestionIdx(),
   )
 
   protected readonly QuestionTypeFrom = QuestionTypeFrom
@@ -66,7 +66,7 @@ export class QuestionListView {
   }
 
   protected onAddQuestion() {
-    this.editorContainer.addNewQuestion()
+    this.editorStore.addNewQuestion()
   }
 
   protected onKeyDown(event: KeyboardEvent) {
@@ -86,7 +86,7 @@ export class QuestionListView {
   }
 
   private selectQuestion(index: number) {
-    this.editorContainer.setSelectionQuestionIdx(index)
+    this.editorStore.setSelectionQuestionIdx(index)
   }
 
   private scrollToQuestion(index: number) {
