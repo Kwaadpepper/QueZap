@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy, Component, computed,
   DestroyRef,
   ElementRef,
-  HostListener,
   inject, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
@@ -52,6 +51,7 @@ import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(scroll)': 'onScroll($event)' },
 })
 export class App {
   private readonly router = inject(Router)
@@ -107,7 +107,6 @@ export class App {
     this.hostElement.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  @HostListener('scroll', ['$event'])
   protected onScroll(event: Event) {
     this.hideHeaderOnScroll.update(() => {
       const scrollTop = (event.target as HTMLElement).scrollTop
