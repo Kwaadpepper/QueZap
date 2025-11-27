@@ -1,5 +1,5 @@
 import {
-  computed, effect, ErrorHandler, inject, Injector, isDevMode, runInInjectionContext,
+  computed, DestroyRef, effect, ErrorHandler, inject, Injector, isDevMode, runInInjectionContext,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
@@ -154,6 +154,7 @@ export const ActiveSessionStore = signalStore(
     onInit(store,
       sessionObserver = inject(SESSION_OBSERVER_SERVICE),
       activeSessionPersistence = inject(ActiveSessionPersistence),
+      destroyRef = inject(DestroyRef),
       injector = inject(Injector),
       errorHandler = inject(ErrorHandler),
     ) {
@@ -180,7 +181,7 @@ export const ActiveSessionStore = signalStore(
         // * Listen to session status updates
         sessionObserver.sessionEvents().pipe(
           // Prevent memory leaks if the store is destroyed
-          takeUntilDestroyed(),
+          takeUntilDestroyed(destroyRef),
           retry({ count: Infinity, delay: 1000 }),
           concatMap((response) => {
             if (isDevMode()) {
