@@ -4,7 +4,13 @@
 
     <!-- Editorial buttons -->
     <menu class="ms-auto">
-      <button pButton raised severity="success" class="ml-4" (click)="onSaveQuezap()">
+      <button
+        pButton
+        raised
+        class="ml-4"
+        [severity]="isDirty() ? 'warn' : 'success'"
+        (click)="onSaveQuezap()"
+      >
         <span pButtonLabel>Enregistrer</span>
       </button>
       <button pButton raised severity="secondary" class="ml-4" (click)="onCloseEditor()">

@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy, Component,
+  computed,
   effect,
   inject,
   model,
@@ -47,10 +48,10 @@ export class QuezapEditor {
 
   readonly quezap = model.required<QuezapEditorInput>()
 
-  private readonly saveEmitted = signal(false)
   readonly closeEvent = output<void>()
   readonly saveEvent = output<void>()
 
+  protected readonly isDirty = computed(() => this.editorContainer.isDirty())
   private readonly selectedIdx = signal<number>(
     this.editorContainer.selectionQuestionIdx(),
   )
@@ -69,30 +70,27 @@ export class QuezapEditor {
   constructor() {
     effect(() => {
       const input = this.editorContainer.quezap()
-      this.saveEmitted.set(false)
       this.onQuezapChanged(input)
     }, { debugName: 'Quezap changed' })
 
     effect(() => {
       const idx = this.selectedIdx()
-      this.saveEmitted.set(false)
       this.onQuestionSelected(idx)
     }, { debugName: 'Selected question idx' })
 
     effect(() => {
       const question = this.selectedQuestion()
-      this.saveEmitted.set(false)
       this.onQuestionUpdated(question)
     }, { debugName: 'Selected question changed' })
   }
 
   protected onSaveQuezap() {
     this.saveEvent.emit()
-    this.saveEmitted.set(true)
+    this.editorContainer.isDirty.set(false)
   }
 
   protected onCloseEditor() {
-    if (!this.saveEmitted()) {
+    if (this.isDirty()) {
       this.confirmation.confirm({
         message: 'Voulez-vous quitter sans enregistrer les modifications ?',
         header: 'Confirmation',
