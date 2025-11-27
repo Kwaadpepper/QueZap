@@ -27,26 +27,6 @@
       <quizz-limit-selector class="my-4 block" />
     </div>
     <hr />
-    <menu class="flex flex-col flex-wrap items-center gap-2">
-      <p-button
-        class="w-fit"
-        severity="secondary"
-        [disabled]="questionsCount() <= 0"
-        (onClick)="onDuplicateQuestion()"
-      >
-        <quizz-icon pButtonLabel name="copy" />
-        <span pButtonLabel>Duppliquer</span>
-      </p-button>
-      <p-button
-        class="w-fit"
-        severity="danger"
-        outlined
-        [disabled]="questionsCount() <= 1"
-        (onClick)="onDeleteQuestion($event)"
-      >
-        <quizz-icon pButtonLabel name="trash" />
-        <span pButtonLabel>Supprimer</span>
-      </p-button>
-    </menu>
+    <quizz-panel-question-actions />
   </div>
 </div>
