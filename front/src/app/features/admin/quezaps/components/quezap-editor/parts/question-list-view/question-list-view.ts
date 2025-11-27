@@ -2,8 +2,9 @@ import {
   ChangeDetectionStrategy, Component,
   computed,
   effect,
+  ElementRef,
   inject,
-  ViewChild,
+  viewChild,
 } from '@angular/core'
 
 import { ConfirmationService } from 'primeng/api'
@@ -51,11 +52,7 @@ export class QuestionListView {
 
   protected readonly QuestionTypeFrom = QuestionTypeFrom
 
-  @ViewChild('questionContainer')
-  protected readonly questionContainer!: { nativeElement: HTMLDivElement }
-
-  @ViewChild('deleteQuestionCancelButton')
-  protected readonly deleteQuestionCancelButton!: { nativeElement: HTMLButtonElement } | undefined
+  protected readonly questionContainer = viewChild.required<ElementRef<HTMLDivElement>>('questionContainer')
 
   constructor() {
     effect(() => {
@@ -94,7 +91,7 @@ export class QuestionListView {
 
   private scrollToQuestion(index: number) {
     setTimeout(() => {
-      const container = this.questionContainer.nativeElement
+      const container = this.questionContainer().nativeElement
       const selectedQuestionElement = container.children.item(index) as HTMLElement | null
 
       if (!selectedQuestionElement) {

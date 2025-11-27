@@ -4,9 +4,10 @@ import {
   computed,
   DestroyRef,
   effect,
+  ElementRef,
   inject, input,
   signal,
-  ViewChild,
+  viewChild,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser'
@@ -48,8 +49,7 @@ export class QuestionIcon {
   private readonly svgCache = new Map<string, SafeHtml>()
   protected readonly svgContent = signal<SafeHtml>('')
 
-  @ViewChild('spanElement')
-  protected readonly spanElement!: { nativeElement: HTMLSpanElement }
+  protected readonly spanElement = viewChild.required<ElementRef<HTMLSpanElement>>('spanElement')
 
   constructor() {
     effect(() => {
@@ -77,11 +77,7 @@ export class QuestionIcon {
 
   private breakInjectedSvgVirtualEncapsulation(): void {
     setTimeout(() => {
-      if (!this.spanElement?.nativeElement) {
-        return
-      }
-
-      const spanEl = this.spanElement.nativeElement
+      const spanEl = this.spanElement().nativeElement
 
       const svgParentElement = spanEl.querySelector('svg')
       const svgInjectChildElement = spanEl.querySelector('svg svg')
