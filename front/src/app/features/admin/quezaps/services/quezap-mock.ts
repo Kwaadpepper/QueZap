@@ -2,9 +2,9 @@ import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
-import { ServiceError } from '@quezap/core/errors'
+import { NotFoundError, ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
-import { Quezap, QuezapWithQuestionsAndAnswers, QuezapWithTheme } from '@quezap/domain/models'
+import { Quezap, QuezapId, QuezapWithQuestionsAndAnswers, QuezapWithTheme } from '@quezap/domain/models'
 
 import { QuezapService } from './quezap'
 import { MOCK_QUEZAPS } from './quezap.mock'
@@ -14,7 +14,7 @@ export class QuezapMockService implements QuezapService {
   private readonly MOCK_DELAY = () => Math.max(100, Math.random() * 3000)
   private readonly MOCK_ERROR = () => Math.random() < 0.2
 
-  private readonly mockedQuezaps = signal<QuezapWithTheme[]>(MOCK_QUEZAPS)
+  private readonly mockedQuezaps = signal(MOCK_QUEZAPS)
 
   getQuezapPage(page: Pagination): ServiceOutput<PageOf<QuezapWithTheme>> {
     const pagination = toPageBasedPagination(page)
@@ -49,6 +49,32 @@ export class QuezapMockService implements QuezapService {
       }),
       map((obs) => {
         console.debug('Mock: fetched quezaps page', pageOfQuezaps)
+        return {
+          kind: 'success',
+          result: obs,
+        }
+      }),
+    )
+  }
+
+  find(quezapId: QuezapId): ServiceOutput<QuezapWithQuestionsAndAnswers, NotFoundError> {
+    const quezap = this.mockedQuezaps().find(q => q.id === quezapId)
+
+    return of(quezap).pipe(
+      delay(this.MOCK_DELAY()),
+      tap(() => {
+        if (this.MOCK_ERROR()) {
+          console.debug('Mock: error while finding quezap', quezapId)
+          throw new ServiceError('Mock service error: quezap find')
+        }
+      }),
+      map((obs) => {
+        if (!obs) {
+          console.debug('Mock: quezap not found', quezapId)
+          throw new NotFoundError(`Quezap with id ${quezapId} not found`)
+        }
+
+        console.debug('Mock: found quezap', obs)
         return {
           kind: 'success',
           result: obs,
