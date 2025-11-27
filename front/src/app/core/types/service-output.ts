@@ -5,8 +5,8 @@ import { Observable } from 'rxjs'
 import { ServiceError } from '../errors'
 
 export type Tried<Result, E extends ServiceError = ServiceError> = Success<Result> | Failure<E>
-interface Success<R> { kind: 'success', result: R }
-export interface Failure<E> { kind: 'failure', error: E }
+interface Success<R> { readonly kind: 'success', readonly result: R }
+export interface Failure<E> { readonly kind: 'failure', readonly error: E }
 export type ServiceOutput<T, E extends ServiceError = ServiceError> = Observable<Tried<T, E | ServiceError>>
 
 /** A service that does not complete */
