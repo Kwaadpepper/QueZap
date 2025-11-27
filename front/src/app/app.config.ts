@@ -4,7 +4,7 @@ import {
   provideBrowserGlobalErrorListeners, provideZonelessChangeDetection,
 } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
-import { provideRouter, TitleStrategy } from '@angular/router'
+import { provideRouter, TitleStrategy, withComponentInputBinding } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'
@@ -36,7 +36,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(),
     provideAnimationsAsync(),
     providePrimeNG({
