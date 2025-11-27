@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core'
 import { Router } from '@angular/router'
 
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
@@ -17,7 +17,7 @@ export class QuezapEdit {
   private readonly router = inject(Router)
   private readonly layout = inject(LayoutSettings)
 
-  readonly quezap = signal<QuezapWithQuestionsAndAnswers>(
+  readonly quezap = input<QuezapWithQuestionsAndAnswers>(
     this.router.currentNavigation()?.extras.state?.['quezap'],
   )
 
