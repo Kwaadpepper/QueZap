@@ -1,11 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component } from '@angular/core'
 
 import { ButtonModule } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 
-import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
-
-import { QuezapEditorContainer } from '../../editor-container'
+import { QuestionWithAnswers } from '@quezap/domain/models'
 
 import {
   AnswerEditor, LimitSelector,
@@ -32,10 +30,4 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionEditor {
-  protected readonly QuestionTypeFrom = QuestionTypeFrom
-  private readonly editorContainer = inject(QuezapEditorContainer)
-
-  protected readonly question = computed<QuestionEditorInput>(() =>
-    this.editorContainer.selectedQuestion(),
-  )
 }
