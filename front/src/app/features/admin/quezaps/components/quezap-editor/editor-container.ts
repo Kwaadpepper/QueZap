@@ -37,7 +37,7 @@ export class QuezapEditorContainer {
     this.questions()[this._selectionQuestionIdx()],
   )
 
-  private readonly _isDirty = signal<boolean>(false)
+  private readonly _isDirty = signal<boolean>(true)
   readonly isDirty = this._isDirty.asReadonly()
 
   private readonly _persisting = signal<boolean>(false)
@@ -169,10 +169,6 @@ export class QuezapEditorContainer {
         newQuestion,
       ],
     }
-
-    setTimeout(() => {
-      this.markAsDirty()
-    })
 
     return newQuezap
   }
