@@ -7,7 +7,7 @@ import {
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import {
-  NavigationCancel, NavigationEnd, NavigationStart, Router, RouterModule, RouterOutlet,
+  NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterModule, RouterOutlet,
 } from '@angular/router'
 
 import { ButtonModule } from 'primeng/button'
@@ -90,7 +90,10 @@ export class App {
 
         this.onAdminPath.set(event.url.startsWith('/admin'))
       }
-      if (event instanceof NavigationCancel) {
+      if (
+        event instanceof NavigationCancel
+        || event instanceof NavigationError
+      ) {
         this.LoadingStatus.stop()
       }
     })
