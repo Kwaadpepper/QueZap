@@ -19,7 +19,7 @@
   } @else {
     <div class="flex flex-row flex-wrap gap-3 py-4">
       @for (quezap of quezaps(); track quezap.id) {
-        <quizz-quezap-card [quezap]="quezap" />
+        <quizz-quezap-card [quezap]="quezap" [editable]="true" />
       }
     </div>
   }

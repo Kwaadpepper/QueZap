@@ -1,0 +1,14 @@
+/* stylelint-disable */
+@reference "#tailwind.css";
+/* stylelint-enable */
+
+.theme-title {
+  @apply text-center py-2 pe-2;
+  @apply line-clamp-1;
+  @apply text-lg font-semibold;
+}
+
+.theme-chip {
+  @apply bg-surface-300! text-surface-700! dark:bg-surface-700! dark:text-surface-300!;
+  @apply text-sm  px-2.5 py-0.5;
+}

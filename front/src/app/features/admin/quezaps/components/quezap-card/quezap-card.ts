@@ -1,17 +1,32 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core'
+import { Router } from '@angular/router'
 
-import { Card } from 'primeng/card'
+import { ButtonModule } from 'primeng/button'
+import { CardModule } from 'primeng/card'
+import { ChipModule } from 'primeng/chip'
 
-import { Quezap } from '@quezap/domain/models'
+import { QuezapWithTheme } from '@quezap/domain/models'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 @Component({
   selector: 'quizz-quezap-card',
   imports: [
-    Card,
+    CardModule,
+    ChipModule,
+    IconFacade,
+    ButtonModule,
   ],
   templateUrl: './quezap-card.html',
+  styleUrl: './quezap-card.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuezapCard {
-  public readonly quezap = input.required<Quezap>()
+  private readonly router = inject(Router)
+
+  readonly quezap = input.required<QuezapWithTheme>()
+  readonly editable = input<boolean>(false)
+
+  protected onQuezapEdit(): void {
+    this.router.navigate(['/admin/quezaps', this.quezap().id, 'edit'])
+  }
 }

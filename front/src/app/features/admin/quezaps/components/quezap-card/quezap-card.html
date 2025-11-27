@@ -1,5 +1,21 @@
 <p-card [style]="{ '--p-card-body-padding': '.4rem .2rem .4rem .8rem' }">
-  <div class="flex flex-row items-center justify-center gap-2">
-    <span class="text-lg-center py-2 pe-2">{{ quezap().title }}</span>
+  <div class="flex flex-col items-start justify-center gap-2">
+    <span class="theme-title">{{ quezap().title }}</span>
+    <div class="flex w-full justify-between">
+      <p-chip class="theme-chip my-2 me-4">
+        <quizz-icon name="theme" />
+        <span>{{ quezap().theme.name }}</span>
+      </p-chip>
+      @if (editable()) {
+        <p-button
+          class="ms-auto"
+          ariaLabel="Modifier le thème"
+          size="small"
+          (onClick)="onQuezapEdit()"
+        >
+          <quizz-icon name="edit" pButtonIcon />
+        </p-button>
+      }
+    </div>
   </div>
 </p-card>
