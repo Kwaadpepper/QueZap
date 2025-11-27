@@ -17,9 +17,7 @@ export class QuezapEdit {
   private readonly router = inject(Router)
   private readonly layout = inject(LayoutSettings)
 
-  readonly quezap = input<QuezapWithQuestionsAndAnswers>(
-    this.router.currentNavigation()?.extras.state?.['quezap'],
-  )
+  readonly quezap = input<QuezapWithQuestionsAndAnswers>()
 
   constructor() {
     effect((onCleanUp) => {
