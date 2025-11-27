@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed,
+  DestroyRef,
   ElementRef,
   HostListener,
   inject, signal,
@@ -56,6 +57,7 @@ export class App {
   private readonly router = inject(Router)
   private readonly LoadingStatus = inject(LoadingStatus)
   private readonly authenticatedUser = inject(AuthenticatedUserStore)
+  private readonly destroyRef = inject(DestroyRef)
   protected readonly layout = inject(LayoutSettings)
 
   protected readonly drawerVisible = signal(false)
@@ -76,7 +78,9 @@ export class App {
 
   constructor() {
     // * Update layout settings based on current path
-    this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
+    this.router.events.pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.LoadingStatus.start()
       }
