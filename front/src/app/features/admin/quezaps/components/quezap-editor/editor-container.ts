@@ -2,7 +2,9 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
 import {
-  catchError, finalize, of, switchMap, tap, throwError,
+  catchError, finalize,
+  lastValueFrom, of, switchMap,
+  throwError,
 } from 'rxjs'
 
 import { isFailure } from '@quezap/core/types'
@@ -46,8 +48,9 @@ export class QuezapEditorContainer {
   public persist(): Promise<QuezapWithQuestionsAndAnswers> {
     this._persisting.update(() => true)
 
-    return new Promise((resolve, reject) => {
-      this.quezapService.persistQuezap(this.quezap()).pipe(
+    return lastValueFrom(
+      this.quezapService.persistQuezap(
+        this.quezap()).pipe(
         takeUntilDestroyed(this.destroyRef),
         switchMap((output) => {
           if (isFailure(output)) {
@@ -62,15 +65,13 @@ export class QuezapEditorContainer {
             ...this._quezap(),
           })
         }),
-        tap(value => resolve(value)),
         catchError((err) => {
           this._persisting.set(false)
-          reject(err)
-          return of(void 0)
+          return throwError(() => err)
         }),
         finalize(() => this._persisting.set(false)),
-      ).subscribe()
-    })
+      ),
+    )
   }
 
   public setQuezap(quezap: QuezapEditorState) {
