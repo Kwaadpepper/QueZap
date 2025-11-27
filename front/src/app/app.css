@@ -2,6 +2,20 @@
 @reference "#tailwind.css";
 /* stylelint-enable */
 
+.website-header {
+  @apply bg-surface-100/80 dark:bg-surface-900/80;
+  @apply backdrop-blur-md backdrop-grayscale-200;
+  @apply sticky top-0 z-20;
+  @apply drop-shadow-lg drop-shadow-primary-900/50;
+  @apply transition-all duration-300;
+}
+
+.hide-header-on-scroll {
+  @apply transition-all duration-300;
+
+  transform: translateY(-100%);
+}
+
 .main-in-container {
   @apply container xl:max-w-300 mx-auto px-2 md:px-8 py-4;
 }

@@ -1,4 +1,4 @@
-import { Component, HostListener, signal } from '@angular/core'
+import { Component, input, output } from '@angular/core'
 
 import { ButtonModule } from 'primeng/button'
 
@@ -14,21 +14,10 @@ import { IconFacade } from '../icon/icon-facade'
   styleUrl: './scroll-top.css',
 })
 export class ScrollTopComponent {
-  readonly showButton = signal(false)
+  readonly showButton = input.required<boolean>()
+  readonly clicked = output<void>()
 
-  onScrollTopClick(): void {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  @HostListener('window:scroll')
-  onScroll(): void {
-    if (window.scrollY > 250) {
-      this.showButton.set(true)
-      return
-    }
-
-    if (this.showButton()) {
-      this.showButton.set(false)
-    }
+  protected onClick(): void {
+    this.clicked.emit()
   }
 }

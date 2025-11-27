@@ -1,5 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, computed,
+  ElementRef,
+  HostListener,
   inject, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
@@ -63,6 +65,14 @@ export class App {
   protected readonly asWebsite = computed(() => this.layout.asWebsite())
 
   protected readonly onAdminPath = signal(false)
+  protected readonly hideHeaderOnScroll = signal(false)
+
+  readonly hostElement: HTMLElement = inject(ElementRef).nativeElement
+
+  private lastScrollTop = 0
+  protected readonly showScrollTopButton = computed(() => {
+    return this.hideHeaderOnScroll()
+  })
 
   constructor() {
     // * Update layout settings based on current path
@@ -84,5 +94,21 @@ export class App {
 
   protected toggleDrawer() {
     this.drawerVisible.update(v => !v)
+  }
+
+  protected onScrollTopClick(): void {
+    this.hostElement.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  @HostListener('scroll', ['$event'])
+  protected onScroll(event: Event) {
+    this.hideHeaderOnScroll.update(() => {
+      const scrollTop = (event.target as HTMLElement).scrollTop
+      const isScrollingDown = scrollTop > this.lastScrollTop
+
+      this.lastScrollTop = Math.max(0, scrollTop)
+
+      return isScrollingDown
+    })
   }
 }

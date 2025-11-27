@@ -10,5 +10,6 @@ body {
 
   quizz-root {
     @apply flex flex-col h-full;
+    @apply overflow-scroll;
   }
 }
