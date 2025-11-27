@@ -1,10 +1,10 @@
 import { InjectionToken } from '@angular/core'
 
 import { PageOf, Pagination, ServiceOutput } from '@quezap/core/types'
-import { Quezap, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
+import { Quezap, QuezapWithQuestionsAndAnswers, QuezapWithTheme } from '@quezap/domain/models'
 
 export interface QuezapService {
-  getQuezapPage(page: Pagination): ServiceOutput<PageOf<Quezap>>
+  getQuezapPage(page: Pagination): ServiceOutput<PageOf<QuezapWithTheme>>
 
   persistQuezap(quezap: Omit<QuezapWithQuestionsAndAnswers, 'id'>): ServiceOutput<Pick<Quezap, 'id'>>
 }

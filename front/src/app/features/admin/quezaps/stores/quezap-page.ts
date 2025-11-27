@@ -9,7 +9,7 @@ import {
 
 import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 import { isFailure, pageComparator, Pagination, validatePagination } from '@quezap/core/types'
-import { Quezap } from '@quezap/domain/models'
+import { QuezapWithTheme } from '@quezap/domain/models'
 
 import { QUEZAP_SERVICE } from '../services'
 
@@ -18,7 +18,7 @@ interface QuzapPageState {
     page: number
     pageSize: number
   }
-  pageData: Quezap[]
+  pageData: QuezapWithTheme[]
   _pageMetaData: {
     totalElements: number
     totalPages: number
