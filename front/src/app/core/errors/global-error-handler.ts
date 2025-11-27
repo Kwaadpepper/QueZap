@@ -41,6 +41,7 @@ export class GlobalErrorHandler implements ErrorHandler {
       else {
         console.warn('--- Unhandled error detected ---')
         this.notifier.notify(summary, detail)
+        console.error(error)
       }
     }
     else {
