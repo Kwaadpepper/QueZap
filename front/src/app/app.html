@@ -16,24 +16,6 @@
       }
     </div>
 
-    <p-drawer
-      position="right"
-      styleClass="!w-60"
-      [header]="onAdminPath() ? 'Administration' : 'Menu'"
-      [(visible)]="drawerVisible"
-    >
-      @if (onAdminPath()) {
-        <quizz-admin-nav />
-      } @else {
-        <quizz-site-nav />
-      }
-      @if (isLoggedIn()) {
-        <div class="flex justify-center">
-          <quizz-logout-button class="mx-2" />
-        </div>
-      }
-    </p-drawer>
-
     <div class="flex">
       @if (isLoggedIn()) {
         <quizz-logout-button class="mx-2 my-2 hidden md:inline-flex" />
@@ -50,6 +32,25 @@
     </div>
   </header>
 }
+
+<p-drawer
+  position="right"
+  styleClass="!w-60"
+  [header]="onAdminPath() ? 'Administration' : 'Menu'"
+  [(visible)]="drawerVisible"
+>
+  @if (onAdminPath()) {
+    <quizz-admin-nav />
+  } @else {
+    <quizz-site-nav />
+  }
+  @if (isLoggedIn()) {
+    <div class="flex justify-center">
+      <quizz-logout-button class="mx-2" />
+    </div>
+  }
+</p-drawer>
+
 <quizz-loading-bar class="pointer-events-none absolute top-0 left-0 z-10 w-full" />
 <main
   class="grow"
