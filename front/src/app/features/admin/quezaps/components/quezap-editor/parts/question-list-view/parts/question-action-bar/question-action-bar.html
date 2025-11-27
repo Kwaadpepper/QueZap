@@ -1,0 +1,57 @@
+<div class="h-full rounded-l-lg py-2 text-center" [class.hidden]="!selected()">
+  <button
+    class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
+    pButton
+    ariaLabel="Dupliquer la question"
+    text
+    raised
+    severity="contrast"
+    size="small"
+    rounded
+    (click)="onDuplicateQuestion(index())"
+  >
+    <quizz-icon name="copy" pButtonIcon />
+  </button>
+  <button
+    class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
+    pButton
+    ariaLabel="Supprimer la question"
+    text
+    raised
+    severity="danger"
+    size="small"
+    rounded
+    [disabled]="questions().length <= 1"
+    (click)="onDeleteQuestion($event, index())"
+  >
+    <quizz-icon name="trash" pButtonIcon />
+  </button>
+  <p-confirmpopup
+    #confirmDeleteQuestionFromViewList
+    [pt]="{
+      root: { 'aria-label': 'Confirmez vouloir supprimer la question', tabindex: 0 },
+    }"
+  >
+    <ng-template #headless let-message>
+      <div class="rounded p-4">
+        <span><quizz-icon name="trash" /> Supprimer ?</span>
+        <div class="mt-4 flex items-center gap-2">
+          <p-button
+            size="small"
+            severity="danger"
+            (onClick)="confirmDeleteQuestionFromViewList.onAccept()"
+          >
+            <quizz-icon name="confirm" pButtonIcon />
+          </p-button>
+          <p-button
+            size="small"
+            severity="primary"
+            (onClick)="confirmDeleteQuestionFromViewList.onReject()"
+          >
+            <quizz-icon name="cancel" pButtonIcon />
+          </p-button>
+        </div>
+      </div>
+    </ng-template>
+  </p-confirmpopup>
+</div>

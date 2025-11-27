@@ -1,0 +1,47 @@
+<button
+  class="question-frame relative flex w-50 flex-col p-2"
+  pButton
+  text
+  [aria-label]="`Sélectionner la question ${index() + 1} de type ${type()}`"
+  [class.selected]="_selected()"
+  (click)="onSelectQuestion()"
+>
+  <div class="mb-2 flex h-full w-full justify-between">
+    <span class="font-mono">{{ index() + 1 }}</span>
+    <span>{{ type() }}</span>
+  </div>
+  <p class="mb-8 line-clamp-2 min-h-13 grow">
+    {{ question().value }}
+  </p>
+  <div class="mx-auto grid grid-cols-2 gap-1">
+    @for (answer of answers(); track answer.index) {
+      <span class="relative h-4 w-14 rounded-full bg-stone-500/50 text-xs">
+        <p-badge
+          value=" "
+          class="absolute top-1.5 left-1 h-1.5! min-w-1.5!"
+          [severity]="answer.isCorrect ? 'success' : 'info'"
+        />
+        @if (answer.value?.trim()?.length) {
+          <span>---</span>
+        }
+      </span>
+    }
+  </div>
+  <p-tag
+    class="badge-question-count absolute bottom-1 left-1 font-mono"
+    rounded="true"
+    [value]="`${question().answers.length}`"
+    [ariaLabel]="`${question().answers.length} réponses`"
+  />
+  @let seconds = question().limit?.seconds;
+  <p-tag
+    class="badge-limit absolute right-1 bottom-1 font-mono"
+    rounded="true"
+    [value]="`${seconds ? (seconds | minutes) : '∞'}`"
+    [ariaLabel]="
+      seconds
+        ? `Durée de la question : ${seconds} secondes`
+        : 'Pas de durée définie pour cette question'
+    "
+  />
+</button>

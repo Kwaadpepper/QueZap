@@ -7,29 +7,29 @@ import {
 } from '@angular/core'
 
 import { ConfirmationService } from 'primeng/api'
+import { BadgeModule } from 'primeng/badge'
 import { ButtonModule } from 'primeng/button'
-import { ConfirmPopup } from 'primeng/confirmpopup'
 import { FocusTrapModule } from 'primeng/focustrap'
-import { Tag } from 'primeng/tag'
 
 import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
-import { QuestionTypeFrom, QuestionWithAnswers } from '@quezap/domain/models'
+import { QuestionTypeFrom, QuestionWithAnswersAndResponses } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
-import { MinutesPipe } from '@quezap/shared/pipes/minutes'
 
 import { QuezapEditorContainer } from '../../editor-container'
 
-export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
+import { QuestionActionBar, QuestionPreviewButton } from './parts'
+
+export type QuestionListViewInput = Omit<QuestionWithAnswersAndResponses, 'id'>[]
 
 @Component({
   selector: 'quizz-question-list-view',
   imports: [
     ButtonModule,
-    Tag,
-    ConfirmPopup,
     FocusTrapModule,
-    MinutesPipe,
     IconFacade,
+    BadgeModule,
+    QuestionPreviewButton,
+    QuestionActionBar,
   ],
   providers: [
     ConfirmationService,
@@ -40,7 +40,6 @@ export type QuestionListViewInput = Omit<QuestionWithAnswers, 'id'>[]
 })
 export class QuestionListView {
   private readonly editorContainer = inject(QuezapEditorContainer)
-  private readonly confirmationService = inject(ConfirmationService)
 
   readonly questions = computed<QuestionListViewInput>(() =>
     this.editorContainer.quezap().questionWithAnswersAndResponses,
@@ -71,25 +70,6 @@ export class QuestionListView {
 
   protected onAddQuestion() {
     this.editorContainer.addNewQuestion()
-  }
-
-  protected onDuplicateQuestion(index: number) {
-    this.editorContainer.duplicateQuestionAtIdx(index)
-  }
-
-  protected onDeleteQuestion($event: Event, index: number) {
-    this.confirmationService.confirm({
-      target: $event.currentTarget ?? undefined,
-      blockScroll: true,
-      rejectButtonProps: {
-        severity: 'primary',
-        outlined: true,
-      },
-      acceptButtonProps: { severity: 'danger' },
-      accept: () => {
-        this.editorContainer.deleteQuestionAtIdx(index)
-      },
-    })
   }
 
   protected onKeyDown(event: KeyboardEvent) {

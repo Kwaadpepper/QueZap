@@ -6,28 +6,3 @@
   @apply border border-surface-300 dark:border-surface-700;
   @apply bg-surface-200 dark:bg-surface-800;
 }
-
-.question-frame {
-  @apply bg-surface-300 dark:bg-surface-700;
-  @apply text-surface-600 dark:text-surface-300;
-  @apply rounded-lg;
-  @apply shadow-sm;
-}
-
-.question-frame:hover {
-  @apply ring-1 ring-primary-500 ring-offset-0 ring-offset-transparent;
-}
-
-.question-frame.selected {
-  @apply ring-1 ring-primary-500;
-  @apply ring-offset-2 ring-offset-primary-500;
-}
-
-.badge-question-count {
-  @apply text-color! opacity-50 bg-transparent! ;
-}
-
-
-.badge-limit {
-  @apply text-color! opacity-50 bg-transparent! ;
-}
