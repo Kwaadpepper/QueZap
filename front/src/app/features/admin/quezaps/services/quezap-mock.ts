@@ -4,7 +4,7 @@ import { delay, map, of, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
-import { Quezap, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
+import { Quezap, QuezapWithQuestionsAndAnswers, QuezapWithTheme } from '@quezap/domain/models'
 
 import { QuezapService } from './quezap'
 import { MOCK_QUEZAPS } from './quezap.mock'
@@ -14,21 +14,22 @@ export class QuezapMockService implements QuezapService {
   private readonly MOCK_DELAY = () => Math.max(100, Math.random() * 3000)
   private readonly MOCK_ERROR = () => Math.random() < 0.2
 
-  private readonly mockedQuezaps = signal<Quezap[]>(MOCK_QUEZAPS)
+  private readonly mockedQuezaps = signal<QuezapWithTheme[]>(MOCK_QUEZAPS)
 
-  getQuezapPage(page: Pagination): ServiceOutput<PageOf<Quezap>> {
+  getQuezapPage(page: Pagination): ServiceOutput<PageOf<QuezapWithTheme>> {
     const pagination = toPageBasedPagination(page)
-    const quezaps: Quezap[] = this.mockedQuezaps().map(quezap => ({
+    const quezaps: QuezapWithTheme[] = this.mockedQuezaps().map(quezap => ({
       id: quezap.id,
       title: quezap.title,
       description: quezap.description,
+      theme: quezap.theme,
     }))
 
     const startIndex = (pagination.page - 1) * pagination.pageSize
     const endIndex = startIndex + pagination.pageSize
     const pagedQuezaps = quezaps.slice(startIndex, endIndex)
 
-    const pageOfQuezaps: PageOf<Quezap> = {
+    const pageOfQuezaps: PageOf<QuezapWithTheme> = {
       data: pagedQuezaps,
       totalElements: quezaps.length,
       totalPages: Math.ceil(quezaps.length / pagination.pageSize),
