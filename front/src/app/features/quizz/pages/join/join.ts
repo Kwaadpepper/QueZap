@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, signal,
+} from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router'
+import { NavigationEnd, Router } from '@angular/router'
 
 import { Message } from 'primeng/message'
 import {
@@ -30,11 +32,13 @@ export class Join {
   readonly #lobbyUrl = '/quizz/lobby'
   readonly #expiredUrl = '/quizz/expired'
   private readonly router = inject(Router)
-  private readonly activatedRoute = inject(ActivatedRoute)
   private readonly sessionStore = inject(ActiveSessionStore)
   private readonly destroyToken = inject(DestroyRef)
 
-  protected readonly sessionCode = signal('')
+  readonly failure = input<boolean>()
+  readonly 'session-code' = input<SessionCode>()
+  protected readonly sessionCode = computed(() => this['session-code']())
+
   protected readonly sessionNotFound = signal(false)
   protected readonly errorOccured = signal(false)
   protected readonly isLoading = signal(false)
@@ -43,30 +47,30 @@ export class Join {
     this.router.events.pipe(
       takeUntilDestroyed(this.destroyToken),
       filter(event => event instanceof NavigationEnd),
-      map(() => this.activatedRoute.snapshot.paramMap.get('session-code') as SessionCode | null),
+      map(() => this.sessionCode()),
       switchMap(code => this.handleSessionCode(code)),
       catchError(() => {
         this.isLoading.set(false)
         this.errorOccured.set(true)
+
         return []
       }),
     ).subscribe()
   }
 
-  private handleSessionCode(code: SessionCode | null) {
+  private handleSessionCode(code: SessionCode | undefined) {
     return of(code).pipe(
-      tap((code) => {
-        this.sessionCode.set(code ?? 'NON FOURNI')
+      tap(() => {
         this.sessionNotFound.set(false)
         this.errorOccured.set(false)
       }),
       filter((code): code is SessionCode => {
-        const sessionCodeIsValid = code !== null && isValidSessionCode(code)
+        const sessionCodeIsValid = code !== undefined && isValidSessionCode(code)
         if (!sessionCodeIsValid) {
           this.sessionNotFound.set(true)
         }
 
-        if (this.activatedRoute.snapshot.queryParamMap.get('failure')) {
+        if (this.failure()) {
           this.errorOccured.set(true)
           return false
         }
