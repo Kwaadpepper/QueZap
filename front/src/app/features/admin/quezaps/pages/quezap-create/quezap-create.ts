@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, effect, inject, model } from '@angular/core'
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core'
 
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
-import { QuezapEditor, QuezapEditorInput } from '../../components/quezap-editor/quezap-editor'
+import { QuezapEditor } from '../../components/quezap-editor/quezap-editor'
 
 @Component({
   selector: 'quizz-quezap-create',
@@ -12,12 +12,6 @@ import { QuezapEditor, QuezapEditorInput } from '../../components/quezap-editor/
 })
 export class QuezapCreate {
   private readonly layout = inject(LayoutSettings)
-
-  protected readonly quezapModel = model<QuezapEditorInput>({
-    title: '',
-    description: '',
-    questionWithAnswersAndResponses: [],
-  })
 
   constructor() {
     effect((onCleanUp) => {

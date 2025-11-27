@@ -8,6 +8,7 @@ import {
 import { isFailure } from '@quezap/core/types'
 import {
   emptyRawQuezap, QuestionType, QuestionTypeFrom,
+  QuestionWithAnswersAndResponses,
   QuezapWithQuestionsAndAnswers,
 } from '@quezap/domain/models'
 
@@ -29,12 +30,11 @@ export class QuezapEditorContainer {
   private readonly _selectionQuestionIdx = signal<number>(0)
 
   readonly quezap = this._quezap.asReadonly()
-  readonly questions = computed(() => this._quezap().questionWithAnswersAndResponses)
   readonly selectionQuestionIdx = this._selectionQuestionIdx.asReadonly()
-  readonly selectedQuestion = computed(() =>
-    this._quezap().questionWithAnswersAndResponses[
-      this._selectionQuestionIdx()
-    ],
+  readonly questions = computed(() => this._quezap().questionWithAnswersAndResponses)
+
+  readonly selectedQuestion = computed<QuestionWithAnswersAndResponses>(() =>
+    this.questions()[this._selectionQuestionIdx()],
   )
 
   private readonly _isDirty = signal<boolean>(false)

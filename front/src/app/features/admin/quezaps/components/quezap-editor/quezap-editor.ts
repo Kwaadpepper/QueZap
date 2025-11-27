@@ -3,7 +3,7 @@ import {
   computed,
   effect,
   inject,
-  model,
+  input,
   output,
   signal,
 } from '@angular/core'
@@ -13,11 +13,7 @@ import { ButtonModule } from 'primeng/button'
 import { ConfirmDialogModule } from 'primeng/confirmdialog'
 
 import { ValidationError } from '@quezap/core/errors'
-import {
-  QuestionType, QuestionTypeFrom,
-  QuestionWithAnswersAndResponses,
-  QuezapWithQuestionsAndAnswers,
-} from '@quezap/domain/models'
+import { QuestionType, QuestionTypeFrom, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { QuezapEditorContainer } from './editor-container'
@@ -48,41 +44,43 @@ export class QuezapEditor {
   private readonly confirmation = inject(ConfirmationService)
   private readonly message = inject(MessageService)
 
-  readonly quezap = model.required<QuezapEditorInput>()
+  readonly quezap = input<QuezapEditorInput>()
+  private readonly _quezap = signal<QuezapEditorInput>({
+    title: '',
+    description: '',
+    questionWithAnswersAndResponses: [
+      // * Editor requires minimum 1 question
+      this.getInitialQuestion(),
+    ],
+  })
+
   readonly closeEvent = output<void>()
 
   protected readonly persisting = computed(() => this.editorContainer.persisting())
   protected readonly isDirty = computed(() => this.editorContainer.isDirty())
-  private readonly selectedIdx = signal<number>(
-    this.editorContainer.selectionQuestionIdx(),
-  )
-
-  protected readonly selectedQuestion = signal<QuestionWithAnswersAndResponses>(
-    // * Initial question to avoid empty state
-    QuestionTypeFrom(QuestionType.Quizz)
-      .getNewWithAnswers(),
-  )
-
-  protected readonly questions = signal<QuestionWithAnswersAndResponses[]>([
-    // * Initial question to avoid empty state
-    this.selectedQuestion(),
-  ])
 
   constructor() {
-    effect(() => {
-      const input = this.editorContainer.quezap()
-      this.onQuezapChanged(input)
-    }, { debugName: 'Quezap changed' })
+    this.editorContainer.setQuezap(this._quezap())
 
     effect(() => {
-      const idx = this.selectedIdx()
-      this.onQuestionSelected(idx)
-    }, { debugName: 'Selected question idx' })
+      const newInput = this.quezap()
+
+      if (newInput !== undefined) {
+        const inputQuestions = newInput.questionWithAnswersAndResponses
+        this._quezap.set({
+          ...newInput,
+          questionWithAnswersAndResponses:
+            inputQuestions.length
+              ? inputQuestions
+              : [this.getInitialQuestion()],
+        })
+      }
+    }, { debugName: 'Input changed' })
 
     effect(() => {
-      const question = this.selectedQuestion()
-      this.onQuestionUpdated(question)
-    }, { debugName: 'Selected question changed' })
+      const quezap = this._quezap()
+      this.editorContainer.setQuezap(quezap)
+    }, { debugName: 'Internal Quezap changed' })
   }
 
   protected onSaveQuezap() {
@@ -123,40 +121,7 @@ export class QuezapEditor {
     this.closeEvent.emit()
   }
 
-  private onQuezapChanged(input: QuezapEditorInput) {
-    const questions = input.questionWithAnswersAndResponses
-    this.questions.set(
-      questions.length
-        ? questions
-        : [
-            QuestionTypeFrom(QuestionType.Quizz)
-              .getNewWithAnswers(),
-          ],
-    )
-  }
-
-  private onQuestionSelected(idx: number) {
-    const question = this.questions()[idx]
-
-    if (!question) {
-      return
-    }
-
-    this.selectedIdx.set(idx)
-    this.selectedQuestion.set(question)
-  }
-
-  private onQuestionUpdated(updated: QuestionWithAnswersAndResponses) {
-    this.questions.update((questions) => {
-      const idx = this.selectedIdx()
-
-      questions[idx] = updated
-
-      this.quezap.update(q => ({
-        ...q,
-        questionWithAnswersAndResponses: [...questions],
-      }))
-      return [...questions]
-    })
+  private getInitialQuestion() {
+    return QuestionTypeFrom(QuestionType.Quizz).getNewWithAnswers()
   }
 }
