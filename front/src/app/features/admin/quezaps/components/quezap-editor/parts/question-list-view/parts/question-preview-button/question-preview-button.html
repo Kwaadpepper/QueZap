@@ -30,8 +30,8 @@
   <p-tag
     class="badge-question-count absolute bottom-1 left-1 font-mono"
     rounded="true"
-    [value]="`${question().answers.length}`"
-    [ariaLabel]="`${question().answers.length} réponses`"
+    [value]="`${answers().length}`"
+    [ariaLabel]="`${answers().length} réponses`"
   />
   @let seconds = question().limit?.seconds;
   <p-tag
