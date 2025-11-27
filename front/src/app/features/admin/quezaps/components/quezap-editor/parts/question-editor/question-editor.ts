@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
 
-import { ButtonModule } from 'primeng/button'
-import { Divider } from 'primeng/divider'
+import { DividerModule } from 'primeng/divider'
 
 import { QuestionWithAnswers } from '@quezap/domain/models'
 
@@ -18,10 +17,9 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
   imports: [
     TypeSelector,
     LimitSelector,
-    Divider,
+    DividerModule,
     PhraseEditor,
     QuestionTimer,
-    ButtonModule,
     AnswerEditor,
     PanelQuestionActions,
   ],
