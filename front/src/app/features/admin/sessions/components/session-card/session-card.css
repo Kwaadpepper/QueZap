@@ -1,0 +1,9 @@
+/* stylelint-disable */
+@reference "#tailwind.css";
+/* stylelint-enable */
+
+.session-title {
+  @apply text-center py-2 pe-2;
+  @apply line-clamp-1;
+  @apply text-lg font-semibold;
+}
