@@ -84,14 +84,12 @@ export class QuizzRunner {
   }
 
   protected reloadQuestion() {
-    // FIXME: implement reload logic
-    throw new Error('Method not implemented.')
+    window.location.reload()
   }
 
-  // TODO: Implement behavior for when time is exhausted (e.g., mark question as unanswered, move to next question)
   protected onTimeExhausted() {
-    throw new Error('Method not implemented.')
     console.log('Time exhausted for question', this.question()?.id)
+    this.question.set(undefined)
   }
 
   private handleQuestion(question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions) {

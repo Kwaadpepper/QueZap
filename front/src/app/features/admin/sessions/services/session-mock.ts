@@ -1,12 +1,12 @@
 import { Injectable, signal } from '@angular/core'
 
-import { delay, map, of, tap } from 'rxjs'
+import { delay, map, Observable, of, tap } from 'rxjs'
 
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
 
-import { SessionService } from './session'
+import { SessionService, SessionApiResponse, ScoreResponse } from './session'
 import { MOCK_SESSIONS } from './session.mock'
 
 @Injectable()
@@ -57,4 +57,32 @@ export class SessionMockService implements SessionService {
       }),
     )
   }
+
+  getSession(_id: string): Observable<SessionApiResponse> {
+    return of({
+      id: _id,
+      sessionNumber: 1,
+      sessionCode: 'QZ-8888',
+      name: 'Mock Session',
+      status: 'LOBBY',
+      currentSlideIndex: 0,
+      createdAt: new Date().toISOString(),
+    })
+  }
+
+  createSession(_quezapId: string, _name: string): Observable<SessionApiResponse> {
+    return of({
+      id: 'mock-id',
+      sessionNumber: 1,
+      name: _name,
+      status: 'LOBBY',
+      currentSlideIndex: 0,
+      createdAt: new Date().toISOString(),
+    })
+  }
+
+  startSession(_id: string): Observable<void> { return of(void 0) }
+  nextQuestion(_id: string): Observable<void> { return of(void 0) }
+  getScores(_id: string): Observable<ScoreResponse[]> { return of([]) }
+  kickParticipant(_sessionId: string, _name: string): Observable<void> { return of(void 0) }
 }

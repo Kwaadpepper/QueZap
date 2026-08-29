@@ -1,9 +1,11 @@
 import {
-  ChangeDetectionStrategy, Component, inject, OnInit, signal, WritableSignal,
+  ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal,
 } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 
-import { SessionHttpService } from '../../services/session-http'
+import { Config } from '@quezap/core/services/config/config'
+
+import { SESSION_SERVICE, SessionApiResponse, ScoreResponse } from '../../services/session'
 
 export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'PODIUM'
 
@@ -22,59 +24,159 @@ interface LeaderboardItem {
   score: number
 }
 
+// SSE interfaces
+interface SseParticipant {
+  name: string
+}
+
+interface SseAnswer {
+  id: string
+  label: string
+}
+
+interface SsePayload {
+  participants?: SseParticipant[]
+  timerSeconds?: number
+  questionId?: string
+  title?: string
+  answers?: SseAnswer[]
+  correctAnswerIds?: string[]
+}
+
+interface SseEnvelope {
+  type: string
+  payload?: SsePayload
+}
+
 @Component({
   selector: 'quizz-session-presenter',
   templateUrl: './session-presenter.html',
   styleUrls: ['./session-presenter.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SessionPresenter implements OnInit {
+export class SessionPresenter implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute)
-  private readonly sessionHttpService = inject(SessionHttpService)
+  private readonly sessionService = inject(SESSION_SERVICE)
+  private readonly config = inject(Config)
 
   protected readonly sessionId = signal<string>('')
-  protected readonly sessionCode = signal<string>('QZ-8888')
-  protected readonly sessionName = signal<string>('Session en direct')
+  protected readonly sessionCode = signal<string>('')
+  protected readonly sessionName = signal<string>('')
   protected readonly stage: WritableSignal<PresenterStage> = signal('LOBBY')
 
-  protected readonly participants = signal<{ name: string }[]>([
-    { name: 'Lucas' },
-    { name: 'Emma' },
-    { name: 'Noah' },
-    { name: 'Chloé' },
-  ])
+  protected readonly participants = signal<{ name: string }[]>([])
 
   protected readonly currentQuestionIndex = signal(0)
-  protected readonly totalQuestions = signal(5)
-  protected readonly timer = signal(20)
-  protected readonly answersReceived = signal(4)
+  protected readonly totalQuestions = signal(1)
+  protected readonly timer = signal(30)
+  protected readonly answersReceived = signal(0)
 
   protected readonly currentQuestion = signal<QuestionPresenterModel>({
-    id: 'q-1',
-    title: 'Quelle est la capitale de la France ?',
-    answers: [
-      { id: 'a1', label: 'Lyon', isCorrect: false },
-      { id: 'a2', label: 'Marseille', isCorrect: false },
-      { id: 'a3', label: 'Paris', isCorrect: true },
-      { id: 'a4', label: 'Bordeaux', isCorrect: false },
-    ],
+    id: '',
+    title: '',
+    answers: [],
   })
 
-  protected readonly leaderboard = signal<LeaderboardItem[]>([
-    { name: 'Emma', score: 2850 },
-    { name: 'Lucas', score: 2600 },
-    { name: 'Noah', score: 2100 },
-    { name: 'Chloé', score: 1800 },
-  ])
+  protected readonly leaderboard = signal<LeaderboardItem[]>([])
+
+  private eventSource: EventSource | null = null
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') || '018e3a2b-8888-7def-8123-abcdef888888'
     this.sessionId.set(id)
+
+    this.sessionService.getSession(id).subscribe((session: SessionApiResponse) => {
+      this.sessionCode.set(session.sessionCode || '')
+      this.sessionName.set(session.name || '')
+      if (session.status === 'STARTED') {
+        this.stage.set('QUESTION')
+      }
+      else if (session.status === 'ENDED') {
+        this.stage.set('PODIUM')
+        this.fetchScores()
+      }
+    })
+
+    this.connectSse(id)
+  }
+
+  ngOnDestroy(): void {
+    if (this.eventSource) {
+      this.eventSource.close()
+    }
+  }
+
+  private connectSse(id: string): void {
+    const apiUrl = this.config.appConfig.value().apiUrl
+    this.eventSource = new EventSource(`${apiUrl}/sessions/${id}/events`)
+
+    this.eventSource.onmessage = (event) => {
+      try {
+        const envelope: SseEnvelope = JSON.parse(event.data)
+        this.handleEvent(envelope)
+      }
+      catch (e) {
+        console.error(e)
+      }
+    }
+  }
+
+  private handleEvent(envelope: SseEnvelope): void {
+    switch (envelope.type) {
+      case 'LOBBY_STATE':
+        if (envelope.payload?.participants) {
+          this.participants.set(envelope.payload.participants.map((p: SseParticipant) => ({ name: p.name })))
+        }
+        break
+      case 'SESSION_STARTED':
+        this.stage.set('QUESTION')
+        break
+      case 'QUESTION_START': {
+        const payload = envelope.payload
+        if (payload) {
+          this.stage.set('QUESTION')
+          this.answersReceived.set(0)
+          if (payload.timerSeconds) this.timer.set(payload.timerSeconds)
+          this.currentQuestion.set({
+            id: payload.questionId || '',
+            title: payload.title || '',
+            answers: (payload.answers || []).map((a: SseAnswer) => ({
+              id: a.id || a.label,
+              label: a.label,
+              isCorrect: false,
+            })),
+          })
+        }
+        break
+      }
+      case 'QUESTION_REVEAL':
+        this.stage.set('REVEAL')
+        if (envelope.payload?.correctAnswerIds) {
+          const correctIds = envelope.payload.correctAnswerIds
+          this.currentQuestion.update(q => ({
+            ...q,
+            answers: q.answers.map(a => ({
+              ...a,
+              isCorrect: correctIds.includes(a.id),
+            })),
+          }))
+        }
+        break
+      case 'SESSION_ENDED':
+        this.stage.set('PODIUM')
+        this.fetchScores()
+        break
+    }
+  }
+
+  private fetchScores(): void {
+    this.sessionService.getScores(this.sessionId()).subscribe((scores: ScoreResponse[]) => {
+      this.leaderboard.set(scores.map((s: ScoreResponse) => ({ name: s.name, score: s.score })))
+    })
   }
 
   protected startQuiz(): void {
-    this.stage.set('QUESTION')
-    this.sessionHttpService.startSession(this.sessionId()).subscribe()
+    this.sessionService.startSession(this.sessionId()).subscribe()
   }
 
   protected revealAnswers(): void {
@@ -82,14 +184,7 @@ export class SessionPresenter implements OnInit {
   }
 
   protected nextStep(): void {
-    if (this.currentQuestionIndex() + 1 >= this.totalQuestions()) {
-      this.stage.set('PODIUM')
-    }
-    else {
-      this.currentQuestionIndex.update(idx => idx + 1)
-      this.stage.set('QUESTION')
-      this.sessionHttpService.nextQuestion(this.sessionId()).subscribe()
-    }
+    this.sessionService.nextQuestion(this.sessionId()).subscribe()
   }
 
   protected isLastQuestion(): boolean {
@@ -97,8 +192,7 @@ export class SessionPresenter implements OnInit {
   }
 
   protected kick(name: string): void {
-    this.participants.update(list => list.filter(p => p.name !== name))
-    this.sessionHttpService.kickParticipant(this.sessionId(), name).subscribe()
+    this.sessionService.kickParticipant(this.sessionId(), name).subscribe()
   }
 
   protected toggleFullscreen(): void {

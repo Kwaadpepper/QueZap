@@ -8,20 +8,7 @@ import { Config } from '@quezap/core/services/config/config'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 
-import { SessionService } from './session'
-
-interface SessionApiResponse {
-  id: string
-  sessionNumber: number
-  sessionCode?: string
-  name: string
-  status: 'LOBBY' | 'STARTED' | 'ENDED'
-  currentSlideIndex: number
-  participantsCount?: number
-  startedAt?: string
-  endedAt?: string
-  createdAt: string
-}
+import { SessionService, SessionApiResponse } from './session'
 
 interface PageOfApiResponse<T> {
   data: T[]
