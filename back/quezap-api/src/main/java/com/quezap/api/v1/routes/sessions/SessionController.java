@@ -136,6 +136,33 @@ public class SessionController {
         sessionJpa.getAuthorId());
   }
 
+  @GetMapping("by-code/{code}")
+  public SessionDetailDto getByCode(@PathVariable String code) {
+    final var sessionNumber = parseSessionCode(code);
+    final var sessionJpa =
+        sessionJpaRepository
+            .findByNumber(sessionNumber)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Invalid session code: " + code));
+
+    final var status = computeStatus(sessionJpa);
+    final var quezap = sessionJpa.getQuezap();
+    final var totalSlides = quezap != null ? quezap.getQuestions().size() : 0;
+
+    return new SessionDetailDto(
+        sessionJpa.getId(),
+        sessionJpa.getNumber(),
+        formatSessionCode(sessionJpa.getNumber()),
+        sessionJpa.getName(),
+        status,
+        sessionJpa.getCurrentSlideIndex(),
+        totalSlides,
+        sessionJpa.getParticipants().size(),
+        sessionJpa.getAuthorId());
+  }
+
   @PostMapping("join")
   public JoinSessionResponseDto join(@Valid @RequestBody JoinSessionRequest request) {
     final var sessionNumber = parseSessionCode(request.code());

@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import com.quezap.domain.events.sessions.SessionEnded;
+import com.quezap.domain.events.sessions.SessionStarted;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
@@ -210,7 +212,7 @@ public class Session extends AggregateRoot<SessionId> {
         this::hasEnoughQuestionsToStart, "Not enough questions to start the session");
 
     startedAt = TimelinePoint.now();
-    // TODO: Emmit event SessionStarted
+    registerEvent(new SessionStarted(getId()));
   }
 
   public void endSession() {
@@ -221,7 +223,7 @@ public class Session extends AggregateRoot<SessionId> {
       throw new IllegalDomainStateException("Session has not started yet");
     }
     endedAt = TimelinePoint.now();
-    // TODO: Emmit event SessionEnded
+    registerEvent(new SessionEnded(getId()));
   }
 
   public void addParticipant(Participant participant) {
