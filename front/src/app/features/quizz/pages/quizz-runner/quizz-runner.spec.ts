@@ -12,7 +12,7 @@ describe('QuizzRunner', () => {
 
     fixture = TestBed.createComponent(QuizzRunner)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

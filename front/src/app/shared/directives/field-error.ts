@@ -43,8 +43,8 @@ export class FieldError implements OnDestroy {
     return input.errors().map(this.getErrorMessage)
   }
 
-  private getErrorMessage(error: ValidationError.WithField): string {
-    const field = error.field().name
+  private getErrorMessage(error: ValidationError.WithFieldTree): string {
+    const field = error.fieldTree().name
     const kind = error.kind
     const message = error.message
 

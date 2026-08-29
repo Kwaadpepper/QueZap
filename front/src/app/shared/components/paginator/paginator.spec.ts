@@ -12,6 +12,12 @@ describe('Paginator', () => {
 
     fixture = TestBed.createComponent(Paginator)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('pageInfo', {
+      page: 1,
+      pageSize: 10,
+      totalElements: 10,
+      totalPages: 1,
+    })
     fixture.detectChanges()
   })
 

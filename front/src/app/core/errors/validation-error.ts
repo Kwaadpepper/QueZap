@@ -41,7 +41,7 @@ export class ValidationError extends ServiceError implements Failure<ValidationE
       for (const error of errors) {
         result.push({
           ...error,
-          field: formField as FieldTree<unknown>,
+          fieldTree: formField as FieldTree<unknown>,
         })
       }
     }

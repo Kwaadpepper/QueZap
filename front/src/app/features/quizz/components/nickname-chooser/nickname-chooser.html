@@ -24,10 +24,10 @@
         aria-describedby="join-help"
         quizzFieldError
         [fieldState]="nicknameForm.nicknameValue"
-        [field]="nicknameForm.nicknameValue"
+        [formField]="nicknameForm.nicknameValue"
       />
       <div class="flex justify-center gap-2">
-        <p-checkbox inputId="remember-me" [binary]="true" [field]="nicknameForm.rememberMe" />
+        <p-checkbox inputId="remember-me" [binary]="true" [formField]="nicknameForm.rememberMe" />
         <label for="remember-me" class="text-sm">Mémoriser ce pseudo</label>
       </div>
       <div class="relative mt-2 flex justify-center gap-2">

@@ -2,7 +2,7 @@ import { signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { provideNoopAnimations } from '@angular/platform-browser/animations'
 
-import { of, throwError } from 'rxjs'
+import { of, Subject, throwError } from 'rxjs'
 
 import { Config } from '@quezap/core/services/config/config'
 
@@ -13,13 +13,18 @@ import { ForgottenPassword } from './forgotten-password'
 describe('ForgottenPassword', () => {
   let component: ForgottenPassword
   let fixture: ComponentFixture<ForgottenPassword>
-  const resetPipe = of(undefined)
-
   const mockConfig = { debug: signal(false) }
 
-  const mockAuthenticationService = { askToResetPassword: jest.fn().mockReturnValue(resetPipe) }
+  const mockAuthenticationService = {
+    askToResetPassword: jest.fn().mockImplementation(
+      () => of({ kind: 'success' as const, result: undefined }),
+    ),
+  }
 
   beforeEach(async () => {
+    mockAuthenticationService.askToResetPassword.mockImplementation(
+      () => of({ kind: 'success' as const, result: undefined }),
+    )
     await TestBed.configureTestingModule({
       imports: [ForgottenPassword], // Utilisation du composant standalone
       providers: [
@@ -102,6 +107,7 @@ describe('ForgottenPassword', () => {
     // GIVEN
     const validEmail = 'user@example.net'
     component['resetInfo'].set({ email: validEmail })
+    fixture.detectChanges()
 
     // WHEN
     component['onAskToReset']()
@@ -132,8 +138,10 @@ describe('ForgottenPassword', () => {
     // GIVEN
     const validEmail = 'user@example.net'
     component['resetInfo'].set({ email: validEmail })
+    fixture.detectChanges()
     component['hasBeenAskedToReset'].set(true)
     component['errorHasOccured'].set(true)
+    mockAuthenticationService.askToResetPassword.mockReturnValueOnce(new Subject())
 
     // WHEN
     component['onAskToReset']()
@@ -147,6 +155,7 @@ describe('ForgottenPassword', () => {
     // GIVEN
     const validEmail = 'invalid@example.net'
     component['resetInfo'].set({ email: validEmail })
+    fixture.detectChanges()
     const error = new Error('Reset failed')
 
     // Mock pour retourner un Observable qui rejette

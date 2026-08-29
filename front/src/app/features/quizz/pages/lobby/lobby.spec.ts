@@ -12,7 +12,7 @@ describe('Lobby', () => {
 
     fixture = TestBed.createComponent(Lobby)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

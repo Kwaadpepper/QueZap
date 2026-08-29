@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, Component, computed,
   input,
 } from '@angular/core'
-import { Field, FieldTree } from '@angular/forms/signals'
+import { FieldTree } from '@angular/forms/signals'
 
 import { CheckboxModule } from 'primeng/checkbox'
 
@@ -20,7 +20,6 @@ export interface PrintableAnswer {
 @Component({
   selector: 'quizz-question-answer',
   imports: [
-    Field,
     Picture,
     CheckboxModule,
     QuestionIcon,

@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: quezap-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: quezap
+      POSTGRES_USER: quezap
+      POSTGRES_PASSWORD: quezap_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - quezap_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quezap -d quezap"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: quezap-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: quezap_java_writer
+      MINIO_ROOT_PASSWORD: LocalPassword
+    ports:
+      - "9190:9000"
+      - "9191:9001"
+    volumes:
+      - quezap_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: quezap-minio-init
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      sleep 2;
+      /usr/bin/mc alias set myminio http://minio:9000 quezap_java_writer LocalPassword;
+      /usr/bin/mc mb myminio/quezap-public-images || true;
+      /usr/bin/mc anonymous set download myminio/quezap-public-images || true;
+      exit 0;
+      "
+
+volumes:
+  quezap_postgres_data:
+  quezap_minio_data:

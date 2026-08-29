@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, Component, computed, DestroyRef, ErrorHandler, inject, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
+import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router, RouterModule } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
@@ -21,12 +21,12 @@ import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user
   selector: 'quizz-login',
   imports: [
     RouterModule,
-    Field,
     Button,
     InputText,
     Message,
     ButtonIcon,
     IconFacade,
+    FormField,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',

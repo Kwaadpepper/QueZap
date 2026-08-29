@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
-import { customError, Field, form, validate } from '@angular/forms/signals'
+import { form, FormField, validate } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
 import { Button, ButtonIcon } from 'primeng/button'
@@ -16,9 +16,9 @@ import { FieldError } from '@quezap/shared/directives/field-error'
     Button,
     InputText,
     FieldError,
-    Field,
     IconFacade,
     ButtonIcon,
+    FormField,
   ],
   templateUrl: './join-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,10 +37,10 @@ export class JoinForm {
     validate(path.code, ({ value }) => {
       return isValidSessionCode(value())
         ? []
-        : customError({
+        : {
             kind: 'invalid-value',
             message: 'Le code de session est invalide.',
-          })
+          }
     })
   })
 

@@ -12,7 +12,7 @@ describe('NicknameChooser', () => {
 
     fixture = TestBed.createComponent(NicknameChooser)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

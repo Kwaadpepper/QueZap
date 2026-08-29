@@ -2,7 +2,7 @@ import {
   Component, computed, DestroyRef, ErrorHandler, inject, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
+import { form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { Button, ButtonIcon } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
@@ -21,7 +21,7 @@ import { AUTHENTICATION_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-forgotten-password',
-  imports: [InputText, Field, Button, Message, BackButton, FieldError, IconFacade, ButtonIcon],
+  imports: [InputText, Button, Message, BackButton, FieldError, IconFacade, ButtonIcon],
   templateUrl: './forgotten-password.html',
 })
 export class ForgottenPassword {

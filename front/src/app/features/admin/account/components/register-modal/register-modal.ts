@@ -1,5 +1,6 @@
 import { Component, ErrorHandler, inject, model, signal } from '@angular/core'
-import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
+import { ReactiveFormsModule } from '@angular/forms'
+import { form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
@@ -21,7 +22,7 @@ import { REGISTER_SERVICE, RegisterMockService } from '../../services'
     Dialog,
     InputText,
     Button,
-    Field,
+    ReactiveFormsModule,
     FieldError,
     IconFacade,
     ButtonIcon,

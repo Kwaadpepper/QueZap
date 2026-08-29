@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, signal,
 } from '@angular/core'
-import { Field, form, minLength, required, submit } from '@angular/forms/signals'
+import { form, FormField, minLength, required, submit } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
@@ -19,9 +19,10 @@ import { ActiveSessionStore } from '../../stores'
 @Component({
   selector: 'quizz-nickname-chooser',
   imports: [
-    Button, Field, FieldError, InputText, CheckboxModule,
+    Button, FieldError, FormField, InputText, CheckboxModule,
     IconFacade,
     ButtonIcon,
+    FormField,
   ],
   templateUrl: './nickname-chooser.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

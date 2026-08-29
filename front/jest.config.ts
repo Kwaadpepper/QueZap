@@ -4,10 +4,10 @@
  */
 
 import type { Config } from 'jest'
-import { createCjsPreset } from 'jest-preset-angular/presets'
+import presets from 'jest-preset-angular/presets/index.js'
 
 const config: Config = {
-  ...createCjsPreset(),
+  ...presets.createCjsPreset(),
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 

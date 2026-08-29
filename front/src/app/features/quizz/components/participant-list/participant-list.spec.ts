@@ -12,7 +12,7 @@ describe('ParticipantList', () => {
 
     fixture = TestBed.createComponent(ParticipantList)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

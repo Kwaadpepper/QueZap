@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, input, model, signal,
 } from '@angular/core'
-import { Field, form, submit, validateStandardSchema } from '@angular/forms/signals'
+import { form, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
@@ -30,7 +30,6 @@ export interface ThemeInputModel {
     Dialog,
     InputText,
     FieldError,
-    Field,
     Button,
     Message,
     IconFacade,
