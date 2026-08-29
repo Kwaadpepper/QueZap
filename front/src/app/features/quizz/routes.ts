@@ -9,7 +9,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/join/join').then(m => m.Join),
   },
   {
-    path: 'join/:session-code',
+    path: 'join/:sessionCode',
     title: 'Rejoindre une session',
     loadComponent: () => import('./pages/join/join').then(m => m.Join),
   },

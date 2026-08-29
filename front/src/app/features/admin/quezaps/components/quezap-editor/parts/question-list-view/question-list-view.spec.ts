@@ -12,7 +12,7 @@ describe('QuestionListView', () => {
 
     fixture = TestBed.createComponent(QuestionListView)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

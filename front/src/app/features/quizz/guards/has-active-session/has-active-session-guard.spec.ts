@@ -47,14 +47,14 @@ describe('Has active session Function Guards', () => {
     })
 
     it('hasActiveSessionGuard should return TRUE', async () => {
-      const observable = runGuardInContext(hasActiveSessionGuard)
+      const observable = runGuardInContext(hasActiveSessionGuard())
       const test = firstValueFrom(observable)
 
       await expect(test).resolves.toEqual(true)
     })
 
     it('hasActiveSessionChildGuard should return TRUE', async () => {
-      const observable = runGuardInContext(hasActiveSessionChildGuard)
+      const observable = runGuardInContext(hasActiveSessionChildGuard())
       const test = firstValueFrom(observable)
 
       await expect(test).resolves.toEqual(true)
@@ -71,7 +71,7 @@ describe('Has active session Function Guards', () => {
       const expectedUrl = '/quizz/expired'
       mockRouter.parseUrl.mockReturnValue(expectedUrl)
 
-      const observable = runGuardInContext(hasActiveSessionGuard)
+      const observable = runGuardInContext(hasActiveSessionGuard())
       const test = firstValueFrom(observable)
 
       await expect(test).resolves.toEqual(expectedUrl)
@@ -82,7 +82,7 @@ describe('Has active session Function Guards', () => {
       const expectedUrl = '/quizz/expired'
       mockRouter.parseUrl.mockReturnValue(expectedUrl)
 
-      const observable = runGuardInContext(hasActiveSessionChildGuard)
+      const observable = runGuardInContext(hasActiveSessionChildGuard())
       const test = firstValueFrom(observable)
 
       await expect(test).resolves.toEqual(expectedUrl)

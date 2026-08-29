@@ -12,7 +12,7 @@ describe('TypeSelector', () => {
 
     fixture = TestBed.createComponent(TypeSelector)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

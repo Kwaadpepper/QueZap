@@ -12,6 +12,10 @@ describe('ThemeCard', () => {
 
     fixture = TestBed.createComponent(ThemeCard)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('theme', {
+      id: '1',
+      title: 'Plantes',
+    })
     fixture.detectChanges()
   })
 

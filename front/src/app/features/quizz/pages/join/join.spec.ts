@@ -12,7 +12,7 @@ describe('Join', () => {
 
     fixture = TestBed.createComponent(Join)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

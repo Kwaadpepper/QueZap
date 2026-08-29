@@ -1,4 +1,5 @@
 export * from './theme'
+export * from './theme-http'
 export * from './theme-mock'
 export * from './theme.mock'
 export * from './themes-event-bus'

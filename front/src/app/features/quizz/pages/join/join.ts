@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, signal,
+  ChangeDetectionStrategy, Component, DestroyRef, inject, input, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { NavigationEnd, Router } from '@angular/router'
@@ -36,8 +36,7 @@ export class Join {
   private readonly destroyToken = inject(DestroyRef)
 
   readonly failure = input<boolean>()
-  readonly 'session-code' = input<SessionCode>()
-  protected readonly sessionCode = computed(() => this['session-code']())
+  readonly sessionCode = input<SessionCode | undefined>(undefined)
 
   protected readonly sessionNotFound = signal(false)
   protected readonly errorOccured = signal(false)

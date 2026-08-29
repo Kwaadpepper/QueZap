@@ -12,7 +12,7 @@ describe('PhraseEditor', () => {
 
     fixture = TestBed.createComponent(PhraseEditor)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

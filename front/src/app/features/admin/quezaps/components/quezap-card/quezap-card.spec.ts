@@ -12,6 +12,12 @@ describe('ThemeCard', () => {
 
     fixture = TestBed.createComponent(QuezapCard)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('quezap', {
+      id: '1',
+      title: 'Plantes caducs',
+      description: 'Test description',
+      theme: { id: 't1', title: 'Plantes' },
+    })
     fixture.detectChanges()
   })
 

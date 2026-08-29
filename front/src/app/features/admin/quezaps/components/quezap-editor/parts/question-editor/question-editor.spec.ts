@@ -12,7 +12,7 @@ describe('QuestionEditor', () => {
 
     fixture = TestBed.createComponent(QuestionEditor)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

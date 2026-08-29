@@ -12,7 +12,7 @@ describe('LimitSelector', () => {
 
     fixture = TestBed.createComponent(LimitSelector)
     component = fixture.componentInstance
-    await fixture.whenStable()
+    fixture.detectChanges()
   })
 
   it('should create', () => {

@@ -17,7 +17,16 @@ import { routes } from './app.routes'
 import { createErrorNotifier, ERROR_NOTIFIER, GlobalErrorHandler } from './core/errors'
 import { Config } from './core/services/config/config'
 import { DynamicTitleStrategy } from './core/strategies/dynamic-title'
-import { AUTHENTICATION_SERVICE, AuthenticationMockService } from './features/auth/services'
+import { REGISTER_SERVICE, RegisterHttpService, RegisterMockService } from './features/admin/account/services'
+import { QUEZAP_SERVICE, QuezapHttpService, QuezapMockService } from './features/admin/quezaps/services'
+import { SESSION_SERVICE, SessionHttpService, SessionMockService } from './features/admin/sessions/services'
+import { THEME_SERVICE, ThemeHttpService, ThemeMockService } from './features/admin/themes/services'
+import { AUTHENTICATION_SERVICE, AuthenticationHttpService, AuthenticationMockService } from './features/auth/services'
+import {
+  SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE,
+  SessionApiHttpService, SessionApiMockService,
+  SessionObserverMockService, SessionObserverSseService,
+} from './features/quizz/services'
 
 if (environment.env === 'prod') {
   enableProdMode()
@@ -28,7 +37,34 @@ const appProviders: ApplicationConfig['providers'] = [
   { provide: Config, useClass: Config },
   { provide: ERROR_NOTIFIER, useFactory: createErrorNotifier, deps: [MessageService] },
   { provide: ErrorHandler, useClass: GlobalErrorHandler },
-  { provide: AUTHENTICATION_SERVICE, useClass: AuthenticationMockService },
+  {
+    provide: AUTHENTICATION_SERVICE,
+    useClass: environment.useMockData ? AuthenticationMockService : AuthenticationHttpService,
+  },
+  {
+    provide: REGISTER_SERVICE,
+    useClass: environment.useMockData ? RegisterMockService : RegisterHttpService,
+  },
+  {
+    provide: THEME_SERVICE,
+    useClass: environment.useMockData ? ThemeMockService : ThemeHttpService,
+  },
+  {
+    provide: QUEZAP_SERVICE,
+    useClass: environment.useMockData ? QuezapMockService : QuezapHttpService,
+  },
+  {
+    provide: SESSION_SERVICE,
+    useClass: environment.useMockData ? SessionMockService : SessionHttpService,
+  },
+  {
+    provide: SESSION_API_SERVICE,
+    useClass: environment.useMockData ? SessionApiMockService : SessionApiHttpService,
+  },
+  {
+    provide: SESSION_OBSERVER_SERVICE,
+    useClass: environment.useMockData ? SessionObserverMockService : SessionObserverSseService,
+  },
   { provide: TitleStrategy, useClass: DynamicTitleStrategy },
 ]
 
