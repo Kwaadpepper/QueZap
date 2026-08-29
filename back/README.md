@@ -35,7 +35,7 @@ CLI (Shell) :
 
 Avec Docker Compose, le shell CLI est exposé via un service dédié et interactif :
 ```bash
-docker compose --profile cli run --rm cli
+docker compose --profile cli run --build --rm cli
 ```
 
 Puis, dans le shell ouvert :
