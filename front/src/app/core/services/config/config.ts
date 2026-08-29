@@ -15,7 +15,7 @@ const configSchema = zod.object({
   appName: zod.string(),
   authorName: zod.string(),
   authorEmail: zod.email(),
-  apiUrl: zod.url(),
+  apiUrl: zod.union([zod.url(), zod.string().regex(/^\/.*$/)]),
 })
 
 type AppConfig = zod.infer<typeof configSchema>
@@ -29,7 +29,7 @@ export class Config {
       appName: 'Quizz',
       authorName: 'Example Author',
       authorEmail: 'example@example.net',
-      apiUrl: 'https://example.net',
+      apiUrl: '/apiv1',
     }),
     loader: () => Promise.resolve(configSchema.parse(environment)),
   })
