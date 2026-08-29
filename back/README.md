@@ -33,6 +33,17 @@ CLI (Shell) :
 ./gradlew :quezap-cli:bootRun --console=plain
 ```
 
+Avec Docker Compose, le shell CLI est exposé via un service dédié et interactif :
+```bash
+docker compose --profile cli run --rm cli
+```
+
+Puis, dans le shell ouvert :
+```bash
+users add --name <nom> --login <identifiant>
+```
+Le mot de passe est demandé en TTY.
+
 Profils disponibles (API): `default`, `cli`, `test`, `prod` (voir `quezap-api/src/main/resources/application-*.yml`).
 Exemple :
 ```bash
