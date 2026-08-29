@@ -4,7 +4,10 @@ import {
   output,
 } from '@angular/core'
 
+import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload'
+
 import { AnswerWithResponse } from '@quezap/domain/models'
+import { PictureUrl } from '@quezap/domain/models'
 import { QuestionIcon, QuestionIconType } from '@quezap/features/quizz/components/question-view/parts'
 
 import { AnswerCorrectnessComponent } from '../answer-correctness/answer-correctness'
@@ -19,6 +22,7 @@ export type AnswerInput = AnswerWithResponse
     QuestionIcon,
     PhraseInput,
     AnswerCorrectnessComponent,
+    FileUploadModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -43,6 +47,28 @@ export class AnswerComponent {
     this.answerChanged.emit({
       ...this.answer(),
       isCorrect,
+    })
+  }
+
+  protected onUpload(event: FileSelectEvent) {
+    const file = event.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const pictureUrl = (e.target?.result as string) as PictureUrl
+        this.answerChanged.emit({
+          ...this.answer(),
+          picture: pictureUrl,
+        })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  protected removePicture() {
+    this.answerChanged.emit({
+      ...this.answer(),
+      picture: undefined,
     })
   }
 }

@@ -3,9 +3,24 @@
   <main class="quezap-theme-background relative flex grow flex-col gap-4 p-4">
     <quizz-phrase-editor class="w-full" />
 
-    <div class="grow">
-      <!-- TODO: Gestion images -->
-      <!-- <span>{{ question().picture ?? "Pas d'image" }}</span> -->
+    <div class="grow flex flex-col items-center justify-center">
+      @if (question().picture) {
+        <div class="relative inline-block">
+          <img alt="Question Image" class="max-h-48 max-w-full rounded-md object-contain" [src]="question().picture" />
+          <button class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1" title="Supprimer l'image" (click)="removePicture()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      } @else {
+        <p-fileUpload
+          mode="basic"
+          chooseLabel="Ajouter une image"
+          accept="image/*"
+          maxFileSize="1000000"
+          [auto]="true"
+          (onSelect)="onUpload($event)"
+        />
+      }
     </div>
 
     <quizz-answer-editor />

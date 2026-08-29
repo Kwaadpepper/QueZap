@@ -18,7 +18,25 @@
         (phraseChanged)="onPhraseChanged($event)"
       />
 
-      <!-- TODO: Gestion des images -->
-    </div>
+      <div class="flex items-center px-2">
+        @if (answer().picture) {
+          <div class="relative inline-block">
+            <img alt="Answer Image" class="max-h-12 max-w-full rounded-md object-contain" [src]="answer().picture" />
+            <button class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 w-4 h-4 flex items-center justify-center text-xs" title="Supprimer l'image" (click)="removePicture()">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        } @else {
+          <p-fileUpload
+            mode="basic"
+            chooseIcon="pi pi-image"
+            chooseLabel=" "
+            accept="image/*"
+            maxFileSize="1000000"
+            [auto]="true"
+            (onSelect)="onUpload($event)"
+          />
+        }
+      </div>
   </div>
 </div>

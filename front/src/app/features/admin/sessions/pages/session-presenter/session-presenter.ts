@@ -5,7 +5,7 @@ import { ActivatedRoute } from '@angular/router'
 
 import { Config } from '@quezap/core/services/config/config'
 
-import { SESSION_SERVICE, SessionApiResponse, ScoreResponse } from '../../services/session'
+import { SESSION_SERVICE, ScoreResponse } from '../../services/session'
 
 export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'PODIUM'
 
@@ -85,18 +85,20 @@ export class SessionPresenter implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id') || '018e3a2b-8888-7def-8123-abcdef888888'
     this.sessionId.set(id)
 
-    this.sessionService.getSession(id).subscribe((session: SessionApiResponse) => {
-      this.sessionCode.set(session.sessionCode || '')
-      this.sessionName.set(session.name || '')
-      if (session.status === 'STARTED') {
-        this.stage.set('QUESTION')
-      }
-      else if (session.status === 'ENDED') {
-        this.stage.set('PODIUM')
-        this.fetchScores()
+    this.sessionService.getSession(id).subscribe((output) => {
+      if (output.kind === 'success') {
+        const session = output.result
+        this.sessionCode.set(session.sessionCode || '')
+        this.sessionName.set(session.name || '')
+        if (session.status === 'STARTED') {
+          this.stage.set('QUESTION')
+        }
+        else if (session.status === 'ENDED') {
+          this.stage.set('PODIUM')
+          this.fetchScores()
+        }
       }
     })
-
     this.connectSse(id)
   }
 
@@ -170,8 +172,11 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   private fetchScores(): void {
-    this.sessionService.getScores(this.sessionId()).subscribe((scores: ScoreResponse[]) => {
-      this.leaderboard.set(scores.map((s: ScoreResponse) => ({ name: s.name, score: s.score })))
+    this.sessionService.getScores(this.sessionId()).subscribe((output) => {
+      if (output.kind === 'success') {
+        const scores = output.result
+        this.leaderboard.set(scores.map((s: ScoreResponse) => ({ name: s.name, score: s.score })))
+      }
     })
   }
 

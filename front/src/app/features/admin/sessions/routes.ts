@@ -6,6 +6,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages').then(m => m.SessionList),
   },
   {
+    path: 'create',
+    title: 'Création de Session',
+    loadComponent: () => import('./pages').then(m => m.SessionCreate),
+  },
+  {
+    path: ':id/edit',
+    title: 'Édition de Session',
+    loadComponent: () => import('./pages').then(m => m.SessionEdit),
+  },
+  {
     path: ':id/present',
     title: 'Projection de Session',
     loadComponent: () => import('./pages').then(m => m.SessionPresenter),

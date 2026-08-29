@@ -41,7 +41,7 @@ export class QuezapList {
     this.quezapPage.setPagination(pagination)
   }
 
-  protected onCreateTheme() {
+  protected onCreateQuezap() {
     this.router.navigate([this.#createPath])
   }
 }

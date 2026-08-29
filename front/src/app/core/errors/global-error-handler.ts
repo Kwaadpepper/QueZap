@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { ErrorHandler, inject, Injectable } from '@angular/core'
 
 import { Config } from '../services/config/config'
+import { ExternalLoggerService } from '../services/logger/external-logger'
 
 import { ERROR_NOTIFIER } from './error-notifier'
 import { HandledFrontError } from './handled-front-error'
@@ -10,6 +11,7 @@ import { HandledFrontError } from './handled-front-error'
 export class GlobalErrorHandler implements ErrorHandler {
   private readonly config = inject(Config)
   private readonly notifier = inject(ERROR_NOTIFIER)
+  private readonly externalLogger = inject(ExternalLoggerService)
 
   // * Arrow function to preserve "this" context when passed as callback
   handleError = (error: unknown): void => {
@@ -48,6 +50,6 @@ export class GlobalErrorHandler implements ErrorHandler {
       console.error('GlobalErrorHandler caught an error:', error)
     }
 
-    // TODO: add an external loggin service here
+    this.externalLogger.logError(error, summary, detail)
   }
 }

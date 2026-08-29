@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core'
 
-import { Observable } from 'rxjs'
+// removed import { Observable } from 'rxjs'
 
 import { PageOf, Pagination, ServiceOutput } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
@@ -26,12 +26,12 @@ export interface ScoreResponse {
 
 export interface SessionService {
   getSessionPage(page: Pagination): ServiceOutput<PageOf<Session>>
-  getSession(id: string): Observable<SessionApiResponse>
-  createSession(quezapId: string, name: string): Observable<SessionApiResponse>
-  startSession(id: string): Observable<void>
-  nextQuestion(id: string): Observable<void>
-  getScores(id: string): Observable<ScoreResponse[]>
-  kickParticipant(sessionId: string, name: string): Observable<void>
+  getSession(id: string): ServiceOutput<SessionApiResponse>
+  createSession(quezapId: string, name: string): ServiceOutput<SessionApiResponse>
+  startSession(id: string): ServiceOutput<void>
+  nextQuestion(id: string): ServiceOutput<void>
+  getScores(id: string): ServiceOutput<ScoreResponse[]>
+  kickParticipant(sessionId: string, name: string): ServiceOutput<void>
 }
 
 export const SESSION_SERVICE = new InjectionToken<SessionService>('SessionService')
