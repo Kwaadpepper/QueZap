@@ -1,7 +1,7 @@
 import {
   Component, computed, ErrorHandler, inject, input, signal,
 } from '@angular/core'
-import { form, submit, validateStandardSchema } from '@angular/forms/signals'
+import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
@@ -22,6 +22,7 @@ import { AUTHENTICATION_SERVICE } from '../../services'
 @Component({
   selector: 'quizz-reset-password-form',
   imports: [
+    FormField,
     Message,
     InputText,
     FieldError,

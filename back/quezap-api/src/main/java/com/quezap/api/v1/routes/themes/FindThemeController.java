@@ -27,7 +27,7 @@ public class FindThemeController {
     this.paginationMapper = paginationMapper;
   }
 
-  @GetMapping("apiv1/themes/find")
+  @GetMapping(value = {"apiv1/themes", "apiv1/themes/find"})
   PageOfDto<ThemeDto> find(@Valid PaginationDto paginationDto, @Valid FindThemesDto queryDto) {
     final var input = toInput(paginationDto, queryDto);
 

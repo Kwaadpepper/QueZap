@@ -54,6 +54,9 @@ public class QuestionRepositoryJpaAdapter implements QuestionRepository, Questio
   @Override
   @Transactional(readOnly = true)
   public Optional<Question> find(QuestionId id) {
+    if (id == null || id.value() == null) {
+      return Optional.empty();
+    }
     return questionJpaRepository.findById(id.value()).map(questionJpaMapper::toDomain);
   }
 

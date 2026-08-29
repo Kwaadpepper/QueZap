@@ -1,10 +1,7 @@
 import { Routes } from '@angular/router'
 
-import { QUEZAP_SERVICE, QuezapMockService } from './quezaps/services'
 import { QuezapPageStore } from './quezaps/stores'
-import { SESSION_SERVICE, SessionMockService } from './sessions/services'
 import { SessionPageStore } from './sessions/stores'
-import { THEME_SERVICE, ThemeMockService } from './themes/services'
 import { ThemePageStore } from './themes/stores'
 
 export const routes: Routes = [
@@ -18,7 +15,6 @@ export const routes: Routes = [
     title: 'Sessions',
     providers: [
       SessionPageStore,
-      { provide: SESSION_SERVICE, useClass: SessionMockService },
     ],
     loadChildren: () => import('./sessions/routes').then(m => m.routes),
   },
@@ -27,7 +23,6 @@ export const routes: Routes = [
     title: 'Quezaps',
     providers: [
       QuezapPageStore,
-      { provide: QUEZAP_SERVICE, useClass: QuezapMockService },
     ],
     loadChildren: () => import('./quezaps/routes').then(m => m.routes),
   },
@@ -36,7 +31,6 @@ export const routes: Routes = [
     title: 'Thèmes',
     providers: [
       ThemePageStore,
-      { provide: THEME_SERVICE, useClass: ThemeMockService },
     ],
     loadChildren: () => import('./themes/routes').then(m => m.routes),
   },

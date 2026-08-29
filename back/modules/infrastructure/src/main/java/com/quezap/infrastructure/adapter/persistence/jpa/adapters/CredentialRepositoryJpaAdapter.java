@@ -29,6 +29,9 @@ public class CredentialRepositoryJpaAdapter implements CredentialRepository {
   @Override
   @Transactional(readOnly = true)
   public Optional<Credential> find(CredentialId id) {
+    if (id == null || id.value() == null) {
+      return Optional.empty();
+    }
     return credentialJpaRepository.findById(id.value()).map(credentialJpaMapper::toDomain);
   }
 
@@ -48,6 +51,9 @@ public class CredentialRepositoryJpaAdapter implements CredentialRepository {
   @Override
   @Transactional(readOnly = true)
   public Optional<Credential> findByIdentifier(HashedIdentifier identifier) {
+    if (identifier == null || identifier.value() == null) {
+      return Optional.empty();
+    }
     return credentialJpaRepository
         .findByHashedIdentifier(identifier.value())
         .map(credentialJpaMapper::toDomain);

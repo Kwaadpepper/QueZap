@@ -41,6 +41,9 @@ public class SessionRepositoryJpaAdapter implements SessionRepository {
   @Override
   @Transactional(readOnly = true)
   public Optional<Session> find(SessionId id) {
+    if (id == null || id.value() == null) {
+      return Optional.empty();
+    }
     return sessionJpaRepository.findById(id.value()).map(sessionJpaMapper::toDomain);
   }
 

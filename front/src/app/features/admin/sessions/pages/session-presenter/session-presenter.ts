@@ -3,6 +3,8 @@ import {
 } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 
+import { QRCodeComponent } from 'angularx-qrcode'
+
 import { Config } from '@quezap/core/services/config/config'
 
 import { SESSION_SERVICE, ScoreResponse } from '../../services/session'
@@ -52,6 +54,7 @@ interface SseEnvelope {
   selector: 'quizz-session-presenter',
   templateUrl: './session-presenter.html',
   styleUrls: ['./session-presenter.css'],
+  imports: [QRCodeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SessionPresenter implements OnInit, OnDestroy {

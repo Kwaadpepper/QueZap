@@ -60,7 +60,7 @@ export class SessionApiHttpService implements SessionApiService {
 
   chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError> {
     const payload = {
-      sessionCode: this.currentSessionCode,
+      code: this.currentSessionCode,
       participantName: nickname,
     }
 

@@ -35,6 +35,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers("/apiv1/auth/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/apiv1/users")
+                    .permitAll()
                     .requestMatchers(HttpMethod.POST, "/apiv1/sessions/join")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/apiv1/sessions/*/answers")
@@ -43,7 +45,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*/scores")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*")
+                    .requestMatchers(HttpMethod.GET, "/apiv1/sessions/**")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/quezaps/**")
                     .permitAll()

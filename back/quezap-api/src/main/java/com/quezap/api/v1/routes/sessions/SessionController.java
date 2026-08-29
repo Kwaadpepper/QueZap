@@ -10,6 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,6 +60,7 @@ import org.jspecify.annotations.Nullable;
 
 @RestController
 @RequestMapping("apiv1/sessions")
+@Transactional
 public class SessionController {
 
   private final SessionJpaRepository sessionJpaRepository;
@@ -331,13 +333,18 @@ public class SessionController {
           HttpStatus.FORBIDDEN, "Participant was kicked from the session");
     }
 
+    final var effectiveSlideIndex =
+        request.slideIndex() != null
+            ? request.slideIndex()
+            : Math.max(sessionJpa.getCurrentSlideIndex(), 1);
+
     // Check duplicate answer for this slide
     final var existingAnswer =
         sessionJpa.getAnswers().stream()
             .filter(
                 a ->
                     a.getParticipantName().equals(participant.getName())
-                        && a.getSlideIndex().equals(request.slideIndex()))
+                        && a.getSlideIndex().equals(effectiveSlideIndex))
             .findFirst();
 
     if (existingAnswer.isPresent()) {
@@ -351,7 +358,7 @@ public class SessionController {
     final var quezap = sessionJpa.getQuezap();
     if (quezap != null) {
       final var questions = quezap.getQuestions().stream().toList();
-      final var slideIdx = request.slideIndex() - 1;
+      final var slideIdx = effectiveSlideIndex - 1;
       if (slideIdx >= 0 && slideIdx < questions.size()) {
         final var qq = questions.get(slideIdx);
         final var answers = qq.getQuestion().getAnswers().stream().toList();
@@ -370,7 +377,7 @@ public class SessionController {
             UuidV7.randomUuid(),
             sessionJpa,
             participant.getName(),
-            request.slideIndex(),
+            effectiveSlideIndex,
             request.answerIndex(),
             pointsAwarded,
             isCorrect,
@@ -386,19 +393,19 @@ public class SessionController {
     final var totalAnswered =
         (int)
             sessionJpa.getAnswers().stream()
-                .filter(a -> a.getSlideIndex().equals(request.slideIndex()))
+                .filter(a -> a.getSlideIndex().equals(effectiveSlideIndex))
                 .count();
 
     if (totalAnswered >= totalActive && totalActive > 0) {
       // Broadcast QUESTION_CLOSED
       final var closedPayload =
           new QuestionClosedPayload(
-              request.slideIndex(), totalAnswered, totalActive, "ALL_PARTICIPANTS_ANSWERED");
+              effectiveSlideIndex, totalAnswered, totalActive, "ALL_PARTICIPANTS_ANSWERED");
       sessionSseService.broadcast(
           sessionJpa.getId(), "QUESTION_CLOSED", sessionJpa.getNumber(), closedPayload);
 
       // Broadcast QUESTION_REVEAL
-      broadcastRevealAndLeaderboard(sessionJpa, request.slideIndex());
+      broadcastRevealAndLeaderboard(sessionJpa, effectiveSlideIndex);
     }
 
     return new AnswerSubmittedDto(true, Instant.now());

@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, input, model, signal,
 } from '@angular/core'
-import { form, submit, validateStandardSchema } from '@angular/forms/signals'
+import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
@@ -27,6 +27,7 @@ export interface ThemeInputModel {
 @Component({
   selector: 'quizz-theme-editor',
   imports: [
+    FormField,
     Dialog,
     InputText,
     FieldError,

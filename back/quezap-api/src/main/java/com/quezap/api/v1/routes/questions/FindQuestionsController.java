@@ -27,7 +27,7 @@ public class FindQuestionsController {
     this.paginationMapper = paginationMapper;
   }
 
-  @GetMapping("apiv1/questions/find")
+  @GetMapping(value = {"apiv1/questions", "apiv1/questions/find"})
   PageOfDto<QuestionShortInfoDto> find(
       @Valid PaginationDto paginationDto, @Valid FindQuestionsDto queryDto) {
     final var input = toInput(paginationDto, queryDto);

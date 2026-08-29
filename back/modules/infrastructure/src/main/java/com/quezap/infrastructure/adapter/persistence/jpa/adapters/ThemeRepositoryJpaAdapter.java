@@ -36,6 +36,9 @@ public class ThemeRepositoryJpaAdapter implements ThemeRepository, ThemeDirector
   @Override
   @Transactional(readOnly = true)
   public Optional<Theme> find(ThemeId id) {
+    if (id == null || id.value() == null) {
+      return Optional.empty();
+    }
     return themeJpaRepository.findById(id.value()).map(themeJpaMapper::toDomain);
   }
 

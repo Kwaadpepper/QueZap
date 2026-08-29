@@ -3,10 +3,7 @@ import { Routes } from '@angular/router'
 import { isAuthenticatedGuard } from '@quezap/core/guards/auth/authenticated-guard'
 import { isUnauthenticatedGuard } from '@quezap/core/guards/auth/unauthenticated-guard'
 
-import {
-  ActiveSessionPersistence, SESSION_API_SERVICE, SESSION_OBSERVER_SERVICE,
-  SessionApiMockService, SessionMocks, SessionObserverMockService,
-} from './quizz/services'
+import { ActiveSessionPersistence, SessionMocks } from './quizz/services'
 import { ActiveSessionStore, TimerStore } from './quizz/stores'
 
 export const routes: Routes = [
@@ -42,8 +39,6 @@ export const routes: Routes = [
       ActiveSessionPersistence,
       TimerStore,
       SessionMocks,
-      { provide: SESSION_API_SERVICE, useClass: SessionApiMockService },
-      { provide: SESSION_OBSERVER_SERVICE, useClass: SessionObserverMockService },
     ],
     loadChildren: () => import('./quizz/routes').then(m => m.routes),
   },

@@ -45,31 +45,7 @@
         <!-- Stylized QR Code Visual Card -->
         <div class="qr-box w-64 h-64 sm:w-72 sm:h-72 shrink-0 flex flex-col items-center justify-center bg-white rounded-3xl p-4 shadow-2xl">
           <div class="w-full h-full flex flex-col items-center justify-center p-2 border-4 border-slate-900 rounded-2xl bg-slate-50">
-            <!-- Stylized Crisp QR Pattern -->
-            <svg class="w-36 h-36 sm:w-44 sm:h-44 text-slate-950" viewBox="0 0 100 100" fill="currentColor">
-              <!-- Position markers -->
-              <rect x="5" y="5" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-              <rect x="13" y="13" width="14" height="14" rx="2" fill="currentColor"/>
-              <rect x="65" y="5" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-              <rect x="73" y="13" width="14" height="14" rx="2" fill="currentColor"/>
-              <rect x="5" y="65" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-              <rect x="13" y="73" width="14" height="14" rx="2" fill="currentColor"/>
-              <!-- Data modules matrix -->
-              <rect x="42" y="10" width="8" height="8" fill="currentColor"/>
-              <rect x="42" y="24" width="8" height="8" fill="currentColor"/>
-              <rect x="54" y="16" width="8" height="8" fill="currentColor"/>
-              <rect x="10" y="42" width="8" height="8" fill="currentColor"/>
-              <rect x="24" y="42" width="8" height="8" fill="currentColor"/>
-              <rect x="16" y="54" width="8" height="8" fill="currentColor"/>
-              <rect x="42" y="42" width="16" height="16" rx="2" fill="currentColor"/>
-              <rect x="65" y="42" width="8" height="8" fill="currentColor"/>
-              <rect x="80" y="42" width="12" height="8" fill="currentColor"/>
-              <rect x="72" y="56" width="16" height="8" fill="currentColor"/>
-              <rect x="42" y="65" width="8" height="14" fill="currentColor"/>
-              <rect x="56" y="72" width="14" height="8" fill="currentColor"/>
-              <rect x="65" y="82" width="20" height="8" fill="currentColor"/>
-              <rect x="42" y="85" width="8" height="8" fill="currentColor"/>
-            </svg>
+            <qrcode [qrdata]="'https://quezap.fr/join?code=' + sessionCode()" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
             <span class="text-[11px] font-black uppercase tracking-wider text-slate-900 mt-1">Scanner pour jouer</span>
           </div>
         </div>

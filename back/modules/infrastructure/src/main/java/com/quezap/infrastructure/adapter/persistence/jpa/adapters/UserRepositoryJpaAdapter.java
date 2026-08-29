@@ -39,6 +39,9 @@ public class UserRepositoryJpaAdapter implements UserRepository, UserDirectory {
   @Override
   @Transactional(readOnly = true)
   public Optional<User> find(UserId id) {
+    if (id == null || id.value() == null) {
+      return Optional.empty();
+    }
     return userJpaRepository.findById(id.value()).map(userJpaMapper::toDomain);
   }
 

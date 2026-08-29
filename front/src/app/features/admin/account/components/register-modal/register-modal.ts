@@ -14,7 +14,7 @@ import { isFailure } from '@quezap/core/types'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
-import { REGISTER_SERVICE, RegisterMockService } from '../../services'
+import { REGISTER_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-register-modal',
@@ -27,12 +27,7 @@ import { REGISTER_SERVICE, RegisterMockService } from '../../services'
     IconFacade,
     ButtonIcon,
   ],
-  providers: [
-    {
-      provide: REGISTER_SERVICE,
-      useClass: RegisterMockService,
-    },
-  ],
+  providers: [],
   templateUrl: './register-modal.html',
 })
 export class RegisterModal {

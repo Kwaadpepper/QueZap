@@ -20,6 +20,11 @@ import { loadingProgressionInterceptor } from './core/interceptors/loading-progr
 import { refreshSessionInterceptor } from './core/interceptors/refresh-session/refresh-session-interceptor'
 import { Config } from './core/services/config/config'
 import { DynamicTitleStrategy } from './core/strategies/dynamic-title'
+import {
+  ACCOUNT_ACTIVATION_SERVICE,
+  AccountActivationHttpService,
+  AccountActivationMockService,
+} from './features/activation/services'
 import { REGISTER_SERVICE, RegisterHttpService, RegisterMockService } from './features/admin/account/services'
 import { QUEZAP_SERVICE, QuezapHttpService, QuezapMockService } from './features/admin/quezaps/services'
 import { SESSION_SERVICE, SessionHttpService, SessionMockService } from './features/admin/sessions/services'
@@ -43,6 +48,10 @@ const appProviders: ApplicationConfig['providers'] = [
   {
     provide: AUTHENTICATION_SERVICE,
     useClass: environment.useMockData ? AuthenticationMockService : AuthenticationHttpService,
+  },
+  {
+    provide: ACCOUNT_ACTIVATION_SERVICE,
+    useClass: environment.useMockData ? AccountActivationMockService : AccountActivationHttpService,
   },
   {
     provide: REGISTER_SERVICE,

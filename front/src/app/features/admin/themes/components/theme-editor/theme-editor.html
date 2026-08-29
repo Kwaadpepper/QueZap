@@ -1,6 +1,6 @@
 <p-dialog
+  styleClass="w-full md:w-8/12 lg:w-6/12"
   [modal]="true"
-  [pt]="{ root: { class: 'md:max-w-6/8 lg:md:max-w-5/8' } }"
   (onShow)="onShow()"
   [(visible)]="visible"
 >
@@ -34,7 +34,7 @@
         class="flex-auto"
         autocomplete="off"
         type="text"
-        quizzFieldError
+        quizzFieldError [formField]="themeForm.name"
         [fieldState]="themeForm.name"
       />
     </div>
