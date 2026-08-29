@@ -8,7 +8,7 @@ public record RawIdentifier(String value) {
     Domain.checkDomain(
         () -> value.length() >= 4, "Raw identifier cannot be less than 4 characters long");
     Domain.checkDomain(
-        () -> value.length() <= 10, "Raw identifier cannot be longer than 10 characters");
+        () -> value.length() <= 255, "Raw identifier cannot be longer than 255 characters");
   }
 
   @Override

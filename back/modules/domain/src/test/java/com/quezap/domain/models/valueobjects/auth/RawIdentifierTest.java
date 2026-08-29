@@ -8,11 +8,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class RawIdentifierTest {
+  private static final String TOO_LONG_IDENTIFIER =
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
   @Test
   void canInstantiate() {
     // GIVEN
-    var identifier = "some-id";
+    var identifier = "user@example.net";
 
     // WHEN
     new RawIdentifier(identifier);
@@ -22,7 +24,7 @@ class RawIdentifierTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"   ", "abc", "abcdefghijk"})
+  @ValueSource(strings = {"   ", "abc", TOO_LONG_IDENTIFIER})
   void cannotInstantiateWithInvalidValue(String identifier) {
     // WHEN / THEN
     Assertions.assertThrows(IllegalDomainStateException.class, () -> new RawIdentifier(identifier));

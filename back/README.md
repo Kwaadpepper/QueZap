@@ -40,7 +40,7 @@ docker compose --profile cli run --build --rm cli
 
 Puis, dans le shell ouvert :
 ```bash
-users add --name <nom> --login <identifiant>
+users add --name <nom> --email <email>
 ```
 Le mot de passe est demandé en TTY.
 
@@ -134,7 +134,7 @@ Build avec scan :
 - REST : endpoints sous `apiv1/...` (voir contrôleurs dans `quezap-api/src/main/java/com/quezap/interfaces/api/v1`).
 - CLI :
   - lister les utilisateurs: `users list`
-  - ajouter: `users add --name <nom> --login <identifiant>` (mot de passe demandé en TTY)
+  - ajouter: `users add --name <nom> --email <email>` (mot de passe demandé en TTY)
   - supprimer: `users delete --loginOrId <valeur>`
 
 ## 🤝 Contributions

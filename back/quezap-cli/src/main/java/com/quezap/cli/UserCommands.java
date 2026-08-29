@@ -82,9 +82,9 @@ public class UserCommands {
       description = "Add a user")
   String addUser(
       @Option(required = true, arity = CommandRegistration.OptionArity.EXACTLY_ONE) String name,
-      @Option(required = true, arity = CommandRegistration.OptionArity.EXACTLY_ONE) String login) {
+      @Option(required = true, arity = CommandRegistration.OptionArity.EXACTLY_ONE) String email) {
     try {
-      final var identifier = new RawIdentifier(login);
+      final var identifier = new RawIdentifier(email);
       final var password = new RawPassword(readPassword("Mot de passe : "));
       final var input = new AddUser.Input(name, identifier, password);
 
