@@ -6,6 +6,19 @@ server:
 spring:
   application:
     name: quizz
+  datasource:
+    url: ${APP_DB_URL:jdbc:postgresql://localhost:5432/quezap}
+    username: ${APP_DB_USERNAME:quezap}
+    password: ${APP_DB_PASSWORD:quezap}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
   shell:
     interactive:
       enabled: false

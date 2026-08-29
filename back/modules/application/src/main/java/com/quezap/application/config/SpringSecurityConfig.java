@@ -23,6 +23,8 @@ public class SpringSecurityConfig {
 
   @Bean
   @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(
+      SecurityFilterChain.class)
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
     return http.sessionManagement(

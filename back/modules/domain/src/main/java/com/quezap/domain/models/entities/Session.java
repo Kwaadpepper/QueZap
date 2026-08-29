@@ -137,8 +137,16 @@ public class Session extends AggregateRoot<SessionId> {
     return number;
   }
 
+  public Integer getCurrentSlideIndex() {
+    return currentSlideIndex;
+  }
+
   public Set<QuestionSlide> getQuestionSlides() {
     return Objects.requireNonNull(Set.copyOf(questionSlides));
+  }
+
+  public Set<QuestionAnswer> getAnswers() {
+    return Objects.requireNonNull(Set.copyOf(answers));
   }
 
   public void addQuestion(QuestionSlide question) {

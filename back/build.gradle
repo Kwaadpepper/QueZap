@@ -166,6 +166,7 @@ project(":modules:infrastructure") {
     implementation(project(":modules:domain"))
 
     implementation("org.springframework.boot:spring-boot-starter")
+    implementation(libs.spring.boot.starter.data.jpa)
     implementation("org.springframework:spring-tx")
     implementation("org.springframework.security:spring-security-crypto")
     implementation(libs.tika.core)
