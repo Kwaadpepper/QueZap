@@ -35,11 +35,12 @@ export class JoinForm {
 
   protected readonly joinCodeForm = form(this.joinCode, (path) => {
     validate(path.code, ({ value }) => {
-      return isValidSessionCode(value())
+      const code = (value() ?? '').trim().toUpperCase()
+      return isValidSessionCode(code)
         ? []
         : {
             kind: 'invalid-value',
-            message: 'Le code de session est invalide.',
+            message: 'Le code PIN doit comporter 6 caractères (ex: AB12CD).',
           }
     })
   })
@@ -50,7 +51,8 @@ export class JoinForm {
       return
     }
 
-    this.router.navigate([this.#joinUrl, this.joinCodeForm().value().code], { onSameUrlNavigation: 'reload' })
+    const code = this.joinCodeForm().value().code.trim().toUpperCase()
+    this.router.navigate([this.#joinUrl, code], { onSameUrlNavigation: 'reload' })
   }
 
   protected onFillMockedValue() {

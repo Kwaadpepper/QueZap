@@ -112,6 +112,37 @@ export class SessionPresenter implements OnInit {
     }
   }
 
+  protected readonly confettiPieces = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    left: `${(i * 2.5) % 100}%`,
+    delay: `${(i * 0.12) % 3}s`,
+    duration: `${2.5 + ((i * 0.3) % 2)}s`,
+    color: ['#ef4444', '#3b82f6', '#eab308', '#22c55e', '#ec4899', '#a855f7', '#06b6d4', '#fbbf24'][i % 8],
+    width: `${8 + (i % 6)}px`,
+    height: `${12 + (i % 8)}px`,
+  }))
+
+  protected getInitials(name: string): string {
+    return name ? name.slice(0, 2).toUpperCase() : '?'
+  }
+
+  protected getParticipantColor(name: string): string {
+    const colors = [
+      'bg-rose-500 text-white',
+      'bg-blue-500 text-white',
+      'bg-amber-500 text-white',
+      'bg-emerald-500 text-white',
+      'bg-purple-500 text-white',
+      'bg-pink-500 text-white',
+      'bg-cyan-500 text-white',
+    ]
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return colors[Math.abs(hash) % colors.length]
+  }
+
   protected getSymbol(index: number): string {
     const symbols = ['▲', '◆', '●', '■']
     return symbols[index % symbols.length]

@@ -8,6 +8,8 @@ import { Config } from '@quezap/core/services/config/config'
 import { ServiceOutput } from '@quezap/core/types'
 import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 
+import { ActiveSessionPersistence } from '../active-session-persistence/active-session-persistence'
+
 import { SessionApiService } from './session-api'
 
 interface JoinSessionApiResponse {
@@ -23,6 +25,7 @@ interface JoinSessionApiResponse {
 export class SessionApiHttpService implements SessionApiService {
   private readonly http = inject(HttpClient)
   private readonly config = inject(Config)
+  private readonly sessionPersistence = inject(ActiveSessionPersistence)
 
   private currentSessionCode = ''
   private currentParticipationToken = ''
@@ -58,11 +61,7 @@ export class SessionApiHttpService implements SessionApiService {
       map((res) => {
         this.currentParticipationToken = res.participationToken
         this.currentSessionId = res.sessionId
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.setItem('quezap_participation_token', res.participationToken)
-          sessionStorage.setItem('quezap_session_id', res.sessionId)
-          sessionStorage.setItem('quezap_participant_name', nickname)
-        }
+        this.sessionPersistence.saveParticipationData(res.sessionId, res.participationToken, nickname)
         return {
           kind: 'success' as const,
           result: undefined,
@@ -84,15 +83,8 @@ export class SessionApiHttpService implements SessionApiService {
   }
 
   submitAnswer(answerIndex: number): ServiceOutput<void> {
-    const storageToken = typeof sessionStorage !== 'undefined'
-      ? sessionStorage.getItem('quezap_participation_token') || ''
-      : ''
-    const token = this.currentParticipationToken || storageToken
-
-    const storageSessionId = typeof sessionStorage !== 'undefined'
-      ? sessionStorage.getItem('quezap_session_id') || ''
-      : ''
-    const sessionId = this.currentSessionId || storageSessionId
+    const token = this.currentParticipationToken || this.sessionPersistence.getParticipationToken() || ''
+    const sessionId = this.currentSessionId || this.sessionPersistence.getSessionId() || ''
 
     return this.http.post<void>(
       `${this.apiUrl}/sessions/${sessionId}/answers`,

@@ -1,10 +1,11 @@
-import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClient, withInterceptors } from '@angular/common/http'
 import {
-  ApplicationConfig, enableProdMode, ErrorHandler, provideAppInitializer,
+  ApplicationConfig, enableProdMode, ErrorHandler, isDevMode, provideAppInitializer,
   provideBrowserGlobalErrorListeners, provideZonelessChangeDetection,
 } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { provideRouter, TitleStrategy, withComponentInputBinding } from '@angular/router'
+import { provideServiceWorker } from '@angular/service-worker'
 
 import { MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'
@@ -15,6 +16,8 @@ import Quezap from '@quezap/themes/Quezap'
 import { AppInitializer } from './app.initializer'
 import { routes } from './app.routes'
 import { createErrorNotifier, ERROR_NOTIFIER, GlobalErrorHandler } from './core/errors'
+import { loadingProgressionInterceptor } from './core/interceptors/loading-progression/loading-progression-interceptor'
+import { refreshSessionInterceptor } from './core/interceptors/refresh-session/refresh-session-interceptor'
 import { Config } from './core/services/config/config'
 import { DynamicTitleStrategy } from './core/strategies/dynamic-title'
 import { REGISTER_SERVICE, RegisterHttpService, RegisterMockService } from './features/admin/account/services'
@@ -73,7 +76,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([loadingProgressionInterceptor, refreshSessionInterceptor])),
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {
@@ -87,6 +90,10 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     provideAppInitializer(AppInitializer),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: environment.env === 'prod' || !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
     ...appProviders,
   ],
 }

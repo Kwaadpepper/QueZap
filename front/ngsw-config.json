@@ -1,0 +1,76 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/favicon.svg",
+          "/favicon-96x96.png",
+          "/apple-touch-icon.png",
+          "/site.webmanifest",
+          "/manifest.webmanifest",
+          "/index.html",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/images/**",
+          "/markdown/**",
+          "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+        ]
+      }
+    },
+    {
+      "name": "fonts",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/*.(woff|woff2|ttf|otf|eot)"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "session-api-freshness",
+      "urls": [
+        "/apiv1/sessions/**",
+        "/api/v1/sessions/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 100,
+        "maxAge": "10m",
+        "timeout": "3s",
+        "strategy": "freshness"
+      }
+    },
+    {
+      "name": "static-api-performance",
+      "urls": [
+        "/apiv1/themes/**",
+        "/api/v1/themes/**",
+        "/apiv1/config/**",
+        "/api/v1/config/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 100,
+        "maxAge": "1d",
+        "timeout": "5s",
+        "strategy": "performance"
+      }
+    }
+  ]
+}

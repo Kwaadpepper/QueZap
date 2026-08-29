@@ -1,28 +1,44 @@
 <label
-  class="answer-option relative flex h-full w-full"
+  class="answer-option relative flex h-full min-h-20 w-full items-center p-3.5 sm:p-4 rounded-2xl border-3 cursor-pointer shadow-md select-none overflow-hidden"
   [class]="`answer-option-${currentFormIndex()}`"
 >
   <input type="checkbox" class="checkbox" [value]="field()" [multiple]="!radio()" />
-  <div class="flex w-full items-center gap-4 px-2 py-3">
-    <quizz-question-icon
-      class="w-1/5 max-w-15 min-w-5"
-      [form]="currentForm()"
-      [checked]="field()().value()"
-    />
+  <div class="relative z-10 flex w-full items-center gap-3 sm:gap-4">
+    <!-- Geometric icon container with high-contrast badge -->
+    <div class="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-black/20 backdrop-blur-sm shadow-inner transition-transform duration-200">
+      <quizz-question-icon
+        class="w-7 h-7 sm:w-8 sm:h-8"
+        [form]="currentForm()"
+        [checked]="field()().value()"
+      />
+    </div>
 
-    <div class="align-items-center flex flex-col justify-center">
-      <span class="answer-phrase cursor-pointer select-none">{{ phrase() }}</span>
+    <!-- Answer text & picture -->
+    <div class="flex flex-1 flex-col justify-center min-w-0">
+      <span class="answer-phrase font-bold text-lg sm:text-xl md:text-2xl leading-tight line-clamp-3">
+        {{ phrase() }}
+      </span>
 
       @let picture = pictureUrl();
       @if (picture) {
-        <quizz-picture
-          [aria-labelledby]="`answer-image-desc-${identifier()}`"
-          [pictureUrl]="picture"
-        />
-        <span class="ms-4 text-xl" [id]="`answer-image-desc-${identifier()}`">
-          Image de la réponse {{ identifier() + 1 }}
-        </span>
+        <div class="mt-2 overflow-hidden rounded-lg">
+          <quizz-picture
+            [aria-labelledby]="`answer-image-desc-${identifier()}`"
+            [pictureUrl]="picture"
+          />
+          <span class="sr-only" [id]="`answer-image-desc-${identifier()}`">
+            Image de la réponse {{ identifier() + 1 }}
+          </span>
+        </div>
       }
     </div>
+
+    <!-- Checked selection indicator badge -->
+    @if (field()().value()) {
+      <div class="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-900 shadow-lg">
+        <i class="pi pi-check text-base font-black text-emerald-600"></i>
+      </div>
+    }
   </div>
 </label>
+

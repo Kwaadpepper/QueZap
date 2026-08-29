@@ -64,7 +64,10 @@ export class Join {
         this.errorOccured.set(false)
       }),
       filter((code): code is SessionCode => {
-        const sessionCodeIsValid = code !== undefined && isValidSessionCode(code)
+        if (code === undefined) {
+          return false
+        }
+        const sessionCodeIsValid = isValidSessionCode(code)
         if (!sessionCodeIsValid) {
           this.sessionNotFound.set(true)
         }

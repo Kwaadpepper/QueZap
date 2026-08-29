@@ -11,6 +11,7 @@
         "@angular/forms": "^21.2.0",
         "@angular/platform-browser": "^21.2.0",
         "@angular/router": "^21.2.0",
+        "@angular/service-worker": "^21.2.0",
         "@fortawesome/angular-fontawesome": "^4.0.0",
         "@fortawesome/fontawesome-svg-core": "^7.2.0",
         "@fortawesome/free-solid-svg-icons": "^7.2.0",
@@ -142,6 +143,8 @@
     "@angular/platform-browser-dynamic": ["@angular/platform-browser-dynamic@20.3.10", "", { "dependencies": { "tslib": "^2.3.0" }, "peerDependencies": { "@angular/common": "20.3.10", "@angular/compiler": "20.3.10", "@angular/core": "20.3.10", "@angular/platform-browser": "20.3.10" } }, "sha512-gtZPCuxfxxkMzHYBdTU9tJeTiHj+Aty3C408DJGtGU+7rZgKt9hDC14vQN9OVzB9Ly9Jwj2yr8u7AH80TxxCJw=="],
 
     "@angular/router": ["@angular/router@21.2.0", "", { "dependencies": { "tslib": "^2.3.0" }, "peerDependencies": { "@angular/common": "21.2.0", "@angular/core": "21.2.0", "@angular/platform-browser": "21.2.0", "rxjs": "^6.5.3 || ^7.4.0" } }, "sha512-siliJ+jJRUCRZ0cdkqc7zww9Didz56Z0Z2YPIuR2n5TZLiuJY+jAf6xotXKp/v6v8XoGJwLiRNipGgNDRIAlWA=="],
+
+    "@angular/service-worker": ["@angular/service-worker@21.2.22", "", { "dependencies": { "tslib": "^2.3.0" }, "peerDependencies": { "@angular/core": "21.2.22", "rxjs": "^6.5.3 || ^7.4.0" }, "bin": { "ngsw-config": "ngsw-config.js" } }, "sha512-0rJPjiNqm2mW8qh1k+TAlsJoia7ui3cER6lMZcmypacfqQMsJJAHzxNKprAz0uNcYzbTb5MIE75vGN8j6xwY1w=="],
 
     "@antfu/install-pkg": ["@antfu/install-pkg@1.1.0", "", { "dependencies": { "package-manager-detector": "^1.3.0", "tinyexec": "^1.0.1" } }, "sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ=="],
 

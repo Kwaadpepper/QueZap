@@ -49,6 +49,36 @@ export class NicknameChooser {
     minLength(path.nicknameValue, 3, { message: 'Le pseudo doit faire au moins 3 caractères' })
   })
 
+  protected readonly currentNicknameText = computed(() => {
+    const fromForm = this.nickname().nicknameValue.trim()
+    return fromForm || this.selectedNickname() || '?'
+  })
+
+  protected readonly avatarInitial = computed(() => {
+    const name = this.currentNicknameText()
+    if (name === '?') return '⚡'
+    return name.slice(0, 2).toUpperCase()
+  })
+
+  protected readonly avatarGradientClass = computed(() => {
+    const name = this.currentNicknameText()
+    const gradients = [
+      'from-rose-500 to-red-600 shadow-red-500/30',
+      'from-blue-500 to-indigo-600 shadow-indigo-500/30',
+      'from-amber-400 to-orange-500 shadow-amber-500/30',
+      'from-emerald-400 to-green-600 shadow-emerald-500/30',
+      'from-purple-500 to-indigo-600 shadow-purple-500/30',
+      'from-pink-500 to-rose-600 shadow-pink-500/30',
+      'from-cyan-400 to-blue-600 shadow-cyan-500/30',
+    ]
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    const index = Math.abs(hash) % gradients.length
+    return gradients[index]
+  })
+
   protected onChooseNickname(): void {
     if (this.nicknameForm().invalid()) {
       return

@@ -1,9 +1,21 @@
-<div class="flex h-full flex-col items-center justify-center">
-  <h1 class="mb-15 text-center">Rejoindre une session</h1>
+<div class="flex min-h-[80vh] w-full flex-col items-center justify-center px-4 py-8">
+  <!-- QueZap Join Title -->
+  <div class="mb-6 flex flex-col items-center text-center">
+    <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600/10 text-3xl shadow-inner dark:bg-indigo-500/20">
+      ⚡
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+      Rejoindre la partie
+    </h1>
+    <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+      Prépare-toi à répondre aux questions !
+    </p>
+  </div>
+
   @if (errorOccured()) {
     <p-message
       severity="error"
-      class="flex w-full max-w-md flex-col items-center text-center"
+      class="mb-6 flex w-full max-w-md flex-col items-center text-center shadow-lg"
       size="large"
     >
       <ng-template #icon>
@@ -11,16 +23,18 @@
       </ng-template>
       <p>
         Une erreur est survenue lors de la tentative de connexion à la session <br />
-        <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
+        @if (sessionCode()) {
+          <strong class="text-2xl font-mono">{{ sessionCode() }} </strong>. <br />
+        }
         Veuillez réessayer.
       </p>
     </p-message>
 
-    <quizz-join-form class="mt-10 w-full max-w-md" />
-  } @else if (sessionNotFound()) {
+    <quizz-join-form class="w-full max-w-md" />
+  } @else if (sessionNotFound() && sessionCode()) {
     <p-message
       severity="warn"
-      class="flex w-full max-w-md flex-col items-center text-center"
+      class="mb-6 flex w-full max-w-md flex-col items-center text-center shadow-lg"
       size="large"
     >
       <ng-template #icon>
@@ -28,13 +42,19 @@
       </ng-template>
       <p>
         Aucune session trouvée avec le code <br />
-        <strong class="text-2xl">{{ sessionCode() }} </strong>. <br />
+        <strong class="text-2xl font-mono tracking-widest">{{ sessionCode() }} </strong>. <br />
         Vérifiez le code et réessayez.
       </p>
     </p-message>
 
-    <quizz-join-form class="mt-10 w-full max-w-md" />
+    <quizz-join-form class="w-full max-w-md" />
+  } @else if (isLoading()) {
+    <div class="flex flex-col items-center justify-center gap-4 py-12">
+      <quizz-spinner />
+      <span class="text-lg font-medium text-slate-500 dark:text-slate-400">Connexion à la session...</span>
+    </div>
   } @else {
-    <quizz-spinner />
+    <quizz-join-form class="w-full max-w-md" />
   }
 </div>
+

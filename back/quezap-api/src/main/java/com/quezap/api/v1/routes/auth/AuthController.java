@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -101,6 +103,21 @@ public class AuthController {
       throw new ResponseStatusException(
           HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate token", e);
     }
+  }
+
+  @GetMapping("me")
+  public UserSummaryDto me(Authentication authentication) {
+    if (authentication == null || authentication.getName() == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+    }
+
+    final var userId = UUID.fromString(authentication.getName());
+    final var userEntity =
+        userJpaRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    return new UserSummaryDto(userEntity.getId(), userEntity.getName());
   }
 
   @PostMapping("refresh")

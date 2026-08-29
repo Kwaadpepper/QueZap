@@ -1,24 +1,25 @@
 @if (showTimerWarning()) {
-  <p-message severity="warn" styleClass="my-4 w-fit">
-    <span class="select-none">
-      <span class="text-2xl">⏱️</span>&nbsp;<strong class="text-xl">Dépêchez-vous !</strong>
+  <div class="my-2 flex items-center gap-3 rounded-2xl bg-amber-500/20 border border-amber-500/60 px-4 py-2 shadow-lg backdrop-blur-md transition-all animate-bounce">
+    <span class="text-2xl select-none">⏱️</span>
+    <div class="select-none">
+      <strong class="text-sm font-black text-amber-900 dark:text-amber-300">Dépêchez-vous !</strong>
       @if (timeLeft()) {
-        <br />
-        <span>
-          Il ne vous reste que
-          <span class="inline-block w-8 text-center font-mono text-2xl">{{ timeLeft() }}</span>
-          secondes pour répondre.
-        </span>
+        <div class="text-xs text-amber-800 dark:text-amber-200">
+          Il ne reste que <span class="font-mono font-bold text-sm">{{ timeLeft() }}s</span> pour valider.
+        </div>
       }
-    </span>
-  </p-message>
+    </div>
+  </div>
 }
 @if (timesUp()) {
-  <p-message severity="error" styleClass="my-4 w-fit">
-    <span class="select-none">
-      <span class="text-2xl">⏰</span>&nbsp;<strong class="text-xl">Temps écoulé !</strong>
-      <br />
-      Vos réponses ne peuvent plus être modifiées.
-    </span>
-  </p-message>
+  <div class="my-2 flex items-center gap-3 rounded-2xl bg-red-500/20 border border-red-500/60 px-4 py-2 shadow-lg backdrop-blur-md transition-all">
+    <span class="text-2xl select-none">⏰</span>
+    <div class="select-none">
+      <strong class="text-sm font-black text-red-900 dark:text-red-300">Temps écoulé !</strong>
+      <div class="text-xs text-red-800 dark:text-red-200">
+        Vos réponses sont enregistrées et verrouillées.
+      </div>
+    </div>
+  </div>
 }
+

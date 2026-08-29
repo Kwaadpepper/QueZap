@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --configuration development",
-    "build": "ng build",
+    "build": "ng build && node ./node_modules/@angular/service-worker/ngsw-config.js dist/quezap/browser ngsw-config.json",
     "watch": "ng build --watch --configuration development",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -14,9 +14,9 @@
     "lint:ts": "ng lint",
     "lint:ts:ci": "ng lint --format json --silent --quiet",
     "lint:ts:fix": "ng lint --fix",
-    "lint:css": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\"",
-    "lint:css:ci": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\" -f json",
-    "lint:css:fix": "node ./node_modules/.bin/stylelint --config './.stylelintrc' --max-warnings 0 \"src/**/*.css\" --fix",
+    "lint:css": "node ./node_modules/.bin/stylelint --config './.stylelintrc.json' --max-warnings 0 \"src/**/*.css\"",
+    "lint:css:ci": "node ./node_modules/.bin/stylelint --config './.stylelintrc.json' --max-warnings 0 \"src/**/*.css\" -f json",
+    "lint:css:fix": "node ./node_modules/.bin/stylelint --config './.stylelintrc.json' --max-warnings 0 \"src/**/*.css\" --fix",
     "prepare": "husky"
   },
   "imports": {
@@ -45,6 +45,7 @@
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "@angular/service-worker": "^21.2.0",
     "@fortawesome/angular-fontawesome": "^4.0.0",
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",

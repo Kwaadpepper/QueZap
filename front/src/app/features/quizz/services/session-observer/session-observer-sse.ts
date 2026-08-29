@@ -10,6 +10,8 @@ import {
   QuestionId, QuestionType, QuestionWithAnswers, Score,
 } from '@quezap/domain/models'
 
+import { ActiveSessionPersistence } from '../active-session-persistence/active-session-persistence'
+
 import { CurrentQuestion, SessionEvent, SessionObserverService } from './session-observer'
 
 interface SsePayloadParticipant {
@@ -50,6 +52,7 @@ interface SseEnvelope {
 @Injectable({ providedIn: 'root' })
 export class SessionObserverSseService implements SessionObserverService {
   private readonly config = inject(Config)
+  private readonly sessionPersistence = inject(ActiveSessionPersistence)
 
   private eventSource: EventSource | null = null
   private readonly eventsSubject = new Subject<SessionEvent>()
@@ -80,9 +83,7 @@ export class SessionObserverSseService implements SessionObserverService {
       return
     }
 
-    const sessionId = typeof sessionStorage !== 'undefined'
-      ? sessionStorage.getItem('quezap_session_id') || 'active'
-      : 'active'
+    const sessionId = this.sessionPersistence.getSessionId() || 'active'
 
     try {
       this.eventSource = new EventSource(`${this.apiUrl}/sessions/${sessionId}/events`)

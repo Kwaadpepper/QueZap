@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
-import { Message } from 'primeng/message'
-
 @Component({
   selector: 'quizz-question-alert',
-  imports: [Message],
+  imports: [],
   templateUrl: './question-alert.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

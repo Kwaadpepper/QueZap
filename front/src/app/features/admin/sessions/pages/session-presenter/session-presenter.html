@@ -1,22 +1,25 @@
-<div class="presenter-container p-6 md:p-12">
+<div class="presenter-container p-6 md:p-12 relative overflow-hidden">
   <!-- Top bar -->
-  <header class="flex justify-between items-center pb-6 border-b border-slate-700/50">
+  <header class="flex justify-between items-center pb-6 border-b border-slate-700/50 relative z-20">
     <div class="flex items-center gap-4">
-      <span class="text-2xl font-black tracking-wider text-indigo-400">QUEZAP</span>
-      <span class="px-3 py-1 bg-slate-800 rounded-full text-sm font-semibold text-slate-300">
+      <span class="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-300">QUEZAP</span>
+      <span class="px-4 py-1.5 bg-slate-800/90 border border-slate-700 rounded-full text-sm font-bold text-slate-200 shadow-md">
         {{ sessionName() }}
       </span>
     </div>
 
-    <div class="flex items-center gap-6">
-      <div class="flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-xl">
-        <i class="pi pi-users text-indigo-400 text-lg"></i>
-        <span class="text-xl font-bold">{{ participants().length }}</span>
-        <span class="text-slate-400 text-sm">joueurs</span>
+    <div class="flex items-center gap-4 sm:gap-6">
+      <div class="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700 px-4 py-2 rounded-2xl shadow-md">
+        <span class="relative flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+        <span class="text-2xl font-black text-white">{{ participants().length }}</span>
+        <span class="text-slate-400 text-sm font-semibold">joueurs</span>
       </div>
 
       <button
-        class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-medium transition"
+        class="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-2xl font-bold transition shadow-md active:scale-95 cursor-pointer"
         (click)="toggleFullscreen()">
         <i class="pi pi-expand mr-2"></i>Plein écran
       </button>
@@ -25,40 +28,88 @@
 
   <!-- LOBBY SCREEN -->
   @if (stage() === 'LOBBY') {
-    <main class="flex-1 flex flex-col items-center justify-center text-center my-auto py-8">
-      <p class="text-slate-400 text-xl md:text-2xl mb-2 font-medium">Rejoignez la partie sur <span class="text-indigo-400 font-bold">quezap.fr</span></p>
-      
-      <div class="my-6 bg-slate-900/90 border-2 border-indigo-500/40 px-10 py-6 rounded-3xl shadow-2xl">
-        <p class="text-sm uppercase tracking-widest text-slate-400 mb-1">Code de session</p>
-        <p class="glow-pin text-6xl md:text-8xl font-black text-white font-mono tracking-widest">{{ sessionCode() }}</p>
+    <main class="flex-1 flex flex-col items-center justify-center text-center my-auto py-8 relative z-20">
+      <p class="text-slate-300 text-2xl md:text-3xl mb-4 font-semibold tracking-wide">
+        Rejoignez la partie sur <strong class="text-indigo-400 font-extrabold text-3xl md:text-4xl underline decoration-indigo-500/50 underline-offset-8">quezap.fr</strong>
+      </p>
+
+      <!-- Giant PIN and QR Code Card Container -->
+      <div class="my-6 flex flex-col md:flex-row items-center justify-center gap-8 max-w-5xl w-full">
+        <!-- Giant PIN Card -->
+        <div class="flex-1 bg-slate-900/90 border-2 border-indigo-500/40 p-8 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-xl">
+          <p class="text-xs sm:text-sm uppercase tracking-[0.3em] font-extrabold text-indigo-400 mb-2">Code PIN de session</p>
+          <p class="glow-pin text-7xl sm:text-8xl md:text-9xl font-black text-white font-mono tracking-[0.15em] select-all">{{ sessionCode() }}</p>
+          <p class="text-xs text-slate-400 mt-2 font-medium">Saisissez ce code sur votre smartphone pour entrer</p>
+        </div>
+
+        <!-- Stylized QR Code Visual Card -->
+        <div class="qr-box w-64 h-64 sm:w-72 sm:h-72 shrink-0 flex flex-col items-center justify-center bg-white rounded-3xl p-4 shadow-2xl">
+          <div class="w-full h-full flex flex-col items-center justify-center p-2 border-4 border-slate-900 rounded-2xl bg-slate-50">
+            <!-- Stylized Crisp QR Pattern -->
+            <svg class="w-36 h-36 sm:w-44 sm:h-44 text-slate-950" viewBox="0 0 100 100" fill="currentColor">
+              <!-- Position markers -->
+              <rect x="5" y="5" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
+              <rect x="13" y="13" width="14" height="14" rx="2" fill="currentColor"/>
+              <rect x="65" y="5" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
+              <rect x="73" y="13" width="14" height="14" rx="2" fill="currentColor"/>
+              <rect x="5" y="65" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
+              <rect x="13" y="73" width="14" height="14" rx="2" fill="currentColor"/>
+              <!-- Data modules matrix -->
+              <rect x="42" y="10" width="8" height="8" fill="currentColor"/>
+              <rect x="42" y="24" width="8" height="8" fill="currentColor"/>
+              <rect x="54" y="16" width="8" height="8" fill="currentColor"/>
+              <rect x="10" y="42" width="8" height="8" fill="currentColor"/>
+              <rect x="24" y="42" width="8" height="8" fill="currentColor"/>
+              <rect x="16" y="54" width="8" height="8" fill="currentColor"/>
+              <rect x="42" y="42" width="16" height="16" rx="2" fill="currentColor"/>
+              <rect x="65" y="42" width="8" height="8" fill="currentColor"/>
+              <rect x="80" y="42" width="12" height="8" fill="currentColor"/>
+              <rect x="72" y="56" width="16" height="8" fill="currentColor"/>
+              <rect x="42" y="65" width="8" height="14" fill="currentColor"/>
+              <rect x="56" y="72" width="14" height="8" fill="currentColor"/>
+              <rect x="65" y="82" width="20" height="8" fill="currentColor"/>
+              <rect x="42" y="85" width="8" height="8" fill="currentColor"/>
+            </svg>
+            <span class="text-[11px] font-black uppercase tracking-wider text-slate-900 mt-1">Scanner pour jouer</span>
+          </div>
+        </div>
       </div>
 
-      <div class="w-full max-w-4xl mt-8">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-bold text-slate-300">Joueurs connectés ({{ participants().length }})</h3>
+      <!-- Connected Players Area -->
+      <div class="w-full max-w-5xl mt-6">
+        <div class="flex justify-between items-center mb-4 px-2">
+          <h3 class="text-xl md:text-2xl font-extrabold text-slate-200">
+            Joueurs connectés ({{ participants().length }})
+          </h3>
           @if (participants().length >= 1) {
             <button
-              class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-xl rounded-2xl shadow-xl transition transform hover:scale-105"
+              class="px-8 py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-2xl rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3 animate-pulse"
               (click)="startQuiz()">
-              Démarrer le Quizz <i class="pi pi-arrow-right ml-2"></i>
+              <span>Démarrer le Quizz</span>
+              <i class="pi pi-arrow-right text-2xl"></i>
             </button>
           }
         </div>
 
-        <div class="flex flex-wrap justify-center gap-3 p-6 bg-slate-900/50 rounded-2xl min-h-[160px] border border-slate-800">
+        <div class="flex flex-wrap justify-center gap-3 p-6 bg-slate-900/60 rounded-3xl min-h-[160px] border border-slate-800/80 shadow-inner">
           @for (p of participants(); track p.name) {
-            <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-lg font-semibold animate-fade-in group">
-              <i class="pi pi-user text-indigo-400"></i>
-              <span>{{ p.name }}</span>
+            <div class="flex items-center gap-3 bg-slate-800/90 px-4 py-2.5 rounded-2xl border border-slate-700/80 text-xl font-bold shadow-md transition-all hover:scale-105 group">
+              <span class="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-black shadow-inner" [class]="getParticipantColor(p.name)">
+                {{ getInitials(p.name) }}
+              </span>
+              <span class="text-white">{{ p.name }}</span>
               <button
-                class="ml-2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition"
+                class="ml-1 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition cursor-pointer"
                 title="Exclure ce joueur"
                 (click)="kick(p.name)">
-                <i class="pi pi-times-circle"></i>
+                <i class="pi pi-times-circle text-lg"></i>
               </button>
             </div>
           } @empty {
-            <p class="text-slate-500 italic my-auto">En attente des premiers participants...</p>
+            <div class="flex flex-col items-center justify-center my-auto py-8">
+              <i class="pi pi-users text-4xl text-slate-600 mb-2"></i>
+              <p class="text-slate-400 text-lg italic">En attente des premiers participants...</p>
+            </div>
           }
         </div>
       </div>
@@ -67,46 +118,63 @@
 
   <!-- QUESTION RUNNER SCREEN -->
   @if (stage() === 'QUESTION') {
-    <main class="flex-1 flex flex-col justify-between py-6">
+    <main class="flex-1 flex flex-col justify-between py-6 max-w-7xl mx-auto w-full relative z-20">
+      <!-- Top indicators -->
       <div class="flex justify-between items-center">
-        <span class="text-xl font-bold text-indigo-400">Question {{ currentQuestionIndex() + 1 }} / {{ totalQuestions() }}</span>
+        <div class="px-5 py-2 bg-indigo-950/70 border border-indigo-500/50 rounded-2xl">
+          <span class="text-2xl font-black text-indigo-300">Question {{ currentQuestionIndex() + 1 }} / {{ totalQuestions() }}</span>
+        </div>
         
+        <!-- Giant Timer -->
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-full border-4 border-indigo-500 flex items-center justify-center text-2xl font-black text-white bg-slate-900">
+          <div
+            class="w-20 h-20 rounded-full border-4 flex items-center justify-center text-3xl font-black text-white bg-slate-900 shadow-2xl transition-all"
+            [class.border-red-500]="timer() <= 5"
+            [class.animate-pulse]="timer() <= 5"
+            [class.scale-110]="timer() <= 5"
+            [class.border-indigo-500]="timer() > 5">
             {{ timer() }}
           </div>
-          <span class="text-slate-400 text-sm font-semibold">secondes</span>
+          <span class="text-slate-400 text-base font-bold uppercase tracking-wider">secondes</span>
         </div>
       </div>
 
-      <div class="my-6 text-center">
-        <h2 class="text-3xl md:text-5xl font-black text-white leading-tight max-w-4xl mx-auto">
+      <!-- Question Title XXL -->
+      <div class="my-8 text-center px-4">
+        <h2 class="text-4xl md:text-6xl font-black text-white leading-tight max-w-5xl mx-auto tracking-tight drop-shadow-lg">
           {{ currentQuestion().title }}
         </h2>
       </div>
 
-      <!-- Answers 2x2 Grid -->
-      <div class="choice-grid max-w-5xl mx-auto w-full my-4">
+      <!-- Answers 2x2 Grid XXL -->
+      <div class="choice-grid max-w-6xl mx-auto w-full my-6">
         @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
-          <div class="choice-card text-white shadow-lg" [class]="getChoiceColorClass(i)">
-            <span class="w-12 h-12 rounded-xl bg-black/20 flex items-center justify-center mr-4 text-2xl">
+          <div class="choice-card text-white shadow-xl" [class]="getChoiceColorClass(i)">
+            <span class="w-16 h-16 rounded-2xl bg-black/25 flex items-center justify-center mr-5 text-3xl font-black shrink-0 shadow-inner">
               {{ getSymbol(i) }}
             </span>
-            <span class="flex-1">{{ ans.label }}</span>
+            <span class="flex-1 text-2xl md:text-3xl leading-snug">{{ ans.label }}</span>
           </div>
         }
       </div>
 
       <!-- Footer action -->
-      <div class="flex justify-between items-center pt-4 border-t border-slate-800">
-        <div class="text-slate-400 font-medium">
-          <span class="text-white font-bold text-lg">{{ answersReceived() }}</span> réponses enregistrées
+      <div class="flex justify-between items-center pt-6 border-t border-slate-800/80">
+        <div class="flex items-center gap-3 text-slate-300 font-semibold text-xl">
+          <div class="flex h-4 w-48 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+            <div
+              class="bg-indigo-500 h-full rounded-full transition-all duration-300"
+              [style.width.%]="participants().length > 0 ? (answersReceived() / participants().length) * 100 : 100">
+            </div>
+          </div>
+          <span><strong class="text-white font-black text-2xl">{{ answersReceived() }}</strong> / {{ participants().length }} réponses enregistrées</span>
         </div>
 
         <button
-          class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition"
+          class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xl rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
           (click)="revealAnswers()">
-          Révéler les réponses <i class="pi pi-eye ml-2"></i>
+          <span>Révéler les réponses</span>
+          <i class="pi pi-eye text-xl"></i>
         </button>
       </div>
     </main>
@@ -114,36 +182,42 @@
 
   <!-- REVEAL & STATS SCREEN -->
   @if (stage() === 'REVEAL') {
-    <main class="flex-1 flex flex-col justify-between py-6">
+    <main class="flex-1 flex flex-col justify-between py-6 max-w-7xl mx-auto w-full relative z-20">
       <div class="text-center">
-        <h2 class="text-3xl font-black text-white mb-2">{{ currentQuestion().title }}</h2>
-        <p class="text-emerald-400 font-bold text-lg">Bonne réponse révélée !</p>
+        <span class="inline-block px-5 py-1.5 bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 font-black text-lg rounded-full mb-3 shadow-md">
+          ✨ BONNE RÉPONSE RÉVÉLÉE
+        </span>
+        <h2 class="text-3xl md:text-5xl font-black text-white mb-2">{{ currentQuestion().title }}</h2>
       </div>
 
-      <div class="choice-grid max-w-5xl mx-auto w-full my-6">
+      <div class="choice-grid max-w-6xl mx-auto w-full my-6">
         @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
           <div
-            class="choice-card text-white shadow-lg relative"
-            [class.border-4]="ans.isCorrect"
-            [class.border-emerald-400]="ans.isCorrect"
-            [class.opacity-40]="!ans.isCorrect"
+            class="choice-card text-white shadow-xl"
+            [class.choice-revealed-correct]="ans.isCorrect"
+            [class.opacity-25]="!ans.isCorrect"
+            [class.grayscale]="!ans.isCorrect"
+            [class.scale-95]="!ans.isCorrect"
             [class]="getChoiceColorClass(i)">
-            <span class="w-12 h-12 rounded-xl bg-black/20 flex items-center justify-center mr-4 text-2xl">
+            <span class="w-16 h-16 rounded-2xl bg-black/25 flex items-center justify-center mr-5 text-3xl font-black shrink-0 shadow-inner">
               {{ getSymbol(i) }}
             </span>
-            <span class="flex-1">{{ ans.label }}</span>
+            <span class="flex-1 text-2xl md:text-3xl leading-snug">{{ ans.label }}</span>
             @if (ans.isCorrect) {
-              <i class="pi pi-check-circle text-3xl text-emerald-300 ml-2"></i>
+              <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-slate-950 shadow-xl ml-4 shrink-0">
+                <i class="pi pi-check text-2xl font-black text-white"></i>
+              </div>
             }
           </div>
         }
       </div>
 
-      <div class="flex justify-end pt-4 border-t border-slate-800">
+      <div class="flex justify-end pt-6 border-t border-slate-800/80">
         <button
-          class="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-xl rounded-2xl shadow-xl transition"
+          class="px-10 py-5 bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-2xl rounded-2xl shadow-[0_0_35px_rgba(99,102,241,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
           (click)="nextStep()">
-          {{ isLastQuestion() ? 'Afficher le Podium Final' : 'Question suivante' }} <i class="pi pi-arrow-right ml-2"></i>
+          <span>{{ isLastQuestion() ? '🏆 Afficher le Podium Final' : 'Question suivante' }}</span>
+          <i class="pi pi-arrow-right text-2xl"></i>
         </button>
       </div>
     </main>
@@ -151,59 +225,90 @@
 
   <!-- PODIUM & LEADERBOARD SCREEN -->
   @if (stage() === 'PODIUM') {
-    <main class="flex-1 flex flex-col items-center justify-center py-6 text-center">
-      <h2 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 mb-8">
-        🏆 PODIUM DE LA CLASSE 🏆
+    <!-- Floating CSS Confetti Shower -->
+    @for (c of confettiPieces; track c.id) {
+      <div
+        class="confetti-piece"
+        [style.left]="c.left"
+        [style.animation-delay]="c.delay"
+        [style.animation-duration]="c.duration"
+        [style.background-color]="c.color"
+        [style.width]="c.width"
+        [style.height]="c.height">
+      </div>
+    }
+
+    <main class="flex-1 flex flex-col items-center justify-center py-6 text-center max-w-6xl mx-auto w-full relative z-20">
+      <div class="mb-4">
+        <span class="text-2xl">🎉 🎊 🏆</span>
+      </div>
+      <h2 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 mb-8 drop-shadow-2xl tracking-tight">
+        PODIUM DE LA CLASSE
       </h2>
 
       <!-- 3D Podium Steps -->
-      <div class="podium-box w-full max-w-3xl my-6">
-        <!-- 2nd place -->
+      <div class="podium-box w-full max-w-4xl my-6">
+        <!-- 2nd place (Silver / Argent) -->
         @if (leaderboard().length >= 2) {
-          <div class="podium-step step-second">
-            <div class="mb-3 text-center">
-              <p class="text-2xl font-black text-white">{{ leaderboard()[1].name }}</p>
-              <p class="text-slate-300 font-bold">{{ leaderboard()[1].score }} pts</p>
+          <div class="podium-step step-second shadow-2xl">
+            <div class="mb-4 text-center">
+              <span class="text-3xl mb-1 block">🥈</span>
+              <p class="text-2xl md:text-3xl font-black text-white leading-none">{{ leaderboard()[1].name }}</p>
+              <p class="text-slate-200 font-extrabold text-lg mt-1">{{ leaderboard()[1].score }} pts</p>
             </div>
-            <div class="text-4xl font-black text-slate-800">2</div>
+            <div class="text-5xl font-black text-slate-800">2</div>
           </div>
         }
 
-        <!-- 1st place -->
+        <!-- 1st place (Gold / Or) -->
         @if (leaderboard().length >= 1) {
-          <div class="podium-step step-first">
-            <i class="pi pi-crown text-4xl text-yellow-200 mb-2"></i>
-            <div class="mb-3 text-center">
-              <p class="text-3xl font-black text-white">{{ leaderboard()[0].name }}</p>
-              <p class="text-yellow-100 font-extrabold">{{ leaderboard()[0].score }} pts</p>
+          <div class="podium-step step-first shadow-[0_0_50px_rgba(250,204,21,0.5)]">
+            <div class="mb-4 text-center">
+              <span class="text-5xl mb-1 block animate-bounce">👑</span>
+              <p class="text-3xl md:text-4xl font-black text-slate-950 leading-none">{{ leaderboard()[0].name }}</p>
+              <p class="text-amber-950 font-black text-2xl mt-1">{{ leaderboard()[0].score }} pts</p>
             </div>
-            <div class="text-5xl font-black text-amber-900">1</div>
+            <div class="text-6xl font-black text-amber-950">1</div>
           </div>
         }
 
-        <!-- 3rd place -->
+        <!-- 3rd place (Bronze) -->
         @if (leaderboard().length >= 3) {
-          <div class="podium-step step-third">
-            <div class="mb-3 text-center">
-              <p class="text-xl font-black text-white">{{ leaderboard()[2].name }}</p>
-              <p class="text-amber-200 font-bold">{{ leaderboard()[2].score }} pts</p>
+          <div class="podium-step step-third shadow-2xl">
+            <div class="mb-4 text-center">
+              <span class="text-3xl mb-1 block">🥉</span>
+              <p class="text-2xl md:text-3xl font-black text-white leading-none">{{ leaderboard()[2].name }}</p>
+              <p class="text-amber-200 font-extrabold text-lg mt-1">{{ leaderboard()[2].score }} pts</p>
             </div>
-            <div class="text-3xl font-black text-amber-950">3</div>
+            <div class="text-4xl font-black text-amber-950">3</div>
           </div>
         }
       </div>
 
-      <!-- Leaderboard table -->
-      <div class="w-full max-w-2xl mt-8 bg-slate-900/80 rounded-2xl p-6 border border-slate-800">
-        <h3 class="text-xl font-bold text-slate-300 mb-4">Classement Général</h3>
-        <div class="space-y-2">
+      <!-- Leaderboard table for the entire class -->
+      <div class="w-full max-w-3xl mt-8 bg-slate-900/90 rounded-3xl p-6 sm:p-8 border border-slate-800/90 shadow-2xl backdrop-blur-xl">
+        <h3 class="text-2xl font-black text-slate-200 mb-6 flex items-center justify-center gap-2">
+          <span>📊 Classement Général</span>
+        </h3>
+        <div class="space-y-3">
           @for (player of leaderboard(); track player.name; let rank = $index) {
-            <div class="flex justify-between items-center bg-slate-800/60 px-4 py-2 rounded-xl text-lg">
-              <div class="flex items-center gap-3">
-                <span class="w-8 font-bold text-slate-400">#{{ rank + 1 }}</span>
-                <span class="font-bold text-white">{{ player.name }}</span>
+            <div class="flex justify-between items-center bg-slate-800/80 hover:bg-slate-800 px-5 py-3 rounded-2xl text-xl border border-slate-700/60 shadow-sm transition">
+              <div class="flex items-center gap-4">
+                <span
+                  class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base"
+                  [class.bg-yellow-400]="rank === 0"
+                  [class.text-slate-950]="rank === 0"
+                  [class.bg-slate-300]="rank === 1"
+                  [class.text-slate-900]="rank === 1"
+                  [class.bg-amber-600]="rank === 2"
+                  [class.text-white]="rank === 2"
+                  [class.bg-slate-700]="rank >= 3"
+                  [class.text-slate-300]="rank >= 3">
+                  #{{ rank + 1 }}
+                </span>
+                <span class="font-bold text-white text-xl">{{ player.name }}</span>
               </div>
-              <span class="font-black text-indigo-400">{{ player.score }} pts</span>
+              <span class="font-black text-indigo-400 text-2xl font-mono">{{ player.score }} pts</span>
             </div>
           }
         </div>
@@ -211,3 +316,4 @@
     </main>
   }
 </div>
+

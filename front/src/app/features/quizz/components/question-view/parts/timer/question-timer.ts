@@ -29,6 +29,23 @@ export class QuestionTimer {
   readonly limit = computed<number>(() => this.timer()?.seconds ?? 0)
   protected readonly remainingSeconds = signal<number>(0)
 
+  protected readonly circumference = 2 * Math.PI * 26 // ~163.36 for r=26
+
+  protected readonly strokeDashoffset = computed<number>(() => {
+    const total = this.limit()
+    if (total <= 0) return 0
+    const progress = this.remainingSeconds() / total
+    return this.circumference * (1 - Math.max(0, Math.min(1, progress)))
+  })
+
+  protected readonly isUrgent = computed<boolean>(() => this.remainingSeconds() <= 5 && this.remainingSeconds() > 0)
+
+  protected readonly strokeColor = computed<string>(() => {
+    if (this.isUrgent()) return '#ef4444'
+    if (this.remainingSeconds() <= 15) return '#f59e0b'
+    return '#10b981'
+  })
+
   constructor() {
     effect(() => {
       if (this.started()) {

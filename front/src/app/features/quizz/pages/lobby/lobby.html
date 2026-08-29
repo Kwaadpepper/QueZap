@@ -1,16 +1,23 @@
 <quizz-exit-button />
 
-<div class="waiting-room-background flex h-full w-screen items-center justify-center">
-  <div class="relative container p-4 sm:p-6 lg:p-8">
-    <h1>Salle d'attente</h1>
+<div class="waiting-room-background flex min-h-dvh w-full items-center justify-center p-4 sm:p-6 lg:p-8">
+  <div class="relative w-full max-w-2xl flex flex-col items-center">
+    <div class="mb-6 text-center">
+      <span class="inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-300 mb-2">
+        Salle d'attente
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+        Bienvenue dans le Salon
+      </h1>
+    </div>
 
     @if (isDebug() && readyTonJoinQuizz()) {
-      <div class="absolute top-4 right-4 flex justify-center">
+      <div class="absolute top-0 right-0 flex justify-center">
         <p-button
-          class="mb-4"
           aria-label="Démarrer la session (debug)"
           severity="success"
-          severity="info"
+          rounded
+          title="Démarrer la session en mode test"
           (onClick)="onStartSession()"
         >
           <quizz-icon name="play-circle" pButtonIcon />
@@ -18,11 +25,12 @@
       </div>
     }
 
-    <div class="flex flex-col items-center">
-      <quizz-nickname-chooser class="text-primary py-3" />
+    <div class="flex w-full flex-col items-center gap-6">
+      <quizz-nickname-chooser class="w-full flex justify-center text-primary" />
       @if (readyTonJoinQuizz()) {
-        <quizz-participant-list />
+        <quizz-participant-list class="w-full max-w-lg" />
       }
     </div>
   </div>
 </div>
+

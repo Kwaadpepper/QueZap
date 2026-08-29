@@ -65,6 +65,7 @@ export const ICON_MAP = {
   'leaf': faLeaf,
 
   // Semantic icons
+  'presentation': faPlayCircle,
   'theme': faQuestionCircle,
   'edit': faPencil,
   'cancel': faTimes,
