@@ -49,7 +49,11 @@ class SessionControllerTest {
     sessionSseService = Mockito.mock(SessionSseService.class);
     sessionController =
         new SessionController(
-            sessionJpaRepository, quezapJpaRepository, userJpaRepository, sessionSseService);
+            sessionJpaRepository,
+            quezapJpaRepository,
+            userJpaRepository,
+            sessionSseService,
+            new com.quezap.api.v1.mappers.PaginationMapper());
   }
 
   @Test

@@ -17,8 +17,8 @@ export type SessionCode = string & {
 }
 
 export function isValidSessionCode(code: string): code is SessionCode {
-  const sessionCodeRegex = /^[A-Z0-9]{6}$/
-  return sessionCodeRegex.test(code)
+  const sessionCodeRegex = /^[A-Za-z0-9-]{3,20}$/
+  return sessionCodeRegex.test(code.trim())
 }
 
 export function sessionMayStart(session: Session): boolean {

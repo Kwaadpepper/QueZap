@@ -7,6 +7,8 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,9 +36,11 @@ import com.quezap.api.v1.dto.events.QuestionStartPayload;
 import com.quezap.api.v1.dto.events.SafeAnswerDto;
 import com.quezap.api.v1.dto.events.SafeQuestionDto;
 import com.quezap.api.v1.dto.events.SessionStartedPayload;
+import com.quezap.api.v1.dto.request.PaginationDto;
 import com.quezap.api.v1.dto.request.sessions.CreateSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.JoinSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.SubmitAnswerRequest;
+import com.quezap.api.v1.dto.response.PageOfDto;
 import com.quezap.api.v1.dto.response.sessions.AnswerSubmittedDto;
 import com.quezap.api.v1.dto.response.sessions.JoinSessionResponseDto;
 import com.quezap.api.v1.dto.response.sessions.LeaderboardEntryDto;
@@ -44,6 +49,7 @@ import com.quezap.api.v1.dto.response.sessions.NextQuestionResponseDto;
 import com.quezap.api.v1.dto.response.sessions.SessionCreatedDto;
 import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
 import com.quezap.api.v1.dto.response.sessions.SessionStatusDto;
+import com.quezap.api.v1.mappers.PaginationMapper;
 import com.quezap.api.v1.services.SessionSseService;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionAnswerJpaEntity;
@@ -67,16 +73,60 @@ public class SessionController {
   private final QuezapJpaRepository quezapJpaRepository;
   private final UserJpaRepository userJpaRepository;
   private final SessionSseService sessionSseService;
+  private final PaginationMapper paginationMapper;
 
   public SessionController(
       SessionJpaRepository sessionJpaRepository,
       QuezapJpaRepository quezapJpaRepository,
       UserJpaRepository userJpaRepository,
-      SessionSseService sessionSseService) {
+      SessionSseService sessionSseService,
+      PaginationMapper paginationMapper) {
     this.sessionJpaRepository = sessionJpaRepository;
     this.quezapJpaRepository = quezapJpaRepository;
     this.userJpaRepository = userJpaRepository;
     this.sessionSseService = sessionSseService;
+    this.paginationMapper = paginationMapper;
+  }
+
+  @GetMapping
+  public PageOfDto<SessionDetailDto> list(
+      @RequestParam(required = false) @Nullable UUID authorId, PaginationDto paginationDto) {
+
+    final var pagination = paginationMapper.toDomain(paginationDto);
+    final var pageNumber = (int) Math.max(pagination.pageNumber() - 1, 0);
+    final var pageSize = (int) pagination.pageSize();
+    final var pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").descending());
+
+    final var page = sessionJpaRepository.findAll(pageRequest);
+
+    final var items =
+        page.getContent().stream()
+            .map(
+                sessionJpa -> {
+                  final var status = computeStatus(sessionJpa);
+                  final var quezap = sessionJpa.getQuezap();
+                  final var totalSlides = quezap != null ? quezap.getQuestions().size() : 0;
+                  return new SessionDetailDto(
+                      sessionJpa.getId(),
+                      sessionJpa.getNumber(),
+                      formatSessionCode(sessionJpa.getNumber()),
+                      sessionJpa.getName(),
+                      status,
+                      sessionJpa.getCurrentSlideIndex(),
+                      totalSlides,
+                      sessionJpa.getParticipants().size(),
+                      sessionJpa.getAuthorId());
+                })
+            .toList();
+
+    return new PageOfDto<>(
+        items,
+        page.getTotalElements(),
+        page.getTotalPages(),
+        pagination.pageNumber(),
+        page.getSize(),
+        page.hasNext(),
+        page.hasPrevious());
   }
 
   @PostMapping

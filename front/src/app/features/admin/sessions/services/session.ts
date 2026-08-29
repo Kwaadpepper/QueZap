@@ -9,6 +9,7 @@ export interface SessionApiResponse {
   id: string
   sessionNumber: number
   sessionCode?: string
+  code?: string
   name: string
   status: 'LOBBY' | 'STARTED' | 'ENDED'
   currentSlideIndex: number

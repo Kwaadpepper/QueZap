@@ -42,7 +42,7 @@ export class SessionHttpService implements SessionService {
           data: res.data.map(s => ({
             id: s.id as SessionId,
             name: s.name,
-            code: (s.sessionCode || 'QZ1234') as SessionCode,
+            code: (s.code || s.sessionCode || 'QZ1234') as SessionCode,
             startedAt: s.startedAt ? new Date(s.startedAt) : null,
             endedAt: s.endedAt ? new Date(s.endedAt) : null,
           })),

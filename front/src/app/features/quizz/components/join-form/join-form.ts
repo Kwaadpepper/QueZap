@@ -40,7 +40,7 @@ export class JoinForm {
         ? []
         : {
             kind: 'invalid-value',
-            message: 'Le code PIN doit comporter 6 caractères (ex: AB12CD).',
+            message: 'Le code PIN est invalide (ex: QZ-12345 ou AB12CD).',
           }
     })
   })

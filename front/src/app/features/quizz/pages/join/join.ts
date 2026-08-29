@@ -1,12 +1,12 @@
 import {
-  ChangeDetectionStrategy, Component, DestroyRef, inject, input, signal,
+  ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { NavigationEnd, Router } from '@angular/router'
+import { Router } from '@angular/router'
 
 import { Message } from 'primeng/message'
 import {
-  catchError, filter, finalize, map, of, switchMap, tap,
+  catchError, filter, finalize, of, switchMap, tap,
 } from 'rxjs'
 
 import { ExpiredError, NotFoundError } from '@quezap/core/errors'
@@ -37,24 +37,26 @@ export class Join {
 
   readonly failure = input<boolean>()
   readonly sessionCode = input<SessionCode | undefined>(undefined)
+  readonly code = input<SessionCode | undefined>(undefined)
 
   protected readonly sessionNotFound = signal(false)
   protected readonly errorOccured = signal(false)
   protected readonly isLoading = signal(false)
 
   constructor() {
-    this.router.events.pipe(
-      takeUntilDestroyed(this.destroyToken),
-      filter(event => event instanceof NavigationEnd),
-      map(() => this.sessionCode()),
-      switchMap(code => this.handleSessionCode(code)),
-      catchError(() => {
-        this.isLoading.set(false)
-        this.errorOccured.set(true)
-
-        return []
-      }),
-    ).subscribe()
+    effect(() => {
+      const codeToJoin = this.sessionCode() || this.code()
+      if (codeToJoin) {
+        this.handleSessionCode(codeToJoin).pipe(
+          takeUntilDestroyed(this.destroyToken),
+          catchError(() => {
+            this.isLoading.set(false)
+            this.errorOccured.set(true)
+            return []
+          }),
+        ).subscribe()
+      }
+    })
   }
 
   private handleSessionCode(code: SessionCode | undefined) {
