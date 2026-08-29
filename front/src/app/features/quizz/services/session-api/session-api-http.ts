@@ -6,18 +6,30 @@ import { catchError, map, of } from 'rxjs'
 import { ExpiredError, ForbidenError, NotFoundError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { ServiceOutput } from '@quezap/core/types'
-import { Session, SessionCode } from '@quezap/domain/models'
+import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 
 import { ActiveSessionPersistence } from '../active-session-persistence/active-session-persistence'
 
 import { SessionApiService } from './session-api'
 
-interface JoinSessionApiResponse {
-  sessionId: string
-  sessionNumber: number
-  sessionCode: string
+interface SessionByCodeResponse {
+  id: string
+  number: number
+  code: string
   name: string
   status: 'LOBBY' | 'STARTED' | 'ENDED'
+  currentSlideIndex: number
+  totalSlides: number
+  participantsCount: number
+  authorId: string
+}
+
+interface JoinSessionApiResponse {
+  sessionId: string
+  sessionNumber?: number
+  sessionCode?: string
+  name?: string
+  status?: 'LOBBY' | 'STARTED' | 'ENDED'
   participationToken: string
 }
 
@@ -38,11 +50,20 @@ export class SessionApiHttpService implements SessionApiService {
   joinSessionWith(code: SessionCode): ServiceOutput<Session, NotFoundError | ExpiredError> {
     this.currentSessionCode = typeof code === 'string' ? code : String(code)
 
-    return this.http.get<Session>(`${this.apiUrl}/sessions/by-code/${this.currentSessionCode}`).pipe(
-      map(session => ({
-        kind: 'success' as const,
-        result: session,
-      })),
+    return this.http.get<SessionByCodeResponse>(`${this.apiUrl}/sessions/by-code/${this.currentSessionCode}`).pipe(
+      map((res) => {
+        const session: Session = {
+          id: res.id as SessionId,
+          code: (res.code || this.currentSessionCode) as SessionCode,
+          name: res.name,
+          startedAt: res.status === 'STARTED' ? new Date() : null,
+          endedAt: res.status === 'ENDED' ? new Date() : null,
+        }
+        return {
+          kind: 'success' as const,
+          result: session,
+        }
+      }),
       catchError((err: HttpErrorResponse) => {
         if (err.status === 404) {
           return of({

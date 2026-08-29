@@ -84,8 +84,13 @@ public class QuezapController {
             Instant.now(),
             Instant.now());
 
+    final var effectiveSlides = request.getEffectiveSlides();
+    if (effectiveSlides.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Questions list cannot be empty");
+    }
+
     var order = 1;
-    for (final var slideReq : request.slides()) {
+    for (final var slideReq : effectiveSlides) {
       final var question =
           questionJpaRepository
               .findById(slideReq.questionId())
@@ -94,7 +99,7 @@ public class QuezapController {
                       new ResponseStatusException(
                           HttpStatus.BAD_REQUEST, "Question not found: " + slideReq.questionId()));
 
-      final var timer = Objects.requireNonNullElse(slideReq.timer(), 30);
+      final var timer = slideReq.getEffectiveTimer();
       final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
       final var qq =
           new QuezapQuestionJpaEntity(

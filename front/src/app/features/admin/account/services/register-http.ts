@@ -19,7 +19,7 @@ export class RegisterHttpService implements RegisterService {
   }
 
   register(email: string): ServiceOutput<void> {
-    return this.http.post<void>(`${this.apiUrl}/users`, { name: email.split('@')[0], email }).pipe(
+    return this.http.post<void>(`${this.apiUrl}/users`, { name: email.split('@')[0], identifier: email, email }).pipe(
       map(() => ({ kind: 'success' as const, result: undefined })),
       catchError(error => of({
         kind: 'failure' as const,

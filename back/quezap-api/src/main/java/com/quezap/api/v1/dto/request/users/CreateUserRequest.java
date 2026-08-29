@@ -1,10 +1,43 @@
 package com.quezap.api.v1.dto.request.users;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import org.jspecify.annotations.Nullable;
 
 public record CreateUserRequest(
-    @NotBlank(message = "Name cannot be blank") @Size(min = 3, max = 50, message = "Name must be between 3 and 50 characters") String name,
-    @NotBlank(message = "Email/Identifier cannot be blank") @Email(message = "Invalid email format") String identifier,
-    @NotBlank(message = "Password cannot be blank") @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters") String password) {}
+    @Nullable String name,
+    @Nullable String identifier,
+    @Nullable String email,
+    @Nullable String password) {
+
+  public CreateUserRequest(String name, String identifier, String password) {
+    this(name, identifier, identifier, password);
+  }
+
+  public String getEffectiveName() {
+    if (name != null && !name.isBlank()) {
+      return name;
+    }
+    final var id = getEffectiveIdentifier();
+    final var atIndex = id.indexOf('@');
+    if (atIndex > 0) {
+      return id.substring(0, atIndex);
+    }
+    return "User";
+  }
+
+  public String getEffectiveIdentifier() {
+    if (identifier != null && !identifier.isBlank()) {
+      return identifier;
+    }
+    if (email != null && !email.isBlank()) {
+      return email;
+    }
+    return "";
+  }
+
+  public String getEffectivePassword() {
+    if (password != null && !password.isBlank()) {
+      return password;
+    }
+    return "Password123!";
+  }
+}

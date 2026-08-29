@@ -149,6 +149,14 @@ public class AuthController {
     // 202 Accepted always returned to prevent user enumeration
   }
 
+  @GetMapping("verify-reset-token")
+  @ResponseStatus(HttpStatus.OK)
+  public void verifyResetToken(@org.springframework.web.bind.annotation.RequestParam String token) {
+    if (token == null || token.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token is required");
+    }
+  }
+
   @PostMapping("reset-password")
   public MessageResponseDto resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
     return new MessageResponseDto("Password successfully updated.");

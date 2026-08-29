@@ -69,11 +69,16 @@ public class UserController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public UserIdDto create(@Valid @RequestBody CreateUserRequest request) {
+    final var effName = request.getEffectiveName();
+    final var effIdentifier = request.getEffectiveIdentifier();
+    final var effPassword = request.getEffectivePassword();
+
+    if (effIdentifier.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email/Identifier is required");
+    }
+
     final var input =
-        new AddUser.Input(
-            request.name(),
-            new RawIdentifier(request.identifier()),
-            new RawPassword(request.password()));
+        new AddUser.Input(effName, new RawIdentifier(effIdentifier), new RawPassword(effPassword));
 
     final var output = executor.execute(addUserUsecase, input);
 

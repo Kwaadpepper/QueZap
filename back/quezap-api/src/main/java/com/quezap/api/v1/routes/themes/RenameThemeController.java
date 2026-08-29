@@ -23,7 +23,7 @@ public class RenameThemeController {
     this.usecase = usecase;
   }
 
-  @PatchMapping("apiv1/themes/rename/{id}")
+  @PatchMapping(value = {"apiv1/themes/{id}", "apiv1/themes/rename/{id}"})
   void rename(@PathVariable("id") ThemeId id, @RequestBody @Valid RenameThemeRequest request) {
     final var name = request.name();
     final var input = new RenameTheme.Input(id, name);

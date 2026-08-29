@@ -14,6 +14,26 @@ import { UUID } from '@quezap/domain/types'
 
 import { QuezapService } from './quezap'
 
+interface QuezapSlideResponse {
+  order: number
+  timer?: number
+  timerSeconds?: number
+  points?: number
+  question: {
+    id: string
+    type: string
+    label: string
+    pictureFilename?: string
+    theme?: { id: string, name: string }
+    answers: {
+      id: string
+      label: string
+      isCorrect: boolean
+      pictureFilename?: string
+    }[]
+  }
+}
+
 interface QuezapApiResponse {
   id: string
   title: string
@@ -24,6 +44,7 @@ interface QuezapApiResponse {
     id: string
     name: string
   }
+  slides?: QuezapSlideResponse[]
   questions?: {
     id: string
     title: string
@@ -93,26 +114,51 @@ export class QuezapHttpService implements QuezapService {
 
   find(quezapId: QuezapId): ServiceOutput<QuezapWithQuestionsAndAnswers, NotFoundError> {
     return this.http.get<QuezapApiResponse>(`${this.apiUrl}/quezaps/${quezapId}`).pipe(
-      map(res => ({
-        kind: 'success' as const,
-        result: {
-          id: res.id as QuezapId,
-          title: res.title,
-          description: res.description || '',
-          questionWithAnswersAndResponses: (res.questions || []).map(q => ({
-            id: q.id as QuestionId,
-            value: q.title,
-            type: (q.type as QuestionType) || QuestionType.Quizz,
-            limit: { seconds: q.timerSeconds },
-            answers: (q.answers || []).map((a, idx) => ({
-              index: idx,
-              points: q.points || 1000,
-              value: a.label,
-              isCorrect: a.isCorrect,
+      map((res) => {
+        if (res.slides && res.slides.length > 0) {
+          return {
+            kind: 'success' as const,
+            result: {
+              id: res.id as QuezapId,
+              title: res.title,
+              description: res.description || '',
+              questionWithAnswersAndResponses: res.slides.map(s => ({
+                id: s.question.id as QuestionId,
+                value: s.question.label,
+                type: (s.question.type as QuestionType) || QuestionType.Quizz,
+                limit: { seconds: s.timer || s.timerSeconds || 30 },
+                answers: (s.question.answers || []).map((a, idx) => ({
+                  index: idx,
+                  points: s.points || 1000,
+                  value: a.label,
+                  isCorrect: a.isCorrect,
+                })),
+              })),
+            },
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: {
+            id: res.id as QuezapId,
+            title: res.title,
+            description: res.description || '',
+            questionWithAnswersAndResponses: (res.questions || []).map(q => ({
+              id: q.id as QuestionId,
+              value: q.title,
+              type: (q.type as QuestionType) || QuestionType.Quizz,
+              limit: { seconds: q.timerSeconds },
+              answers: (q.answers || []).map((a, idx) => ({
+                index: idx,
+                points: q.points || 1000,
+                value: a.label,
+                isCorrect: a.isCorrect,
+              })),
             })),
-          })),
-        },
-      })),
+          },
+        }
+      }),
       catchError(error => of({
         kind: 'failure' as const,
         error: new NotFoundError(error.message || 'Quezap introuvable'),
@@ -121,15 +167,19 @@ export class QuezapHttpService implements QuezapService {
   }
 
   persistQuezap(quezap: Omit<QuezapWithQuestionsAndAnswers, 'id'>): ServiceOutput<Pick<Quezap, 'id'>> {
+    const slides = quezap.questionWithAnswersAndResponses.map(q => ({
+      questionId: q.id as UUID,
+      timer: q.limit?.seconds || 30,
+      timerSeconds: q.limit?.seconds || 30,
+      points: q.answers[0]?.points || 1000,
+    }))
+
     const payload = {
       title: quezap.title,
       description: quezap.description || '',
       isPublic: true,
-      questions: quezap.questionWithAnswersAndResponses.map(q => ({
-        questionId: q.id as UUID,
-        timerSeconds: q.limit?.seconds || 30,
-        points: q.answers[0]?.points || 1000,
-      })),
+      slides,
+      questions: slides,
     }
 
     return this.http.post<{ id: string }>(`${this.apiUrl}/quezaps`, payload).pipe(

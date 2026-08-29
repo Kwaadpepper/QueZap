@@ -11,7 +11,8 @@ import { Theme, ThemeId } from '@quezap/domain/models'
 import { NewThemeDTO, ThemeService } from './theme'
 
 interface ThemeApiResponse {
-  id: string
+  id?: string
+  uuid?: string
   name: string
 }
 
@@ -44,7 +45,7 @@ export class ThemeHttpService implements ThemeService {
       map(res => ({
         kind: 'success' as const,
         result: {
-          data: res.data.map(t => ({ id: t.id as ThemeId, name: t.name })),
+          data: res.data.map(t => ({ id: (t.id || t.uuid) as ThemeId, name: t.name })),
           totalElements: res.totalElements,
           totalPages: res.totalPages,
           page: res.page,
@@ -61,10 +62,10 @@ export class ThemeHttpService implements ThemeService {
   }
 
   create(newTheme: NewThemeDTO): ServiceOutput<ThemeId> {
-    return this.http.post<{ id: string }>(`${this.apiUrl}/themes`, { name: newTheme.name }).pipe(
+    return this.http.post<{ id?: string, uuid?: string }>(`${this.apiUrl}/themes`, { name: newTheme.name }).pipe(
       map(res => ({
         kind: 'success' as const,
-        result: res.id as ThemeId,
+        result: (res.id || res.uuid) as ThemeId,
       })),
       catchError(error => of({
         kind: 'failure' as const,

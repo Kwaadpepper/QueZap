@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal,
+  ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal,
 } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 
@@ -67,6 +67,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
   protected readonly sessionName = signal<string>('')
   protected readonly stage: WritableSignal<PresenterStage> = signal('LOBBY')
 
+  protected readonly joinUrl = computed(() => {
+    const code = this.sessionCode()
+    if (!code) return 'https://quezap.fr'
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'
+    return `${origin}/quizz/join/${code}`
+  })
+
   protected readonly participants = signal<{ name: string }[]>([])
 
   protected readonly currentQuestionIndex = signal(0)
@@ -91,7 +98,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.sessionService.getSession(id).subscribe((output) => {
       if (output.kind === 'success') {
         const session = output.result
-        this.sessionCode.set(session.sessionCode || '')
+        this.sessionCode.set(session.code || session.sessionCode || '')
         this.sessionName.set(session.name || '')
         if (session.status === 'STARTED') {
           this.stage.set('QUESTION')
