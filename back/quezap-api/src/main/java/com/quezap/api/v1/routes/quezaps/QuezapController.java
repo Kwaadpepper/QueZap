@@ -2,6 +2,7 @@ package com.quezap.api.v1.routes.quezaps;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -70,13 +71,14 @@ public class QuezapController {
   public QuezapIdDto create(@Valid @RequestBody CreateQuezapRequest request) {
     final var author = getCurrentUser();
 
+    final var isPublic = Objects.requireNonNullElse(request.isPublic(), Boolean.TRUE);
     final var quezap =
         new QuezapJpaEntity(
             UuidV7.randomUuid(),
             request.title(),
             request.description(),
             author,
-            request.isPublic(),
+            isPublic,
             Instant.now(),
             Instant.now());
 
@@ -90,9 +92,11 @@ public class QuezapController {
                       new ResponseStatusException(
                           HttpStatus.BAD_REQUEST, "Question not found: " + slideReq.questionId()));
 
+      final var timer = Objects.requireNonNullElse(slideReq.timer(), 30);
+      final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
       final var qq =
           new QuezapQuestionJpaEntity(
-              UuidV7.randomUuid(), quezap, question, slideReq.timer(), slideReq.points(), order++);
+              UuidV7.randomUuid(), quezap, question, timer, points, order++);
       quezap.addQuestion(qq);
     }
 
@@ -234,9 +238,10 @@ public class QuezapController {
                         HttpStatus.BAD_REQUEST, "Question not found: " + request.questionId()));
 
     final var order = quezap.getQuestions().size() + 1;
+    final var timer = Objects.requireNonNullElse(request.timer(), 30);
+    final var points = Objects.requireNonNullElse(request.points(), 1000);
     final var qq =
-        new QuezapQuestionJpaEntity(
-            UuidV7.randomUuid(), quezap, question, request.timer(), request.points(), order);
+        new QuezapQuestionJpaEntity(UuidV7.randomUuid(), quezap, question, timer, points, order);
 
     quezap.addQuestion(qq);
     quezap.setUpdatedAt(Instant.now());

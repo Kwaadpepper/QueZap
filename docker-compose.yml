@@ -51,6 +51,43 @@ services:
       exit 0;
       "
 
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: quezap-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      APP_DB_URL: jdbc:postgresql://postgres:5432/quezap
+      APP_DB_USERNAME: quezap
+      APP_DB_PASSWORD: quezap_password
+      APP_S3_HOST: minio
+      APP_S3_PORT: 9000
+      APP_S3_PUBLIC_ENDPOINT: http://localhost:9190
+      APP_S3_BUCKET_NAME: quezap-public-images
+      APP_S3_ACCESS_KEY_ID: quezap_java_writer
+      APP_S3_SECRET_ACCESS_KEY: LocalPassword
+      APP_JWT_SECRET_KEY: 4a3c4e58311739e4a396ad7a38a5454ad65cfde67b0fef9aeb351cbb3c478fef
+      APP_JWT_ISSUER: quezap.com
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: quezap-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8000:80"
+
 volumes:
   quezap_postgres_data:
   quezap_minio_data:
