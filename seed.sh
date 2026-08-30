@@ -8,6 +8,15 @@ echo "=========================================="
 echo "🌱 Seeding QueZap Database via REST API"
 echo "=========================================="
 
+# Check if backend is reachable
+if ! curl -s -m 2 "$BASE_URL/auth/login" > /dev/null 2>&1 && ! curl -s -m 2 "http://localhost:8080/actuator/health" > /dev/null 2>&1; then
+  echo "❌ Le backend n'est pas accessible sur http://localhost:8080"
+  echo "👉 Démarre-le d'abord avec l'une des commandes suivantes :"
+  echo "   - Mode Dev : cd back && java -jar quezap-api/build/libs/quezap-api.jar (ou ./gradlew :quezap-api:bootRun)"
+  echo "   - Mode Docker : docker compose up -d backend"
+  exit 1
+fi
+
 # 1. Register or Login Admin User
 echo "👤 Authenticating admin user..."
 LOGIN_RESP=$(curl -s -X POST "$BASE_URL/auth/login" \
@@ -44,14 +53,14 @@ THEME1_RESP=$(curl -s -X POST "$BASE_URL/themes" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"'"$THEME1_NAME"'"}')
-THEME1_ID=$(echo "$THEME1_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4)
+THEME1_ID=$(echo "$THEME1_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4 || echo "$THEME1_RESP" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 
 THEME2_NAME="Sciences $RAND_SUFFIX"
 THEME2_RESP=$(curl -s -X POST "$BASE_URL/themes" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"'"$THEME2_NAME"'"}')
-THEME2_ID=$(echo "$THEME2_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4)
+THEME2_ID=$(echo "$THEME2_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4 || echo "$THEME2_RESP" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 
 echo "✅ Themes created: $THEME1_NAME ($THEME1_ID), $THEME2_NAME ($THEME2_ID)"
 
@@ -62,14 +71,14 @@ Q1_RESP=$(curl -s -X POST "$BASE_URL/questions/affirmation" \
   -F "question=La Terre met 365 jours et un quart pour faire le tour du Soleil ?" \
   -F "isTrue=true" \
   -F "themeId=$THEME1_ID")
-Q1_ID=$(echo "$Q1_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4)
+Q1_ID=$(echo "$Q1_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4 || echo "$Q1_RESP" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 
 Q2_RESP=$(curl -s -X POST "$BASE_URL/questions/affirmation" \
   -H "Authorization: Bearer $TOKEN" \
   -F "question=L'Everest est le sommet le plus haut du monde ?" \
   -F "isTrue=true" \
   -F "themeId=$THEME1_ID")
-Q2_ID=$(echo "$Q2_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4)
+Q2_ID=$(echo "$Q2_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4 || echo "$Q2_RESP" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 
 Q3_RESP=$(curl -s -X POST "$BASE_URL/questions/quizz" \
   -H "Authorization: Bearer $TOKEN" \
@@ -79,7 +88,7 @@ Q3_RESP=$(curl -s -X POST "$BASE_URL/questions/quizz" \
   -F "answers[1].answer=Vénus" -F "answers[1].isTrue=false" \
   -F "answers[2].answer=Mars" -F "answers[2].isTrue=false" \
   -F "answers[3].answer=Jupiter" -F "answers[3].isTrue=false")
-Q3_ID=$(echo "$Q3_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4)
+Q3_ID=$(echo "$Q3_RESP" | grep -o '"uuid":"[^"]*' | cut -d'"' -f4 || echo "$Q3_RESP" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 
 echo "✅ Questions created: ($Q1_ID, $Q2_ID, $Q3_ID)"
 
@@ -113,12 +122,21 @@ SESSION_RESP=$(curl -s -X POST "$BASE_URL/sessions" \
 SESSION_ID=$(echo "$SESSION_RESP" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 SESSION_CODE=$(echo "$SESSION_RESP" | grep -o '"code":"[^"]*' | cut -d'"' -f4)
 
+FRONT_PORT="4200"
+if curl -s -m 1 "http://localhost:8000" > /dev/null 2>&1; then
+  FRONT_PORT="8000"
+fi
+
 echo "=========================================="
 echo "🎉 SEEDING TERMINÉ AVEC SUCCÈS !"
 echo "=========================================="
 echo "📌 Admin : admin@quezap.com / Password123!"
 echo "📌 Session ID : $SESSION_ID"
 echo "📌 Code PIN Session : $SESSION_CODE"
-echo "📌 Écran Vidéoprojecteur : http://localhost:8000/admin/sessions/$SESSION_ID/present"
-echo "📌 Écran Élève : http://localhost:8000/quizz/join/$SESSION_CODE"
+echo "📌 Écran Vidéoprojecteur (Dev: 4200) : http://localhost:4200/admin/sessions/$SESSION_ID/present"
+echo "📌 Écran Élève (Dev: 4200)          : http://localhost:4200/quizz/join/$SESSION_CODE"
+if [ "$FRONT_PORT" = "8000" ]; then
+  echo "📌 Écran Vidéoprojecteur (Docker)   : http://localhost:8000/admin/sessions/$SESSION_ID/present"
+  echo "📌 Écran Élève (Docker)             : http://localhost:8000/quizz/join/$SESSION_CODE"
+fi
 echo "=========================================="
