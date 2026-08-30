@@ -234,6 +234,10 @@ project(":quezap-api") {
       }
     }
   }
+
+  tasks.named('bootRun') {
+    outputs.upToDateWhen { false }
+  }
 }
 
 project(":quezap-cli") {
