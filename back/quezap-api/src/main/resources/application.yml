@@ -9,7 +9,7 @@ spring:
   datasource:
     url: ${APP_DB_URL:jdbc:postgresql://localhost:5432/quezap}
     username: ${APP_DB_USERNAME:quezap}
-    password: ${APP_DB_PASSWORD:quezap}
+    password: ${APP_DB_PASSWORD:quezap_password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
