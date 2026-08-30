@@ -86,8 +86,9 @@ export class SessionApiHttpService implements SessionApiService {
   }
 
   chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError> {
+    const code = this.currentSessionCode || this.sessionPersistence.retrieve()?.code || ''
     const payload = {
-      code: this.currentSessionCode,
+      code,
       participantName: nickname,
     }
 

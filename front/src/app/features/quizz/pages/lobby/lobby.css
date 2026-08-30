@@ -3,9 +3,11 @@
   --lobby-circle-min-size: 20rem;
   --lobby-circle-max-size: 20rem;
   --lobby-circle-external-circle-width: calc(var(--lobby-circle-min-size) * 0.1);
+  --lobby-circle-color: rgb(255 255 255 / 60%);
+  --lobby-gradient-color: var(--p-primary-color);
 
   @media (prefers-color-scheme: dark) {
-    --lobby-circle-color: var(--p-surface-100);
+    --lobby-circle-color: rgb(15 23 42 / 60%);
     --lobby-gradient-color: var(--p-primary-color);
   }
 
@@ -18,17 +20,11 @@
 
 @keyframes loading-pulse {
   0%, 100% {
-    transform: translate(-50%, -50%) scale(1.05);
+    transform: translate(-50%, -50%) scale(1.02);
   }
 
   50% {
-    transform: translate(-50%, -50%) scale(1.1);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  h1 {
-    color: var(--p-surface-900);
+    transform: translate(-50%, -50%) scale(1.06);
   }
 }
 
@@ -55,40 +51,36 @@
 
 .waiting-room-background::before {
   position: absolute;
-  z-index: 1;
+  z-index: 0;
   top: 50%;
   left: 50%;
   width: var(--lobby-circle-size);
   height: var(--lobby-circle-size);
   border-radius: 50%;
-  animation: loading-pulse 3s both infinite alternate;
+  animation: loading-pulse 4s both infinite alternate;
   background: radial-gradient(
     circle at center,
     var(--lobby-circle-color),
     rgb(255 255 255 / 0%) 100%
   );
-  box-shadow: 0 0 40px rgb(0 0 0 / 50%);
+  box-shadow: 0 0 40px rgb(0 0 0 / 20%);
   content: "";
+  pointer-events: none;
   transform: translate(-50%, -50%);
 }
 
 .waiting-room-background::after {
   position: absolute;
-  z-index: 1;
+  z-index: 0;
   top: 50%;
   left: 50%;
   width: calc(var(--lobby-circle-size) - var(--lobby-circle-external-circle-width));
   height: calc(var(--lobby-circle-size) - var(--lobby-circle-external-circle-width));
   border-radius: 50%;
-  animation: loading-pulse 3s both infinite alternate;
+  animation: loading-pulse 4s both infinite alternate;
   background-color: var(--lobby-circle-color);
-  box-shadow: 0 0 20px rgb(0 0 0 / 20%);
+  box-shadow: 0 0 20px rgb(0 0 0 / 10%);
   content: "";
+  pointer-events: none;
   transform: translate(-50%, -50%);
-}
-
-.container {
-  position: relative;
-  z-index: 2;
-  text-align: center;
 }
