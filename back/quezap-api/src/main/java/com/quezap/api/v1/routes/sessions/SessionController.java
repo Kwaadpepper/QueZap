@@ -528,10 +528,30 @@ public class SessionController {
 
   @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter streamEvents(@PathVariable UUID id) {
-    if (!sessionJpaRepository.existsById(id)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");
-    }
-    return sessionSseService.registerEmitter(id);
+    final var sessionJpa =
+        sessionJpaRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+    final var emitter = sessionSseService.registerEmitter(id);
+
+    final var participantList =
+        sessionJpa.getParticipants().stream()
+            .filter(p -> !p.getIsKicked())
+            .map(p -> new ParticipantDto(p.getName(), p.getJoinedAt()))
+            .toList();
+
+    final var quezap = sessionJpa.getQuezap();
+    final var totalQuestions = quezap != null ? quezap.getQuestions().size() : 0;
+
+    final var lobbyPayload =
+        new LobbyStatePayload(
+            sessionJpa.getName(), participantList.size(), participantList, totalQuestions);
+
+    sessionSseService.sendToEmitter(
+        emitter, "LOBBY_STATE", sessionJpa.getNumber(), id, lobbyPayload);
+
+    return emitter;
   }
 
   private void broadcastRevealAndLeaderboard(SessionJpaEntity sessionJpa, int slideIndex) {

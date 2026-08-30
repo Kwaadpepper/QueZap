@@ -122,14 +122,35 @@ export class SessionPresenter implements OnInit, OnDestroy {
     const apiUrl = this.config.appConfig.value().apiUrl
     this.eventSource = new EventSource(`${apiUrl}/sessions/${id}/events`)
 
-    this.eventSource.onmessage = (event) => {
+    const parseAndHandle = (data: string) => {
       try {
-        const envelope: SseEnvelope = JSON.parse(event.data)
+        const envelope: SseEnvelope = JSON.parse(data)
         this.handleEvent(envelope)
       }
       catch (e) {
-        console.error(e)
+        console.debug('Failed to parse SSE payload', e)
       }
+    }
+
+    this.eventSource.onmessage = (event: MessageEvent) => {
+      parseAndHandle(event.data)
+    }
+
+    const eventNames = [
+      'LOBBY_STATE',
+      'SESSION_STARTED',
+      'QUESTION_START',
+      'QUESTION_TIME_WARNING',
+      'QUESTION_REVEAL',
+      'INTERMEDIATE_LEADERBOARD',
+      'SESSION_ENDED',
+      'PARTICIPANT_KICKED',
+    ]
+
+    for (const name of eventNames) {
+      this.eventSource.addEventListener(name, (e: MessageEvent) => {
+        parseAndHandle(e.data)
+      })
     }
   }
 

@@ -45,15 +45,23 @@ public class SessionSseService {
     try {
       // Send initial connect event to verify stream
       emitter.send(
-          SseEmitter.event()
-              .name("CONNECTED")
-              .data("{\"status\":\"CONNECTED\"}", MediaType.APPLICATION_JSON));
+          SseEmitter.event().data("{\"status\":\"CONNECTED\"}", MediaType.APPLICATION_JSON));
     } catch (IOException e) {
       logger.debug("Failed to send initial connect event to SSE emitter", e);
       sessionEmitters.remove(emitter);
     }
 
     return emitter;
+  }
+
+  public <T> void sendToEmitter(
+      SseEmitter emitter, String eventType, Long sessionNumber, UUID sessionId, T payload) {
+    try {
+      final var envelope = SessionEventEnvelope.of(eventType, sessionNumber, sessionId, payload);
+      emitter.send(SseEmitter.event().data(envelope, MediaType.APPLICATION_JSON));
+    } catch (IOException e) {
+      logger.debug("Failed to send direct event to SSE emitter for session {}", sessionId, e);
+    }
   }
 
   public <T> void broadcast(UUID sessionId, String eventType, Long sessionNumber, T payload) {
@@ -67,7 +75,7 @@ public class SessionSseService {
 
     for (final var emitter : sessionEmitters) {
       try {
-        emitter.send(SseEmitter.event().name(eventType).data(envelope, MediaType.APPLICATION_JSON));
+        emitter.send(SseEmitter.event().data(envelope, MediaType.APPLICATION_JSON));
       } catch (IOException e) {
         logger.debug("Removing disconnected SSE emitter for session {}", sessionId);
         deadEmitters.add(emitter);

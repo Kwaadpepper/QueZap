@@ -52,6 +52,12 @@ export class SessionApiHttpService implements SessionApiService {
 
     return this.http.get<SessionByCodeResponse>(`${this.apiUrl}/sessions/by-code/${this.currentSessionCode}`).pipe(
       map((res) => {
+        this.currentSessionId = res.id
+        this.sessionPersistence.setSessionId(res.id)
+        this.sessionPersistence.patch({
+          code: (res.code || this.currentSessionCode) as SessionCode,
+          sessionId: res.id,
+        })
         const session: Session = {
           id: res.id as SessionId,
           code: (res.code || this.currentSessionCode) as SessionCode,
@@ -89,6 +95,13 @@ export class SessionApiHttpService implements SessionApiService {
       map((res) => {
         this.currentParticipationToken = res.participationToken
         this.currentSessionId = res.sessionId
+        this.sessionPersistence.setSessionId(res.sessionId)
+        this.sessionPersistence.setParticipationToken(res.participationToken)
+        this.sessionPersistence.patch({
+          sessionId: res.sessionId,
+          participationToken: res.participationToken,
+          nickname,
+        })
         this.sessionPersistence.saveParticipationData(res.sessionId, res.participationToken, nickname)
         return {
           kind: 'success' as const,

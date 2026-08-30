@@ -24,7 +24,7 @@ import {
 
 import {
   NoMoreQuestions, SESSION_API_SERVICE,
-  SESSION_OBSERVER_SERVICE, sessionEnded, sessionStarted,
+  SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionStarted,
   sessionWaitingStart,
   WaitingQuestion,
 } from '../services'
@@ -97,7 +97,7 @@ export const ActiveSessionStore = signalStore(
           }
 
           patchState(store, { _session: session })
-          activeSessionPersistence.patch({ code })
+          activeSessionPersistence.patch({ code, sessionId: session.id as string })
           return of(void 0)
         }),
         catchError((err) => {
@@ -163,6 +163,14 @@ export const ActiveSessionStore = signalStore(
         if (isDevMode()) {
           console.debug('Running listeners')
         }
+
+        // * Auto-connect SSE when session is resolved
+        effect(() => {
+          const session = store.session()
+          if (session && session.id && sessionObserver instanceof SessionObserverSseService) {
+            sessionObserver.connect(session.id as string)
+          }
+        })
 
         // * React to participants updates
         effect(() => {

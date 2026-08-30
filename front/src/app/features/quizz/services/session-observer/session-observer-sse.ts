@@ -67,6 +67,8 @@ export class SessionObserverSseService implements SessionObserverService {
     return this.config.appConfig.value().apiUrl
   }
 
+  private currentConnectedSessionId: string | null = null
+
   sessionEvents(): ServiceObservable<SessionEvent> {
     this.connect()
     return new Observable<Tried<SessionEvent, ServiceError>>((subscriber) => {
@@ -78,24 +80,54 @@ export class SessionObserverSseService implements SessionObserverService {
     })
   }
 
-  private connect(): void {
-    if (this.eventSource) {
+  public connect(customSessionId?: string): void {
+    const sessionId = customSessionId || this.sessionPersistence.getSessionId()
+    if (!sessionId || sessionId === 'active') {
+      console.debug('No valid sessionId available yet for SSE connection')
       return
     }
 
-    const sessionId = this.sessionPersistence.getSessionId() || 'active'
+    if (this.eventSource) {
+      if (this.currentConnectedSessionId === sessionId) {
+        return
+      }
+      this.disconnect()
+    }
+
+    this.currentConnectedSessionId = sessionId
 
     try {
       this.eventSource = new EventSource(`${this.apiUrl}/sessions/${sessionId}/events`)
 
-      this.eventSource.onmessage = (event: MessageEvent) => {
+      const parseAndHandle = (data: string) => {
         try {
-          const envelope: SseEnvelope = JSON.parse(event.data)
+          const envelope: SseEnvelope = JSON.parse(data)
           this.handleEvent(envelope)
         }
         catch (e) {
           console.debug('Failed to parse SSE payload', e)
         }
+      }
+
+      this.eventSource.onmessage = (event: MessageEvent) => {
+        parseAndHandle(event.data)
+      }
+
+      const eventNames = [
+        'LOBBY_STATE',
+        'SESSION_STARTED',
+        'QUESTION_START',
+        'QUESTION_TIME_WARNING',
+        'QUESTION_REVEAL',
+        'INTERMEDIATE_LEADERBOARD',
+        'SESSION_ENDED',
+        'PARTICIPANT_KICKED',
+      ]
+
+      for (const name of eventNames) {
+        this.eventSource.addEventListener(name, (e: MessageEvent) => {
+          parseAndHandle(e.data)
+        })
       }
 
       this.eventSource.onerror = (error) => {
