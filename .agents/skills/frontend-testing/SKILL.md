@@ -29,9 +29,9 @@ cd front && bun run test:coverage
 
 ---
 
-## 🧹 Linters & Format Checks
+## 🧹 Linters, Format Checks & AOT Build
 
-Always verify linting before concluding frontend changes:
+Always verify linting AND Angular AOT build before concluding frontend changes:
 
 ```bash
 cd front
@@ -44,6 +44,9 @@ bun run lint:ts:fix
 
 # Lint CSS / Tailwind CSS with auto-fix
 bun run lint:css:fix
+
+# Verify Angular AOT compilation (mandatory: catches template errors not visible in Jest)
+bun run build
 ```
 
 ---
