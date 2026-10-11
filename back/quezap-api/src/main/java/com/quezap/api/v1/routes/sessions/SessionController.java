@@ -157,7 +157,9 @@ public class SessionController {
                       totalSlides,
                       sessionJpa.getParticipants().size(),
                       List.of(),
-                      sessionJpa.getAuthorId());
+                      sessionJpa.getAuthorId(),
+                      sessionJpa.getStartedAt(),
+                      sessionJpa.getEndedAt());
                 })
             .toList();
 
@@ -239,7 +241,9 @@ public class SessionController {
         totalSlides,
         participantList.size(),
         participantList,
-        sessionJpa.getAuthorId());
+        sessionJpa.getAuthorId(),
+        sessionJpa.getStartedAt(),
+        sessionJpa.getEndedAt());
   }
 
   @GetMapping("by-code/{code}")
@@ -273,7 +277,9 @@ public class SessionController {
         totalSlides,
         participantList.size(),
         participantList,
-        sessionJpa.getAuthorId());
+        sessionJpa.getAuthorId(),
+        sessionJpa.getStartedAt(),
+        sessionJpa.getEndedAt());
   }
 
   @PostMapping("join")
@@ -1083,12 +1089,12 @@ public class SessionController {
   }
 
   private Long parseSessionCode(String code) {
-    var cleaned = code.trim();
-    if (cleaned.toUpperCase(Locale.ROOT).startsWith("QZ-")) {
-      cleaned = cleaned.substring(3);
+    final var digitsOnly = code.replaceAll("[^0-9]", "");
+    if (digitsOnly.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid session code: " + code);
     }
     try {
-      return Long.parseLong(cleaned);
+      return Long.parseLong(digitsOnly);
     } catch (NumberFormatException _) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid session code: " + code);
     }
