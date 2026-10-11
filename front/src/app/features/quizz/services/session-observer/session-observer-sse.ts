@@ -126,7 +126,7 @@ export class SessionObserverSseService implements SessionObserverService {
     this.currentConnectedSessionId = sessionId
 
     try {
-      this.eventSource = new EventSource(`${this.apiUrl}/sessions/${sessionId}/events`)
+      this.eventSource = new EventSource(`${this.apiUrl}/sessions/${sessionId}/events?ngsw-bypass=true`)
 
       const parseAndHandle = (data: string) => {
         try {

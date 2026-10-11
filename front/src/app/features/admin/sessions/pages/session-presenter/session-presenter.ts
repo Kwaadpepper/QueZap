@@ -315,7 +315,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       return
     }
     const apiUrl = this.config.appConfig.value().apiUrl
-    this.eventSource = new EventSource(`${apiUrl}/sessions/${id}/events`)
+    this.eventSource = new EventSource(`${apiUrl}/sessions/${id}/events?ngsw-bypass=true`)
 
     const parseAndHandle = (data: string) => {
       try {

@@ -45,19 +45,6 @@
   ],
   "dataGroups": [
     {
-      "name": "session-api-freshness",
-      "urls": [
-        "/apiv1/sessions/**",
-        "/api/v1/sessions/**"
-      ],
-      "cacheConfig": {
-        "maxSize": 100,
-        "maxAge": "10m",
-        "timeout": "3s",
-        "strategy": "freshness"
-      }
-    },
-    {
       "name": "static-api-performance",
       "urls": [
         "/apiv1/themes/**",
