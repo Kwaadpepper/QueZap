@@ -17,7 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,6 +93,7 @@ public class SessionController {
   private final SessionSseService sessionSseService;
   private final PaginationMapper paginationMapper;
   private final UserNameSanitizer userNameSanitizer;
+  private final TransactionTemplate transactionTemplate;
 
   public SessionController(
       SessionJpaRepository sessionJpaRepository,
@@ -98,13 +101,16 @@ public class SessionController {
       UserJpaRepository userJpaRepository,
       SessionSseService sessionSseService,
       PaginationMapper paginationMapper,
-      UserNameSanitizer userNameSanitizer) {
+      UserNameSanitizer userNameSanitizer,
+      PlatformTransactionManager transactionManager) {
     this.sessionJpaRepository = sessionJpaRepository;
     this.quezapJpaRepository = quezapJpaRepository;
     this.userJpaRepository = userJpaRepository;
     this.sessionSseService = sessionSseService;
     this.paginationMapper = paginationMapper;
     this.userNameSanitizer = userNameSanitizer;
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
+    this.transactionTemplate.setReadOnly(true);
   }
 
   @GetMapping
@@ -973,7 +979,10 @@ public class SessionController {
 
   @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter streamEvents(@PathVariable UUID id) {
-    final var initialData = getInitialStreamData(id);
+    final var initialData = transactionTemplate.execute(status -> getInitialStreamData(id));
+    if (initialData == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");
+    }
     final var emitter = sessionSseService.registerEmitter(id);
 
     sessionSseService.sendToEmitter(

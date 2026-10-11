@@ -57,6 +57,26 @@ class SessionControllerTest {
     userJpaRepository = Mockito.mock(UserJpaRepository.class);
     sessionSseService = Mockito.mock(SessionSseService.class);
     userNameSanitizer = Mockito.mock(com.quezap.domain.ports.services.UserNameSanitizer.class);
+    final var transactionManager =
+        new org.springframework.transaction.support.AbstractPlatformTransactionManager() {
+          @Override
+          protected Object doGetTransaction() {
+            return new Object();
+          }
+
+          @Override
+          protected void doBegin(
+              Object transaction,
+              org.springframework.transaction.TransactionDefinition definition) {}
+
+          @Override
+          protected void doCommit(
+              org.springframework.transaction.support.DefaultTransactionStatus status) {}
+
+          @Override
+          protected void doRollback(
+              org.springframework.transaction.support.DefaultTransactionStatus status) {}
+        };
     sessionController =
         new SessionController(
             sessionJpaRepository,
@@ -64,7 +84,8 @@ class SessionControllerTest {
             userJpaRepository,
             sessionSseService,
             new com.quezap.api.v1.mappers.PaginationMapper(),
-            userNameSanitizer);
+            userNameSanitizer,
+            transactionManager);
 
     final var cred =
         new CredentialJpaEntity(
