@@ -130,7 +130,7 @@ export class QuezapEditor {
             severity: 'success',
           })
           const url = this.router.serializeUrl(
-            this.router.createUrlTree(['/admin/sessions', output.result.id, 'present']),
+            this.router.createUrlTree(['/projector', output.result.id]),
           )
           window.open(url, '_blank')
         }

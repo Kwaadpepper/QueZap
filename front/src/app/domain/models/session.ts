@@ -8,6 +8,7 @@ export interface Session {
   readonly id: SessionId
   readonly code: SessionCode
   readonly name: string
+  readonly status?: 'LOBBY' | 'STARTED' | 'ENDED'
   readonly startedAt: Date | null
   readonly endedAt: Date | null
 }
@@ -17,18 +18,19 @@ export type SessionCode = string & {
 }
 
 export function isValidSessionCode(code: string): code is SessionCode {
-  const sessionCodeRegex = /^[A-Za-z0-9-]{3,20}$/
-  return sessionCodeRegex.test(code.trim())
+  if (!code) return false
+  const digits = code.replace(/\D/g, '')
+  return digits.length >= 3 && digits.length <= 12
 }
 
 export function sessionMayStart(session: Session): boolean {
-  return session.startedAt === null && session.endedAt === null
+  return session.status === 'LOBBY' || (session.startedAt === null && session.endedAt === null)
 }
 
 export function sessionHasStarted(session: Session): boolean {
-  return session.startedAt !== null && session.endedAt === null
+  return session.status === 'STARTED' || (session.startedAt !== null && session.endedAt === null)
 }
 
 export function sessionHasEnded(session: Session): boolean {
-  return session.endedAt !== null
+  return session.status === 'ENDED' || session.endedAt !== null
 }

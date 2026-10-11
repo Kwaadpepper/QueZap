@@ -17,7 +17,13 @@
 
   .h1,
   h1 {
-    @apply text-4xl sm:text-5xl lg:text-6xl mb-3 font-title uppercase;
+    @apply text-4xl sm:text-5xl lg:text-6xl mb-3 font-title uppercase tracking-wider;
+
+    letter-spacing: 0.06em;
+  }
+
+  .font-title {
+    letter-spacing: 0.06em;
   }
 
   .h2,

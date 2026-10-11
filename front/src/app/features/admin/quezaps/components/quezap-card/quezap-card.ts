@@ -49,7 +49,7 @@ export class QuezapCard {
           detail: `Code PIN : ${res.result.code || res.result.sessionCode}`,
         })
         const url = this.router.serializeUrl(
-          this.router.createUrlTree(['/admin/sessions', res.result.id, 'present']),
+          this.router.createUrlTree(['/projector', res.result.id]),
         )
         window.open(url, '_blank')
       }

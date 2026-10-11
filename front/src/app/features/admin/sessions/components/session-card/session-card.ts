@@ -24,8 +24,11 @@ export class SessionCard {
 
   readonly session = input.required<Session>()
 
-  protected readonly isEnded = computed(() => this.session().endedAt !== null)
-  protected readonly isLive = computed(() => this.session().startedAt !== null && !this.isEnded())
+  protected readonly isEnded = computed(() => this.session().status === 'ENDED' || this.session().endedAt !== null)
+  protected readonly isLive = computed(() =>
+    (this.session().status === 'STARTED' || this.session().startedAt !== null) && !this.isEnded(),
+  )
+
   protected readonly isWaiting = computed(() => !this.isLive() && !this.isEnded())
 
   protected onSessionEdit(): void {

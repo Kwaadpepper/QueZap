@@ -51,7 +51,8 @@ export class JoinForm {
       return
     }
 
-    const code = this.joinCodeForm().value().code.trim().toUpperCase()
+    const rawCode = this.joinCodeForm().value().code.trim().toUpperCase()
+    const code = rawCode.replace(/\s+/g, '')
     this.router.navigate([this.#joinUrl, code], { onSameUrlNavigation: 'reload' })
   }
 

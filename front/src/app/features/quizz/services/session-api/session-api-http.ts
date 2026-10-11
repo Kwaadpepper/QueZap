@@ -48,7 +48,7 @@ export class SessionApiHttpService implements SessionApiService {
   }
 
   joinSessionWith(code: SessionCode): ServiceOutput<Session, NotFoundError | ExpiredError> {
-    this.currentSessionCode = (typeof code === 'string' ? code : String(code)).trim().toUpperCase()
+    this.currentSessionCode = (typeof code === 'string' ? code : String(code)).trim().toUpperCase().replace(/\s+/g, '')
 
     return this.http.get<SessionByCodeResponse>(`${this.apiUrl}/sessions/by-code/${this.currentSessionCode}`).pipe(
       map((res) => {

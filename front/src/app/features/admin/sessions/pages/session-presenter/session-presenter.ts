@@ -310,10 +310,25 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }
   }
 
+  private currentConnectedSessionId = ''
+
   private connectSse(id: string): void {
     if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
       return
     }
+    if (
+      this.eventSource
+      && this.currentConnectedSessionId === id
+      && this.eventSource.readyState !== EventSource.CLOSED
+    ) {
+      return
+    }
+    if (this.eventSource) {
+      this.eventSource.close()
+      this.eventSource = null
+    }
+    this.currentConnectedSessionId = id
+
     const apiUrl = this.config.appConfig.value().apiUrl
     this.eventSource = new EventSource(`${apiUrl}/sessions/${id}/events?ngsw-bypass=true`)
 

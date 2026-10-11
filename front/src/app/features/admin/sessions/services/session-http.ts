@@ -44,6 +44,7 @@ export class SessionHttpService implements SessionService {
             id: s.id as SessionId,
             name: s.name,
             code: (s.code || s.sessionCode || 'QZ1234') as SessionCode,
+            status: s.status,
             startedAt: s.startedAt ? new Date(s.startedAt) : null,
             endedAt: s.endedAt ? new Date(s.endedAt) : null,
           })),
