@@ -34,7 +34,7 @@ export class SessionCard {
 
   protected onSessionPresent(): void {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/admin/sessions', this.session().id, 'present']),
+      this.router.createUrlTree(['/projector', this.session().id]),
     )
     window.open(url, '_blank')
   }

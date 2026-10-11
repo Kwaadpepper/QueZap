@@ -124,6 +124,12 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef)
   private eventSource: EventSource | null = null
 
+  protected readonly qrZoomed = signal(false)
+
+  protected toggleQrZoom(): void {
+    this.qrZoomed.update(v => !v)
+  }
+
   ngOnInit(): void {
     this.layout.asWebsite.set(false)
     this.layout.inContainer.set(false)
@@ -134,8 +140,18 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.sessionService.getSession(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
       if (output.kind === 'success') {
         const session = output.result
+        this.sessionId.set(session.id)
         this.sessionCode.set(session.code || session.sessionCode || '')
         this.sessionName.set(session.name || '')
+        if (session.participants && session.participants.length > 0) {
+          this.participants.set(session.participants.map(p => ({ name: p.name })))
+        }
+        if (session.id !== id && session.id) {
+          if (this.eventSource) {
+            this.eventSource.close()
+          }
+          this.connectSse(session.id)
+        }
         if (session.status === 'STARTED') {
           this.stage.set('QUESTION')
         }

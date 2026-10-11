@@ -288,6 +288,11 @@ export type PageOfDtoSessionDetailDto = {
     hasPrevious?: boolean;
 };
 
+export type ParticipantDto = {
+    name?: string;
+    joinedAt?: string;
+};
+
 export type SessionDetailDto = {
     id?: string;
     number?: number;
@@ -297,6 +302,7 @@ export type SessionDetailDto = {
     currentSlideIndex?: number;
     totalSlides?: number;
     participantsCount?: number;
+    participants?: Array<ParticipantDto>;
     authorId?: string;
 };
 

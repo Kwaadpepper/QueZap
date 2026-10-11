@@ -63,7 +63,11 @@ export class SessionHttpService implements SessionService {
   }
 
   getSession(id: string): ServiceOutput<SessionApiResponse> {
-    return this.http.get<SessionApiResponse>(`${this.apiUrl}/sessions/${id}`).pipe(
+    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id)
+    const endpoint = isUuid
+      ? `${this.apiUrl}/sessions/${id}`
+      : `${this.apiUrl}/sessions/by-code/${id.replace(/\s+/g, '')}`
+    return this.http.get<SessionApiResponse>(endpoint).pipe(
       map(res => ({ kind: 'success' as const, result: res })),
       catchError(error => of({ kind: 'failure' as const, error: new NotFoundError(error.message) })),
     )

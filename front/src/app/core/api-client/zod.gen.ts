@@ -276,6 +276,11 @@ export const zPageOfDtoThemeDto = z.object({
     hasPrevious: z.boolean().optional()
 });
 
+export const zParticipantDto = z.object({
+    name: z.string().optional(),
+    joinedAt: z.iso.datetime().optional()
+});
+
 export const zSessionDetailDto = z.object({
     id: z.uuid().optional(),
     number: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
@@ -285,6 +290,7 @@ export const zSessionDetailDto = z.object({
     currentSlideIndex: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     totalSlides: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     participantsCount: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    participants: z.array(zParticipantDto).optional(),
     authorId: z.uuid().optional()
 });
 

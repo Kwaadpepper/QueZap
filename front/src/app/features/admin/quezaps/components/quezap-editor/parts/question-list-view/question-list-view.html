@@ -7,7 +7,7 @@
 >
   <div #questionContainer class="flex flex-col gap-3 overflow-y-auto px-3 py-4">
     @for (question of questions(); track $index) {
-      <div class="flex flex-row">
+      <div class="flex flex-row transition-all duration-300">
         <!-- QUESTION ACTION BAR -->
         <div class="w-13">
           <quizz-question-action-bar [index]="$index" />

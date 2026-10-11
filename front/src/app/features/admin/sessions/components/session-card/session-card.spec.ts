@@ -34,4 +34,11 @@ describe('SessionCard', () => {
   it('should create', () => {
     expect(component).toBeTruthy()
   })
+
+  it('should open projector route in new tab when onSessionPresent is called', () => {
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
+    component['onSessionPresent']()
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('/projector/1'), '_blank')
+    openSpy.mockRestore()
+  })
 })

@@ -42,14 +42,49 @@
           <p class="text-xs text-slate-400 mt-2 font-medium">Saisissez ce code sur votre smartphone pour entrer</p>
         </div>
 
-        <!-- Stylized QR Code Visual Card -->
-        <div class="qr-box w-64 h-64 sm:w-72 sm:h-72 shrink-0 flex flex-col items-center justify-center bg-white rounded-3xl p-4 shadow-2xl">
-          <div class="w-full h-full flex flex-col items-center justify-center p-2 border-4 border-slate-900 rounded-2xl bg-slate-50">
+        <!-- Stylized QR Code Visual Card (Click to zoom) -->
+        <button
+          type="button"
+          class="qr-box w-64 h-64 sm:w-72 sm:h-72 shrink-0 flex flex-col items-center justify-center bg-white rounded-3xl p-4 shadow-2xl cursor-pointer hover:scale-105 transition-all group text-left border-0"
+          title="Cliquez pour agrandir le QR code"
+          (click)="toggleQrZoom()">
+          <div class="w-full h-full flex flex-col items-center justify-center p-2 border-4 border-slate-900 rounded-2xl bg-slate-50 relative">
             <qrcode [qrdata]="joinUrl()" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
-            <span class="text-[11px] font-black uppercase tracking-wider text-slate-900 mt-1">Scanner pour jouer</span>
+            <span class="text-[11px] font-black uppercase tracking-wider text-slate-900 mt-1 flex items-center gap-1 group-hover:text-indigo-600 transition">
+              <i class="pi pi-search-plus text-xs"></i>
+              Scanner pour jouer
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <!-- High-definition Zoomed QR Code Modal -->
+      @if (qrZoomed()) {
+        <div
+          class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 cursor-pointer"
+          tabindex="0"
+          role="button"
+          aria-label="Fermer le zoom du QR code"
+          (keydown.escape)="toggleQrZoom()"
+          (click)="toggleQrZoom()">
+          <div
+            class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-lg border-4 border-indigo-500 animate-scale-in"
+            tabindex="0"
+            role="dialog"
+            aria-modal="true"
+            (keydown)="$event.stopPropagation()"
+            (click)="$event.stopPropagation()">
+            <qrcode [qrdata]="joinUrl()" [width]="320" [errorCorrectionLevel]="'Q'"></qrcode>
+            <p class="text-slate-900 font-black text-2xl mt-4 text-center">Scannez pour rejoindre la partie</p>
+            <p class="text-indigo-600 font-mono font-bold text-lg mt-1 text-center select-all">{{ joinUrl() }}</p>
+            <button
+              class="mt-6 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition text-sm cursor-pointer"
+              (click)="toggleQrZoom()">
+              Fermer le zoom ✕
+            </button>
           </div>
         </div>
-      </div>
+      }
 
       <!-- Connected Players Area -->
       <div class="w-full max-w-5xl mt-6">

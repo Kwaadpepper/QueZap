@@ -10,7 +10,7 @@ import { QuezapEditorStore } from '../../../../stores'
 import {
   AnswerEditor, LimitSelector,
   PanelQuestionActions,
-  PhraseEditor, QuestionTimer, TypeSelector,
+  PhraseEditor, PointsSelector, QuestionTimer, TypeSelector,
 } from './parts'
 
 export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
@@ -20,6 +20,7 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
   imports: [
     TypeSelector,
     LimitSelector,
+    PointsSelector,
     DividerModule,
     PhraseEditor,
     QuestionTimer,

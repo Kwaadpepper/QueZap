@@ -75,4 +75,12 @@ describe('SessionPresenter', () => {
     component['skipPodiumAnimation']()
     expect(component['podiumStep']()).toBe(3)
   }))
+
+  it('should toggle qrZoomed when toggleQrZoom is called', () => {
+    expect(component['qrZoomed']()).toBe(false)
+    component['toggleQrZoom']()
+    expect(component['qrZoomed']()).toBe(true)
+    component['toggleQrZoom']()
+    expect(component['qrZoomed']()).toBe(false)
+  })
 })

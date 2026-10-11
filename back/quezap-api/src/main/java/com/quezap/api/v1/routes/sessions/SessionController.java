@@ -150,6 +150,7 @@ public class SessionController {
                       sessionJpa.getCurrentSlideIndex(),
                       totalSlides,
                       sessionJpa.getParticipants().size(),
+                      List.of(),
                       sessionJpa.getAuthorId());
                 })
             .toList();
@@ -216,6 +217,11 @@ public class SessionController {
     final var status = computeStatus(sessionJpa);
     final var quezap = sessionJpa.getQuezap();
     final var totalSlides = quezap != null ? quezap.getQuestions().size() : 0;
+    final var participantList =
+        sessionJpa.getParticipants().stream()
+            .filter(p -> !p.getIsKicked())
+            .map(p -> new ParticipantDto(p.getName(), p.getJoinedAt()))
+            .toList();
 
     return new SessionDetailDto(
         sessionJpa.getId(),
@@ -225,7 +231,8 @@ public class SessionController {
         status,
         sessionJpa.getCurrentSlideIndex(),
         totalSlides,
-        sessionJpa.getParticipants().size(),
+        participantList.size(),
+        participantList,
         sessionJpa.getAuthorId());
   }
 
@@ -244,6 +251,11 @@ public class SessionController {
     final var status = computeStatus(sessionJpa);
     final var quezap = sessionJpa.getQuezap();
     final var totalSlides = quezap != null ? quezap.getQuestions().size() : 0;
+    final var participantList =
+        sessionJpa.getParticipants().stream()
+            .filter(p -> !p.getIsKicked())
+            .map(p -> new ParticipantDto(p.getName(), p.getJoinedAt()))
+            .toList();
 
     return new SessionDetailDto(
         sessionJpa.getId(),
@@ -253,7 +265,8 @@ public class SessionController {
         status,
         sessionJpa.getCurrentSlideIndex(),
         totalSlides,
-        sessionJpa.getParticipants().size(),
+        participantList.size(),
+        participantList,
         sessionJpa.getAuthorId());
   }
 
@@ -290,7 +303,7 @@ public class SessionController {
             UuidV7.randomUuid(), sessionJpa, sanitizedName, 0, token, false, Instant.now());
 
     sessionJpa.addParticipant(participant);
-    sessionJpaRepository.save(sessionJpa);
+    sessionJpaRepository.saveAndFlush(sessionJpa);
 
     // Broadcast LOBBY_STATE to all SSE subscribers
     final var participantList =
@@ -885,15 +898,18 @@ public class SessionController {
         sessionJpa.getId(), "LOBBY_STATE", sessionJpa.getNumber(), lobbyPayload);
   }
 
-  @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  private record InitialEventsData(
+      Long sessionNumber,
+      LobbyStatePayload lobbyPayload,
+      @Nullable QuestionStartPayload startPayload) {}
+
   @Transactional(readOnly = true)
-  public SseEmitter streamEvents(@PathVariable UUID id) {
+  protected InitialEventsData getInitialStreamData(UUID id) {
     final var sessionJpa =
         sessionJpaRepository
             .findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
-    final var emitter = sessionSseService.registerEmitter(id);
 
     final var participantList =
         sessionJpa.getParticipants().stream()
@@ -908,9 +924,7 @@ public class SessionController {
         new LobbyStatePayload(
             sessionJpa.getName(), participantList.size(), participantList, totalQuestions);
 
-    sessionSseService.sendToEmitter(
-        emitter, "LOBBY_STATE", sessionJpa.getNumber(), id, lobbyPayload);
-
+    QuestionStartPayload startPayload = null;
     if (sessionJpa.getStartedAt() != null
         && sessionJpa.getEndedAt() == null
         && sessionJpa.getCurrentSlideIndex() > 0) {
@@ -944,17 +958,30 @@ public class SessionController {
                 question.getPictureFilename(),
                 safeAnswers);
 
-        final var startPayload =
+        startPayload =
             new QuestionStartPayload(
                 nextIndex,
                 questionsList.size(),
                 currentQq.getTimerSeconds(),
                 currentQq.getPoints(),
                 safeQuestion);
-
-        sessionSseService.sendToEmitter(
-            emitter, "QUESTION_START", sessionJpa.getNumber(), id, startPayload);
       }
+    }
+
+    return new InitialEventsData(sessionJpa.getNumber(), lobbyPayload, startPayload);
+  }
+
+  @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public SseEmitter streamEvents(@PathVariable UUID id) {
+    final var initialData = getInitialStreamData(id);
+    final var emitter = sessionSseService.registerEmitter(id);
+
+    sessionSseService.sendToEmitter(
+        emitter, "LOBBY_STATE", initialData.sessionNumber(), id, initialData.lobbyPayload());
+
+    if (initialData.startPayload() != null) {
+      sessionSseService.sendToEmitter(
+          emitter, "QUESTION_START", initialData.sessionNumber(), id, initialData.startPayload());
     }
 
     return emitter;

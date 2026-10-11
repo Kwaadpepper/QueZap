@@ -13,6 +13,7 @@ export interface SessionApiResponse {
   status: 'LOBBY' | 'STARTED' | 'ENDED'
   currentSlideIndex: number
   participantsCount?: number
+  participants?: { name: string }[]
   startedAt?: string
   endedAt?: string
   createdAt: string
