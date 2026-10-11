@@ -264,7 +264,19 @@ export const ActiveSessionStore = signalStore(
         }),
       })
 
-      patchState(store, { _sessionIsLoaded: true })
+      if (data.code) {
+        store.joinSession(data.code).subscribe({
+          next: () => {
+            patchState(store, { _sessionIsLoaded: true })
+          },
+          error: () => {
+            patchState(store, { _sessionIsLoaded: true })
+          },
+        })
+      }
+      else {
+        patchState(store, { _sessionIsLoaded: true })
+      }
     },
   }),
 )

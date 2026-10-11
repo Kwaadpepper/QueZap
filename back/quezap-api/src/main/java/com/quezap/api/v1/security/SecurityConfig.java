@@ -51,7 +51,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*/scores")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/apiv1/sessions/**")
+                    .requestMatchers(HttpMethod.GET, "/apiv1/sessions/by-code/*")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/quezaps/**")
                     .permitAll()
@@ -59,7 +59,12 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/questions/**")
                     .permitAll()
-                    .requestMatchers("/actuator/**", "/error")
+                    .requestMatchers(
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/actuator/**",
+                        "/error")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

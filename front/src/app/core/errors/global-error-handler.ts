@@ -18,22 +18,20 @@ export class GlobalErrorHandler implements ErrorHandler {
     let summary = 'Une erreur est survenue'
     let detail = 'Veuillez réessayer plus tard.'
 
-    if (this.config.debug()) {
-      switch (true) {
-        case error instanceof HandledFrontError:
-          summary = 'Handled Error'
-          detail = error.message
-          break
-        case error instanceof HttpErrorResponse:
-          summary = `HTTP Error ${error.status}`
-          detail = error.message
-          break
-        case error instanceof Error:
-          summary = 'Application Error'
-          detail = error.message
-          break
-      }
+    if (error instanceof HttpErrorResponse) {
+      summary = `Erreur réseau (${error.status})`
+      detail = error.error?.message || error.statusText || 'Impossible de contacter le serveur.'
+    }
+    else if (error instanceof HandledFrontError) {
+      summary = 'Information'
+      detail = error.message
+    }
+    else if (error instanceof Error) {
+      summary = this.config.debug() ? 'Erreur applicative' : 'Une erreur est survenue'
+      detail = this.config.debug() ? error.message : 'Une action inattendue s\'est produite.'
+    }
 
+    if (this.config.debug()) {
       if (error instanceof HandledFrontError) {
         console.debug('--- Handled error detected --- \n'
           + `Summary: ${summary}\n`
@@ -41,12 +39,14 @@ export class GlobalErrorHandler implements ErrorHandler {
         )
       }
       else {
-        console.warn('--- Unhandled error detected ---')
+        console.warn('--- Unhandled error detected ---', error)
         this.notifier.notify(summary, detail)
-        console.error(error)
       }
     }
     else {
+      if (!(error instanceof HandledFrontError)) {
+        this.notifier.notify(summary, detail)
+      }
       console.error('GlobalErrorHandler caught an error:', error)
     }
 

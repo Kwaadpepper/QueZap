@@ -101,4 +101,14 @@ export class QuezapMockService implements QuezapService {
       }),
     )
   }
+
+  duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>> {
+    return of({ id: quezapId }).pipe(
+      delay(this.MOCK_DELAY()),
+      map(() => ({
+        kind: 'success',
+        result: { id: quezapId },
+      })),
+    )
+  }
 }

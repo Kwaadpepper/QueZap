@@ -91,7 +91,12 @@ public class AuthController {
               .build();
 
       final var accessToken = jwtService.generateToken(payload);
-      final var refreshToken = UUID.randomUUID().toString();
+      final var refreshExp = Instant.now().getEpochSecond() + 60 * 60 * 24 * 30; // 30 days
+      final var refreshPayload =
+          JwtToken.JwtPayload.builder(userEntity.getId().toString(), refreshExp)
+              .claim("type", "refresh")
+              .build();
+      final var refreshToken = jwtService.generateToken(refreshPayload);
 
       return new LoginResponseDto(
           accessToken,
@@ -123,17 +128,32 @@ public class AuthController {
   @PostMapping("refresh")
   public RefreshTokenResponseDto refresh(@Valid @RequestBody RefreshTokenRequest request) {
     try {
-      final var exp = Instant.now().getEpochSecond() + ACCESS_TOKEN_EXPIRATION_SECONDS;
-      final var payload = JwtToken.JwtPayload.builder(UUID.randomUUID().toString(), exp).build();
+      final var validated = jwtService.validateAndParse(request.refreshToken());
+      final var userId = UUID.fromString(validated.sub());
+      final var userEntity =
+          userJpaRepository
+              .findById(userId)
+              .orElseThrow(
+                  () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
-      final var accessToken = jwtService.generateToken(payload);
-      final var newRefreshToken = UUID.randomUUID().toString();
+      final var exp = Instant.now().getEpochSecond() + ACCESS_TOKEN_EXPIRATION_SECONDS;
+      final var accessPayload =
+          JwtToken.JwtPayload.builder(userEntity.getId().toString(), exp)
+              .claim("name", userEntity.getName())
+              .build();
+
+      final var accessToken = jwtService.generateToken(accessPayload);
+      final var refreshExp = Instant.now().getEpochSecond() + 60 * 60 * 24 * 30;
+      final var refreshPayload =
+          JwtToken.JwtPayload.builder(userEntity.getId().toString(), refreshExp)
+              .claim("type", "refresh")
+              .build();
+      final var newRefreshToken = jwtService.generateToken(refreshPayload);
 
       return new RefreshTokenResponseDto(
           accessToken, newRefreshToken, "Bearer", ACCESS_TOKEN_EXPIRATION_SECONDS);
-    } catch (JwtService.JwtException e) {
-      throw new ResponseStatusException(
-          HttpStatus.INTERNAL_SERVER_ERROR, "Failed to refresh token", e);
+    } catch (JwtService.JwtException | IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token", e);
     }
   }
 

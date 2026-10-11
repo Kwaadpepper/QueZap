@@ -1,19 +1,18 @@
-<div class="flex h-full flex-col items-center justify-center">
-  <h1 class="mb-15">Le quizz est terminé</h1>
-
-  <p-message
-    severity="info"
-    class="flex w-full max-w-md flex-col items-center text-center"
-    size="large"
-  >
-    <ng-template #icon>
-      <quizz-icon name="check-circle" />
-    </ng-template>
-    <p>
-      Félicitations à tous les participants pour avoir terminé le quizz ! <br />
-      Merci d'avoir participé.
+<div class="flex min-h-[80vh] w-full flex-col items-center justify-center px-4 py-8">
+  <div class="mb-6 flex flex-col items-center text-center">
+    <div class="mb-3 flex h-20 w-20 items-center justify-center rounded-3xl bg-amber-500/10 text-4xl shadow-inner dark:bg-amber-500/20">
+      🏆
+    </div>
+    <span class="text-xs uppercase tracking-widest font-black text-amber-600 dark:text-amber-400">Partie terminée</span>
+    <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white mt-1">
+      Bravo, {{ nickname() }} !
+    </h1>
+    <p class="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
+      Tu as répondu à toutes les questions. Regarde le grand écran pour découvrir le podium officiel et les scores finaux !
     </p>
-  </p-message>
+  </div>
 
-  <quizz-join-form class="mt-10 w-full max-w-md" />
+  <div class="w-full max-w-md">
+    <quizz-join-form />
+  </div>
 </div>

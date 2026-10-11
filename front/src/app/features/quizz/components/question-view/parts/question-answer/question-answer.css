@@ -44,3 +44,8 @@
 .answer-option input:focus {
   outline: none;
 }
+
+.answer-option:has(input:focus-visible) {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}

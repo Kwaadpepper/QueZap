@@ -8,6 +8,8 @@ export interface SessionApiService {
   joinSessionWith(code: SessionCode): ServiceOutput<Session, NotFoundError | ExpiredError>
 
   chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError>
+
+  submitAnswer(answerIndex: number): ServiceOutput<void>
 }
 
 export const SESSION_API_SERVICE = new InjectionToken<SessionApiService>('SessionApiService')

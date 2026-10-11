@@ -99,6 +99,12 @@ public class QuezapController {
                       new ResponseStatusException(
                           HttpStatus.BAD_REQUEST, "Question not found: " + slideReq.questionId()));
 
+      final var answers = question.getAnswers();
+      if (answers == null || answers.isEmpty()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Question #" + order + " has no answers");
+      }
+
       final var timer = slideReq.getEffectiveTimer();
       final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
       final var qq =
@@ -112,13 +118,62 @@ public class QuezapController {
     return new QuezapIdDto(saved.getId());
   }
 
+  @PostMapping("{id}/duplicate")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Transactional
+  public QuezapIdDto duplicate(@PathVariable UUID id) {
+    final var original =
+        quezapJpaRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
+
+    final var currentUser = getCurrentUser();
+
+    final var copy =
+        new QuezapJpaEntity(
+            UuidV7.randomUuid(),
+            original.getTitle() + " (Copie)",
+            original.getDescription(),
+            currentUser,
+            false,
+            Instant.now(),
+            Instant.now());
+
+    for (final var qq : original.getQuestions()) {
+      final var copyQq =
+          new QuezapQuestionJpaEntity(
+              UuidV7.randomUuid(),
+              copy,
+              qq.getQuestion(),
+              qq.getTimerSeconds(),
+              qq.getPoints(),
+              qq.getQuestionOrder());
+      copy.addQuestion(copyQq);
+    }
+
+    final var saved = quezapJpaRepository.save(copy);
+    return new QuezapIdDto(saved.getId());
+  }
+
   @GetMapping("{id}")
+  @Transactional(readOnly = true)
   public QuezapDetailDto getById(@PathVariable UUID id) {
     final var quezap =
         quezapJpaRepository
             .findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
+
+    final var auth = SecurityContextHolder.getContext().getAuthentication();
+    final var currentUserId =
+        (auth != null && auth.getPrincipal() != null) ? auth.getPrincipal().toString() : null;
+    final var isAuthor =
+        currentUserId != null && currentUserId.equals(quezap.getAuthor().getId().toString());
+
+    if (!isAuthor && !Boolean.TRUE.equals(quezap.getIsPublic())) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to private quezap");
+    }
 
     final var authorDto =
         new UserSummaryDto(quezap.getAuthor().getId(), quezap.getAuthor().getName());
@@ -133,7 +188,10 @@ public class QuezapController {
               .map(
                   a ->
                       new AnswerDetailDto(
-                          a.getId(), a.getLabel(), a.getIsCorrect(), a.getPictureFilename()))
+                          a.getId(),
+                          a.getLabel(),
+                          isAuthor ? a.getIsCorrect() : false,
+                          a.getPictureFilename()))
               .toList();
 
       final var questionDto =
@@ -157,6 +215,7 @@ public class QuezapController {
   }
 
   @GetMapping
+  @Transactional(readOnly = true)
   public PageOfDto<QuezapSummaryDto> list(
       @RequestParam(required = false) @Nullable String search,
       @RequestParam(required = false) @Nullable UUID authorId,
@@ -167,12 +226,35 @@ public class QuezapController {
     final var pageSize = (int) pagination.pageSize();
     final var pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").descending());
 
+    final var auth = SecurityContextHolder.getContext().getAuthentication();
+    final var currentUserId =
+        (auth != null && auth.getPrincipal() != null) ? auth.getPrincipal().toString() : null;
+
     Page<QuezapJpaEntity> page;
 
     if (search != null && !search.isBlank()) {
-      page = quezapJpaRepository.findByTitleContainingIgnoreCase(search, pageRequest);
+      if (currentUserId != null) {
+        try {
+          final var userUuid = UUID.fromString(currentUserId);
+          page =
+              quezapJpaRepository.findByTitleContainingIgnoreCaseAndAuthorId(
+                  search, userUuid, pageRequest);
+        } catch (IllegalArgumentException _) {
+          page =
+              quezapJpaRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(
+                  search, pageRequest);
+        }
+      } else {
+        page =
+            quezapJpaRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(search, pageRequest);
+      }
     } else if (authorId != null) {
-      page = quezapJpaRepository.findByAuthorId(authorId, pageRequest);
+      final var isAuthor = currentUserId != null && currentUserId.equals(authorId.toString());
+      if (isAuthor) {
+        page = quezapJpaRepository.findByAuthorId(authorId, pageRequest);
+      } else {
+        page = quezapJpaRepository.findByAuthorIdAndIsPublicTrue(authorId, pageRequest);
+      }
     } else {
       page = quezapJpaRepository.findByIsPublicTrue(pageRequest);
     }
@@ -210,6 +292,8 @@ public class QuezapController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
 
+    assertQuezapAuthor(quezap);
+
     quezap.setTitle(request.title());
     quezap.setDescription(request.description());
     quezap.setIsPublic(request.isPublic());
@@ -221,10 +305,14 @@ public class QuezapController {
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable UUID id) {
-    if (!quezapJpaRepository.existsById(id)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found");
-    }
-    quezapJpaRepository.deleteById(id);
+    final var quezap =
+        quezapJpaRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
+
+    assertQuezapAuthor(quezap);
+    quezapJpaRepository.delete(quezap);
   }
 
   @PostMapping("{id}/questions")
@@ -235,6 +323,8 @@ public class QuezapController {
             .findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
+
+    assertQuezapAuthor(quezap);
 
     final var question =
         questionJpaRepository
@@ -264,9 +354,55 @@ public class QuezapController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
 
+    assertQuezapAuthor(quezap);
+
     quezap.getQuestions().removeIf(qq -> qq.getQuestion().getId().equals(questionId));
     quezap.setUpdatedAt(Instant.now());
     quezapJpaRepository.save(quezap);
+  }
+
+  private void assertQuezapAuthor(QuezapJpaEntity quezap) {
+    final var currentUser = getCurrentUser();
+    if (!quezap.getAuthor().getId().equals(currentUser.getId())) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Seul le créateur peut modifier ou supprimer ce questionnaire");
+    }
+  }
+
+  @PostMapping("{id}/clone")
+  @ResponseStatus(HttpStatus.CREATED)
+  public QuezapIdDto clone(@PathVariable UUID id) {
+    final var original =
+        quezapJpaRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
+    final var author = getCurrentUser();
+
+    final var cloned =
+        new QuezapJpaEntity(
+            UuidV7.randomUuid(),
+            original.getTitle() + " (Copie)",
+            original.getDescription(),
+            author,
+            original.getIsPublic(),
+            Instant.now(),
+            Instant.now());
+
+    for (final var qq : original.getQuestions()) {
+      final var newQq =
+          new QuezapQuestionJpaEntity(
+              UuidV7.randomUuid(),
+              cloned,
+              qq.getQuestion(),
+              qq.getTimerSeconds(),
+              qq.getPoints(),
+              qq.getQuestionOrder());
+      cloned.addQuestion(newQq);
+    }
+
+    final var saved = quezapJpaRepository.save(cloned);
+    return new QuezapIdDto(saved.getId());
   }
 
   private com.quezap.infrastructure.adapter.persistence.jpa.entities.UserJpaEntity
@@ -288,12 +424,6 @@ public class QuezapController {
       }
     }
 
-    // Default fallback to first user in repository if testing or unauthenticated
-    return userJpaRepository.findAll().stream()
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "No authenticated user available"));
+    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No authenticated user available");
   }
 }

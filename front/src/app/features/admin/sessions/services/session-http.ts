@@ -3,12 +3,13 @@ import { inject, Injectable } from '@angular/core'
 
 import { catchError, map, of } from 'rxjs'
 
+import { LeaderboardResponseDto } from '@quezap/core/api-client'
 import { NotFoundError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 
-import { SessionService, SessionApiResponse, ScoreResponse } from './session'
+import { SessionApiResponse, SessionService } from './session'
 
 interface PageOfApiResponse<T> {
   data: T[]
@@ -71,35 +72,58 @@ export class SessionHttpService implements SessionService {
   createSession(quezapId: string, name: string): ServiceOutput<SessionApiResponse> {
     return this.http.post<SessionApiResponse>(`${this.apiUrl}/sessions`, { quezapId, name }).pipe(
       map(res => ({ kind: 'success' as const, result: res })),
-      catchError(error => of({ kind: 'failure' as const, error: new NotFoundError(error.message) })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new NotFoundError(error.error?.message || error.error?.detail || error.message || 'Erreur de création'),
+      })),
     )
   }
 
   startSession(id: string): ServiceOutput<void> {
     return this.http.post<void>(`${this.apiUrl}/sessions/${id}/start`, {}).pipe(
       map(() => ({ kind: 'success' as const, result: undefined })),
-      catchError(error => of({ kind: 'failure' as const, error: new NotFoundError(error.message) })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new NotFoundError(
+          error.error?.message || error.error?.detail || error.message || 'Erreur de démarrage',
+        ),
+      })),
     )
   }
 
   nextQuestion(id: string): ServiceOutput<void> {
     return this.http.post<void>(`${this.apiUrl}/sessions/${id}/next-question`, {}).pipe(
       map(() => ({ kind: 'success' as const, result: undefined })),
-      catchError(error => of({ kind: 'failure' as const, error: new NotFoundError(error.message) })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new NotFoundError(
+          error.error?.message || error.error?.detail || error.message || 'Erreur question suivante',
+        ),
+      })),
     )
   }
 
-  getScores(id: string): ServiceOutput<ScoreResponse[]> {
-    return this.http.get<ScoreResponse[]>(`${this.apiUrl}/sessions/${id}/scores`).pipe(
+  getScores(id: string): ServiceOutput<LeaderboardResponseDto> {
+    return this.http.get<LeaderboardResponseDto>(`${this.apiUrl}/sessions/${id}/scores`).pipe(
       map(res => ({ kind: 'success' as const, result: res })),
-      catchError(error => of({ kind: 'failure' as const, error: new NotFoundError(error.message) })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new NotFoundError(
+          error.error?.message || error.error?.detail || error.message || 'Erreur récupération scores',
+        ),
+      })),
     )
   }
 
   kickParticipant(sessionId: string, name: string): ServiceOutput<void> {
     return this.http.post<void>(`${this.apiUrl}/sessions/${sessionId}/participants/${name}/kick`, {}).pipe(
       map(() => ({ kind: 'success' as const, result: undefined })),
-      catchError(error => of({ kind: 'failure' as const, error: new NotFoundError(error.message) })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new NotFoundError(
+          error.error?.message || error.error?.detail || error.message || 'Erreur exclusion joueur',
+        ),
+      })),
     )
   }
 }

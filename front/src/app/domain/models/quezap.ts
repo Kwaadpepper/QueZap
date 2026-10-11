@@ -11,6 +11,7 @@ export interface Quezap {
   readonly id: QuezapId
   readonly title: string
   readonly description: string
+  readonly totalQuestions?: number
 }
 
 export interface QuezapWithTheme extends Quezap {

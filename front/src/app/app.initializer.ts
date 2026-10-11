@@ -5,6 +5,7 @@ import {
   tap, throwError,
 } from 'rxjs'
 
+import { client } from './core/api-client/client.gen'
 import { Config } from './core/services/config/config'
 import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
 import { initZod } from './zod.initializer'
@@ -13,6 +14,14 @@ export async function AppInitializer() {
   const config = inject(Config)
   const authStore = inject(AuthenticatedUserStore)
   const document = inject(DOCUMENT)
+
+  // Configure Hey API client
+  const apiUrl = config.appConfig.value().apiUrl
+  client.setConfig({
+    baseUrl: typeof window !== 'undefined' && !apiUrl.startsWith('http')
+      ? `${window.location.origin}${apiUrl}`
+      : apiUrl,
+  })
 
   // Init tasks
   const initializationTasks = [

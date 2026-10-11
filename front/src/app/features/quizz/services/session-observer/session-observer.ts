@@ -26,7 +26,12 @@ export interface SessionSwitchedQuestion {
   readonly questionId: QuestionId
 }
 
-export type SessionEvent = SessionWaitingStart | SessionStarted | SessionSwitchedQuestion | SessionEnded
+export interface SessionKicked {
+  readonly type: 'SessionKicked'
+  readonly participantName: string
+}
+
+export type SessionEvent = SessionWaitingStart | SessionStarted | SessionSwitchedQuestion | SessionEnded | SessionKicked
 export type CurrentQuestion = WaitingQuestion | MixedQuestion & QuestionWithAnswers | NoMoreQuestions
 
 export interface WaitingQuestion {

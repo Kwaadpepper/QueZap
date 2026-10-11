@@ -100,7 +100,7 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAppInitializer(AppInitializer),
     provideServiceWorker('ngsw-worker.js', {
-      enabled: environment.env === 'prod' || !isDevMode(),
+      enabled: environment.env === 'prod' && !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
     ...appProviders,

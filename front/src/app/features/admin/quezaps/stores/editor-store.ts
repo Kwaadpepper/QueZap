@@ -106,9 +106,14 @@ export const QuezapEditorStore = signalStore(
       patchState(store, (state) => {
         const currentQuestions = state.quezap.questionWithAnswersAndResponses
         const questionToDuplicate = currentQuestions[idx]
+        const duplicatedQuestion: QuestionWithAnswers = {
+          ...questionToDuplicate,
+          answers: questionToDuplicate.answers.map(a => ({ ...a })),
+          ...(questionToDuplicate.limit ? { limit: { ...questionToDuplicate.limit } } : {}),
+        }
         const updatedQuestions = [
           ...currentQuestions.slice(0, idx + 1),
-          { ...questionToDuplicate },
+          duplicatedQuestion,
           ...currentQuestions.slice(idx + 1),
         ]
 

@@ -6,6 +6,10 @@ server:
 spring:
   application:
     name: quizz
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
   datasource:
     url: ${APP_DB_URL:jdbc:postgresql://localhost:5432/quezap}
     username: ${APP_DB_USERNAME:quezap}

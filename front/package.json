@@ -17,6 +17,7 @@
     "lint:css": "node ./node_modules/.bin/stylelint --config './.stylelintrc.json' --max-warnings 0 \"src/**/*.css\"",
     "lint:css:ci": "node ./node_modules/.bin/stylelint --config './.stylelintrc.json' --max-warnings 0 \"src/**/*.css\" -f json",
     "lint:css:fix": "node ./node_modules/.bin/stylelint --config './.stylelintrc.json' --max-warnings 0 \"src/**/*.css\" --fix",
+    "codegen": "openapi-ts",
     "prepare": "husky"
   },
   "imports": {
@@ -67,6 +68,7 @@
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
     "@eslint/js": "^10.0.1",
+    "@hey-api/openapi-ts": "^0.99.0",
     "@stylistic/eslint-plugin": "^5.9.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/jest": "^30.0.0",

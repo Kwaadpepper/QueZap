@@ -3,14 +3,18 @@ package com.quezap.api.v1.routes.sessions;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,16 +29,20 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.quezap.api.v1.dto.events.AnswerCountPayload;
 import com.quezap.api.v1.dto.events.AnswerStatDto;
+import com.quezap.api.v1.dto.events.FinalLeaderboardEntryDto;
 import com.quezap.api.v1.dto.events.IntermediateLeaderboardPayload;
 import com.quezap.api.v1.dto.events.LobbyStatePayload;
 import com.quezap.api.v1.dto.events.ParticipantDto;
 import com.quezap.api.v1.dto.events.ParticipantKickedPayload;
+import com.quezap.api.v1.dto.events.PodiumDto;
 import com.quezap.api.v1.dto.events.QuestionClosedPayload;
 import com.quezap.api.v1.dto.events.QuestionRevealPayload;
 import com.quezap.api.v1.dto.events.QuestionStartPayload;
 import com.quezap.api.v1.dto.events.SafeAnswerDto;
 import com.quezap.api.v1.dto.events.SafeQuestionDto;
+import com.quezap.api.v1.dto.events.SessionEndedPayload;
 import com.quezap.api.v1.dto.events.SessionStartedPayload;
 import com.quezap.api.v1.dto.request.PaginationDto;
 import com.quezap.api.v1.dto.request.sessions.CreateSessionRequest;
@@ -51,7 +59,10 @@ import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
 import com.quezap.api.v1.dto.response.sessions.SessionStatusDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
 import com.quezap.api.v1.services.SessionSseService;
+import com.quezap.domain.ports.services.UserNameSanitizer;
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapQuestionJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionAnswerJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionParticipantJpaEntity;
@@ -66,7 +77,6 @@ import org.jspecify.annotations.Nullable;
 
 @RestController
 @RequestMapping("apiv1/sessions")
-@Transactional
 public class SessionController {
 
   private final SessionJpaRepository sessionJpaRepository;
@@ -74,21 +84,25 @@ public class SessionController {
   private final UserJpaRepository userJpaRepository;
   private final SessionSseService sessionSseService;
   private final PaginationMapper paginationMapper;
+  private final UserNameSanitizer userNameSanitizer;
 
   public SessionController(
       SessionJpaRepository sessionJpaRepository,
       QuezapJpaRepository quezapJpaRepository,
       UserJpaRepository userJpaRepository,
       SessionSseService sessionSseService,
-      PaginationMapper paginationMapper) {
+      PaginationMapper paginationMapper,
+      UserNameSanitizer userNameSanitizer) {
     this.sessionJpaRepository = sessionJpaRepository;
     this.quezapJpaRepository = quezapJpaRepository;
     this.userJpaRepository = userJpaRepository;
     this.sessionSseService = sessionSseService;
     this.paginationMapper = paginationMapper;
+    this.userNameSanitizer = userNameSanitizer;
   }
 
   @GetMapping
+  @Transactional(readOnly = true)
   public PageOfDto<SessionDetailDto> list(
       @RequestParam(required = false) @Nullable UUID authorId, PaginationDto paginationDto) {
 
@@ -97,7 +111,22 @@ public class SessionController {
     final var pageSize = (int) pagination.pageSize();
     final var pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").descending());
 
-    final var page = sessionJpaRepository.findAll(pageRequest);
+    Page<SessionJpaEntity> page;
+    if (authorId != null) {
+      page = sessionJpaRepository.findByAuthorId(authorId, pageRequest);
+    } else {
+      final var auth = SecurityContextHolder.getContext().getAuthentication();
+      if (auth != null && auth.getPrincipal() != null) {
+        try {
+          final var userUuid = UUID.fromString(auth.getPrincipal().toString());
+          page = sessionJpaRepository.findByAuthorId(userUuid, pageRequest);
+        } catch (IllegalArgumentException _) {
+          page = sessionJpaRepository.findAll(pageRequest);
+        }
+      } else {
+        page = sessionJpaRepository.findAll(pageRequest);
+      }
+    }
 
     final var items =
         page.getContent().stream()
@@ -131,20 +160,25 @@ public class SessionController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @Transactional
   public SessionCreatedDto create(@Valid @RequestBody CreateSessionRequest request) {
     final var author = getCurrentUser();
     final var sessionNumber = generateUniqueSessionNumber();
 
-    QuezapJpaEntity quezapEntity = null;
-    if (request.quezapId() != null) {
-      quezapEntity =
-          quezapJpaRepository
-              .findById(request.quezapId())
-              .orElseThrow(
-                  () ->
-                      new ResponseStatusException(
-                          HttpStatus.BAD_REQUEST, "Quezap not found: " + request.quezapId()));
+    if (request.quezapId() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Un Quezap doit être sélectionné pour créer une session");
     }
+
+    final var quezapEntity =
+        quezapJpaRepository
+            .findById(request.quezapId())
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Quezap introuvable : " + request.quezapId()));
+
+    validateQuezapCompleteness(quezapEntity);
 
     final var sessionJpa =
         new SessionJpaEntity(
@@ -165,6 +199,7 @@ public class SessionController {
   }
 
   @GetMapping("{id}")
+  @Transactional(readOnly = true)
   public SessionDetailDto getById(@PathVariable UUID id) {
     final var sessionJpa =
         sessionJpaRepository
@@ -189,6 +224,7 @@ public class SessionController {
   }
 
   @GetMapping("by-code/{code}")
+  @Transactional(readOnly = true)
   public SessionDetailDto getByCode(@PathVariable String code) {
     final var sessionNumber = parseSessionCode(code);
     final var sessionJpa =
@@ -216,6 +252,7 @@ public class SessionController {
   }
 
   @PostMapping("join")
+  @Transactional
   public JoinSessionResponseDto join(@Valid @RequestBody JoinSessionRequest request) {
     final var sessionNumber = parseSessionCode(request.code());
     final var sessionJpa =
@@ -226,9 +263,14 @@ public class SessionController {
                     new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Invalid session code: " + request.code()));
 
+    final var sanitizedName = userNameSanitizer.sanitize(request.participantName());
+    if (sanitizedName.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid participant name");
+    }
+
     final var existingParticipant =
         sessionJpa.getParticipants().stream()
-            .filter(p -> p.getName().equalsIgnoreCase(request.participantName()))
+            .filter(p -> p.getName().equalsIgnoreCase(sanitizedName))
             .findFirst();
 
     if (existingParticipant.isPresent()) {
@@ -239,13 +281,7 @@ public class SessionController {
     final var token = "ptk_" + UUID.randomUUID().toString();
     final var participant =
         new SessionParticipantJpaEntity(
-            UuidV7.randomUuid(),
-            sessionJpa,
-            request.participantName(),
-            0,
-            token,
-            false,
-            Instant.now());
+            UuidV7.randomUuid(), sessionJpa, sanitizedName, 0, token, false, Instant.now());
 
     sessionJpa.addParticipant(participant);
     sessionJpaRepository.save(sessionJpa);
@@ -267,10 +303,11 @@ public class SessionController {
     sessionSseService.broadcast(
         sessionJpa.getId(), "LOBBY_STATE", sessionJpa.getNumber(), lobbyPayload);
 
-    return new JoinSessionResponseDto(sessionJpa.getId(), token, request.participantName());
+    return new JoinSessionResponseDto(sessionJpa.getId(), token, sanitizedName);
   }
 
   @PostMapping("{id}/start")
+  @Transactional
   public SessionStatusDto start(@PathVariable UUID id) {
     final var sessionJpa =
         sessionJpaRepository
@@ -278,26 +315,69 @@ public class SessionController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
+    assertSessionHost(sessionJpa);
+
     if (sessionJpa.getStartedAt() != null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session has already started");
     }
 
-    sessionJpa.setStartedAt(Instant.now());
+    final var quezap = sessionJpa.getQuezap();
+    validateQuezapCompleteness(quezap);
+
+    final var questionsList =
+        quezap != null
+            ? quezap.getQuestions().stream()
+                .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
+                .toList()
+            : List.<QuezapQuestionJpaEntity>of();
+    final var totalSlides = questionsList.size();
+
+    final var now = Instant.now();
+    sessionJpa.setStartedAt(now);
+    sessionJpa.setCurrentSlideIndex(1);
     sessionJpaRepository.save(sessionJpa);
 
-    final var quezap = sessionJpa.getQuezap();
-    final var totalSlides = quezap != null ? quezap.getQuestions().size() : 0;
-
-    final var startedAt =
-        sessionJpa.getStartedAt() != null ? sessionJpa.getStartedAt() : Instant.now();
+    final var startedAt = sessionJpa.getStartedAt() != null ? sessionJpa.getStartedAt() : now;
     final var payload = new SessionStartedPayload(startedAt, totalSlides, 3);
     sessionSseService.broadcast(
         sessionJpa.getId(), "SESSION_STARTED", sessionJpa.getNumber(), payload);
+
+    if (!questionsList.isEmpty()) {
+      final var currentQq = questionsList.get(0);
+      final var question = currentQq.getQuestion();
+
+      var answerIndex = 0;
+      final var safeAnswers = new ArrayList<SafeAnswerDto>();
+      final var sortedAnswers =
+          question.getAnswers().stream()
+              .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+              .toList();
+
+      for (final var a : sortedAnswers) {
+        safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+      }
+
+      final var safeQuestion =
+          new SafeQuestionDto(
+              question.getId(),
+              question.getType(),
+              question.getLabel(),
+              question.getPictureFilename(),
+              safeAnswers);
+
+      final var startPayload =
+          new QuestionStartPayload(
+              1, totalSlides, currentQq.getTimerSeconds(), currentQq.getPoints(), safeQuestion);
+
+      sessionSseService.broadcast(
+          sessionJpa.getId(), "QUESTION_START", sessionJpa.getNumber(), startPayload);
+    }
 
     return new SessionStatusDto("STARTED");
   }
 
   @PostMapping("{id}/next-question")
+  @Transactional
   public NextQuestionResponseDto nextQuestion(@PathVariable UUID id) {
     final var sessionJpa =
         sessionJpaRepository
@@ -305,19 +385,57 @@ public class SessionController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
+    assertSessionHost(sessionJpa);
+
     final var quezap = sessionJpa.getQuezap();
     if (quezap == null || quezap.getQuestions().isEmpty()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Session does not contain questions");
     }
 
-    final var questionsList = quezap.getQuestions().stream().toList();
+    final var questionsList =
+        quezap.getQuestions().stream()
+            .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
+            .toList();
     final var nextIndex = sessionJpa.getCurrentSlideIndex() + 1;
     final var totalSlides = questionsList.size();
 
     if (nextIndex > totalSlides) {
-      sessionJpa.setEndedAt(Instant.now());
+      final var endedAt = Instant.now();
+      sessionJpa.setEndedAt(endedAt);
       sessionJpaRepository.save(sessionJpa);
+
+      final var sortedParticipants =
+          sessionJpa.getParticipants().stream()
+              .filter(p -> !p.getIsKicked())
+              .sorted(Comparator.comparing(SessionParticipantJpaEntity::getScore).reversed())
+              .toList();
+
+      var rank = 1;
+      final var finalLeaderboard = new ArrayList<FinalLeaderboardEntryDto>();
+      for (final var p : sortedParticipants) {
+        final var correctCount =
+            (int)
+                sessionJpa.getAnswers().stream()
+                    .filter(
+                        a ->
+                            a.getParticipantName().equals(p.getName())
+                                && Boolean.TRUE.equals(a.getIsCorrect()))
+                    .count();
+        finalLeaderboard.add(
+            new FinalLeaderboardEntryDto(rank++, p.getName(), p.getScore(), correctCount));
+      }
+
+      final var podium =
+          new PodiumDto(
+              !sortedParticipants.isEmpty() ? sortedParticipants.get(0).getName() : "",
+              sortedParticipants.size() > 1 ? sortedParticipants.get(1).getName() : null,
+              sortedParticipants.size() > 2 ? sortedParticipants.get(2).getName() : null);
+
+      final var endedPayload = new SessionEndedPayload(endedAt, finalLeaderboard, podium);
+      sessionSseService.broadcast(
+          sessionJpa.getId(), "SESSION_ENDED", sessionJpa.getNumber(), endedPayload);
+
       return new NextQuestionResponseDto(sessionJpa.getCurrentSlideIndex(), totalSlides);
     }
 
@@ -330,7 +448,12 @@ public class SessionController {
 
     var answerIndex = 0;
     final var safeAnswers = new ArrayList<SafeAnswerDto>();
-    for (final var a : question.getAnswers()) {
+    final var sortedAnswers =
+        question.getAnswers().stream()
+            .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+            .toList();
+
+    for (final var a : sortedAnswers) {
       safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
     }
 
@@ -358,6 +481,7 @@ public class SessionController {
 
   @PostMapping("{id}/answers")
   @ResponseStatus(HttpStatus.CREATED)
+  @Transactional
   public AnswerSubmittedDto submitAnswer(
       @PathVariable UUID id,
       @RequestHeader(value = "X-Participant-Token", required = false) @Nullable String headerToken,
@@ -368,6 +492,16 @@ public class SessionController {
             .findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+
+    if (sessionJpa.getStartedAt() == null || sessionJpa.getEndedAt() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not currently active");
+    }
+
+    if (request.slideIndex() != null
+        && !request.slideIndex().equals(sessionJpa.getCurrentSlideIndex())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Invalid slide index for current question");
+    }
 
     final var participant =
         sessionJpa.getParticipants().stream()
@@ -407,11 +541,17 @@ public class SessionController {
     var pointsAwarded = 0;
     final var quezap = sessionJpa.getQuezap();
     if (quezap != null) {
-      final var questions = quezap.getQuestions().stream().toList();
+      final var questions =
+          quezap.getQuestions().stream()
+              .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
+              .toList();
       final var slideIdx = effectiveSlideIndex - 1;
       if (slideIdx >= 0 && slideIdx < questions.size()) {
         final var qq = questions.get(slideIdx);
-        final var answers = qq.getQuestion().getAnswers().stream().toList();
+        final var answers =
+            qq.getQuestion().getAnswers().stream()
+                .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+                .toList();
         if (request.answerIndex() >= 0 && request.answerIndex() < answers.size()) {
           final var answerEntity = answers.get(request.answerIndex());
           isCorrect = Boolean.TRUE.equals(answerEntity.getIsCorrect());
@@ -446,6 +586,12 @@ public class SessionController {
                 .filter(a -> a.getSlideIndex().equals(effectiveSlideIndex))
                 .count();
 
+    // Broadcast live answer progress
+    final var answerCountPayload =
+        new AnswerCountPayload(effectiveSlideIndex, totalAnswered, totalActive);
+    sessionSseService.broadcast(
+        sessionJpa.getId(), "ANSWER_RECEIVED", sessionJpa.getNumber(), answerCountPayload);
+
     if (totalAnswered >= totalActive && totalActive > 0) {
       // Broadcast QUESTION_CLOSED
       final var closedPayload =
@@ -461,7 +607,73 @@ public class SessionController {
     return new AnswerSubmittedDto(true, Instant.now());
   }
 
+  @PostMapping("{id}/reveal")
+  @Transactional
+  public void reveal(@PathVariable UUID id) {
+    final var sessionJpa =
+        sessionJpaRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+    assertSessionHost(sessionJpa);
+    final var currentSlide = Math.max(sessionJpa.getCurrentSlideIndex(), 1);
+    broadcastRevealAndLeaderboard(sessionJpa, currentSlide);
+  }
+
+  @GetMapping(value = "{id}/export/csv", produces = "text/csv")
+  @Transactional(readOnly = true)
+  public ResponseEntity<String> exportCsv(@PathVariable UUID id) {
+    final var sessionJpa =
+        sessionJpaRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+    assertSessionHost(sessionJpa);
+
+    final var participants =
+        sessionJpa.getParticipants().stream()
+            .filter(p -> !p.getIsKicked())
+            .sorted(Comparator.comparing(SessionParticipantJpaEntity::getScore).reversed())
+            .toList();
+
+    final var totalQuestions =
+        sessionJpa.getQuezap() != null ? sessionJpa.getQuezap().getQuestions().size() : 0;
+
+    final var sb = new StringBuilder();
+    sb.append("Rang,Pseudo,Score Total,Bonnes Réponses,Total Questions,Taux de Réussite (%)\n");
+
+    var rank = 1;
+    for (final var p : participants) {
+      final var correctCount =
+          (int)
+              sessionJpa.getAnswers().stream()
+                  .filter(
+                      a ->
+                          a.getParticipantName().equals(p.getName())
+                              && Boolean.TRUE.equals(a.getIsCorrect()))
+                  .count();
+      final var accuracy =
+          totalQuestions > 0 ? (double) correctCount / totalQuestions * 100.0 : 0.0;
+      sb.append(
+          String.format(
+              Locale.US,
+              "%d,%s,%d,%d,%d,%.1f%%\n",
+              rank++,
+              p.getName(),
+              p.getScore(),
+              correctCount,
+              totalQuestions,
+              accuracy));
+    }
+
+    final var filename = "session-" + sessionJpa.getNumber() + "-resultats.csv";
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+        .body(sb.toString());
+  }
+
   @GetMapping("{id}/scores")
+  @Transactional(readOnly = true)
   public LeaderboardResponseDto getScores(@PathVariable UUID id) {
     final var sessionJpa =
         sessionJpaRepository
@@ -487,12 +699,14 @@ public class SessionController {
 
   @PostMapping("{id}/participants/{name}/kick")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Transactional
   public void kickParticipant(@PathVariable UUID id, @PathVariable String name) {
     final var sessionJpa =
         sessionJpaRepository
             .findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+    assertSessionHost(sessionJpa);
 
     final var participant =
         sessionJpa.getParticipants().stream()
@@ -527,6 +741,7 @@ public class SessionController {
   }
 
   @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @Transactional(readOnly = true)
   public SseEmitter streamEvents(@PathVariable UUID id) {
     final var sessionJpa =
         sessionJpaRepository
@@ -551,6 +766,52 @@ public class SessionController {
     sessionSseService.sendToEmitter(
         emitter, "LOBBY_STATE", sessionJpa.getNumber(), id, lobbyPayload);
 
+    if (sessionJpa.getStartedAt() != null
+        && sessionJpa.getEndedAt() == null
+        && sessionJpa.getCurrentSlideIndex() > 0) {
+      final var nextIndex = sessionJpa.getCurrentSlideIndex();
+      final var questionsList =
+          quezap != null
+              ? quezap.getQuestions().stream()
+                  .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
+                  .toList()
+              : List.<QuezapQuestionJpaEntity>of();
+      if (!questionsList.isEmpty() && nextIndex <= questionsList.size()) {
+        final var currentQq = questionsList.get(nextIndex - 1);
+        final var question = currentQq.getQuestion();
+
+        var answerIndex = 0;
+        final var safeAnswers = new ArrayList<SafeAnswerDto>();
+        final var sortedAnswers =
+            question.getAnswers().stream()
+                .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+                .toList();
+
+        for (final var a : sortedAnswers) {
+          safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+        }
+
+        final var safeQuestion =
+            new SafeQuestionDto(
+                question.getId(),
+                question.getType(),
+                question.getLabel(),
+                question.getPictureFilename(),
+                safeAnswers);
+
+        final var startPayload =
+            new QuestionStartPayload(
+                nextIndex,
+                questionsList.size(),
+                currentQq.getTimerSeconds(),
+                currentQq.getPoints(),
+                safeQuestion);
+
+        sessionSseService.sendToEmitter(
+            emitter, "QUESTION_START", sessionJpa.getNumber(), id, startPayload);
+      }
+    }
+
     return emitter;
   }
 
@@ -560,14 +821,20 @@ public class SessionController {
       return;
     }
 
-    final var questions = quezap.getQuestions().stream().toList();
+    final var questions =
+        quezap.getQuestions().stream()
+            .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
+            .toList();
     final var slideIdx = slideIndex - 1;
     if (slideIdx < 0 || slideIdx >= questions.size()) {
       return;
     }
 
     final var qq = questions.get(slideIdx);
-    final var answers = qq.getQuestion().getAnswers().stream().toList();
+    final var answers =
+        qq.getQuestion().getAnswers().stream()
+            .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+            .toList();
     final var correctIndices = new ArrayList<Integer>();
     final var stats = new ArrayList<AnswerStatDto>();
 
@@ -621,7 +888,13 @@ public class SessionController {
   }
 
   private Long generateUniqueSessionNumber() {
-    return ThreadLocalRandom.current().nextLong(1000, 99999);
+    for (int i = 0; i < 20; i++) {
+      final var number = ThreadLocalRandom.current().nextLong(10000, 99999);
+      if (!sessionJpaRepository.existsByNumber(number)) {
+        return number;
+      }
+    }
+    return ThreadLocalRandom.current().nextLong(100000, 999999);
   }
 
   private String formatSessionCode(Long number) {
@@ -658,11 +931,68 @@ public class SessionController {
       }
     }
 
-    return userJpaRepository.findAll().stream()
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "No authenticated user available"));
+    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No authenticated user available");
+  }
+
+  private void validateQuezapCompleteness(@Nullable QuezapJpaEntity quezap) {
+    if (quezap == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Un Quezap valide est obligatoire pour lancer une session");
+    }
+    final var questions = quezap.getQuestions();
+    if (questions == null || questions.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Le Quezap \"" + quezap.getTitle() + "\" ne contient aucune question");
+    }
+    for (final var qq : questions) {
+      final var q = qq.getQuestion();
+      if (q == null) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Une des questions du Quezap est invalide");
+      }
+      if (q.getLabel() == null || q.getLabel().isBlank()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "La question #" + qq.getQuestionOrder() + " n'a pas d'énoncé");
+      }
+      final var answers = q.getAnswers();
+      if (answers == null || answers.isEmpty()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "La question #" + qq.getQuestionOrder() + " ne comporte aucune proposition de réponse");
+      }
+      final var type = q.getType() != null ? q.getType().toUpperCase(Locale.ROOT) : "QUIZZ";
+      if (!"BOOLEAN".equals(type) && !"AFFIRMATION".equals(type)) {
+        if (answers.size() < 2) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "La question #"
+                  + qq.getQuestionOrder()
+                  + " doit comporter au moins 2 propositions de réponse");
+        }
+        if (answers.stream().noneMatch(a -> Boolean.TRUE.equals(a.getIsCorrect()))) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "La question #"
+                  + qq.getQuestionOrder()
+                  + " doit comporter au moins une bonne réponse");
+        }
+      }
+      for (final var a : answers) {
+        if (a.getLabel() == null || a.getLabel().isBlank()) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "Une des propositions de la question #" + qq.getQuestionOrder() + " est vide");
+        }
+      }
+    }
+  }
+
+  private void assertSessionHost(SessionJpaEntity session) {
+    final var currentUser = getCurrentUser();
+    if (!session.getAuthorId().equals(currentUser.getId())) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Seul le créateur peut piloter cette session");
+    }
   }
 }

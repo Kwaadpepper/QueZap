@@ -10,6 +10,8 @@ export interface QuezapService {
   find(quezapId: QuezapId): ServiceOutput<QuezapWithQuestionsAndAnswers, NotFoundError>
 
   persistQuezap(quezap: Omit<QuezapWithQuestionsAndAnswers, 'id'>): ServiceOutput<Pick<Quezap, 'id'>>
+
+  duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>>
 }
 
 export const QUEZAP_SERVICE = new InjectionToken<QuezapService>('QuezapService')

@@ -14,7 +14,15 @@ public interface QuezapJpaRepository extends JpaRepository<QuezapJpaEntity, UUID
 
   Page<QuezapJpaEntity> findByAuthorId(UUID authorId, Pageable pageable);
 
+  Page<QuezapJpaEntity> findByAuthorIdAndIsPublicTrue(UUID authorId, Pageable pageable);
+
   Page<QuezapJpaEntity> findByIsPublicTrue(Pageable pageable);
 
   Page<QuezapJpaEntity> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+
+  Page<QuezapJpaEntity> findByTitleContainingIgnoreCaseAndIsPublicTrue(
+      String title, Pageable pageable);
+
+  Page<QuezapJpaEntity> findByTitleContainingIgnoreCaseAndAuthorId(
+      String title, UUID authorId, Pageable pageable);
 }

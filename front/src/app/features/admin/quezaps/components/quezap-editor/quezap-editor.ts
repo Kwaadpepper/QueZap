@@ -94,7 +94,7 @@ export class QuezapEditor {
         if (err instanceof ValidationError) {
           this.message.add({
             summary: 'Validation',
-            text: 'Vous devez corriger votre questionnaire avant qu\'il soit sauvegardé',
+            detail: 'Vous devez corriger votre questionnaire avant qu\'il soit sauvegardé',
             severity: 'warn',
           })
           return

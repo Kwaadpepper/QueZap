@@ -48,7 +48,7 @@ export class SessionApiHttpService implements SessionApiService {
   }
 
   joinSessionWith(code: SessionCode): ServiceOutput<Session, NotFoundError | ExpiredError> {
-    this.currentSessionCode = typeof code === 'string' ? code : String(code)
+    this.currentSessionCode = (typeof code === 'string' ? code : String(code)).trim().toUpperCase()
 
     return this.http.get<SessionByCodeResponse>(`${this.apiUrl}/sessions/by-code/${this.currentSessionCode}`).pipe(
       map((res) => {
@@ -86,10 +86,11 @@ export class SessionApiHttpService implements SessionApiService {
   }
 
   chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError> {
-    const code = this.currentSessionCode || this.sessionPersistence.retrieve()?.code || ''
+    const rawCode = this.currentSessionCode || this.sessionPersistence.retrieve()?.code || ''
+    const code = rawCode.trim().toUpperCase()
     const payload = {
       code,
-      participantName: nickname,
+      participantName: nickname.trim(),
     }
 
     return this.http.post<JoinSessionApiResponse>(`${this.apiUrl}/sessions/join`, payload).pipe(

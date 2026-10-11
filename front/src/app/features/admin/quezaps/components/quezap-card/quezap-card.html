@@ -20,6 +20,15 @@
     <div class="flex items-center justify-end gap-2 pt-2 border-t border-surface-100 dark:border-surface-800">
       @if (editable()) {
         <p-button
+          label="Dupliquer"
+          size="small"
+          severity="secondary"
+          title="Dupliquer ce quezap"
+          (onClick)="onQuezapDuplicate()"
+        >
+          <quizz-icon name="copy" pButtonIcon />
+        </p-button>
+        <p-button
           label="Éditer"
           size="small"
           severity="secondary"

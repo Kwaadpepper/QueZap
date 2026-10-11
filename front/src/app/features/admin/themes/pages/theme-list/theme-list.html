@@ -20,7 +20,7 @@
   class="border-surface-300 dark:border-surface-700 mt-6 h-fit overflow-y-auto rounded-lg border px-5 py-15"
 >
   @if (pageInfo().totalElements === 0) {
-    <div class="py-4">No themes found.</div>
+    <div class="py-4">Aucun thème trouvé.</div>
   } @else {
     <div class="flex flex-row flex-wrap gap-3 py-4">
       @for (theme of themes(); track theme.id) {

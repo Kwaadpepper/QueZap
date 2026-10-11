@@ -1,23 +1,27 @@
 import {
-  ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal, WritableSignal,
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute } from '@angular/router'
 
 import { QRCodeComponent } from 'angularx-qrcode'
 
 import { Config } from '@quezap/core/services/config/config'
 
-import { SESSION_SERVICE, ScoreResponse } from '../../services/session'
+import { SESSION_SERVICE } from '../../services/session'
 
 export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'PODIUM'
 
 interface QuestionPresenterModel {
   id: string
   title: string
+  explanation?: string
   answers: {
     id: string
     label: string
     isCorrect: boolean
+    count?: number
+    percentage?: number
   }[]
 }
 
@@ -32,17 +36,38 @@ interface SseParticipant {
 }
 
 interface SseAnswer {
-  id: string
-  label: string
+  id?: string
+  index?: number
+  label?: string
+  value?: string
+  pictureFilename?: string
+}
+
+interface SseQuestion {
+  id?: string
+  type?: string
+  label?: string
+  pictureFilename?: string
+  answers?: SseAnswer[]
 }
 
 interface SsePayload {
+  id?: string
+  pictureFilename?: string
   participants?: SseParticipant[]
   timerSeconds?: number
+  points?: number
+  slideIndex?: number
+  totalSlides?: number
   questionId?: string
   title?: string
+  label?: string
   answers?: SseAnswer[]
+  question?: SseQuestion
   correctAnswerIds?: string[]
+  correctAnswerIndices?: number[]
+  answeredCount?: number
+  totalCount?: number
 }
 
 interface SseEnvelope {
@@ -89,13 +114,14 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   protected readonly leaderboard = signal<LeaderboardItem[]>([])
 
+  private readonly destroyRef = inject(DestroyRef)
   private eventSource: EventSource | null = null
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') || '018e3a2b-8888-7def-8123-abcdef888888'
     this.sessionId.set(id)
 
-    this.sessionService.getSession(id).subscribe((output) => {
+    this.sessionService.getSession(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
       if (output.kind === 'success') {
         const session = output.result
         this.sessionCode.set(session.code || session.sessionCode || '')
@@ -112,13 +138,40 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.connectSse(id)
   }
 
+  private timerInterval: ReturnType<typeof setInterval> | null = null
+
   ngOnDestroy(): void {
+    this.stopCountdown()
     if (this.eventSource) {
       this.eventSource.close()
     }
   }
 
+  private startCountdown(seconds: number): void {
+    this.stopCountdown()
+    this.timer.set(seconds)
+    this.timerInterval = setInterval(() => {
+      this.timer.update((t) => {
+        if (t <= 1) {
+          this.stopCountdown()
+          return 0
+        }
+        return t - 1
+      })
+    }, 1000)
+  }
+
+  private stopCountdown(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval)
+      this.timerInterval = null
+    }
+  }
+
   private connectSse(id: string): void {
+    if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
+      return
+    }
     const apiUrl = this.config.appConfig.value().apiUrl
     this.eventSource = new EventSource(`${apiUrl}/sessions/${id}/events`)
 
@@ -169,33 +222,66 @@ export class SessionPresenter implements OnInit, OnDestroy {
         if (payload) {
           this.stage.set('QUESTION')
           this.answersReceived.set(0)
-          if (payload.timerSeconds) this.timer.set(payload.timerSeconds)
+          if (payload.slideIndex !== undefined) {
+            this.currentQuestionIndex.set(payload.slideIndex - 1)
+          }
+          if (payload.totalSlides !== undefined) {
+            this.totalQuestions.set(payload.totalSlides)
+          }
+          if (payload.timerSeconds) {
+            this.startCountdown(payload.timerSeconds)
+          }
+          const q = payload.question || payload
+          const rawAnswers = q.answers || payload.answers || []
           this.currentQuestion.set({
-            id: payload.questionId || '',
-            title: payload.title || '',
-            answers: (payload.answers || []).map((a: SseAnswer) => ({
-              id: a.id || a.label,
-              label: a.label,
+            id: q.id || payload.questionId || '',
+            title: q.label || payload.title || payload.label || '',
+            answers: rawAnswers.map((a: SseAnswer, idx: number) => ({
+              id: a.id || String(a.index ?? idx),
+              label: a.label || a.value || '',
               isCorrect: false,
             })),
           })
         }
         break
       }
-      case 'QUESTION_REVEAL':
+      case 'QUESTION_REVEAL': {
+        this.stopCountdown()
         this.stage.set('REVEAL')
-        if (envelope.payload?.correctAnswerIds) {
-          const correctIds = envelope.payload.correctAnswerIds
+        const payload = envelope.payload
+        if (payload) {
+          const correctIds: string[] = payload.correctAnswerIds || []
+          const correctIndices: number[] = payload.correctAnswerIndices || []
+          const stats = (
+            payload as { answersStats?: { answerIndex: number, count: number, percentage: number }[] }
+          ).answersStats || []
+          const explanation = (payload as { explanation?: string }).explanation
+
           this.currentQuestion.update(q => ({
             ...q,
-            answers: q.answers.map(a => ({
-              ...a,
-              isCorrect: correctIds.includes(a.id),
-            })),
+            explanation: explanation || q.explanation,
+            answers: q.answers.map((a, idx) => {
+              const stat = stats.find(s => s.answerIndex === idx)
+              return {
+                ...a,
+                isCorrect: correctIds.includes(a.id) || correctIndices.includes(idx),
+                count: stat?.count ?? 0,
+                percentage: stat ? Math.round(stat.percentage) : 0,
+              }
+            }),
           }))
         }
         break
+      }
+      case 'ANSWER_RECEIVED': {
+        const payload = envelope.payload as { answeredCount?: number, totalCount?: number } | undefined
+        if (payload && payload.answeredCount !== undefined) {
+          this.answersReceived.set(payload.answeredCount)
+        }
+        break
+      }
       case 'SESSION_ENDED':
+        this.stopCountdown()
         this.stage.set('PODIUM')
         this.fetchScores()
         break
@@ -203,24 +289,36 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   private fetchScores(): void {
-    this.sessionService.getScores(this.sessionId()).subscribe((output) => {
+    this.sessionService.getScores(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
       if (output.kind === 'success') {
-        const scores = output.result
-        this.leaderboard.set(scores.map((s: ScoreResponse) => ({ name: s.name, score: s.score })))
+        const leaderboard = output.result.leaderboard || []
+        this.leaderboard.set(leaderboard.map(s => ({ name: s.participantName || '', score: s.score || 0 })))
       }
     })
   }
 
   protected startQuiz(): void {
-    this.sessionService.startSession(this.sessionId()).subscribe()
+    this.stage.set('QUESTION')
+    this.sessionService.startSession(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
   }
 
   protected revealAnswers(): void {
+    if (typeof fetch !== 'undefined') {
+      const apiUrl = this.config.appConfig.value().apiUrl
+      fetch(`${apiUrl}/sessions/${this.sessionId()}/reveal`, { method: 'POST' }).catch(() => void 0)
+    }
     this.stage.set('REVEAL')
   }
 
+  protected downloadCsv(): void {
+    if (typeof window !== 'undefined') {
+      const apiUrl = this.config.appConfig.value().apiUrl
+      window.open(`${apiUrl}/sessions/${this.sessionId()}/export/csv`, '_blank')
+    }
+  }
+
   protected nextStep(): void {
-    this.sessionService.nextQuestion(this.sessionId()).subscribe()
+    this.sessionService.nextQuestion(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
   }
 
   protected isLastQuestion(): boolean {
@@ -228,7 +326,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   protected kick(name: string): void {
-    this.sessionService.kickParticipant(this.sessionId(), name).subscribe()
+    this.sessionService.kickParticipant(this.sessionId(), name).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
   }
 
   protected toggleFullscreen(): void {

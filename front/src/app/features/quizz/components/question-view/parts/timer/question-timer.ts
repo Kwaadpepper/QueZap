@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed, effect, inject,
+  output,
   signal,
 } from '@angular/core'
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop'
@@ -20,6 +21,8 @@ import { TimerStore } from '@quezap/features/quizz/stores'
 })
 export class QuestionTimer {
   private readonly questionStore = inject(TimerStore)
+
+  readonly exhausted = output<void>()
 
   /** The decount start signal */
   readonly started = computed<boolean>(() => this.questionStore.started())
@@ -63,6 +66,11 @@ export class QuestionTimer {
         takeWhile(() => this.remainingSeconds() > 0 && this.questionStore.started()),
         tap(() => this.remainingSeconds.update(seconds => seconds - 1)),
         tap(() => this.questionStore.setTimeLeft(this.remainingSeconds())),
+        tap(() => {
+          if (this.remainingSeconds() === 0) {
+            this.exhausted.emit()
+          }
+        }),
       )),
     ).subscribe()
   }

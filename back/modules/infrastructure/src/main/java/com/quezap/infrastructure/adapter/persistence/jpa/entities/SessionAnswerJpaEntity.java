@@ -12,11 +12,17 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
     name = "session_answers",
+    uniqueConstraints = {
+      @UniqueConstraint(
+          name = "uk_session_participant_slide",
+          columnNames = {"session_id", "participant_name", "slide_index"})
+    },
     indexes = {
       @Index(name = "idx_sa_session_slide", columnList = "session_id, slide_index"),
       @Index(name = "idx_sa_session_participant", columnList = "session_id, participant_name")

@@ -20,20 +20,39 @@ interface SsePayloadParticipant {
 }
 
 interface SsePayloadAnswer {
-  id: string
-  label: string
+  id?: string
+  index?: number
+  label?: string
+  value?: string
   picture?: string
+  pictureFilename?: string
+}
+
+interface SsePayloadQuestion {
+  id?: string
+  type?: string
+  label?: string
+  picture?: string
+  pictureFilename?: string
+  timerSeconds?: number
+  answers?: SsePayloadAnswer[]
 }
 
 interface SsePayload {
+  id?: string
+  participantName?: string
   participants?: SsePayloadParticipant[]
   correctAnswerIds?: string[]
+  correctAnswerIndices?: number[]
   questionId?: string
   title?: string
+  label?: string
   type?: string
   timerSeconds?: number
   points?: number
   picture?: string
+  pictureFilename?: string
+  question?: SsePayloadQuestion
   theme?: {
     id: string
     name: string
@@ -162,18 +181,20 @@ export class SessionObserverSseService implements SessionObserverService {
       }
       case 'QUESTION_START': {
         const payload = envelope.payload || {}
-        const questionId = (payload.questionId || '018e3a2b-8888-7def-8123-abcdef888888') as QuestionId
+        const q = payload.question || payload
+        const questionId = (q.id || payload.questionId || '018e3a2b-8888-7def-8123-abcdef888888') as QuestionId
+        const rawAnswers = q.answers || payload.answers || []
         const questionObj: MixedQuestion & QuestionWithAnswers = {
-          type: (payload.type as QuestionType) || QuestionType.Quizz,
+          type: (q.type as QuestionType) || (payload.type as QuestionType) || QuestionType.Quizz,
           id: questionId,
-          value: payload.title || 'Question',
-          picture: payload.picture as PictureUrl | undefined,
-          limit: { seconds: payload.timerSeconds || 30 },
-          answers: (payload.answers || []).map((a, idx) => ({
-            index: idx,
+          value: q.label || payload.title || payload.label || 'Question',
+          picture: (q.pictureFilename || q.picture || payload.picture) as PictureUrl | undefined,
+          limit: { seconds: payload.timerSeconds || q.timerSeconds || 30 },
+          answers: rawAnswers.map((a, idx) => ({
+            index: typeof a.index === 'number' ? a.index : idx,
             points: payload.points || 1000,
-            value: a.label,
-            picture: a.picture as PictureUrl | undefined,
+            value: a.label || a.value || '',
+            picture: (a.pictureFilename || a.picture) as PictureUrl | undefined,
           })),
         }
         this._question.set(questionObj)
@@ -195,6 +216,14 @@ export class SessionObserverSseService implements SessionObserverService {
         this.eventsSubject.next({
           type: 'SessionEnded',
           session: { endedAt: new Date(envelope.timestamp) },
+        })
+        break
+      }
+      case 'PARTICIPANT_KICKED': {
+        const payload = envelope.payload || {}
+        this.eventsSubject.next({
+          type: 'SessionKicked',
+          participantName: payload.participantName || '',
         })
         break
       }

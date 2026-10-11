@@ -205,6 +205,7 @@ project(":quezap-api") {
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.security)
+    implementation(libs.springdoc.openapi)
     developmentOnly(libs.spring.boot.devtools)
     runtimeOnly(libs.h2)
     runtimeOnly(libs.postgresql)

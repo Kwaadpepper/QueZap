@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router'
 
 import { of } from 'rxjs'
 
-import { SessionHttpService } from '../../services/session-http'
+import { SESSION_SERVICE } from '../../services/session'
 
 import { SessionPresenter } from './session-presenter'
 
@@ -11,10 +11,14 @@ describe('SessionPresenter', () => {
   let component: SessionPresenter
   let fixture: ComponentFixture<SessionPresenter>
 
-  const mockSessionHttpService = {
-    startSession: jest.fn().mockReturnValue(of(void 0)),
-    nextQuestion: jest.fn().mockReturnValue(of(void 0)),
-    kickParticipant: jest.fn().mockReturnValue(of(void 0)),
+  const mockSessionService = {
+    getSession: jest.fn().mockReturnValue(
+      of({ kind: 'success', result: { code: 'ABCDEF', name: 'Test Session', status: 'WAITING' } }),
+    ),
+    getScores: jest.fn().mockReturnValue(of({ kind: 'success', result: { leaderboard: [] } })),
+    startSession: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
+    nextQuestion: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
+    kickParticipant: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
   }
 
   beforeEach(async () => {
@@ -22,7 +26,7 @@ describe('SessionPresenter', () => {
       imports: [SessionPresenter],
       providers: [
         provideRouter([]),
-        { provide: SessionHttpService, useValue: mockSessionHttpService },
+        { provide: SESSION_SERVICE, useValue: mockSessionService },
       ],
     }).compileComponents()
 
@@ -39,7 +43,7 @@ describe('SessionPresenter', () => {
     expect(component['stage']()).toBe('LOBBY')
     component['startQuiz']()
     expect(component['stage']()).toBe('QUESTION')
-    expect(mockSessionHttpService.startSession).toHaveBeenCalled()
+    expect(mockSessionService.startSession).toHaveBeenCalled()
   })
 
   it('should transition to REVEAL when revealAnswers is called', () => {

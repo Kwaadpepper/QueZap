@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core'
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { FormsModule } from '@angular/forms'
 import { form, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router, RouterLink } from '@angular/router'
@@ -26,15 +27,27 @@ export class SessionCreate {
   private quezapService = inject(QUEZAP_SERVICE)
   private router = inject(Router)
   private messageService = inject(MessageService)
+  private destroyRef = inject(DestroyRef)
 
   quezaps = signal<QuezapWithTheme[]>([])
 
+  quezapOptions = computed(() => {
+    return this.quezaps().map(q => ({
+      id: q.id,
+      title: `${q.title} (${q.totalQuestions ?? 0} question${(q.totalQuestions ?? 0) > 1 ? 's' : ''})`,
+      disabled: (q.totalQuestions ?? 0) === 0,
+    }))
+  })
+
   constructor() {
-    this.quezapService.getQuezapPage({ page: 1, pageSize: 100 } as Pagination).subscribe((res) => {
-      if (res.kind === 'success') {
-        this.quezaps.set(res.result.data)
-      }
-    })
+    this.quezapService
+      .getQuezapPage({ page: 1, pageSize: 100 } as Pagination)
+      .pipe(takeUntilDestroyed())
+      .subscribe((res) => {
+        if (res.kind === 'success') {
+          this.quezaps.set(res.result.data)
+        }
+      })
   }
 
   model = signal({ name: '', quezapId: '' })
@@ -60,15 +73,22 @@ export class SessionCreate {
       return
     }
     submit(this.sessionForm, async (f) => {
-      this.sessionService.createSession(f.quezapId().value(), f.name().value()).subscribe((res) => {
-        if (res.kind === 'success') {
-          this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Session créée' })
-          this.router.navigate(['/admin/sessions'])
-        }
-        else {
-          this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Création échouée' })
-        }
-      })
+      this.sessionService
+        .createSession(f.quezapId().value(), f.name().value())
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((res) => {
+          if (res.kind === 'success') {
+            this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Session créée' })
+            this.router.navigate(['/admin/sessions'])
+          }
+          else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: res.error.message || 'Création échouée',
+            })
+          }
+        })
     })
   }
 }

@@ -13,6 +13,7 @@ export default tseslint.config(
       "projects/**/dist/**",
       "src/polyfills.ts",
       "src/test.ts",
+      "src/app/core/api-client/**",
     ],
   },
   {
@@ -100,12 +101,12 @@ export default tseslint.config(
         {
           "patterns": [
             {
-              "regex": String.raw`^(?:(?!@angular).*\/(?:shared|core(?!\/(?:types|tokens|errors)))\/(.*)index(?:\.ts)?)$`,
-              "message": "You have to import component directly from shared|core{any except types|tokens|errors}, for tree shaking"
+              "regex": String.raw`^(?:(?!@angular).*\/(?:shared|core(?!\/(?:types|tokens|errors|api-client)))\/(.*)index(?:\.ts)?)$`,
+              "message": "You have to import component directly from shared|core{any except types|tokens|errors|api-client}, for tree shaking"
             },
             {
-              "regex": String.raw`^(?:(?!@angular).*\/(?:shared|core(?!\/(?:types|tokens|errors)) ?)(?:\/[\w-]*)?)$`,
-              "message": "You have to import component directly from shared|core{any except types|tokens|errors}, for tree shaking"
+              "regex": String.raw`^(?:(?!@angular).*\/(?:shared|core(?!\/(?:types|tokens|errors|api-client)) ?)(?:\/[\w-]*)?)$`,
+              "message": "You have to import component directly from shared|core{any except types|tokens|errors|api-client}, for tree shaking"
             },
             {
               "regex": String.raw`^(?:.*)(?:components)(?:\/(?:index(?:\.ts)?)?)?$`,

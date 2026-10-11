@@ -2,11 +2,12 @@ import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
+import { LeaderboardResponseDto } from '@quezap/core/api-client'
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
 
-import { SessionService, SessionApiResponse, ScoreResponse } from './session'
+import { SessionApiResponse, SessionService } from './session'
 import { MOCK_SESSIONS } from './session.mock'
 
 @Injectable()
@@ -95,8 +96,15 @@ export class SessionMockService implements SessionService {
     return of({ kind: 'success' as const, result: undefined })
   }
 
-  getScores(_id: string): ServiceOutput<ScoreResponse[]> {
-    return of({ kind: 'success' as const, result: [] })
+  getScores(_id: string): ServiceOutput<LeaderboardResponseDto> {
+    return of({
+      kind: 'success' as const,
+      result: {
+        sessionId: _id,
+        slideIndex: 1,
+        leaderboard: [],
+      },
+    })
   }
 
   kickParticipant(_sessionId: string, _name: string): ServiceOutput<void> {

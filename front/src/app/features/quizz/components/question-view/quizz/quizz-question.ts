@@ -6,6 +6,7 @@ import { form, validateStandardSchema } from '@angular/forms/signals'
 import * as zod from 'zod/v4'
 
 import { PictureUrl, QuestionId, QuestionWithAnswers, QuizzQuestion } from '@quezap/domain/models'
+import { SESSION_API_SERVICE } from '@quezap/features/quizz/services'
 import { TimerStore } from '@quezap/features/quizz/stores'
 
 import { Picture, PrintableAnswer, QuestionAnswer } from '../parts'
@@ -31,6 +32,8 @@ type Responses = Record<number, boolean>
 })
 export class QuizzQuestionView {
   private readonly timerStore = inject(TimerStore)
+  private readonly sessionApi = inject(SESSION_API_SERVICE)
+  protected hasSubmitted = false
 
   protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
 
@@ -64,6 +67,26 @@ export class QuizzQuestionView {
         ...Object.fromEntries(this.question()
           .answers.map(answer => [answer.index, false])),
       })
+      this.hasSubmitted = false
     })
+
+    effect(() => {
+      const resp = this.responses()
+      if (this.hasSubmitted) return
+      for (const [key, val] of Object.entries(resp)) {
+        if (val === true) {
+          this.hasSubmitted = true
+          this.sessionApi.submitAnswer(Number(key)).subscribe()
+          break
+        }
+      }
+    })
+  }
+
+  protected selectAnswer(index: number) {
+    if (this.cannotAnswerAnymore() || this.hasSubmitted) return
+    this.responses.set(
+      Object.fromEntries(this.question().answers.map(a => [a.index, a.index === index])),
+    )
   }
 }

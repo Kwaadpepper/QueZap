@@ -2,7 +2,12 @@
   class="answer-option relative flex h-full min-h-20 w-full items-center p-3.5 sm:p-4 rounded-2xl border-3 cursor-pointer shadow-md select-none overflow-hidden"
   [class]="`answer-option-${currentFormIndex()}`"
 >
-  <input type="checkbox" class="checkbox" [value]="field()" [multiple]="!radio()" />
+  <input
+    type="checkbox"
+    class="checkbox"
+    [checked]="field()().value()"
+    [multiple]="!radio()"
+  />
   <div class="relative z-10 flex w-full items-center gap-3 sm:gap-4">
     <!-- Geometric icon container with high-contrast badge -->
     <div class="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-black/20 backdrop-blur-sm shadow-inner transition-transform duration-200">

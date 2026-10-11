@@ -40,6 +40,7 @@ interface QuezapApiResponse {
   description?: string
   authorId?: string
   isPublic?: boolean
+  totalQuestions?: number
   theme?: {
     id: string
     name: string
@@ -92,6 +93,7 @@ export class QuezapHttpService implements QuezapService {
             id: q.id as QuezapId,
             title: q.title,
             description: q.description || '',
+            totalQuestions: q.totalQuestions ?? 0,
             theme: {
               id: (q.theme?.id || '018e3a2b-8888-7def-8123-abcdef888888') as ThemeId,
               name: q.theme?.name || 'Général',
@@ -190,6 +192,22 @@ export class QuezapHttpService implements QuezapService {
       catchError(error => of({
         kind: 'failure' as const,
         error: new ValidationError({}, error.message || 'Erreur lors de la sauvegarde du Quezap'),
+      })),
+    )
+  }
+
+  duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>> {
+    return this.http.post<{ id: string }>(`${this.apiUrl}/quezaps/${quezapId}/duplicate`, {}).pipe(
+      map(res => ({
+        kind: 'success' as const,
+        result: { id: res.id as QuezapId },
+      })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new ValidationError(
+          {},
+          error.error?.message || error.message || 'Erreur lors de la duplication du Quezap',
+        ),
       })),
     )
   }

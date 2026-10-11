@@ -42,15 +42,22 @@
         @let response = responseForm[answer.index];
         @if (response !== undefined) {
           <quizz-question-answer
-            class="h-full max-h-40 w-full md:nth-[-n+2]:self-end md:nth-[n+3]:self-start"
+            class="h-full max-h-40 w-full md:nth-[-n+2]:self-end md:nth-[n+3]:self-start cursor-pointer"
             [questionId]="questionId()"
             [answer]="answer"
             [field]="response"
+            (click)="selectAnswer(answer.index)"
           />
         } @else {
           pas de reponse
         }
       }
     </form>
+    @if (hasSubmitted) {
+      <div class="mt-4 flex items-center justify-center gap-2 p-3 bg-emerald-950/80 border border-emerald-500/70 rounded-xl text-emerald-300 font-bold shadow-lg">
+        <i class="pi pi-check-circle text-xl"></i>
+        <span>Réponse enregistrée ! En attente de la révélation...</span>
+      </div>
+    }
   </div>
 </div>

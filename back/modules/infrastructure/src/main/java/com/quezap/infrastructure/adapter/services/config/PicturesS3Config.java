@@ -73,6 +73,7 @@ public class PicturesS3Config {
     return bucketName;
   }
 
+  @Bean(destroyMethod = "close")
   public S3Client getS3Client() {
     final var endpoint = createEndpoint();
     final var credentialsProvider = createProvider();

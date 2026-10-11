@@ -55,6 +55,8 @@ final class DeleteUserHandler implements DeleteUserUsecase {
   private void deleteCredentialAndUser(User user) {
     final var credentialId = user.getCredential();
 
+    userRepository.delete(user);
+
     credentialRepository
         .find(credentialId)
         .ifPresentOrElse(
@@ -64,7 +66,5 @@ final class DeleteUserHandler implements DeleteUserUsecase {
                     "Credential {} not found when deleting user {}",
                     credentialId.value(),
                     user.getId().value()));
-
-    userRepository.delete(user);
   }
 }

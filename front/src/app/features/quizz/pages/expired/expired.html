@@ -1,9 +1,17 @@
-<div class="flex flex-col justify-center items-center h-full">
-  <h1 class="mb-15">Session expirée</h1>
-  <p class="text-center max-w-lg">
-    La session à laquelle vous essayez de rejoindre est expirée. Veuillez entrer un nouveau code de
-    session pour rejoindre une autre session.
-  </p>
+<div class="flex min-h-[80vh] w-full flex-col items-center justify-center px-4 py-8">
+  <div class="mb-6 flex flex-col items-center text-center">
+    <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-3xl shadow-inner dark:bg-amber-500/20">
+      ⏳
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+      Session expirée
+    </h1>
+    <p class="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
+      La session que tu essaies de rejoindre est terminée ou n'existe plus. Entre un nouveau code pour participer à une autre partie.
+    </p>
+  </div>
 
-  <quizz-join-form class="w-full max-w-md mt-10" />
+  <div class="w-full max-w-md">
+    <quizz-join-form />
+  </div>
 </div>

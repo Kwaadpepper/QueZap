@@ -39,6 +39,7 @@ class SessionControllerTest {
   private QuezapJpaRepository quezapJpaRepository;
   private UserJpaRepository userJpaRepository;
   private SessionSseService sessionSseService;
+  private com.quezap.domain.ports.services.UserNameSanitizer userNameSanitizer;
   private SessionController sessionController;
 
   @BeforeEach
@@ -47,13 +48,15 @@ class SessionControllerTest {
     quezapJpaRepository = Mockito.mock(QuezapJpaRepository.class);
     userJpaRepository = Mockito.mock(UserJpaRepository.class);
     sessionSseService = Mockito.mock(SessionSseService.class);
+    userNameSanitizer = Mockito.mock(com.quezap.domain.ports.services.UserNameSanitizer.class);
     sessionController =
         new SessionController(
             sessionJpaRepository,
             quezapJpaRepository,
             userJpaRepository,
             sessionSseService,
-            new com.quezap.api.v1.mappers.PaginationMapper());
+            new com.quezap.api.v1.mappers.PaginationMapper(),
+            userNameSanitizer);
   }
 
   @Test
