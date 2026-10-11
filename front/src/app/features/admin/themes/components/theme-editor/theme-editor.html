@@ -1,17 +1,18 @@
 <p-dialog
-  styleClass="w-full md:w-8/12 lg:w-6/12"
+  appendTo="body"
   [modal]="true"
+  [style]="{ width: '30rem', maxWidth: '92vw' }"
   (onShow)="onShow()"
   [(visible)]="visible"
 >
   <ng-template #header>
-    <div class="mx-4 inline-flex items-center justify-center gap-2">
+    <div class="flex items-center gap-2">
       @if (forUpdateAction()) {
         <quizz-icon name="pencil" size="lg" />
-        <span class="font-bold whitespace-nowrap">Modifier le thème</span>
+        <span class="text-lg font-bold">Modifier le thème</span>
       } @else {
         <quizz-icon name="plus" size="lg" />
-        <span class="font-bold whitespace-nowrap">Créer un nouveau thème</span>
+        <span class="text-lg font-bold">Créer un nouveau thème</span>
       }
     </div>
   </ng-template>
@@ -22,24 +23,28 @@
     </p-message>
   }
   <form
-    class="flex flex-col justify-center"
+    class="flex flex-col gap-5 pt-1"
     [inert]="this.themeForm().submitting()"
     (submit)="onSave(); $event.preventDefault()"
   >
-    <div class="mx-auto mb-8 flex flex-col items-center gap-4">
-      <label for="name" class="me-30 w-24 font-semibold">Nom du thème</label>
+    <div class="flex flex-col gap-2">
+      <label for="theme-name-input" class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+        Nom du thème
+      </label>
       <input
         pInputText
-        id="text"
-        class="flex-auto"
+        id="theme-name-input"
+        class="w-full"
+        placeholder="Ex: Culture générale, Sciences, Histoire..."
         autocomplete="off"
         type="text"
-        quizzFieldError [formField]="themeForm.name"
+        quizzFieldError
+        [formField]="themeForm.name"
         [fieldState]="themeForm.name"
       />
     </div>
-    <div class="flex justify-end gap-2">
-      <p-button label="Fermer" severity="secondary" (onClick)="onCancel()" />
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Annuler" severity="secondary" text (onClick)="onCancel()" />
       <p-button
         label="Enregistrer"
         type="submit"

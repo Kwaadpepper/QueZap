@@ -91,6 +91,7 @@ export const appConfig: ApplicationConfig = {
     provideHeyApiClient(client),
     provideAnimationsAsync(),
     providePrimeNG({
+      overlayAppendTo: 'body',
       theme: {
         preset: Quezap,
         options: {
