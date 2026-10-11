@@ -10,9 +10,13 @@ import {
   QuestionId, QuestionType, QuestionWithAnswers, Score,
 } from '@quezap/domain/models'
 
-import { ActiveSessionPersistence } from '../active-session-persistence/active-session-persistence'
-
-import { CurrentQuestion, SessionEvent, SessionObserverService } from './session-observer'
+import {
+  CurrentQuestion,
+  IntermediateLeaderboardData,
+  QuestionRevealData,
+  SessionEvent,
+  SessionObserverService,
+} from './session-observer'
 
 interface SsePayloadParticipant {
   name: string
@@ -78,9 +82,13 @@ export class SessionObserverSseService implements SessionObserverService {
 
   private readonly _participants: WritableSignal<Participant[]> = signal([])
   private readonly _question: WritableSignal<CurrentQuestion> = signal({ type: 'WaitingQuestion' })
+  private readonly _reveal: WritableSignal<QuestionRevealData | undefined> = signal(undefined)
+  private readonly _leaderboard: WritableSignal<IntermediateLeaderboardData | undefined> = signal(undefined)
 
   public readonly participants: ServiceState<Participant[]> = this._participants.asReadonly()
   public readonly question: ServiceState<CurrentQuestion> = this._question.asReadonly()
+  public readonly reveal: ServiceState<QuestionRevealData | undefined> = this._reveal.asReadonly()
+  public readonly leaderboard: ServiceState<IntermediateLeaderboardData | undefined> = this._leaderboard.asReadonly()
 
   private get apiUrl(): string {
     return this.config.appConfig.value().apiUrl
@@ -197,6 +205,7 @@ export class SessionObserverSseService implements SessionObserverService {
             picture: (a.pictureFilename || a.picture) as PictureUrl | undefined,
           })),
         }
+        this._reveal.set(undefined)
         this._question.set(questionObj)
         this.eventsSubject.next({
           type: 'SessionSwitchedQuestion',
@@ -205,14 +214,80 @@ export class SessionObserverSseService implements SessionObserverService {
         break
       }
       case 'QUESTION_REVEAL': {
-        const current = this._question()
-        if (current.type !== 'WaitingQuestion' && current.type !== 'NoMoreQuestions') {
-          this._question.set({ ...current })
+        const payload = (envelope.payload || {}) as {
+          slideIndex?: number
+          correctAnswerIndices?: number[]
+          correctIndices?: number[]
+          explanation?: string
+          answersStats?: { answerIndex: number, count: number, percentage: number }[]
+          stats?: { answerIndex: number, count: number, percentage: number }[]
         }
+        const revealData: QuestionRevealData = {
+          slideIndex: payload.slideIndex ?? 0,
+          correctIndices: payload.correctAnswerIndices || payload.correctIndices || [],
+          explanation: payload.explanation,
+          stats: (payload.answersStats || payload.stats || []).map(s => ({
+            answerIndex: s.answerIndex ?? 0,
+            count: s.count ?? 0,
+            percentage: s.percentage ?? 0,
+          })),
+        }
+        this._reveal.set(revealData)
+        this.eventsSubject.next({
+          type: 'SessionQuestionRevealed',
+          reveal: revealData,
+        })
+        break
+      }
+      case 'INTERMEDIATE_LEADERBOARD': {
+        const payload = (envelope.payload || {}) as {
+          slideIndex?: number
+          leaderboard?: {
+            rank: number
+            participantName: string
+            score: number
+            previousScore: number
+            rankDelta: number
+          }[]
+        }
+        const lbData: IntermediateLeaderboardData = {
+          slideIndex: payload.slideIndex ?? 0,
+          leaderboard: (payload.leaderboard || []).map(l => ({
+            rank: l.rank,
+            participantName: l.participantName,
+            score: l.score,
+            previousScore: l.previousScore,
+            rankDelta: l.rankDelta,
+          })),
+        }
+        this._leaderboard.set(lbData)
+        this.eventsSubject.next({
+          type: 'SessionLeaderboardUpdated',
+          data: lbData,
+        })
         break
       }
       case 'SESSION_ENDED': {
         this._question.set({ type: 'NoMoreQuestions' })
+        const payload = envelope.payload as {
+          leaderboard?: { rank: number, participantName: string, score: number, correctAnswers: number }[]
+          podium?: { first: string, second?: string, third?: string }
+        } | undefined
+        if (payload?.leaderboard) {
+          const myNickname = this.sessionPersistence.getParticipantName() || ''
+          const myEntry = payload.leaderboard.find(
+            e => e.participantName.trim().toLowerCase() === myNickname.trim().toLowerCase(),
+          )
+          if (myEntry) {
+            this.sessionPersistence.saveFinalResults({
+              rank: myEntry.rank,
+              totalParticipants: payload.leaderboard.length,
+              score: myEntry.score,
+              correctAnswers: myEntry.correctAnswers,
+              isPodium: myEntry.rank <= 3,
+            })
+          }
+        }
         this.eventsSubject.next({
           type: 'SessionEnded',
           session: { endedAt: new Date(envelope.timestamp) },

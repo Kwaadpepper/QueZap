@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, computed, effect, inject, input, model,
+  ChangeDetectionStrategy, Component, computed, effect, inject, input, model, signal,
 } from '@angular/core'
 import { form, validateStandardSchema } from '@angular/forms/signals'
 
@@ -33,7 +33,7 @@ type Responses = Record<number, boolean>
 export class QuizzQuestionView {
   private readonly timerStore = inject(TimerStore)
   private readonly sessionApi = inject(SESSION_API_SERVICE)
-  protected hasSubmitted = false
+  protected readonly hasSubmitted = signal(false)
 
   protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
 
@@ -67,15 +67,15 @@ export class QuizzQuestionView {
         ...Object.fromEntries(this.question()
           .answers.map(answer => [answer.index, false])),
       })
-      this.hasSubmitted = false
+      this.hasSubmitted.set(false)
     })
 
     effect(() => {
       const resp = this.responses()
-      if (this.hasSubmitted) return
+      if (this.hasSubmitted()) return
       for (const [key, val] of Object.entries(resp)) {
         if (val === true) {
-          this.hasSubmitted = true
+          this.hasSubmitted.set(true)
           this.sessionApi.submitAnswer(Number(key)).subscribe()
           break
         }
@@ -84,7 +84,7 @@ export class QuizzQuestionView {
   }
 
   protected selectAnswer(index: number) {
-    if (this.cannotAnswerAnymore() || this.hasSubmitted) return
+    if (this.cannotAnswerAnymore() || this.hasSubmitted()) return
     this.responses.set(
       Object.fromEntries(this.question().answers.map(a => [a.index, a.index === index])),
     )

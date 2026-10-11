@@ -9,7 +9,8 @@
         raised
         class="ml-4"
         [severity]="isDirty() ? 'warn' : 'success'"
-        [disabled]="persisting()"
+        [disabled]="persisting() || hasInvalidAnswers()"
+        [title]="hasInvalidAnswers() ? 'Chaque question doit comporter au moins une bonne réponse' : ''"
         (click)="onSaveQuezap()"
       >
         @if (persisting()) {

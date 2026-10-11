@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
-import { LeaderboardResponseDto } from '@quezap/core/api-client'
+import { LeaderboardResponseDto, SessionReportDto } from '@quezap/core/api-client'
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
@@ -96,6 +96,10 @@ export class SessionMockService implements SessionService {
     return of({ kind: 'success' as const, result: undefined })
   }
 
+  revealAnswers(_id: string): ServiceOutput<void> {
+    return of({ kind: 'success' as const, result: undefined })
+  }
+
   getScores(_id: string): ServiceOutput<LeaderboardResponseDto> {
     return of({
       kind: 'success' as const,
@@ -103,6 +107,26 @@ export class SessionMockService implements SessionService {
         sessionId: _id,
         slideIndex: 1,
         leaderboard: [],
+      },
+    })
+  }
+
+  getSessionReport(_id: string): ServiceOutput<SessionReportDto> {
+    return of({
+      kind: 'success' as const,
+      result: {
+        sessionId: _id,
+        sessionNumber: 1042,
+        sessionCode: 'QZ-1042',
+        sessionName: 'Mock Session',
+        startedAt: new Date().toISOString(),
+        endedAt: new Date().toISOString(),
+        totalParticipants: 0,
+        totalQuestions: 0,
+        averageScore: 0,
+        averageAccuracyRate: 0,
+        participants: [],
+        questions: [],
       },
     })
   }

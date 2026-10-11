@@ -55,6 +55,13 @@ export class QuizzRunner {
 
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly question = signal<QuestionWithAnswers | undefined>(undefined)
+  protected readonly lastReveal = computed(() => this.sessionStore.lastReveal())
+  protected readonly myRanking = computed(() => this.sessionStore.myRanking())
+  protected readonly pointsEarned = computed(() => {
+    const rank = this.myRanking()
+    if (!rank) return 0
+    return Math.max(0, rank.score - rank.previousScore)
+  })
 
   constructor() {
     effect((onCleanup) => {

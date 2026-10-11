@@ -17,4 +17,8 @@ export class Ended {
   protected readonly nickname = computed(() =>
     this.persistence.getParticipantName() || this.persistence.retrieve()?.nickname || 'Joueur',
   )
+
+  protected readonly finalResults = computed(() =>
+    this.persistence.getFinalResults(),
+  )
 }

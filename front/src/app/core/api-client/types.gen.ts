@@ -4,21 +4,43 @@ export type ClientOptions = {
     baseUrl: 'http://localhost' | (string & {});
 };
 
-export type ErrorResonseDto = {
-    code?: number;
-    message?: string;
-    timestamp?: string;
-};
-
 export type UpdatePasswordRequest = {
     oldPassword: string;
     newPassword: string;
+};
+
+export type InlineAnswerRequest = {
+    id?: string;
+    label: string;
+    isCorrect?: boolean;
+    pictureFilename?: string;
+    answerOrder?: number;
+};
+
+export type InlineQuestionRequest = {
+    id?: string;
+    label: string;
+    type?: string;
+    pictureFilename?: string;
+    themeId?: string;
+    themeName?: string;
+    answers?: Array<InlineAnswerRequest>;
+};
+
+export type QuezapSlideRequest = {
+    questionId?: string;
+    timer?: number;
+    timerSeconds?: number;
+    points?: number;
+    question?: InlineQuestionRequest;
+    effectiveTimer?: number;
 };
 
 export type UpdateQuezapRequest = {
     title: string;
     description?: string;
     isPublic: boolean;
+    slides?: Array<QuezapSlideRequest>;
 };
 
 export type CreateUserRequest = {
@@ -26,9 +48,9 @@ export type CreateUserRequest = {
     identifier?: string;
     email?: string;
     password?: string;
+    effectiveName?: string;
     effectiveIdentifier?: string;
     effectivePassword?: string;
-    effectiveName?: string;
 };
 
 export type UserIdDto = {
@@ -96,14 +118,6 @@ export type CreateQuezapRequest = {
     slides?: Array<QuezapSlideRequest>;
     questions?: Array<QuezapSlideRequest>;
     effectiveSlides?: Array<QuezapSlideRequest>;
-};
-
-export type QuezapSlideRequest = {
-    questionId: string;
-    timer?: number;
-    timerSeconds?: number;
-    points?: number;
-    effectiveTimer?: number;
 };
 
 export type QuezapIdDto = {
@@ -300,6 +314,48 @@ export type LeaderboardResponseDto = {
     leaderboard?: Array<LeaderboardEntryDto>;
 };
 
+export type QuestionAnswerStatDto = {
+    answerIndex?: number;
+    label?: string;
+    isCorrect?: boolean;
+    count?: number;
+    percentage?: number;
+};
+
+export type QuestionReportDto = {
+    questionOrder?: number;
+    questionLabel?: string;
+    questionType?: string;
+    totalAnswers?: number;
+    correctAnswers?: number;
+    successRate?: number;
+    answers?: Array<QuestionAnswerStatDto>;
+};
+
+export type SessionParticipantReportDto = {
+    rank?: number;
+    participantName?: string;
+    totalScore?: number;
+    correctCount?: number;
+    totalQuestions?: number;
+    accuracyRate?: number;
+};
+
+export type SessionReportDto = {
+    sessionId?: string;
+    sessionNumber?: number;
+    sessionCode?: string;
+    sessionName?: string;
+    startedAt?: string;
+    endedAt?: string;
+    totalParticipants?: number;
+    totalQuestions?: number;
+    averageScore?: number;
+    averageAccuracyRate?: number;
+    participants?: Array<SessionParticipantReportDto>;
+    questions?: Array<QuestionReportDto>;
+};
+
 export type SseEmitter = {
     timeout?: number;
 };
@@ -393,15 +449,6 @@ export type UpdatePasswordData = {
     url: '/apiv1/users/{id}/password';
 };
 
-export type UpdatePasswordErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type UpdatePasswordError = UpdatePasswordErrors[keyof UpdatePasswordErrors];
-
 export type UpdatePasswordResponses = {
     /**
      * No Content
@@ -419,15 +466,6 @@ export type DeleteData = {
     query?: never;
     url: '/apiv1/quezaps/{id}';
 };
-
-export type DeleteErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type DeleteError = DeleteErrors[keyof DeleteErrors];
 
 export type DeleteResponses = {
     /**
@@ -447,15 +485,6 @@ export type GetByIdData = {
     url: '/apiv1/quezaps/{id}';
 };
 
-export type GetByIdErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type GetByIdError = GetByIdErrors[keyof GetByIdErrors];
-
 export type GetByIdResponses = {
     /**
      * OK
@@ -473,15 +502,6 @@ export type UpdateData = {
     query?: never;
     url: '/apiv1/quezaps/{id}';
 };
-
-export type UpdateErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type UpdateError = UpdateErrors[keyof UpdateErrors];
 
 export type UpdateResponses = {
     /**
@@ -501,15 +521,6 @@ export type ListData = {
     url: '/apiv1/users';
 };
 
-export type ListErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type ListError = ListErrors[keyof ListErrors];
-
 export type ListResponses = {
     /**
      * OK
@@ -525,15 +536,6 @@ export type CreateData = {
     query?: never;
     url: '/apiv1/users';
 };
-
-export type CreateErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type CreateError = CreateErrors[keyof CreateErrors];
 
 export type CreateResponses = {
     /**
@@ -554,15 +556,6 @@ export type FindData = {
     url: '/apiv1/themes';
 };
 
-export type FindErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type FindError = FindErrors[keyof FindErrors];
-
 export type FindResponses = {
     /**
      * OK
@@ -578,15 +571,6 @@ export type AddData = {
     query?: never;
     url: '/apiv1/themes';
 };
-
-export type AddErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type AddError = AddErrors[keyof AddErrors];
 
 export type AddResponses = {
     /**
@@ -607,15 +591,6 @@ export type List1Data = {
     url: '/apiv1/sessions';
 };
 
-export type List1Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type List1Error = List1Errors[keyof List1Errors];
-
 export type List1Responses = {
     /**
      * OK
@@ -631,15 +606,6 @@ export type Create1Data = {
     query?: never;
     url: '/apiv1/sessions';
 };
-
-export type Create1Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Create1Error = Create1Errors[keyof Create1Errors];
 
 export type Create1Responses = {
     /**
@@ -659,15 +625,6 @@ export type StartData = {
     url: '/apiv1/sessions/{id}/start';
 };
 
-export type StartErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type StartError = StartErrors[keyof StartErrors];
-
 export type StartResponses = {
     /**
      * OK
@@ -686,15 +643,6 @@ export type RevealData = {
     url: '/apiv1/sessions/{id}/reveal';
 };
 
-export type RevealErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type RevealError = RevealErrors[keyof RevealErrors];
-
 export type RevealResponses = {
     /**
      * OK
@@ -711,15 +659,6 @@ export type KickParticipantData = {
     query?: never;
     url: '/apiv1/sessions/{id}/participants/{name}/kick';
 };
-
-export type KickParticipantErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type KickParticipantError = KickParticipantErrors[keyof KickParticipantErrors];
 
 export type KickParticipantResponses = {
     /**
@@ -738,15 +677,6 @@ export type NextQuestionData = {
     query?: never;
     url: '/apiv1/sessions/{id}/next-question';
 };
-
-export type NextQuestionErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type NextQuestionError = NextQuestionErrors[keyof NextQuestionErrors];
 
 export type NextQuestionResponses = {
     /**
@@ -769,15 +699,6 @@ export type SubmitAnswerData = {
     url: '/apiv1/sessions/{id}/answers';
 };
 
-export type SubmitAnswerErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type SubmitAnswerError = SubmitAnswerErrors[keyof SubmitAnswerErrors];
-
 export type SubmitAnswerResponses = {
     /**
      * Created
@@ -793,15 +714,6 @@ export type JoinData = {
     query?: never;
     url: '/apiv1/sessions/join';
 };
-
-export type JoinErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type JoinError = JoinErrors[keyof JoinErrors];
 
 export type JoinResponses = {
     /**
@@ -823,15 +735,6 @@ export type List2Data = {
     url: '/apiv1/quezaps';
 };
 
-export type List2Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type List2Error = List2Errors[keyof List2Errors];
-
 export type List2Responses = {
     /**
      * OK
@@ -847,15 +750,6 @@ export type Create2Data = {
     query?: never;
     url: '/apiv1/quezaps';
 };
-
-export type Create2Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Create2Error = Create2Errors[keyof Create2Errors];
 
 export type Create2Responses = {
     /**
@@ -875,21 +769,30 @@ export type AddQuestionData = {
     url: '/apiv1/quezaps/{id}/questions';
 };
 
-export type AddQuestionErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type AddQuestionError = AddQuestionErrors[keyof AddQuestionErrors];
-
 export type AddQuestionResponses = {
     /**
      * Created
      */
     201: unknown;
 };
+
+export type DuplicateData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/apiv1/quezaps/{id}/duplicate';
+};
+
+export type DuplicateResponses = {
+    /**
+     * Created
+     */
+    201: QuezapIdDto;
+};
+
+export type DuplicateResponse = DuplicateResponses[keyof DuplicateResponses];
 
 export type CloneData = {
     body?: never;
@@ -899,15 +802,6 @@ export type CloneData = {
     query?: never;
     url: '/apiv1/quezaps/{id}/clone';
 };
-
-export type CloneErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type CloneError = CloneErrors[keyof CloneErrors];
 
 export type CloneResponses = {
     /**
@@ -927,15 +821,6 @@ export type AddQuizzData = {
     url: '/apiv1/questions/quizz';
 };
 
-export type AddQuizzErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type AddQuizzError = AddQuizzErrors[keyof AddQuizzErrors];
-
 export type AddQuizzResponses = {
     /**
      * OK
@@ -953,15 +838,6 @@ export type AddBinaryData = {
     };
     url: '/apiv1/questions/binary';
 };
-
-export type AddBinaryErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type AddBinaryError = AddBinaryErrors[keyof AddBinaryErrors];
 
 export type AddBinaryResponses = {
     /**
@@ -981,15 +857,6 @@ export type AddAffirmationData = {
     url: '/apiv1/questions/affirmation';
 };
 
-export type AddAffirmationErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type AddAffirmationError = AddAffirmationErrors[keyof AddAffirmationErrors];
-
 export type AddAffirmationResponses = {
     /**
      * OK
@@ -1005,15 +872,6 @@ export type ResetPasswordData = {
     query?: never;
     url: '/apiv1/auth/reset-password';
 };
-
-export type ResetPasswordErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type ResetPasswordError = ResetPasswordErrors[keyof ResetPasswordErrors];
 
 export type ResetPasswordResponses = {
     /**
@@ -1031,15 +889,6 @@ export type RefreshData = {
     url: '/apiv1/auth/refresh';
 };
 
-export type RefreshErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type RefreshError = RefreshErrors[keyof RefreshErrors];
-
 export type RefreshResponses = {
     /**
      * OK
@@ -1055,15 +904,6 @@ export type LogoutData = {
     query?: never;
     url: '/apiv1/auth/logout';
 };
-
-export type LogoutErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type LogoutError = LogoutErrors[keyof LogoutErrors];
 
 export type LogoutResponses = {
     /**
@@ -1081,15 +921,6 @@ export type LoginData = {
     url: '/apiv1/auth/login';
 };
 
-export type LoginErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type LoginError = LoginErrors[keyof LoginErrors];
-
 export type LoginResponses = {
     /**
      * OK
@@ -1106,15 +937,6 @@ export type ForgottenPasswordData = {
     url: '/apiv1/auth/forgotten-password';
 };
 
-export type ForgottenPasswordErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type ForgottenPasswordError = ForgottenPasswordErrors[keyof ForgottenPasswordErrors];
-
 export type ForgottenPasswordResponses = {
     /**
      * Accepted
@@ -1128,15 +950,6 @@ export type ActivateData = {
     query?: never;
     url: '/apiv1/auth/activate';
 };
-
-export type ActivateErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type ActivateError = ActivateErrors[keyof ActivateErrors];
 
 export type ActivateResponses = {
     /**
@@ -1156,15 +969,6 @@ export type RenameData = {
     url: '/apiv1/themes/rename/{id}';
 };
 
-export type RenameErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type RenameError = RenameErrors[keyof RenameErrors];
-
 export type RenameResponses = {
     /**
      * OK
@@ -1180,15 +984,6 @@ export type Delete1Data = {
     query?: never;
     url: '/apiv1/themes/{id}';
 };
-
-export type Delete1Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Delete1Error = Delete1Errors[keyof Delete1Errors];
 
 export type Delete1Responses = {
     /**
@@ -1206,15 +1001,6 @@ export type Rename1Data = {
     url: '/apiv1/themes/{id}';
 };
 
-export type Rename1Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Rename1Error = Rename1Errors[keyof Rename1Errors];
-
 export type Rename1Responses = {
     /**
      * OK
@@ -1230,15 +1016,6 @@ export type Delete2Data = {
     query?: never;
     url: '/apiv1/users/{id}';
 };
-
-export type Delete2Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Delete2Error = Delete2Errors[keyof Delete2Errors];
 
 export type Delete2Responses = {
     /**
@@ -1257,15 +1034,6 @@ export type GetById1Data = {
     query?: never;
     url: '/apiv1/users/{id}';
 };
-
-export type GetById1Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type GetById1Error = GetById1Errors[keyof GetById1Errors];
 
 export type GetById1Responses = {
     /**
@@ -1286,15 +1054,6 @@ export type Find1Data = {
     url: '/apiv1/themes/find';
 };
 
-export type Find1Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Find1Error = Find1Errors[keyof Find1Errors];
-
 export type Find1Responses = {
     /**
      * OK
@@ -1312,15 +1071,6 @@ export type GetById2Data = {
     query?: never;
     url: '/apiv1/sessions/{id}';
 };
-
-export type GetById2Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type GetById2Error = GetById2Errors[keyof GetById2Errors];
 
 export type GetById2Responses = {
     /**
@@ -1340,15 +1090,6 @@ export type GetScoresData = {
     url: '/apiv1/sessions/{id}/scores';
 };
 
-export type GetScoresErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type GetScoresError = GetScoresErrors[keyof GetScoresErrors];
-
 export type GetScoresResponses = {
     /**
      * OK
@@ -1358,6 +1099,24 @@ export type GetScoresResponses = {
 
 export type GetScoresResponse = GetScoresResponses[keyof GetScoresResponses];
 
+export type GetReportData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/apiv1/sessions/{id}/report';
+};
+
+export type GetReportResponses = {
+    /**
+     * OK
+     */
+    200: SessionReportDto;
+};
+
+export type GetReportResponse = GetReportResponses[keyof GetReportResponses];
+
 export type ExportCsvData = {
     body?: never;
     path: {
@@ -1366,15 +1125,6 @@ export type ExportCsvData = {
     query?: never;
     url: '/apiv1/sessions/{id}/export/csv';
 };
-
-export type ExportCsvErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type ExportCsvError = ExportCsvErrors[keyof ExportCsvErrors];
 
 export type ExportCsvResponses = {
     /**
@@ -1394,15 +1144,6 @@ export type StreamEventsData = {
     url: '/apiv1/sessions/{id}/events';
 };
 
-export type StreamEventsErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type StreamEventsError = StreamEventsErrors[keyof StreamEventsErrors];
-
 export type StreamEventsResponses = {
     /**
      * OK
@@ -1420,15 +1161,6 @@ export type GetByCodeData = {
     query?: never;
     url: '/apiv1/sessions/by-code/{code}';
 };
-
-export type GetByCodeErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type GetByCodeError = GetByCodeErrors[keyof GetByCodeErrors];
 
 export type GetByCodeResponses = {
     /**
@@ -1449,15 +1181,6 @@ export type Find2Data = {
     url: '/apiv1/questions/find';
 };
 
-export type Find2Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Find2Error = Find2Errors[keyof Find2Errors];
-
 export type Find2Responses = {
     /**
      * OK
@@ -1477,15 +1200,6 @@ export type Find3Data = {
     url: '/apiv1/questions';
 };
 
-export type Find3Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Find3Error = Find3Errors[keyof Find3Errors];
-
 export type Find3Responses = {
     /**
      * OK
@@ -1504,15 +1218,6 @@ export type VerifyResetTokenData = {
     url: '/apiv1/auth/verify-reset-token';
 };
 
-export type VerifyResetTokenErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type VerifyResetTokenError = VerifyResetTokenErrors[keyof VerifyResetTokenErrors];
-
 export type VerifyResetTokenResponses = {
     /**
      * OK
@@ -1526,15 +1231,6 @@ export type MeData = {
     query?: never;
     url: '/apiv1/auth/me';
 };
-
-export type MeErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type MeError = MeErrors[keyof MeErrors];
 
 export type MeResponses = {
     /**
@@ -1555,15 +1251,6 @@ export type RemoveQuestionData = {
     url: '/apiv1/quezaps/{id}/questions/{questionId}';
 };
 
-export type RemoveQuestionErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type RemoveQuestionError = RemoveQuestionErrors[keyof RemoveQuestionErrors];
-
 export type RemoveQuestionResponses = {
     /**
      * No Content
@@ -1581,15 +1268,6 @@ export type Delete3Data = {
     query?: never;
     url: '/apiv1/questions/{id}';
 };
-
-export type Delete3Errors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResonseDto;
-};
-
-export type Delete3Error = Delete3Errors[keyof Delete3Errors];
 
 export type Delete3Responses = {
     /**

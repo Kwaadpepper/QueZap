@@ -20,4 +20,9 @@ export const routes: Routes = [
     title: 'Projection de Session',
     loadComponent: () => import('./pages').then(m => m.SessionPresenter),
   },
+  {
+    path: ':id/report',
+    title: 'Rapport de Session',
+    loadComponent: () => import('./pages').then(m => m.SessionReport),
+  },
 ]

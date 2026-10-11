@@ -233,16 +233,18 @@
   <!-- PODIUM & LEADERBOARD SCREEN -->
   @if (stage() === 'PODIUM') {
     <!-- Floating CSS Confetti Shower -->
-    @for (c of confettiPieces; track c.id) {
-      <div
-        class="confetti-piece"
-        [style.left]="c.left"
-        [style.animation-delay]="c.delay"
-        [style.animation-duration]="c.duration"
-        [style.background-color]="c.color"
-        [style.width]="c.width"
-        [style.height]="c.height">
-      </div>
+    @if (podiumStep() >= 3) {
+      @for (c of confettiPieces; track c.id) {
+        <div
+          class="confetti-piece"
+          [style.left]="c.left"
+          [style.animation-delay]="c.delay"
+          [style.animation-duration]="c.duration"
+          [style.background-color]="c.color"
+          [style.width]="c.width"
+          [style.height]="c.height">
+        </div>
+      }
     }
 
     <main class="flex-1 flex flex-col items-center justify-center py-6 text-center max-w-6xl mx-auto w-full relative z-20">
@@ -253,15 +255,30 @@
         PODIUM DE LA CLASSE
       </h2>
 
+      @if (podiumStep() < 3) {
+        <div class="mb-4">
+          <button
+            class="px-6 py-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 shadow-md transition cursor-pointer text-sm"
+            (click)="skipPodiumAnimation()">
+            <span>Passer l'animation ⏩</span>
+          </button>
+        </div>
+      }
+
       <!-- 3D Podium Steps -->
       <div class="podium-box w-full max-w-4xl my-6">
         <!-- 2nd place (Silver / Argent) -->
         @if (leaderboard().length >= 2) {
-          <div class="podium-step step-second shadow-2xl">
+          <div class="podium-step step-second shadow-2xl transition-all duration-700" [class.opacity-40]="podiumStep() < 2">
             <div class="mb-4 text-center">
               <span class="text-3xl mb-1 block">🥈</span>
-              <p class="text-2xl md:text-3xl font-black text-white leading-none">{{ leaderboard()[1].name }}</p>
-              <p class="text-slate-200 font-extrabold text-lg mt-1">{{ leaderboard()[1].score }} pts</p>
+              @if (podiumStep() >= 2) {
+                <p class="text-2xl md:text-3xl font-black text-white leading-none">{{ leaderboard()[1].name }}</p>
+                <p class="text-slate-200 font-extrabold text-lg mt-1">{{ leaderboard()[1].score }} pts</p>
+              } @else {
+                <p class="text-3xl font-black text-slate-400">???</p>
+                <p class="text-slate-500 font-extrabold text-sm mt-1">2ème place</p>
+              }
             </div>
             <div class="text-5xl font-black text-slate-800">2</div>
           </div>
@@ -269,11 +286,16 @@
 
         <!-- 1st place (Gold / Or) -->
         @if (leaderboard().length >= 1) {
-          <div class="podium-step step-first shadow-[0_0_50px_rgba(250,204,21,0.5)]">
+          <div class="podium-step step-first shadow-[0_0_50px_rgba(250,204,21,0.5)] transition-all duration-700" [class.opacity-40]="podiumStep() < 3">
             <div class="mb-4 text-center">
               <span class="text-5xl mb-1 block animate-bounce">👑</span>
-              <p class="text-3xl md:text-4xl font-black text-slate-950 leading-none">{{ leaderboard()[0].name }}</p>
-              <p class="text-amber-950 font-black text-2xl mt-1">{{ leaderboard()[0].score }} pts</p>
+              @if (podiumStep() >= 3) {
+                <p class="text-3xl md:text-4xl font-black text-slate-950 leading-none">{{ leaderboard()[0].name }}</p>
+                <p class="text-amber-950 font-black text-2xl mt-1">{{ leaderboard()[0].score }} pts</p>
+              } @else {
+                <p class="text-4xl font-black text-amber-950/60">???</p>
+                <p class="text-amber-950/70 font-extrabold text-sm mt-1">Vainqueur</p>
+              }
             </div>
             <div class="text-6xl font-black text-amber-950">1</div>
           </div>
@@ -281,11 +303,16 @@
 
         <!-- 3rd place (Bronze) -->
         @if (leaderboard().length >= 3) {
-          <div class="podium-step step-third shadow-2xl">
+          <div class="podium-step step-third shadow-2xl transition-all duration-700" [class.opacity-40]="podiumStep() < 1">
             <div class="mb-4 text-center">
               <span class="text-3xl mb-1 block">🥉</span>
-              <p class="text-2xl md:text-3xl font-black text-white leading-none">{{ leaderboard()[2].name }}</p>
-              <p class="text-amber-200 font-extrabold text-lg mt-1">{{ leaderboard()[2].score }} pts</p>
+              @if (podiumStep() >= 1) {
+                <p class="text-2xl md:text-3xl font-black text-white leading-none">{{ leaderboard()[2].name }}</p>
+                <p class="text-amber-200 font-extrabold text-lg mt-1">{{ leaderboard()[2].score }} pts</p>
+              } @else {
+                <p class="text-3xl font-black text-slate-400">???</p>
+                <p class="text-amber-200/50 font-extrabold text-sm mt-1">3ème place</p>
+              }
             </div>
             <div class="text-4xl font-black text-amber-950">3</div>
           </div>
@@ -293,11 +320,12 @@
       </div>
 
       <!-- Leaderboard table for the entire class -->
-      <div class="w-full max-w-3xl mt-8 bg-slate-900/90 rounded-3xl p-6 sm:p-8 border border-slate-800/90 shadow-2xl backdrop-blur-xl">
-        <h3 class="text-2xl font-black text-slate-200 mb-6 flex items-center justify-center gap-2">
-          <span>📊 Classement Général</span>
-        </h3>
-        <div class="space-y-3">
+      @if (podiumStep() >= 3) {
+        <div class="w-full max-w-3xl mt-8 bg-slate-900/90 rounded-3xl p-6 sm:p-8 border border-slate-800/90 shadow-2xl backdrop-blur-xl">
+          <h3 class="text-2xl font-black text-slate-200 mb-6 flex items-center justify-center gap-2">
+            <span>📊 Classement Général</span>
+          </h3>
+          <div class="space-y-3">
           @for (player of leaderboard(); track player.name; let rank = $index) {
             <div class="flex justify-between items-center bg-slate-800/80 hover:bg-slate-800 px-5 py-3 rounded-2xl text-xl border border-slate-700/60 shadow-sm transition">
               <div class="flex items-center gap-4">
@@ -329,6 +357,7 @@
           </button>
         </div>
       </div>
+    }
     </main>
   }
 </div>

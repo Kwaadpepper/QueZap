@@ -9,12 +9,21 @@ export interface PersistedSessionData {
   participationToken?: string
 }
 
+export interface FinalParticipantResults {
+  rank: number
+  totalParticipants: number
+  score: number
+  correctAnswers: number
+  isPodium: boolean
+}
+
 @Injectable({ providedIn: 'root' })
 export class ActiveSessionPersistence {
   readonly #storageKey = 'activeSessionCode'
   readonly #participationTokenKey = 'quezap_participation_token'
   readonly #sessionIdKey = 'quezap_session_id'
   readonly #participantNameKey = 'quezap_participant_name'
+  readonly #finalResultsKey = 'quezap_final_results'
 
   // Resilient memory cache in case browser storage is restricted or throws
   readonly #memoryCache = new Map<string, string>()
@@ -154,11 +163,27 @@ export class ActiveSessionPersistence {
     return this.getSafeItem(this.sessionStorageRef, this.#participantNameKey)
   }
 
+  saveFinalResults(results: FinalParticipantResults): void {
+    this.setSafeItem(this.sessionStorageRef, this.#finalResultsKey, JSON.stringify(results))
+  }
+
+  getFinalResults(): FinalParticipantResults | null {
+    const raw = this.getSafeItem(this.sessionStorageRef, this.#finalResultsKey)
+    if (!raw) return null
+    try {
+      return JSON.parse(raw) as FinalParticipantResults
+    }
+    catch {
+      return null
+    }
+  }
+
   clear(): void {
     this.removeSafeItem(this.localStorageRef, this.#storageKey)
     this.removeSafeItem(this.sessionStorageRef, this.#participationTokenKey)
     this.removeSafeItem(this.sessionStorageRef, this.#sessionIdKey)
     this.removeSafeItem(this.sessionStorageRef, this.#participantNameKey)
+    this.removeSafeItem(this.sessionStorageRef, this.#finalResultsKey)
   }
 
   clearKeepingNickname(): void {

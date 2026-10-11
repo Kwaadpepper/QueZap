@@ -31,7 +31,49 @@ export interface SessionKicked {
   readonly participantName: string
 }
 
-export type SessionEvent = SessionWaitingStart | SessionStarted | SessionSwitchedQuestion | SessionEnded | SessionKicked
+export interface QuestionRevealData {
+  readonly slideIndex: number
+  readonly correctIndices: number[]
+  readonly explanation?: string
+  readonly stats: {
+    readonly answerIndex: number
+    readonly count: number
+    readonly percentage: number
+  }[]
+}
+
+export interface LeaderboardEntry {
+  readonly rank: number
+  readonly participantName: string
+  readonly score: number
+  readonly previousScore: number
+  readonly rankDelta: number
+}
+
+export interface IntermediateLeaderboardData {
+  readonly slideIndex: number
+  readonly leaderboard: LeaderboardEntry[]
+}
+
+export interface SessionQuestionRevealed {
+  readonly type: 'SessionQuestionRevealed'
+  readonly reveal: QuestionRevealData
+}
+
+export interface SessionLeaderboardUpdated {
+  readonly type: 'SessionLeaderboardUpdated'
+  readonly data: IntermediateLeaderboardData
+}
+
+export type SessionEvent
+  = | SessionWaitingStart
+    | SessionStarted
+    | SessionSwitchedQuestion
+    | SessionEnded
+    | SessionKicked
+    | SessionQuestionRevealed
+    | SessionLeaderboardUpdated
+
 export type CurrentQuestion = WaitingQuestion | MixedQuestion & QuestionWithAnswers | NoMoreQuestions
 
 export interface WaitingQuestion {
@@ -53,6 +95,12 @@ export function sessionEnded(session: SessionEvent): session is SessionEnded {
 export function sessionSwitchedQuestion(session: SessionEvent): session is SessionSwitchedQuestion {
   return session.type === 'SessionSwitchedQuestion'
 }
+export function sessionQuestionRevealed(session: SessionEvent): session is SessionQuestionRevealed {
+  return session.type === 'SessionQuestionRevealed'
+}
+export function sessionLeaderboardUpdated(session: SessionEvent): session is SessionLeaderboardUpdated {
+  return session.type === 'SessionLeaderboardUpdated'
+}
 
 type AllQuestionTypes = MixedQuestion | WaitingQuestion | NoMoreQuestions
 
@@ -72,6 +120,10 @@ export interface SessionObserverService {
   participants: ServiceState<Participant[]>
 
   question: ServiceState<CurrentQuestion>
+
+  reveal: ServiceState<QuestionRevealData | undefined>
+
+  leaderboard: ServiceState<IntermediateLeaderboardData | undefined>
 }
 
 export const SESSION_OBSERVER_SERVICE = new InjectionToken<SessionObserverService>('SessionObserverService')

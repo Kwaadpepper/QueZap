@@ -1,4 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing'
 import { provideRouter } from '@angular/router'
 
 import { of } from 'rxjs'
@@ -18,6 +20,7 @@ describe('SessionPresenter', () => {
     getScores: jest.fn().mockReturnValue(of({ kind: 'success', result: { leaderboard: [] } })),
     startSession: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
     nextQuestion: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
+    revealAnswers: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
     kickParticipant: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
   }
 
@@ -26,6 +29,8 @@ describe('SessionPresenter', () => {
       imports: [SessionPresenter],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: SESSION_SERVICE, useValue: mockSessionService },
       ],
     }).compileComponents()
@@ -46,8 +51,28 @@ describe('SessionPresenter', () => {
     expect(mockSessionService.startSession).toHaveBeenCalled()
   })
 
-  it('should transition to REVEAL when revealAnswers is called', () => {
+  it('should transition to REVEAL and call revealAnswers when revealAnswers is called', () => {
     component['revealAnswers']()
     expect(component['stage']()).toBe('REVEAL')
+    expect(mockSessionService.revealAnswers).toHaveBeenCalled()
   })
+
+  it('should progress through podium steps during launchPodiumAnimation and allow skipping', fakeAsync(() => {
+    component['launchPodiumAnimation']()
+    expect(component['podiumStep']()).toBe(0)
+
+    tick(1200)
+    expect(component['podiumStep']()).toBe(1)
+
+    tick(1400)
+    expect(component['podiumStep']()).toBe(2)
+
+    tick(1400)
+    expect(component['podiumStep']()).toBe(3)
+
+    component['launchPodiumAnimation']()
+    expect(component['podiumStep']()).toBe(0)
+    component['skipPodiumAnimation']()
+    expect(component['podiumStep']()).toBe(3)
+  }))
 })

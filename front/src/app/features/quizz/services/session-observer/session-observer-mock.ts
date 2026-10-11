@@ -19,8 +19,8 @@ import {
 import { SessionMocks } from '../session.mock'
 
 import {
-  CurrentQuestion, isMixedQuestion,
-  NoMoreQuestions,
+  CurrentQuestion, IntermediateLeaderboardData, isMixedQuestion,
+  NoMoreQuestions, QuestionRevealData,
   SessionEvent, SessionObserverService, WaitingQuestion,
 } from './session-observer'
 
@@ -50,11 +50,15 @@ export class SessionObserverMockService implements SessionObserverService {
 
   private readonly mockQuestion = signal<CurrentQuestion>({ type: 'WaitingQuestion' })
   private readonly mockParticipantsState = signal<Participant[]>([])
+  private readonly mockRevealState = signal<QuestionRevealData | undefined>(undefined)
+  private readonly mockLeaderboardState = signal<IntermediateLeaderboardData | undefined>(undefined)
 
   private readonly sessionSubject = new BehaviorSubject<SessionEvent>({ type: 'SessionWaitingStart' })
 
   public participants: ServiceState<Participant[]> = this.mockParticipantsState.asReadonly()
   public question: ServiceState<CurrentQuestion> = this.mockQuestion.asReadonly()
+  public reveal: ServiceState<QuestionRevealData | undefined> = this.mockRevealState.asReadonly()
+  public leaderboard: ServiceState<IntermediateLeaderboardData | undefined> = this.mockLeaderboardState.asReadonly()
 
   public sessionEvents(): ServiceObservable<SessionEvent> {
     const previousState = this.getSessionRunState()

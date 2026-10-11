@@ -10,6 +10,7 @@ import type {
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {
   faAddressCard,
+  faArrowDown,
   faArrowLeft,
   faArrowRight,
   faArrowUp,
@@ -52,6 +53,7 @@ export const ICON_MAP = {
   'smaller': faDownLeftAndUpRightToCenter,
 
   'arrow-up': faArrowUp,
+  'arrow-down': faArrowDown,
   'arrow-right': faArrowRight,
   'arrow-left': faArrowLeft,
   'question': faQuestion,

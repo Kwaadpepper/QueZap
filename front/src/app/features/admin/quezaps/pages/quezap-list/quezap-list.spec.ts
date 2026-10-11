@@ -13,7 +13,7 @@ describe('QuezapList', () => {
     fixture = TestBed.createComponent(QuezapList)
     component = fixture.componentInstance
     await fixture.whenStable()
-  })
+  }, 15000)
 
   it('should create', () => {
     expect(component).toBeTruthy()

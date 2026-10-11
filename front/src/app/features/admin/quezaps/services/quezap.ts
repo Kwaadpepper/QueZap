@@ -9,7 +9,9 @@ export interface QuezapService {
 
   find(quezapId: QuezapId): ServiceOutput<QuezapWithQuestionsAndAnswers, NotFoundError>
 
-  persistQuezap(quezap: Omit<QuezapWithQuestionsAndAnswers, 'id'>): ServiceOutput<Pick<Quezap, 'id'>>
+  persistQuezap(
+    quezap: QuezapWithQuestionsAndAnswers | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId }),
+  ): ServiceOutput<Pick<Quezap, 'id'>>
 
   duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>>
 }

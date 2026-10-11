@@ -13,14 +13,16 @@ import { ButtonModule } from 'primeng/button'
 import { ConfirmDialogModule } from 'primeng/confirmdialog'
 
 import { ValidationError } from '@quezap/core/errors'
-import { QuestionType, QuestionTypeFrom, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
+import { QuestionType, QuestionTypeFrom, QuezapId, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { QuezapEditorStore } from '../../stores'
 
 import { QuestionEditor, QuestionListView, TitleEditor } from './parts'
 
-export type QuezapEditorInput = Omit<QuezapWithQuestionsAndAnswers, 'id'>
+export type QuezapEditorInput
+  = | QuezapWithQuestionsAndAnswers
+    | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId })
 
 @Component({
   selector: 'quizz-quezap-editor',
@@ -59,6 +61,7 @@ export class QuezapEditor {
 
   protected readonly persisting = computed(() => this.editorStore.persisting())
   protected readonly isDirty = computed(() => this.editorStore.isDirty())
+  protected readonly hasInvalidAnswers = computed(() => this.editorStore.hasInvalidAnswers())
 
   constructor() {
     this.editorStore.setQuezap(this._quezap())

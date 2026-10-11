@@ -46,6 +46,18 @@
         <quizz-icon name="presentation" pButtonIcon />
       </p-button>
 
+      @if (isEnded()) {
+        <p-button
+          label="Bilan"
+          size="small"
+          severity="success"
+          title="Consulter le bilan complet de la session"
+          (onClick)="onSessionReport()"
+        >
+          <i class="pi pi-chart-bar" pButtonIcon></i>
+        </p-button>
+      }
+
       <p-button
         size="small"
         severity="secondary"

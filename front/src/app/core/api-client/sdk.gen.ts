@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, ServerSentEventsResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateData, ActivateErrors, ActivateResponses, AddAffirmationData, AddAffirmationErrors, AddAffirmationResponses, AddBinaryData, AddBinaryErrors, AddBinaryResponses, AddData, AddErrors, AddQuestionData, AddQuestionErrors, AddQuestionResponses, AddQuizzData, AddQuizzErrors, AddQuizzResponses, AddResponses, CloneData, CloneErrors, CloneResponses, Create1Data, Create1Errors, Create1Responses, Create2Data, Create2Errors, Create2Responses, CreateData, CreateErrors, CreateResponses, Delete1Data, Delete1Errors, Delete1Responses, Delete2Data, Delete2Errors, Delete2Responses, Delete3Data, Delete3Errors, Delete3Responses, DeleteData, DeleteErrors, DeleteResponses, ExportCsvData, ExportCsvErrors, ExportCsvResponses, Find1Data, Find1Errors, Find1Responses, Find2Data, Find2Errors, Find2Responses, Find3Data, Find3Errors, Find3Responses, FindData, FindErrors, FindResponses, ForgottenPasswordData, ForgottenPasswordErrors, ForgottenPasswordResponses, GetByCodeData, GetByCodeErrors, GetByCodeResponses, GetById1Data, GetById1Errors, GetById1Responses, GetById2Data, GetById2Errors, GetById2Responses, GetByIdData, GetByIdErrors, GetByIdResponses, GetScoresData, GetScoresErrors, GetScoresResponses, JoinData, JoinErrors, JoinResponses, KickParticipantData, KickParticipantErrors, KickParticipantResponses, List1Data, List1Errors, List1Responses, List2Data, List2Errors, List2Responses, ListData, ListErrors, ListResponses, LoginData, LoginErrors, LoginResponses, LogoutData, LogoutErrors, LogoutResponses, MeData, MeErrors, MeResponses, NextQuestionData, NextQuestionErrors, NextQuestionResponses, RefreshData, RefreshErrors, RefreshResponses, RemoveQuestionData, RemoveQuestionErrors, RemoveQuestionResponses, Rename1Data, Rename1Errors, Rename1Responses, RenameData, RenameErrors, RenameResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, RevealData, RevealErrors, RevealResponses, StartData, StartErrors, StartResponses, StreamEventsData, StreamEventsErrors, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerErrors, SubmitAnswerResponses, UpdateData, UpdateErrors, UpdatePasswordData, UpdatePasswordErrors, UpdatePasswordResponses, UpdateResponses, VerifyResetTokenData, VerifyResetTokenErrors, VerifyResetTokenResponses } from './types.gen';
+import type { ActivateData, ActivateResponses, AddAffirmationData, AddAffirmationResponses, AddBinaryData, AddBinaryResponses, AddData, AddQuestionData, AddQuestionResponses, AddQuizzData, AddQuizzResponses, AddResponses, CloneData, CloneResponses, Create1Data, Create1Responses, Create2Data, Create2Responses, CreateData, CreateResponses, Delete1Data, Delete1Responses, Delete2Data, Delete2Responses, Delete3Data, Delete3Responses, DeleteData, DeleteResponses, DuplicateData, DuplicateResponses, ExportCsvData, ExportCsvResponses, Find1Data, Find1Responses, Find2Data, Find2Responses, Find3Data, Find3Responses, FindData, FindResponses, ForgottenPasswordData, ForgottenPasswordResponses, GetByCodeData, GetByCodeResponses, GetById1Data, GetById1Responses, GetById2Data, GetById2Responses, GetByIdData, GetByIdResponses, GetReportData, GetReportResponses, GetScoresData, GetScoresResponses, JoinData, JoinResponses, KickParticipantData, KickParticipantResponses, List1Data, List1Responses, List2Data, List2Responses, ListData, ListResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, MeData, MeResponses, NextQuestionData, NextQuestionResponses, RefreshData, RefreshResponses, RemoveQuestionData, RemoveQuestionResponses, Rename1Data, Rename1Responses, RenameData, RenameResponses, ResetPasswordData, ResetPasswordResponses, RevealData, RevealResponses, StartData, StartResponses, StreamEventsData, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerResponses, UpdateData, UpdatePasswordData, UpdatePasswordResponses, UpdateResponses, VerifyResetTokenData, VerifyResetTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -18,7 +18,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
-export const updatePassword = <ThrowOnError extends boolean = false>(options: Options<UpdatePasswordData, ThrowOnError>): RequestResult<UpdatePasswordResponses, UpdatePasswordErrors, ThrowOnError> => (options.client ?? client).put<UpdatePasswordResponses, UpdatePasswordErrors, ThrowOnError>({
+export const updatePassword = <ThrowOnError extends boolean = false>(options: Options<UpdatePasswordData, ThrowOnError>): RequestResult<UpdatePasswordResponses, unknown, ThrowOnError> => (options.client ?? client).put<UpdatePasswordResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/users/{id}/password',
     ...options,
@@ -28,19 +28,19 @@ export const updatePassword = <ThrowOnError extends boolean = false>(options: Op
     }
 });
 
-export const delete_ = <ThrowOnError extends boolean = false>(options: Options<DeleteData, ThrowOnError>): RequestResult<DeleteResponses, DeleteErrors, ThrowOnError> => (options.client ?? client).delete<DeleteResponses, DeleteErrors, ThrowOnError>({
+export const delete_ = <ThrowOnError extends boolean = false>(options: Options<DeleteData, ThrowOnError>): RequestResult<DeleteResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DeleteResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps/{id}',
     ...options
 });
 
-export const getById = <ThrowOnError extends boolean = false>(options: Options<GetByIdData, ThrowOnError>): RequestResult<GetByIdResponses, GetByIdErrors, ThrowOnError> => (options.client ?? client).get<GetByIdResponses, GetByIdErrors, ThrowOnError>({
+export const getById = <ThrowOnError extends boolean = false>(options: Options<GetByIdData, ThrowOnError>): RequestResult<GetByIdResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetByIdResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps/{id}',
     ...options
 });
 
-export const update = <ThrowOnError extends boolean = false>(options: Options<UpdateData, ThrowOnError>): RequestResult<UpdateResponses, UpdateErrors, ThrowOnError> => (options.client ?? client).put<UpdateResponses, UpdateErrors, ThrowOnError>({
+export const update = <ThrowOnError extends boolean = false>(options: Options<UpdateData, ThrowOnError>): RequestResult<UpdateResponses, unknown, ThrowOnError> => (options.client ?? client).put<UpdateResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps/{id}',
     ...options,
@@ -50,13 +50,13 @@ export const update = <ThrowOnError extends boolean = false>(options: Options<Up
     }
 });
 
-export const list = <ThrowOnError extends boolean = false>(options: Options<ListData, ThrowOnError>): RequestResult<ListResponses, ListErrors, ThrowOnError> => (options.client ?? client).get<ListResponses, ListErrors, ThrowOnError>({
+export const list = <ThrowOnError extends boolean = false>(options: Options<ListData, ThrowOnError>): RequestResult<ListResponses, unknown, ThrowOnError> => (options.client ?? client).get<ListResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/users',
     ...options
 });
 
-export const create = <ThrowOnError extends boolean = false>(options: Options<CreateData, ThrowOnError>): RequestResult<CreateResponses, CreateErrors, ThrowOnError> => (options.client ?? client).post<CreateResponses, CreateErrors, ThrowOnError>({
+export const create = <ThrowOnError extends boolean = false>(options: Options<CreateData, ThrowOnError>): RequestResult<CreateResponses, unknown, ThrowOnError> => (options.client ?? client).post<CreateResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/users',
     ...options,
@@ -66,13 +66,13 @@ export const create = <ThrowOnError extends boolean = false>(options: Options<Cr
     }
 });
 
-export const find = <ThrowOnError extends boolean = false>(options: Options<FindData, ThrowOnError>): RequestResult<FindResponses, FindErrors, ThrowOnError> => (options.client ?? client).get<FindResponses, FindErrors, ThrowOnError>({
+export const find = <ThrowOnError extends boolean = false>(options: Options<FindData, ThrowOnError>): RequestResult<FindResponses, unknown, ThrowOnError> => (options.client ?? client).get<FindResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/themes',
     ...options
 });
 
-export const add = <ThrowOnError extends boolean = false>(options: Options<AddData, ThrowOnError>): RequestResult<AddResponses, AddErrors, ThrowOnError> => (options.client ?? client).post<AddResponses, AddErrors, ThrowOnError>({
+export const add = <ThrowOnError extends boolean = false>(options: Options<AddData, ThrowOnError>): RequestResult<AddResponses, unknown, ThrowOnError> => (options.client ?? client).post<AddResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/themes',
     ...options,
@@ -82,13 +82,13 @@ export const add = <ThrowOnError extends boolean = false>(options: Options<AddDa
     }
 });
 
-export const list1 = <ThrowOnError extends boolean = false>(options: Options<List1Data, ThrowOnError>): RequestResult<List1Responses, List1Errors, ThrowOnError> => (options.client ?? client).get<List1Responses, List1Errors, ThrowOnError>({
+export const list1 = <ThrowOnError extends boolean = false>(options: Options<List1Data, ThrowOnError>): RequestResult<List1Responses, unknown, ThrowOnError> => (options.client ?? client).get<List1Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions',
     ...options
 });
 
-export const create1 = <ThrowOnError extends boolean = false>(options: Options<Create1Data, ThrowOnError>): RequestResult<Create1Responses, Create1Errors, ThrowOnError> => (options.client ?? client).post<Create1Responses, Create1Errors, ThrowOnError>({
+export const create1 = <ThrowOnError extends boolean = false>(options: Options<Create1Data, ThrowOnError>): RequestResult<Create1Responses, unknown, ThrowOnError> => (options.client ?? client).post<Create1Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions',
     ...options,
@@ -98,31 +98,31 @@ export const create1 = <ThrowOnError extends boolean = false>(options: Options<C
     }
 });
 
-export const start = <ThrowOnError extends boolean = false>(options: Options<StartData, ThrowOnError>): RequestResult<StartResponses, StartErrors, ThrowOnError> => (options.client ?? client).post<StartResponses, StartErrors, ThrowOnError>({
+export const start = <ThrowOnError extends boolean = false>(options: Options<StartData, ThrowOnError>): RequestResult<StartResponses, unknown, ThrowOnError> => (options.client ?? client).post<StartResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/start',
     ...options
 });
 
-export const reveal = <ThrowOnError extends boolean = false>(options: Options<RevealData, ThrowOnError>): RequestResult<RevealResponses, RevealErrors, ThrowOnError> => (options.client ?? client).post<RevealResponses, RevealErrors, ThrowOnError>({
+export const reveal = <ThrowOnError extends boolean = false>(options: Options<RevealData, ThrowOnError>): RequestResult<RevealResponses, unknown, ThrowOnError> => (options.client ?? client).post<RevealResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/reveal',
     ...options
 });
 
-export const kickParticipant = <ThrowOnError extends boolean = false>(options: Options<KickParticipantData, ThrowOnError>): RequestResult<KickParticipantResponses, KickParticipantErrors, ThrowOnError> => (options.client ?? client).post<KickParticipantResponses, KickParticipantErrors, ThrowOnError>({
+export const kickParticipant = <ThrowOnError extends boolean = false>(options: Options<KickParticipantData, ThrowOnError>): RequestResult<KickParticipantResponses, unknown, ThrowOnError> => (options.client ?? client).post<KickParticipantResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/participants/{name}/kick',
     ...options
 });
 
-export const nextQuestion = <ThrowOnError extends boolean = false>(options: Options<NextQuestionData, ThrowOnError>): RequestResult<NextQuestionResponses, NextQuestionErrors, ThrowOnError> => (options.client ?? client).post<NextQuestionResponses, NextQuestionErrors, ThrowOnError>({
+export const nextQuestion = <ThrowOnError extends boolean = false>(options: Options<NextQuestionData, ThrowOnError>): RequestResult<NextQuestionResponses, unknown, ThrowOnError> => (options.client ?? client).post<NextQuestionResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/next-question',
     ...options
 });
 
-export const submitAnswer = <ThrowOnError extends boolean = false>(options: Options<SubmitAnswerData, ThrowOnError>): RequestResult<SubmitAnswerResponses, SubmitAnswerErrors, ThrowOnError> => (options.client ?? client).post<SubmitAnswerResponses, SubmitAnswerErrors, ThrowOnError>({
+export const submitAnswer = <ThrowOnError extends boolean = false>(options: Options<SubmitAnswerData, ThrowOnError>): RequestResult<SubmitAnswerResponses, unknown, ThrowOnError> => (options.client ?? client).post<SubmitAnswerResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/answers',
     ...options,
@@ -132,7 +132,7 @@ export const submitAnswer = <ThrowOnError extends boolean = false>(options: Opti
     }
 });
 
-export const join = <ThrowOnError extends boolean = false>(options: Options<JoinData, ThrowOnError>): RequestResult<JoinResponses, JoinErrors, ThrowOnError> => (options.client ?? client).post<JoinResponses, JoinErrors, ThrowOnError>({
+export const join = <ThrowOnError extends boolean = false>(options: Options<JoinData, ThrowOnError>): RequestResult<JoinResponses, unknown, ThrowOnError> => (options.client ?? client).post<JoinResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/join',
     ...options,
@@ -142,13 +142,13 @@ export const join = <ThrowOnError extends boolean = false>(options: Options<Join
     }
 });
 
-export const list2 = <ThrowOnError extends boolean = false>(options: Options<List2Data, ThrowOnError>): RequestResult<List2Responses, List2Errors, ThrowOnError> => (options.client ?? client).get<List2Responses, List2Errors, ThrowOnError>({
+export const list2 = <ThrowOnError extends boolean = false>(options: Options<List2Data, ThrowOnError>): RequestResult<List2Responses, unknown, ThrowOnError> => (options.client ?? client).get<List2Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps',
     ...options
 });
 
-export const create2 = <ThrowOnError extends boolean = false>(options: Options<Create2Data, ThrowOnError>): RequestResult<Create2Responses, Create2Errors, ThrowOnError> => (options.client ?? client).post<Create2Responses, Create2Errors, ThrowOnError>({
+export const create2 = <ThrowOnError extends boolean = false>(options: Options<Create2Data, ThrowOnError>): RequestResult<Create2Responses, unknown, ThrowOnError> => (options.client ?? client).post<Create2Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps',
     ...options,
@@ -158,7 +158,7 @@ export const create2 = <ThrowOnError extends boolean = false>(options: Options<C
     }
 });
 
-export const addQuestion = <ThrowOnError extends boolean = false>(options: Options<AddQuestionData, ThrowOnError>): RequestResult<AddQuestionResponses, AddQuestionErrors, ThrowOnError> => (options.client ?? client).post<AddQuestionResponses, AddQuestionErrors, ThrowOnError>({
+export const addQuestion = <ThrowOnError extends boolean = false>(options: Options<AddQuestionData, ThrowOnError>): RequestResult<AddQuestionResponses, unknown, ThrowOnError> => (options.client ?? client).post<AddQuestionResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps/{id}/questions',
     ...options,
@@ -168,31 +168,37 @@ export const addQuestion = <ThrowOnError extends boolean = false>(options: Optio
     }
 });
 
-export const clone = <ThrowOnError extends boolean = false>(options: Options<CloneData, ThrowOnError>): RequestResult<CloneResponses, CloneErrors, ThrowOnError> => (options.client ?? client).post<CloneResponses, CloneErrors, ThrowOnError>({
+export const duplicate = <ThrowOnError extends boolean = false>(options: Options<DuplicateData, ThrowOnError>): RequestResult<DuplicateResponses, unknown, ThrowOnError> => (options.client ?? client).post<DuplicateResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/apiv1/quezaps/{id}/duplicate',
+    ...options
+});
+
+export const clone = <ThrowOnError extends boolean = false>(options: Options<CloneData, ThrowOnError>): RequestResult<CloneResponses, unknown, ThrowOnError> => (options.client ?? client).post<CloneResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps/{id}/clone',
     ...options
 });
 
-export const addQuizz = <ThrowOnError extends boolean = false>(options: Options<AddQuizzData, ThrowOnError>): RequestResult<AddQuizzResponses, AddQuizzErrors, ThrowOnError> => (options.client ?? client).post<AddQuizzResponses, AddQuizzErrors, ThrowOnError>({
+export const addQuizz = <ThrowOnError extends boolean = false>(options: Options<AddQuizzData, ThrowOnError>): RequestResult<AddQuizzResponses, unknown, ThrowOnError> => (options.client ?? client).post<AddQuizzResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/questions/quizz',
     ...options
 });
 
-export const addBinary = <ThrowOnError extends boolean = false>(options: Options<AddBinaryData, ThrowOnError>): RequestResult<AddBinaryResponses, AddBinaryErrors, ThrowOnError> => (options.client ?? client).post<AddBinaryResponses, AddBinaryErrors, ThrowOnError>({
+export const addBinary = <ThrowOnError extends boolean = false>(options: Options<AddBinaryData, ThrowOnError>): RequestResult<AddBinaryResponses, unknown, ThrowOnError> => (options.client ?? client).post<AddBinaryResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/questions/binary',
     ...options
 });
 
-export const addAffirmation = <ThrowOnError extends boolean = false>(options: Options<AddAffirmationData, ThrowOnError>): RequestResult<AddAffirmationResponses, AddAffirmationErrors, ThrowOnError> => (options.client ?? client).post<AddAffirmationResponses, AddAffirmationErrors, ThrowOnError>({
+export const addAffirmation = <ThrowOnError extends boolean = false>(options: Options<AddAffirmationData, ThrowOnError>): RequestResult<AddAffirmationResponses, unknown, ThrowOnError> => (options.client ?? client).post<AddAffirmationResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/questions/affirmation',
     ...options
 });
 
-export const resetPassword = <ThrowOnError extends boolean = false>(options: Options<ResetPasswordData, ThrowOnError>): RequestResult<ResetPasswordResponses, ResetPasswordErrors, ThrowOnError> => (options.client ?? client).post<ResetPasswordResponses, ResetPasswordErrors, ThrowOnError>({
+export const resetPassword = <ThrowOnError extends boolean = false>(options: Options<ResetPasswordData, ThrowOnError>): RequestResult<ResetPasswordResponses, unknown, ThrowOnError> => (options.client ?? client).post<ResetPasswordResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/reset-password',
     ...options,
@@ -202,7 +208,7 @@ export const resetPassword = <ThrowOnError extends boolean = false>(options: Opt
     }
 });
 
-export const refresh = <ThrowOnError extends boolean = false>(options: Options<RefreshData, ThrowOnError>): RequestResult<RefreshResponses, RefreshErrors, ThrowOnError> => (options.client ?? client).post<RefreshResponses, RefreshErrors, ThrowOnError>({
+export const refresh = <ThrowOnError extends boolean = false>(options: Options<RefreshData, ThrowOnError>): RequestResult<RefreshResponses, unknown, ThrowOnError> => (options.client ?? client).post<RefreshResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/refresh',
     ...options,
@@ -212,7 +218,7 @@ export const refresh = <ThrowOnError extends boolean = false>(options: Options<R
     }
 });
 
-export const logout = <ThrowOnError extends boolean = false>(options: Options<LogoutData, ThrowOnError>): RequestResult<LogoutResponses, LogoutErrors, ThrowOnError> => (options.client ?? client).post<LogoutResponses, LogoutErrors, ThrowOnError>({
+export const logout = <ThrowOnError extends boolean = false>(options: Options<LogoutData, ThrowOnError>): RequestResult<LogoutResponses, unknown, ThrowOnError> => (options.client ?? client).post<LogoutResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/logout',
     ...options,
@@ -222,7 +228,7 @@ export const logout = <ThrowOnError extends boolean = false>(options: Options<Lo
     }
 });
 
-export const login = <ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>): RequestResult<LoginResponses, LoginErrors, ThrowOnError> => (options.client ?? client).post<LoginResponses, LoginErrors, ThrowOnError>({
+export const login = <ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>): RequestResult<LoginResponses, unknown, ThrowOnError> => (options.client ?? client).post<LoginResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/login',
     ...options,
@@ -232,7 +238,7 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
     }
 });
 
-export const forgottenPassword = <ThrowOnError extends boolean = false>(options: Options<ForgottenPasswordData, ThrowOnError>): RequestResult<ForgottenPasswordResponses, ForgottenPasswordErrors, ThrowOnError> => (options.client ?? client).post<ForgottenPasswordResponses, ForgottenPasswordErrors, ThrowOnError>({
+export const forgottenPassword = <ThrowOnError extends boolean = false>(options: Options<ForgottenPasswordData, ThrowOnError>): RequestResult<ForgottenPasswordResponses, unknown, ThrowOnError> => (options.client ?? client).post<ForgottenPasswordResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/forgotten-password',
     ...options,
@@ -242,7 +248,7 @@ export const forgottenPassword = <ThrowOnError extends boolean = false>(options:
     }
 });
 
-export const activate = <ThrowOnError extends boolean = false>(options: Options<ActivateData, ThrowOnError>): RequestResult<ActivateResponses, ActivateErrors, ThrowOnError> => (options.client ?? client).post<ActivateResponses, ActivateErrors, ThrowOnError>({
+export const activate = <ThrowOnError extends boolean = false>(options: Options<ActivateData, ThrowOnError>): RequestResult<ActivateResponses, unknown, ThrowOnError> => (options.client ?? client).post<ActivateResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/activate',
     ...options,
@@ -252,7 +258,7 @@ export const activate = <ThrowOnError extends boolean = false>(options: Options<
     }
 });
 
-export const rename = <ThrowOnError extends boolean = false>(options: Options<RenameData, ThrowOnError>): RequestResult<RenameResponses, RenameErrors, ThrowOnError> => (options.client ?? client).patch<RenameResponses, RenameErrors, ThrowOnError>({
+export const rename = <ThrowOnError extends boolean = false>(options: Options<RenameData, ThrowOnError>): RequestResult<RenameResponses, unknown, ThrowOnError> => (options.client ?? client).patch<RenameResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/themes/rename/{id}',
     ...options,
@@ -262,13 +268,13 @@ export const rename = <ThrowOnError extends boolean = false>(options: Options<Re
     }
 });
 
-export const delete1 = <ThrowOnError extends boolean = false>(options: Options<Delete1Data, ThrowOnError>): RequestResult<Delete1Responses, Delete1Errors, ThrowOnError> => (options.client ?? client).delete<Delete1Responses, Delete1Errors, ThrowOnError>({
+export const delete1 = <ThrowOnError extends boolean = false>(options: Options<Delete1Data, ThrowOnError>): RequestResult<Delete1Responses, unknown, ThrowOnError> => (options.client ?? client).delete<Delete1Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/themes/{id}',
     ...options
 });
 
-export const rename1 = <ThrowOnError extends boolean = false>(options: Options<Rename1Data, ThrowOnError>): RequestResult<Rename1Responses, Rename1Errors, ThrowOnError> => (options.client ?? client).patch<Rename1Responses, Rename1Errors, ThrowOnError>({
+export const rename1 = <ThrowOnError extends boolean = false>(options: Options<Rename1Data, ThrowOnError>): RequestResult<Rename1Responses, unknown, ThrowOnError> => (options.client ?? client).patch<Rename1Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/themes/{id}',
     ...options,
@@ -278,85 +284,91 @@ export const rename1 = <ThrowOnError extends boolean = false>(options: Options<R
     }
 });
 
-export const delete2 = <ThrowOnError extends boolean = false>(options: Options<Delete2Data, ThrowOnError>): RequestResult<Delete2Responses, Delete2Errors, ThrowOnError> => (options.client ?? client).delete<Delete2Responses, Delete2Errors, ThrowOnError>({
+export const delete2 = <ThrowOnError extends boolean = false>(options: Options<Delete2Data, ThrowOnError>): RequestResult<Delete2Responses, unknown, ThrowOnError> => (options.client ?? client).delete<Delete2Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/users/{id}',
     ...options
 });
 
-export const getById1 = <ThrowOnError extends boolean = false>(options: Options<GetById1Data, ThrowOnError>): RequestResult<GetById1Responses, GetById1Errors, ThrowOnError> => (options.client ?? client).get<GetById1Responses, GetById1Errors, ThrowOnError>({
+export const getById1 = <ThrowOnError extends boolean = false>(options: Options<GetById1Data, ThrowOnError>): RequestResult<GetById1Responses, unknown, ThrowOnError> => (options.client ?? client).get<GetById1Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/users/{id}',
     ...options
 });
 
-export const find1 = <ThrowOnError extends boolean = false>(options: Options<Find1Data, ThrowOnError>): RequestResult<Find1Responses, Find1Errors, ThrowOnError> => (options.client ?? client).get<Find1Responses, Find1Errors, ThrowOnError>({
+export const find1 = <ThrowOnError extends boolean = false>(options: Options<Find1Data, ThrowOnError>): RequestResult<Find1Responses, unknown, ThrowOnError> => (options.client ?? client).get<Find1Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/themes/find',
     ...options
 });
 
-export const getById2 = <ThrowOnError extends boolean = false>(options: Options<GetById2Data, ThrowOnError>): RequestResult<GetById2Responses, GetById2Errors, ThrowOnError> => (options.client ?? client).get<GetById2Responses, GetById2Errors, ThrowOnError>({
+export const getById2 = <ThrowOnError extends boolean = false>(options: Options<GetById2Data, ThrowOnError>): RequestResult<GetById2Responses, unknown, ThrowOnError> => (options.client ?? client).get<GetById2Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}',
     ...options
 });
 
-export const getScores = <ThrowOnError extends boolean = false>(options: Options<GetScoresData, ThrowOnError>): RequestResult<GetScoresResponses, GetScoresErrors, ThrowOnError> => (options.client ?? client).get<GetScoresResponses, GetScoresErrors, ThrowOnError>({
+export const getScores = <ThrowOnError extends boolean = false>(options: Options<GetScoresData, ThrowOnError>): RequestResult<GetScoresResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetScoresResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/scores',
     ...options
 });
 
-export const exportCsv = <ThrowOnError extends boolean = false>(options: Options<ExportCsvData, ThrowOnError>): RequestResult<ExportCsvResponses, ExportCsvErrors, ThrowOnError> => (options.client ?? client).get<ExportCsvResponses, ExportCsvErrors, ThrowOnError>({
+export const getReport = <ThrowOnError extends boolean = false>(options: Options<GetReportData, ThrowOnError>): RequestResult<GetReportResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetReportResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/apiv1/sessions/{id}/report',
+    ...options
+});
+
+export const exportCsv = <ThrowOnError extends boolean = false>(options: Options<ExportCsvData, ThrowOnError>): RequestResult<ExportCsvResponses, unknown, ThrowOnError> => (options.client ?? client).get<ExportCsvResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/export/csv',
     ...options
 });
 
-export const streamEvents = <ThrowOnError extends boolean = false>(options: Options<StreamEventsData, ThrowOnError, StreamEventsResponse>): Promise<ServerSentEventsResult<StreamEventsResponses>> => (options.client ?? client).sse.get<StreamEventsResponses, StreamEventsErrors, ThrowOnError>({
+export const streamEvents = <ThrowOnError extends boolean = false>(options: Options<StreamEventsData, ThrowOnError, StreamEventsResponse>): Promise<ServerSentEventsResult<StreamEventsResponses>> => (options.client ?? client).sse.get<StreamEventsResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/events',
     ...options
 });
 
-export const getByCode = <ThrowOnError extends boolean = false>(options: Options<GetByCodeData, ThrowOnError>): RequestResult<GetByCodeResponses, GetByCodeErrors, ThrowOnError> => (options.client ?? client).get<GetByCodeResponses, GetByCodeErrors, ThrowOnError>({
+export const getByCode = <ThrowOnError extends boolean = false>(options: Options<GetByCodeData, ThrowOnError>): RequestResult<GetByCodeResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetByCodeResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/by-code/{code}',
     ...options
 });
 
-export const find2 = <ThrowOnError extends boolean = false>(options: Options<Find2Data, ThrowOnError>): RequestResult<Find2Responses, Find2Errors, ThrowOnError> => (options.client ?? client).get<Find2Responses, Find2Errors, ThrowOnError>({
+export const find2 = <ThrowOnError extends boolean = false>(options: Options<Find2Data, ThrowOnError>): RequestResult<Find2Responses, unknown, ThrowOnError> => (options.client ?? client).get<Find2Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/questions/find',
     ...options
 });
 
-export const find3 = <ThrowOnError extends boolean = false>(options: Options<Find3Data, ThrowOnError>): RequestResult<Find3Responses, Find3Errors, ThrowOnError> => (options.client ?? client).get<Find3Responses, Find3Errors, ThrowOnError>({
+export const find3 = <ThrowOnError extends boolean = false>(options: Options<Find3Data, ThrowOnError>): RequestResult<Find3Responses, unknown, ThrowOnError> => (options.client ?? client).get<Find3Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/questions',
     ...options
 });
 
-export const verifyResetToken = <ThrowOnError extends boolean = false>(options: Options<VerifyResetTokenData, ThrowOnError>): RequestResult<VerifyResetTokenResponses, VerifyResetTokenErrors, ThrowOnError> => (options.client ?? client).get<VerifyResetTokenResponses, VerifyResetTokenErrors, ThrowOnError>({
+export const verifyResetToken = <ThrowOnError extends boolean = false>(options: Options<VerifyResetTokenData, ThrowOnError>): RequestResult<VerifyResetTokenResponses, unknown, ThrowOnError> => (options.client ?? client).get<VerifyResetTokenResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/verify-reset-token',
     ...options
 });
 
-export const me = <ThrowOnError extends boolean = false>(options?: Options<MeData, ThrowOnError>): RequestResult<MeResponses, MeErrors, ThrowOnError> => (options?.client ?? client).get<MeResponses, MeErrors, ThrowOnError>({
+export const me = <ThrowOnError extends boolean = false>(options?: Options<MeData, ThrowOnError>): RequestResult<MeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<MeResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/me',
     ...options
 });
 
-export const removeQuestion = <ThrowOnError extends boolean = false>(options: Options<RemoveQuestionData, ThrowOnError>): RequestResult<RemoveQuestionResponses, RemoveQuestionErrors, ThrowOnError> => (options.client ?? client).delete<RemoveQuestionResponses, RemoveQuestionErrors, ThrowOnError>({
+export const removeQuestion = <ThrowOnError extends boolean = false>(options: Options<RemoveQuestionData, ThrowOnError>): RequestResult<RemoveQuestionResponses, unknown, ThrowOnError> => (options.client ?? client).delete<RemoveQuestionResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/quezaps/{id}/questions/{questionId}',
     ...options
 });
 
-export const delete3 = <ThrowOnError extends boolean = false>(options: Options<Delete3Data, ThrowOnError>): RequestResult<Delete3Responses, Delete3Errors, ThrowOnError> => (options.client ?? client).delete<Delete3Responses, Delete3Errors, ThrowOnError>({
+export const delete3 = <ThrowOnError extends boolean = false>(options: Options<Delete3Data, ThrowOnError>): RequestResult<Delete3Responses, unknown, ThrowOnError> => (options.client ?? client).delete<Delete3Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/questions/{id}',
     ...options

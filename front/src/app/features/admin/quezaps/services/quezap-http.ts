@@ -3,14 +3,20 @@ import { inject, Injectable } from '@angular/core'
 
 import { catchError, map, of } from 'rxjs'
 
+import {
+  CreateQuezapRequest,
+  InlineAnswerRequest,
+  InlineQuestionRequest,
+  QuezapSlideRequest,
+  UpdateQuezapRequest,
+} from '@quezap/core/api-client'
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import {
-  QuestionId, QuestionType, Quezap, QuezapId,
+  QuestionId, QuestionType, QuestionWithAnswersAndResponses, Quezap, QuezapId,
   QuezapWithQuestionsAndAnswers, QuezapWithTheme, Theme, ThemeId,
 } from '@quezap/domain/models'
-import { UUID } from '@quezap/domain/types'
 
 import { QuezapService } from './quezap'
 
@@ -168,15 +174,35 @@ export class QuezapHttpService implements QuezapService {
     )
   }
 
-  persistQuezap(quezap: Omit<QuezapWithQuestionsAndAnswers, 'id'>): ServiceOutput<Pick<Quezap, 'id'>> {
-    const slides = quezap.questionWithAnswersAndResponses.map(q => ({
-      questionId: q.id as UUID,
-      timer: q.limit?.seconds || 30,
-      timerSeconds: q.limit?.seconds || 30,
-      points: q.answers[0]?.points || 1000,
-    }))
+  persistQuezap(
+    quezap: QuezapWithQuestionsAndAnswers | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId }),
+  ): ServiceOutput<Pick<Quezap, 'id'>> {
+    const slides = this.buildSlidesPayload(quezap.questionWithAnswersAndResponses)
 
-    const payload = {
+    if (quezap.id && quezap.id.length > 0) {
+      const payload: UpdateQuezapRequest = {
+        title: quezap.title,
+        description: quezap.description || '',
+        isPublic: true,
+        slides,
+      }
+
+      return this.http.put<void>(`${this.apiUrl}/quezaps/${quezap.id}`, payload).pipe(
+        map(() => ({
+          kind: 'success' as const,
+          result: { id: quezap.id as QuezapId },
+        })),
+        catchError(error => of({
+          kind: 'failure' as const,
+          error: new ValidationError(
+            {},
+            error.error?.message || error.message || 'Erreur lors de la mise à jour du Quezap',
+          ),
+        })),
+      )
+    }
+
+    const payload: CreateQuezapRequest = {
       title: quezap.title,
       description: quezap.description || '',
       isPublic: true,
@@ -191,9 +217,37 @@ export class QuezapHttpService implements QuezapService {
       })),
       catchError(error => of({
         kind: 'failure' as const,
-        error: new ValidationError({}, error.message || 'Erreur lors de la sauvegarde du Quezap'),
+        error: new ValidationError(
+          {},
+          error.error?.message || error.message || 'Erreur lors de la sauvegarde du Quezap',
+        ),
       })),
     )
+  }
+
+  private buildSlidesPayload(questions: QuestionWithAnswersAndResponses[]): QuezapSlideRequest[] {
+    return questions.map((q) => {
+      const answers: InlineAnswerRequest[] = q.answers.map((a, aIdx) => ({
+        label: a.value || `Option ${aIdx + 1}`,
+        isCorrect: a.isCorrect,
+        answerOrder: aIdx + 1,
+      }))
+
+      const inlineQuestion: InlineQuestionRequest = {
+        id: q.id && q.id.length > 0 ? q.id : undefined,
+        label: q.value,
+        type: q.type || 'QUIZZ',
+        answers,
+      }
+
+      return {
+        timer: q.limit?.seconds || 30,
+        timerSeconds: q.limit?.seconds || 30,
+        points: q.answers[0]?.points || 1000,
+        question: inlineQuestion,
+        ...(q.id && q.id.length > 0 ? { questionId: q.id } : {}),
+      }
+    })
   }
 
   duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>> {

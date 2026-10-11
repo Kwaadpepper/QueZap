@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core'
 
-import { LeaderboardResponseDto } from '@quezap/core/api-client'
+import { LeaderboardResponseDto, SessionReportDto } from '@quezap/core/api-client'
 import { PageOf, Pagination, ServiceOutput } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
 
@@ -30,7 +30,9 @@ export interface SessionService {
   createSession(quezapId: string, name: string): ServiceOutput<SessionApiResponse>
   startSession(id: string): ServiceOutput<void>
   nextQuestion(id: string): ServiceOutput<void>
+  revealAnswers(id: string): ServiceOutput<void>
   getScores(id: string): ServiceOutput<LeaderboardResponseDto>
+  getSessionReport(id: string): ServiceOutput<SessionReportDto>
   kickParticipant(sessionId: string, name: string): ServiceOutput<void>
 }
 

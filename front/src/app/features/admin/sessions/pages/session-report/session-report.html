@@ -1,0 +1,223 @@
+<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+  <!-- Top Navigation & Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <a
+      routerLink="/admin/sessions"
+      class="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-bold text-sm transition"
+    >
+      <i class="pi pi-arrow-left"></i>
+      <span>Retour aux sessions</span>
+    </a>
+
+    @if (report() !== null) {
+      <p-button
+        label="Télécharger les résultats (CSV)"
+        severity="primary"
+        (onClick)="downloadCsv()"
+      >
+        <i class="pi pi-download mr-2"></i>
+      </p-button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center p-16">
+      <quizz-spinner />
+      <span class="mt-4 text-slate-500 font-medium">Chargement du rapport de session...</span>
+    </div>
+  } @else if (error() !== null) {
+    <p-message severity="error" class="w-full">
+      <span>{{ error() }}</span>
+    </p-message>
+  } @else if (report(); as rep) {
+    <!-- Session Header -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="font-mono text-xs font-bold tracking-widest px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+              {{ rep.sessionCode }}
+            </span>
+            <span class="px-3 py-1 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+              Session terminée
+            </span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mt-3">
+            {{ rep.sessionName }}
+          </h1>
+        </div>
+
+        <div class="text-right text-xs text-slate-500 dark:text-slate-400 space-y-1">
+          @if (rep.startedAt) {
+            <div>Lancée le : {{ rep.startedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          }
+          @if (rep.endedAt) {
+            <div>Terminée le : {{ rep.endedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700/60">
+          <span class="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Participants</span>
+          <div class="text-3xl font-black text-slate-900 dark:text-white mt-1">{{ rep.totalParticipants }}</div>
+          <span class="text-xs text-slate-400">élèves ayant rejoint</span>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700/60">
+          <span class="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Questions</span>
+          <div class="text-3xl font-black text-indigo-500 mt-1">{{ rep.totalQuestions }}</div>
+          <span class="text-xs text-slate-400">posées au total</span>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700/60">
+          <span class="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Score Moyen</span>
+          <div class="text-3xl font-black text-amber-500 mt-1 font-mono">{{ rep.averageScore }}</div>
+          <span class="text-xs text-slate-400">points par élève</span>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700/60">
+          <span class="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Taux de Réussite</span>
+          <div class="text-3xl font-black text-emerald-500 mt-1">{{ rep.averageAccuracyRate }}%</div>
+          <span class="text-xs text-slate-400">bonnes réponses globales</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Table Section -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+      <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+        <span>🏆 Classement des Élèves</span>
+        <span class="text-sm font-normal text-slate-500 dark:text-slate-400">({{ rep.participants.length }} participants)</span>
+      </h2>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="border-b border-surface-200 dark:border-surface-700 text-slate-500 dark:text-slate-400 font-bold">
+              <th class="py-3 px-4">Rang</th>
+              <th class="py-3 px-4">Élève</th>
+              <th class="py-3 px-4">Score</th>
+              <th class="py-3 px-4">Bonnes Réponses</th>
+              <th class="py-3 px-4 text-right">Taux de Réussite</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-100 dark:divide-surface-800">
+            @for (p of rep.participants; track p.participantName) {
+              <tr class="hover:bg-slate-50 dark:hover:bg-surface-800/50 transition">
+                <td class="py-3.5 px-4">
+                  <span
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg font-black text-xs"
+                    [class.bg-amber-400]="p.rank === 1"
+                    [class.text-slate-950]="p.rank === 1"
+                    [class.bg-slate-300]="p.rank === 2"
+                    [class.text-slate-900]="p.rank === 2"
+                    [class.bg-amber-600]="p.rank === 3"
+                    [class.text-white]="p.rank === 3"
+                    [class.bg-slate-100]="p.rank > 3"
+                    [class.dark:bg-slate-800]="p.rank > 3"
+                    [class.text-slate-600]="p.rank > 3"
+                    [class.dark:text-slate-400]="p.rank > 3"
+                  >
+                    #{{ p.rank }}
+                  </span>
+                </td>
+                <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-base">
+                  {{ p.participantName }}
+                </td>
+                <td class="py-3.5 px-4 font-mono font-bold text-indigo-500 text-base">
+                  {{ p.totalScore }} pts
+                </td>
+                <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                  {{ p.correctCount }} / {{ p.totalQuestions }}
+                </td>
+                <td class="py-3.5 px-4 text-right font-bold" [class.text-emerald-500]="p.accuracyRate >= 70" [class.text-amber-500]="p.accuracyRate >= 40 && p.accuracyRate < 70" [class.text-rose-500]="p.accuracyRate < 40">
+                  {{ p.accuracyRate }}%
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Questions Performance Breakdown -->
+    <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+      <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-6">
+        📊 Analyse Question par Question
+      </h2>
+
+      <div class="space-y-6">
+        @for (q of rep.questions; track q.questionOrder) {
+          <div class="border border-surface-200 dark:border-surface-800 rounded-2xl p-5 bg-slate-50/50 dark:bg-surface-800/40">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm">
+                  Q{{ q.questionOrder }}
+                </span>
+                <span class="font-extrabold text-slate-900 dark:text-white text-lg">
+                  {{ q.questionLabel }}
+                </span>
+                <span class="text-xs px-2.5 py-0.5 rounded-lg bg-surface-200 dark:bg-surface-700 text-slate-600 dark:text-slate-300 font-semibold">
+                  {{ q.questionType }}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3 shrink-0">
+                <span class="text-xs text-slate-500">
+                  {{ q.correctAnswers }} / {{ q.totalAnswers }} correctes
+                </span>
+                <span
+                  class="px-3 py-1 rounded-xl text-xs font-black"
+                  [class.bg-emerald-100]="q.successRate >= 70"
+                  [class.text-emerald-800]="q.successRate >= 70"
+                  [class.dark:bg-emerald-950/80]="q.successRate >= 70"
+                  [class.dark:text-emerald-300]="q.successRate >= 70"
+                  [class.bg-amber-100]="q.successRate >= 40 && q.successRate < 70"
+                  [class.text-amber-800]="q.successRate >= 40 && q.successRate < 70"
+                  [class.bg-rose-100]="q.successRate < 40"
+                  [class.text-rose-800]="q.successRate < 40"
+                >
+                  {{ q.successRate }}% réussite
+                </span>
+              </div>
+            </div>
+
+            <!-- Answer Options Breakdown -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+              @for (ans of q.answers; track ans.answerIndex) {
+                <div
+                  class="flex items-center justify-between p-3 rounded-xl border transition relative overflow-hidden"
+                  [class.border-emerald-500]="ans.isCorrect"
+                  [class.bg-emerald-50/60]="ans.isCorrect"
+                  [class.dark:bg-emerald-950/30]="ans.isCorrect"
+                  [class.border-surface-200]="!ans.isCorrect"
+                  [class.dark:border-surface-700]="!ans.isCorrect"
+                  [class.bg-surface-0]="!ans.isCorrect"
+                  [class.dark:bg-surface-800]="!ans.isCorrect"
+                >
+                  <div class="flex items-center gap-2.5 z-10 min-w-0 mr-2">
+                    @if (ans.isCorrect) {
+                      <i class="pi pi-check-circle text-emerald-600 dark:text-emerald-400 text-lg shrink-0"></i>
+                    } @else {
+                      <i class="pi pi-circle text-slate-400 text-sm shrink-0"></i>
+                    }
+                    <span class="text-sm font-bold truncate text-slate-900 dark:text-white">
+                      {{ ans.label }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2 z-10 shrink-0 font-mono text-xs font-bold">
+                    <span class="text-slate-600 dark:text-slate-300">{{ ans.count }} votes</span>
+                    <span class="text-slate-400">({{ ans.percentage }}%)</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

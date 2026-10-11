@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http'
 import {
   ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal, WritableSignal,
 } from '@angular/core'
@@ -86,11 +87,15 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute)
   private readonly sessionService = inject(SESSION_SERVICE)
   private readonly config = inject(Config)
+  private readonly http = inject(HttpClient)
 
   protected readonly sessionId = signal<string>('')
   protected readonly sessionCode = signal<string>('')
   protected readonly sessionName = signal<string>('')
   protected readonly stage: WritableSignal<PresenterStage> = signal('LOBBY')
+
+  protected readonly podiumStep = signal<number>(0)
+  private podiumTimeouts: ReturnType<typeof setTimeout>[] = []
 
   protected readonly joinUrl = computed(() => {
     const code = this.sessionCode()
@@ -132,16 +137,40 @@ export class SessionPresenter implements OnInit, OnDestroy {
         else if (session.status === 'ENDED') {
           this.stage.set('PODIUM')
           this.fetchScores()
+          this.launchPodiumAnimation()
         }
       }
     })
     this.connectSse(id)
   }
 
+  protected launchPodiumAnimation(): void {
+    this.clearPodiumTimeouts()
+    this.podiumStep.set(0)
+    this.podiumTimeouts.push(
+      setTimeout(() => this.podiumStep.set(1), 1200),
+      setTimeout(() => this.podiumStep.set(2), 2600),
+      setTimeout(() => this.podiumStep.set(3), 4000),
+    )
+  }
+
+  protected skipPodiumAnimation(): void {
+    this.clearPodiumTimeouts()
+    this.podiumStep.set(3)
+  }
+
+  private clearPodiumTimeouts(): void {
+    for (const t of this.podiumTimeouts) {
+      clearTimeout(t)
+    }
+    this.podiumTimeouts = []
+  }
+
   private timerInterval: ReturnType<typeof setInterval> | null = null
 
   ngOnDestroy(): void {
     this.stopCountdown()
+    this.clearPodiumTimeouts()
     if (this.eventSource) {
       this.eventSource.close()
     }
@@ -196,6 +225,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       'QUESTION_TIME_WARNING',
       'QUESTION_REVEAL',
       'INTERMEDIATE_LEADERBOARD',
+      'ANSWER_RECEIVED',
       'SESSION_ENDED',
       'PARTICIPANT_KICKED',
     ]
@@ -284,6 +314,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
         this.stopCountdown()
         this.stage.set('PODIUM')
         this.fetchScores()
+        this.launchPodiumAnimation()
         break
     }
   }
@@ -303,18 +334,22 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   protected revealAnswers(): void {
-    if (typeof fetch !== 'undefined') {
-      const apiUrl = this.config.appConfig.value().apiUrl
-      fetch(`${apiUrl}/sessions/${this.sessionId()}/reveal`, { method: 'POST' }).catch(() => void 0)
-    }
+    this.sessionService.revealAnswers(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
     this.stage.set('REVEAL')
   }
 
   protected downloadCsv(): void {
-    if (typeof window !== 'undefined') {
-      const apiUrl = this.config.appConfig.value().apiUrl
-      window.open(`${apiUrl}/sessions/${this.sessionId()}/export/csv`, '_blank')
-    }
+    const apiUrl = this.config.appConfig.value().apiUrl
+    this.http.get(`${apiUrl}/sessions/${this.sessionId()}/export/csv`, { responseType: 'blob' })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((blob) => {
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `session-${this.sessionId()}-resultats.csv`
+        a.click()
+        window.URL.revokeObjectURL(url)
+      })
   }
 
   protected nextStep(): void {

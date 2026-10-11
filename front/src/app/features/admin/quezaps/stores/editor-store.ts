@@ -15,15 +15,17 @@ import {
   throwError,
 } from 'rxjs'
 
+import { ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
 import {
   emptyRawQuezap, QuestionType, QuestionTypeFrom,
+  QuezapId,
   QuezapWithQuestionsAndAnswers,
 } from '@quezap/domain/models'
 
 import { QUEZAP_SERVICE } from '../services'
 
-type QuezapEditorStateModel = Omit<QuezapWithQuestionsAndAnswers, 'id'>
+type QuezapEditorStateModel = Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId }
 type QuestionWithAnswers = QuezapWithQuestionsAndAnswers['questionWithAnswersAndResponses'][0]
 
 const DEFAULT_QUESTION_TYPE = QuestionType.Quizz
@@ -61,6 +63,11 @@ export const QuezapEditorStore = signalStore(
     questions: computed(() => quezap().questionWithAnswersAndResponses),
     selectedQuestion: computed(() =>
       quezap().questionWithAnswersAndResponses[selectionQuestionIdx()],
+    ),
+    hasInvalidAnswers: computed(() =>
+      quezap().questionWithAnswersAndResponses.some(
+        q => !q.answers.some(a => a.isCorrect),
+      ),
     ),
   })),
 
@@ -146,6 +153,45 @@ export const QuezapEditorStore = signalStore(
       })
     },
 
+    moveQuestionUp(idx: number) {
+      if (idx <= 0) {
+        return
+      }
+
+      patchState(store, (state) => {
+        const questions = [...state.quezap.questionWithAnswersAndResponses]
+        const temp = questions[idx]
+        questions[idx] = questions[idx - 1]
+        questions[idx - 1] = temp
+
+        return {
+          quezap: { ...state.quezap, questionWithAnswersAndResponses: questions },
+          isDirty: true,
+          selectionQuestionIdx: idx - 1,
+        }
+      })
+    },
+
+    moveQuestionDown(idx: number) {
+      const total = store.questions().length
+      if (idx >= total - 1) {
+        return
+      }
+
+      patchState(store, (state) => {
+        const questions = [...state.quezap.questionWithAnswersAndResponses]
+        const temp = questions[idx]
+        questions[idx] = questions[idx + 1]
+        questions[idx + 1] = temp
+
+        return {
+          quezap: { ...state.quezap, questionWithAnswersAndResponses: questions },
+          isDirty: true,
+          selectionQuestionIdx: idx + 1,
+        }
+      })
+    },
+
     reset() {
       patchState(store, {
         quezap: createEmptyQuezapState(),
@@ -155,6 +201,17 @@ export const QuezapEditorStore = signalStore(
     },
 
     async persist(): Promise<QuezapWithQuestionsAndAnswers> {
+      const questions = store.questions()
+      const hasUncheckedQuestion = questions.some(
+        q => !q.answers.some(a => a.isCorrect),
+      )
+      if (hasUncheckedQuestion) {
+        throw new ValidationError(
+          {},
+          'Chaque question doit comporter au moins une bonne réponse cochée',
+        )
+      }
+
       patchState(store, { persisting: true })
 
       return lastValueFrom(
@@ -164,9 +221,13 @@ export const QuezapEditorStore = signalStore(
               return throwError(() => output.error)
             }
 
-            const savedQuezap = { id: output.result.id, ...store.quezap() }
+            const savedQuezap: QuezapWithQuestionsAndAnswers = {
+              ...store.quezap(),
+              id: output.result.id,
+            }
 
             patchState(store, {
+              quezap: savedQuezap,
               isDirty: false,
               persisting: false,
             })

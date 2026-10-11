@@ -23,7 +23,8 @@ import {
 } from '@quezap/domain/models'
 
 import {
-  NoMoreQuestions, SESSION_API_SERVICE,
+  IntermediateLeaderboardData,
+  NoMoreQuestions, QuestionRevealData, SESSION_API_SERVICE,
   SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionStarted,
   sessionWaitingStart,
   WaitingQuestion,
@@ -41,6 +42,8 @@ interface ActiveSessionState {
   _sessionIsLoaded: boolean
   _sessionIsRunning: boolean
   _participants: Participant[]
+  lastReveal: QuestionRevealData | undefined
+  lastLeaderboard: IntermediateLeaderboardData | undefined
 }
 
 const initialState: ActiveSessionState = {
@@ -50,6 +53,8 @@ const initialState: ActiveSessionState = {
   _sessionIsLoaded: false,
   _sessionIsRunning: false,
   _participants: [],
+  lastReveal: undefined,
+  lastLeaderboard: undefined,
 }
 
 export const ActiveSessionStore = signalStore(
@@ -60,6 +65,14 @@ export const ActiveSessionStore = signalStore(
     restorationComplete: computed(() => store._sessionIsLoaded()),
     participants: computed(() => store._participants()),
     sessionHasStarted: computed(() => store._sessionIsRunning()),
+    myRanking: computed(() => {
+      const nickname = store._nickname?.()?.value
+      const lb = store.lastLeaderboard()
+      if (!nickname || !lb) return undefined
+      return lb.leaderboard.find(
+        e => e.participantName.trim().toLowerCase() === nickname.trim().toLowerCase(),
+      )
+    }),
   })),
 
   withMethods((
@@ -183,7 +196,19 @@ export const ActiveSessionStore = signalStore(
         effect(() => {
           const question = sessionObserver.question()
           console.debug('Updating current question from session observer', question)
-          patchState(store, { question })
+          patchState(store, { question, lastReveal: undefined })
+        })
+
+        // * React to reveal updates
+        effect(() => {
+          const lastReveal = sessionObserver.reveal()
+          patchState(store, { lastReveal })
+        })
+
+        // * React to leaderboard updates
+        effect(() => {
+          const lastLeaderboard = sessionObserver.leaderboard()
+          patchState(store, { lastLeaderboard })
         })
 
         // * Listen to session status updates

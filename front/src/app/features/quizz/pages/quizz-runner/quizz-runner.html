@@ -48,4 +48,50 @@
       (exhausted)="onTimeExhausted()"
     />
   </div>
+
+  @let reveal = lastReveal();
+  @if (reveal !== undefined) {
+    <div class="fixed inset-x-4 bottom-6 z-50 max-w-lg mx-auto bg-slate-900/95 border-2 border-amber-500/80 rounded-3xl p-5 shadow-2xl backdrop-blur-xl text-white animate-fade-in flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">✨</span>
+          <span class="font-black text-lg text-amber-400 uppercase tracking-wide">Résultats du tour</span>
+        </div>
+        @let rank = myRanking();
+        @if (rank !== undefined) {
+          <span class="px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full font-black text-amber-300 text-sm">
+            Rang #{{ rank.rank }}
+          </span>
+        }
+      </div>
+
+      @let points = pointsEarned();
+      <div class="flex items-center justify-between bg-slate-800/80 rounded-2xl p-3 border border-slate-700/60">
+        <div class="flex flex-col">
+          <span class="text-xs text-slate-400 font-semibold">Points gagnés</span>
+          <span class="text-2xl font-black" [class.text-emerald-400]="points > 0" [class.text-slate-400]="points === 0">
+            {{ points > 0 ? '+' + points : '0' }} pts
+          </span>
+        </div>
+        @let rank = myRanking();
+        @if (rank !== undefined) {
+          <div class="flex flex-col text-right">
+            <span class="text-xs text-slate-400 font-semibold">Score total</span>
+            <span class="text-2xl font-black text-indigo-400 font-mono">{{ rank.score }} pts</span>
+          </div>
+        }
+      </div>
+
+      @if (reveal.explanation) {
+        <p class="text-sm text-slate-300 bg-slate-800/50 rounded-xl p-2.5 border border-slate-700/30">
+          💡 {{ reveal.explanation }}
+        </p>
+      }
+
+      <p class="text-xs text-center text-slate-400 font-medium">
+        Regarde le grand écran pour les détails et la prochaine question !
+      </p>
+    </div>
+  }
 </div>
+

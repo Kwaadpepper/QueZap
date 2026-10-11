@@ -35,7 +35,7 @@ type Responses = Record<number, boolean>
 export class BooleanQuestionView {
   private readonly timerStore = inject(TimerStore)
   private readonly sessionApi = inject(SESSION_API_SERVICE)
-  protected hasSubmitted = false
+  protected readonly hasSubmitted = signal(false)
 
   protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
 
@@ -81,7 +81,7 @@ export class BooleanQuestionView {
         0: false,
         1: false,
       })
-      this.hasSubmitted = false
+      this.hasSubmitted.set(false)
     })
 
     effect(() => {
@@ -105,15 +105,15 @@ export class BooleanQuestionView {
         })
       }
 
-      if (!this.hasSubmitted && selectedKeys.length === 1) {
-        this.hasSubmitted = true
+      if (!this.hasSubmitted() && selectedKeys.length === 1) {
+        this.hasSubmitted.set(true)
         this.sessionApi.submitAnswer(Number(selectedKeys[0])).subscribe()
       }
     })
   }
 
   protected selectAnswer(index: number) {
-    if (this.cannotAnswerAnymore() || this.hasSubmitted) return
+    if (this.cannotAnswerAnymore() || this.hasSubmitted()) return
     this.responses.set({
       0: index === 0,
       1: index === 1,

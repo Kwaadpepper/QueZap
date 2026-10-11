@@ -83,7 +83,9 @@ export class QuezapMockService implements QuezapService {
     )
   }
 
-  persistQuezap(quezap: Omit<QuezapWithQuestionsAndAnswers, 'id'>): ServiceOutput<Pick<Quezap, 'id'>> {
+  persistQuezap(
+    quezap: QuezapWithQuestionsAndAnswers | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId }),
+  ): ServiceOutput<Pick<Quezap, 'id'>> {
     return of(quezap).pipe(
       delay(this.MOCK_DELAY()),
       tap(() => {
@@ -92,11 +94,12 @@ export class QuezapMockService implements QuezapService {
           throw new ServiceError('Mock service error: quezap persist')
         }
       }),
-      map(() => {
+      map((q) => {
         console.debug('Mock: persisted quezap')
+        const id = q.id ?? this.mockedQuezaps()[0].id
         return {
           kind: 'success',
-          result: this.mockedQuezaps()[0].id,
+          result: { id },
         }
       }),
     )

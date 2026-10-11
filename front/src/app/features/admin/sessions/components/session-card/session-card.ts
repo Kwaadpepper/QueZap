@@ -35,4 +35,8 @@ export class SessionCard {
   protected onSessionPresent(): void {
     this.router.navigate(['/admin/sessions', this.session().id, 'present'])
   }
+
+  protected onSessionReport(): void {
+    this.router.navigate(['/admin/sessions', this.session().id, 'report'])
+  }
 }

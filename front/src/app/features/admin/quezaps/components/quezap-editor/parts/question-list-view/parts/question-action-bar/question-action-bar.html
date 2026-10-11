@@ -2,6 +2,34 @@
   <button
     class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
     pButton
+    ariaLabel="Monter la question"
+    text
+    raised
+    severity="contrast"
+    size="small"
+    rounded
+    [disabled]="index() <= 0"
+    (click)="onMoveUp(index())"
+  >
+    <quizz-icon name="arrow-up" pButtonIcon />
+  </button>
+  <button
+    class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
+    pButton
+    ariaLabel="Descendre la question"
+    text
+    raised
+    severity="contrast"
+    size="small"
+    rounded
+    [disabled]="index() >= questions().length - 1"
+    (click)="onMoveDown(index())"
+  >
+    <quizz-icon name="arrow-down" pButtonIcon />
+  </button>
+  <button
+    class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
+    pButton
     ariaLabel="Dupliquer la question"
     text
     raised

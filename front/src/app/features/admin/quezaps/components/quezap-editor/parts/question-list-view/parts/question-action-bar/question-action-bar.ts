@@ -25,6 +25,14 @@ export class QuestionActionBar {
   readonly selected = computed(() => this.editorStore.selectionQuestionIdx() === this.index())
   protected readonly questions = computed(() => this.editorStore.questions())
 
+  protected onMoveUp(index: number) {
+    this.editorStore.moveQuestionUp(index)
+  }
+
+  protected onMoveDown(index: number) {
+    this.editorStore.moveQuestionDown(index)
+  }
+
   protected onDuplicateQuestion(index: number) {
     this.editorStore.duplicateQuestionAtIdx(index)
   }

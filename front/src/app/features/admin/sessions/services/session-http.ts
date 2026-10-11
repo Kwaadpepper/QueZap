@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core'
 
 import { catchError, map, of } from 'rxjs'
 
-import { LeaderboardResponseDto } from '@quezap/core/api-client'
+import { LeaderboardResponseDto, SessionReportDto } from '@quezap/core/api-client'
 import { NotFoundError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
@@ -103,6 +103,18 @@ export class SessionHttpService implements SessionService {
     )
   }
 
+  revealAnswers(id: string): ServiceOutput<void> {
+    return this.http.post<void>(`${this.apiUrl}/sessions/${id}/reveal`, {}).pipe(
+      map(() => ({ kind: 'success' as const, result: undefined })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new NotFoundError(
+          error.error?.message || error.error?.detail || error.message || 'Erreur révélation réponses',
+        ),
+      })),
+    )
+  }
+
   getScores(id: string): ServiceOutput<LeaderboardResponseDto> {
     return this.http.get<LeaderboardResponseDto>(`${this.apiUrl}/sessions/${id}/scores`).pipe(
       map(res => ({ kind: 'success' as const, result: res })),
@@ -110,6 +122,18 @@ export class SessionHttpService implements SessionService {
         kind: 'failure' as const,
         error: new NotFoundError(
           error.error?.message || error.error?.detail || error.message || 'Erreur récupération scores',
+        ),
+      })),
+    )
+  }
+
+  getSessionReport(id: string): ServiceOutput<SessionReportDto> {
+    return this.http.get<SessionReportDto>(`${this.apiUrl}/sessions/${id}/report`).pipe(
+      map(res => ({ kind: 'success' as const, result: res })),
+      catchError(error => of({
+        kind: 'failure' as const,
+        error: new NotFoundError(
+          error.error?.message || error.error?.detail || error.message || 'Erreur récupération rapport',
         ),
       })),
     )
