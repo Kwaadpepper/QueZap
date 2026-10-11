@@ -8,6 +8,7 @@ import { ActivatedRoute } from '@angular/router'
 import { QRCodeComponent } from 'angularx-qrcode'
 
 import { Config } from '@quezap/core/services/config/config'
+import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
 import { SESSION_SERVICE } from '../../services/session'
 
@@ -88,6 +89,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private readonly sessionService = inject(SESSION_SERVICE)
   private readonly config = inject(Config)
   private readonly http = inject(HttpClient)
+  private readonly layout = inject(LayoutSettings)
 
   protected readonly sessionId = signal<string>('')
   protected readonly sessionCode = signal<string>('')
@@ -123,6 +125,9 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private eventSource: EventSource | null = null
 
   ngOnInit(): void {
+    this.layout.asWebsite.set(false)
+    this.layout.inContainer.set(false)
+
     const id = this.route.snapshot.paramMap.get('id') || '018e3a2b-8888-7def-8123-abcdef888888'
     this.sessionId.set(id)
 
@@ -169,6 +174,8 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private timerInterval: ReturnType<typeof setInterval> | null = null
 
   ngOnDestroy(): void {
+    this.layout.asWebsite.set(true)
+    this.layout.inContainer.set(true)
     this.stopCountdown()
     this.clearPodiumTimeouts()
     if (this.eventSource) {

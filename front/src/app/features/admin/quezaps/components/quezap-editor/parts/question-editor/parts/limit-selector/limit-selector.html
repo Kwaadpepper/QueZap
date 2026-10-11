@@ -1,7 +1,21 @@
-<div class="flex flex-col">
-  <span class="mb-2" [id]="selectId">⏱️ Minuteur</span>
+<div class="flex flex-col gap-2">
+  <span class="text-xs font-bold text-slate-500 uppercase tracking-wider" [id]="selectId">⏱️ Minuteur</span>
+
+  <div class="flex flex-wrap gap-1.5 mb-1">
+    @for (sec of quickLimits; track sec) {
+      <button
+        type="button"
+        class="px-2.5 py-1 text-xs rounded-lg font-bold border transition cursor-pointer"
+        [class]="selectedLimit() === sec ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-surface-100 dark:bg-surface-800 text-slate-700 dark:text-slate-300 border-surface-200 dark:border-surface-700 hover:bg-surface-200 dark:hover:bg-surface-700'"
+        (click)="setQuickLimit(sec)"
+      >
+        {{ sec }}s
+      </button>
+    }
+  </div>
+
   <p-select
-    class="w-full md:w-56"
+    class="w-full"
     optionValue="value"
     optionLabel="label"
     [ariaLabelledBy]="selectId"

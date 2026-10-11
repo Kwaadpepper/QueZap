@@ -17,27 +17,40 @@
       </p>
     }
 
-    <div class="flex items-center justify-end gap-2 pt-2 border-t border-surface-100 dark:border-surface-800">
-      @if (editable()) {
-        <p-button
-          label="Dupliquer"
-          size="small"
-          severity="secondary"
-          title="Dupliquer ce quezap"
-          (onClick)="onQuezapDuplicate()"
-        >
-          <quizz-icon name="copy" pButtonIcon />
-        </p-button>
-        <p-button
-          label="Éditer"
-          size="small"
-          severity="secondary"
-          title="Modifier ce quezap"
-          (onClick)="onQuezapEdit()"
-        >
-          <quizz-icon name="pencil" pButtonIcon />
-        </p-button>
-      }
+    <div class="flex items-center justify-between gap-2 pt-2 border-t border-surface-100 dark:border-surface-800">
+      <p-button
+        label="Lancer"
+        size="small"
+        severity="primary"
+        title="Lancer une session en direct (nouvel onglet)"
+        [disabled]="launchingSession()"
+        (onClick)="onQuezapLaunch()"
+      >
+        <span pButtonIcon class="text-xs">🚀</span>
+      </p-button>
+
+      <div class="flex items-center gap-1.5">
+        @if (editable()) {
+          <p-button
+            size="small"
+            severity="secondary"
+            text
+            title="Dupliquer ce quezap"
+            (onClick)="onQuezapDuplicate()"
+          >
+            <quizz-icon name="copy" pButtonIcon />
+          </p-button>
+          <p-button
+            size="small"
+            severity="secondary"
+            text
+            title="Modifier ce quezap"
+            (onClick)="onQuezapEdit()"
+          >
+            <quizz-icon name="pencil" pButtonIcon />
+          </p-button>
+        }
+      </div>
     </div>
   </div>
 </p-card>

@@ -7,6 +7,7 @@ import {
   output,
   signal,
 } from '@angular/core'
+import { Router } from '@angular/router'
 
 import { ConfirmationService, MessageService } from 'primeng/api'
 import { ButtonModule } from 'primeng/button'
@@ -16,6 +17,7 @@ import { ValidationError } from '@quezap/core/errors'
 import { QuestionType, QuestionTypeFrom, QuezapId, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
+import { SESSION_SERVICE } from '../../../sessions/services/session'
 import { QuezapEditorStore } from '../../stores'
 
 import { QuestionEditor, QuestionListView, TitleEditor } from './parts'
@@ -46,6 +48,8 @@ export class QuezapEditor {
   private readonly editorStore = inject(QuezapEditorStore)
   private readonly confirmation = inject(ConfirmationService)
   private readonly message = inject(MessageService)
+  private readonly router = inject(Router)
+  private readonly sessionService = inject(SESSION_SERVICE)
 
   readonly quezap = input<QuezapEditorInput>()
   private readonly _quezap = signal<QuezapEditorInput>({
@@ -62,6 +66,7 @@ export class QuezapEditor {
   protected readonly persisting = computed(() => this.editorStore.persisting())
   protected readonly isDirty = computed(() => this.editorStore.isDirty())
   protected readonly hasInvalidAnswers = computed(() => this.editorStore.hasInvalidAnswers())
+  protected readonly launchingSession = signal(false)
 
   constructor() {
     this.editorStore.setQuezap(this._quezap())
@@ -105,6 +110,46 @@ export class QuezapEditor {
 
         throw new Error('Erreur lors de l\'enregistrement du questionnaire', err)
       })
+  }
+
+  protected onLaunchSession(): void {
+    const q = this.editorStore.quezap()
+    const id = q.id
+    if (!id) return
+
+    const launch = (quezapId: string) => {
+      this.launchingSession.set(true)
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      const name = `${q.title || 'Session'} - ${timeStr}`
+      this.sessionService.createSession(quezapId, name).subscribe((output) => {
+        this.launchingSession.set(false)
+        if (output.kind === 'success') {
+          this.message.add({
+            summary: 'Session lancée !',
+            detail: `Code PIN : ${output.result.code || output.result.sessionCode}`,
+            severity: 'success',
+          })
+          const url = this.router.serializeUrl(
+            this.router.createUrlTree(['/admin/sessions', output.result.id, 'present']),
+          )
+          window.open(url, '_blank')
+        }
+        else {
+          this.message.add({
+            summary: 'Erreur',
+            detail: 'Impossible de créer la session',
+            severity: 'error',
+          })
+        }
+      })
+    }
+
+    if (this.isDirty()) {
+      this.editorStore.persist().then(() => launch(id)).catch(() => void 0)
+    }
+    else {
+      launch(id)
+    }
   }
 
   protected onCloseEditor() {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
@@ -9,6 +9,7 @@ import { ChipModule } from 'primeng/chip'
 import { QuezapWithTheme } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
+import { SESSION_SERVICE } from '../../../sessions/services/session'
 import { QUEZAP_SERVICE } from '../../services/quezap'
 import { QuezapPageStore } from '../../stores'
 
@@ -27,11 +28,40 @@ import { QuezapPageStore } from '../../stores'
 export class QuezapCard {
   private readonly router = inject(Router)
   private readonly quezapService = inject(QUEZAP_SERVICE)
+  private readonly sessionService = inject(SESSION_SERVICE)
   private readonly messageService = inject(MessageService)
   private readonly quezapPage = inject(QuezapPageStore)
 
   readonly quezap = input.required<QuezapWithTheme>()
   readonly editable = input<boolean>(false)
+  protected readonly launchingSession = signal(false)
+
+  protected onQuezapLaunch(): void {
+    this.launchingSession.set(true)
+    const q = this.quezap()
+    const name = `${q.title} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    this.sessionService.createSession(q.id, name).subscribe((res) => {
+      this.launchingSession.set(false)
+      if (res.kind === 'success') {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Session lancée !',
+          detail: `Code PIN : ${res.result.code || res.result.sessionCode}`,
+        })
+        const url = this.router.serializeUrl(
+          this.router.createUrlTree(['/admin/sessions', res.result.id, 'present']),
+        )
+        window.open(url, '_blank')
+      }
+      else {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Échec du lancement de la session',
+        })
+      }
+    })
+  }
 
   protected onQuezapEdit(): void {
     this.router.navigate(['/admin/quezaps', this.quezap().id, 'edit'])

@@ -42,4 +42,10 @@ export const routes: Routes = [
     ],
     loadChildren: () => import('./quizz/routes').then(m => m.routes),
   },
+  {
+    path: 'projector/:id',
+    title: 'Écran de Projection',
+    loadComponent: () =>
+      import('./admin/sessions/pages/session-presenter/session-presenter').then(m => m.SessionPresenter),
+  },
 ]

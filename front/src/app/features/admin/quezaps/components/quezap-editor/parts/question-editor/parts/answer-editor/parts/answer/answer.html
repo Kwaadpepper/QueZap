@@ -1,42 +1,40 @@
-<div class="answer-option relative flex h-full w-full" [class]="`answer-option-${index()}`">
-  <div class="flex w-full items-center gap-2 px-2 py-3">
-    <quizz-question-icon [form]="currentForm()" [checked]="true" />
+<div class="answer-option relative flex h-full w-full items-center rounded-2xl border-2 p-3 transition-all" [class]="`answer-option-${index()}`">
+  <div class="flex w-full items-center gap-3">
+    <quizz-question-icon class="shrink-0" [form]="currentForm()" [checked]="true" />
 
-    <div class="align-items-center flex grow flex-row justify-center">
-      <div class="flex grow items-center justify-center px-2">
+    <quizz-phrase-input
+      class="flex-1 min-w-0"
+      [index]="index()"
+      [phrase]="phrase()"
+      [readonly]="readonly()"
+      (phraseChanged)="onPhraseChanged($event)"
+    />
+
+    <div class="flex items-center gap-2 shrink-0">
+      @if (answer().picture) {
+        <div class="relative inline-block">
+          <img alt="Answer Image" class="max-h-12 max-w-full rounded-md object-contain" [src]="answer().picture" />
+          <button class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 w-5 h-5 flex items-center justify-center text-xs shadow" title="Supprimer l'image" (click)="removePicture()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      } @else {
+        <p-fileUpload
+          mode="basic"
+          chooseIcon="pi pi-image"
+          chooseLabel=" "
+          accept="image/*"
+          maxFileSize="1000000"
+          [auto]="true"
+          (onSelect)="onUpload($event)"
+        />
+      }
+
+      <div class="flex items-center pl-2 border-l border-slate-300/50 dark:border-slate-700/50" title="Marquer comme bonne réponse">
         <quizz-answer-correctness
           [checked]="isCorrect()"
           (correctnessChanged)="onCorrectnessChanged($event)"
         />
-      </div>
-
-      <quizz-phrase-input
-        class="w-full"
-        [index]="index()"
-        [phrase]="phrase()"
-        [readonly]="readonly()"
-        (phraseChanged)="onPhraseChanged($event)"
-      />
-
-      <div class="flex items-center px-2">
-        @if (answer().picture) {
-          <div class="relative inline-block">
-            <img alt="Answer Image" class="max-h-12 max-w-full rounded-md object-contain" [src]="answer().picture" />
-            <button class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 w-4 h-4 flex items-center justify-center text-xs" title="Supprimer l'image" (click)="removePicture()">
-              <i class="pi pi-times"></i>
-            </button>
-          </div>
-        } @else {
-          <p-fileUpload
-            mode="basic"
-            chooseIcon="pi pi-image"
-            chooseLabel=" "
-            accept="image/*"
-            maxFileSize="1000000"
-            [auto]="true"
-            (onSelect)="onUpload($event)"
-          />
-        }
       </div>
     </div>
   </div>

@@ -47,6 +47,10 @@ export class QuestionPreviewButton {
     }
   })
 
+  protected readonly hasCorrectAnswer = computed(() => {
+    return this.question().answers.some(a => a.isCorrect)
+  })
+
   protected onSelectQuestion() {
     this.selected.emit()
   }

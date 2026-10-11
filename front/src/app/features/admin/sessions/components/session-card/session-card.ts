@@ -33,7 +33,10 @@ export class SessionCard {
   }
 
   protected onSessionPresent(): void {
-    this.router.navigate(['/admin/sessions', this.session().id, 'present'])
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree(['/admin/sessions', this.session().id, 'present']),
+    )
+    window.open(url, '_blank')
   }
 
   protected onSessionReport(): void {

@@ -15,7 +15,7 @@
         @if (editedPhrase().length > 0) {
           <span>{{ editedPhrase() }}</span>
         } @else {
-          <span class="opacity-80">Titre du QueZap (cliquez pour éditer)...</span>
+          <span class="opacity-60 font-normal">Saisissez votre question ici... (cliquez pour éditer)</span>
         }
       </h1>
     </ng-template>
@@ -27,8 +27,8 @@
           pInputText
           fluid
           variant="filled"
-          class="border-0! border-transparent! p-6! text-center! text-3xl! tracking-tighter! uppercase! italic!"
-          placeholder="Titre du QueZap (cliquez pour éditer)..."
+          class="border-0! border-transparent! p-6! text-center! text-2xl! md:text-3xl! font-bold! tracking-tight!"
+          placeholder="Saisissez votre question ici..."
           [pAutoFocus]="true"
           (blur)="inplaceRef.deactivate()"
           (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate() : ''"

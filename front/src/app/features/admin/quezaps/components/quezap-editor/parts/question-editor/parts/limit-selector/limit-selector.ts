@@ -45,7 +45,14 @@ export class LimitSelector {
 
   protected selectedLimit = signal<number>(this.availableLimitSeconds()[0].value)
 
+  protected readonly quickLimits = [10, 20, 30, 60, 90]
+
   protected readonly selectId = `quezap-question-limit-selector-${uniqueId++}`
+
+  protected setQuickLimit(sec: number): void {
+    this.selectedLimit.set(sec)
+    this.onLimitChange({ value: sec } as SelectChangeEvent)
+  }
 
   constructor() {
     effect(() => {

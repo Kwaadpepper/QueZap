@@ -1,15 +1,15 @@
-<menu class="flex flex-col flex-wrap items-center gap-2">
+<menu class="flex flex-col gap-2 w-full p-0 m-0">
   <p-button
-    class="w-fit"
+    styleClass="w-full justify-center"
     severity="secondary"
     [disabled]="questionsCount() <= 0"
     (onClick)="onDuplicateQuestion()"
   >
     <quizz-icon pButtonLabel name="copy" />
-    <span pButtonLabel>Duppliquer</span>
+    <span pButtonLabel>Dupliquer</span>
   </p-button>
   <p-button
-    class="w-fit"
+    styleClass="w-full justify-center"
     severity="danger"
     outlined
     [disabled]="questionsCount() <= 1"

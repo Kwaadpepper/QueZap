@@ -18,7 +18,27 @@
         }
         <span pButtonLabel>Enregistrer</span>
       </button>
-      <button pButton raised severity="secondary" class="ml-4" (click)="onCloseEditor()">
+
+      @if (quezap()?.id) {
+        <button
+          pButton
+          raised
+          severity="primary"
+          class="ml-2"
+          title="Lancer la session en direct et ouvrir l'écran de projection"
+          [disabled]="persisting() || hasInvalidAnswers() || launchingSession()"
+          (click)="onLaunchSession()"
+        >
+          @if (launchingSession()) {
+            <quizz-icon name="cog" animation="spin" pButtonIcon />
+          } @else {
+            <span pButtonIcon class="text-sm">🚀</span>
+          }
+          <span pButtonLabel>Lancer en direct</span>
+        </button>
+      }
+
+      <button pButton raised severity="secondary" class="ml-2" (click)="onCloseEditor()">
         <span pButtonLabel>Fermer</span>
       </button>
     </menu>
