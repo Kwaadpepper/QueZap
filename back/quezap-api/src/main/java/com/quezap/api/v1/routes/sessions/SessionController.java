@@ -355,7 +355,7 @@ public class SessionController {
     sessionJpa.setStartedAt(now);
     sessionJpa.setCurrentSlideIndex(1);
     sessionJpa.setCurrentSlideStartedAt(now);
-    sessionJpaRepository.save(sessionJpa);
+    sessionJpaRepository.saveAndFlush(sessionJpa);
 
     final var startedAt = sessionJpa.getStartedAt() != null ? sessionJpa.getStartedAt() : now;
     final var payload = new SessionStartedPayload(startedAt, totalSlides, 3);
@@ -423,7 +423,7 @@ public class SessionController {
     if (nextIndex > totalSlides) {
       final var endedAt = Instant.now();
       sessionJpa.setEndedAt(endedAt);
-      sessionJpaRepository.save(sessionJpa);
+      sessionJpaRepository.saveAndFlush(sessionJpa);
 
       final var sortedParticipants =
           sessionJpa.getParticipants().stream()
@@ -461,7 +461,7 @@ public class SessionController {
 
     sessionJpa.setCurrentSlideIndex(nextIndex);
     sessionJpa.setCurrentSlideStartedAt(Instant.now());
-    sessionJpaRepository.save(sessionJpa);
+    sessionJpaRepository.saveAndFlush(sessionJpa);
 
     // Get current slide question details for SSE (Safe without isCorrect)
     final var currentQq = questionsList.get(Math.min(nextIndex - 1, totalSlides - 1));
@@ -874,7 +874,7 @@ public class SessionController {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Participant not found"));
 
     participant.setIsKicked(true);
-    sessionJpaRepository.save(sessionJpa);
+    sessionJpaRepository.saveAndFlush(sessionJpa);
 
     // Broadcast PARTICIPANT_KICKED
     final var kickedPayload = new ParticipantKickedPayload(name, "HOST_KICK");

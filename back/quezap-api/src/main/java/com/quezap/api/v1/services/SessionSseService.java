@@ -1,10 +1,10 @@
 package com.quezap.api.v1.services;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -26,6 +26,16 @@ public class SessionSseService {
 
   private final ConcurrentHashMap<UUID, CopyOnWriteArrayList<SseEmitter>> emitters =
       new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<UUID, AtomicLong> sessionSequences = new ConcurrentHashMap<>();
+
+  public long nextSequence(UUID sessionId) {
+    return sessionSequences.computeIfAbsent(sessionId, k -> new AtomicLong(0)).incrementAndGet();
+  }
+
+  public long getCurrentSequence(UUID sessionId) {
+    final var seq = sessionSequences.get(sessionId);
+    return seq != null ? seq.get() : 0L;
+  }
 
   public SseEmitter registerEmitter(UUID sessionId) {
     final var emitter = new SseEmitter(DEFAULT_TIMEOUT_MS);
@@ -53,7 +63,7 @@ public class SessionSseService {
                 .name("CONNECTED")
                 .data("{\"status\":\"CONNECTED\"}", MediaType.APPLICATION_JSON));
       }
-    } catch (IOException | IllegalStateException e) {
+    } catch (Exception e) {
       logger.debug("Failed to send initial connect event to SSE emitter", e);
       removeEmitter(sessionId, emitter);
     }
@@ -64,11 +74,17 @@ public class SessionSseService {
   public <T> void sendToEmitter(
       SseEmitter emitter, String eventType, Long sessionNumber, UUID sessionId, T payload) {
     try {
-      final var envelope = SessionEventEnvelope.of(eventType, sessionNumber, sessionId, payload);
+      final var sequence = getCurrentSequence(sessionId);
+      final var envelope =
+          SessionEventEnvelope.of(eventType, sequence, sessionNumber, sessionId, payload);
       synchronized (emitter) {
-        emitter.send(SseEmitter.event().name(eventType).data(envelope, MediaType.APPLICATION_JSON));
+        emitter.send(
+            SseEmitter.event()
+                .id(String.valueOf(sequence))
+                .name(eventType)
+                .data(envelope, MediaType.APPLICATION_JSON));
       }
-    } catch (IOException | IllegalStateException e) {
+    } catch (Exception e) {
       logger.debug("Failed to send direct event to SSE emitter for session {}", sessionId, e);
     }
   }
@@ -79,16 +95,21 @@ public class SessionSseService {
       return;
     }
 
-    final var envelope = SessionEventEnvelope.of(eventType, sessionNumber, sessionId, payload);
+    final var sequence = nextSequence(sessionId);
+    final var envelope =
+        SessionEventEnvelope.of(eventType, sequence, sessionNumber, sessionId, payload);
     final var deadEmitters = new ArrayList<SseEmitter>();
 
     for (final var emitter : sessionEmitters) {
       try {
         synchronized (emitter) {
           emitter.send(
-              SseEmitter.event().name(eventType).data(envelope, MediaType.APPLICATION_JSON));
+              SseEmitter.event()
+                  .id(String.valueOf(sequence))
+                  .name(eventType)
+                  .data(envelope, MediaType.APPLICATION_JSON));
         }
-      } catch (IOException | IllegalStateException e) {
+      } catch (Exception e) {
         logger.debug("Removing disconnected SSE emitter for session {}", sessionId);
         deadEmitters.add(emitter);
       }
