@@ -37,10 +37,14 @@ import com.quezap.api.v1.dto.response.quezaps.QuezapSummaryDto;
 import com.quezap.api.v1.dto.response.quezaps.ThemeDetailDto;
 import com.quezap.api.v1.dto.response.users.UserSummaryDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuestionJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapQuestionJpaEntity;
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.ThemeJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuestionJpaRepository;
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuezapJpaRepository;
+import com.quezap.infrastructure.adapter.persistence.jpa.repositories.ThemeJpaRepository;
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
 import com.quezap.lib.utils.UuidV7;
 
@@ -54,16 +58,19 @@ public class QuezapController {
 
   private final QuezapJpaRepository quezapJpaRepository;
   private final QuestionJpaRepository questionJpaRepository;
+  private final ThemeJpaRepository themeJpaRepository;
   private final UserJpaRepository userJpaRepository;
   private final PaginationMapper paginationMapper;
 
   public QuezapController(
       QuezapJpaRepository quezapJpaRepository,
       QuestionJpaRepository questionJpaRepository,
+      ThemeJpaRepository themeJpaRepository,
       UserJpaRepository userJpaRepository,
       PaginationMapper paginationMapper) {
     this.quezapJpaRepository = quezapJpaRepository;
     this.questionJpaRepository = questionJpaRepository;
+    this.themeJpaRepository = themeJpaRepository;
     this.userJpaRepository = userJpaRepository;
     this.paginationMapper = paginationMapper;
   }
@@ -91,20 +98,7 @@ public class QuezapController {
 
     var order = 1;
     for (final var slideReq : effectiveSlides) {
-      final var question =
-          questionJpaRepository
-              .findById(slideReq.questionId())
-              .orElseThrow(
-                  () ->
-                      new ResponseStatusException(
-                          HttpStatus.BAD_REQUEST, "Question not found: " + slideReq.questionId()));
-
-      final var answers = question.getAnswers();
-      if (answers == null || answers.isEmpty()) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Question #" + order + " has no answers");
-      }
-
+      final var question = resolveOrCreateQuestion(slideReq, order);
       final var timer = slideReq.getEffectiveTimer();
       final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
       final var qq =
@@ -294,11 +288,29 @@ public class QuezapController {
 
     assertQuezapAuthor(quezap);
 
-    quezap.setTitle(request.title());
+    if (request.title() != null) {
+      quezap.setTitle(request.title());
+    }
     quezap.setDescription(request.description());
-    quezap.setIsPublic(request.isPublic());
-    quezap.setUpdatedAt(Instant.now());
+    if (request.isPublic() != null) {
+      quezap.setIsPublic(request.isPublic());
+    }
 
+    if (request.slides() != null) {
+      quezap.getQuestions().clear();
+      var order = 1;
+      for (final var slideReq : request.slides()) {
+        final var question = resolveOrCreateQuestion(slideReq, order);
+        final var timer = slideReq.getEffectiveTimer();
+        final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
+        final var qq =
+            new QuezapQuestionJpaEntity(
+                UuidV7.randomUuid(), quezap, question, timer, points, order++);
+        quezap.addQuestion(qq);
+      }
+    }
+
+    quezap.setUpdatedAt(Instant.now());
     quezapJpaRepository.save(quezap);
   }
 
@@ -326,16 +338,9 @@ public class QuezapController {
 
     assertQuezapAuthor(quezap);
 
-    final var question =
-        questionJpaRepository
-            .findById(request.questionId())
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Question not found: " + request.questionId()));
-
     final var order = quezap.getQuestions().size() + 1;
-    final var timer = Objects.requireNonNullElse(request.timer(), 30);
+    final var question = resolveOrCreateQuestion(request, order);
+    final var timer = request.getEffectiveTimer();
     final var points = Objects.requireNonNullElse(request.points(), 1000);
     final var qq =
         new QuezapQuestionJpaEntity(UuidV7.randomUuid(), quezap, question, timer, points, order);
@@ -343,6 +348,121 @@ public class QuezapController {
     quezap.addQuestion(qq);
     quezap.setUpdatedAt(Instant.now());
     quezapJpaRepository.save(quezap);
+  }
+
+  private QuestionJpaEntity resolveOrCreateQuestion(QuezapSlideRequest slideReq, int order) {
+    if (slideReq.question() != null) {
+      final var qReq = slideReq.question();
+      final var answersReq = qReq.answers();
+      if (answersReq == null || answersReq.isEmpty()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Question #" + order + " has no answers");
+      }
+
+      if (qReq.id() != null) {
+        final var existingOpt = questionJpaRepository.findById(qReq.id());
+        if (existingOpt.isPresent()) {
+          final var existing = existingOpt.get();
+          existing.setLabel(qReq.label());
+          if (qReq.type() != null) {
+            existing.setType(qReq.type());
+          }
+          if (qReq.pictureFilename() != null) {
+            existing.setPictureFilename(qReq.pictureFilename());
+          }
+          if (qReq.themeId() != null || qReq.themeName() != null) {
+            existing.setTheme(resolveTheme(qReq.themeId(), qReq.themeName()));
+          }
+          existing.getAnswers().clear();
+          var ansOrder = 1;
+          for (final var ansReq : answersReq) {
+            final var ansEntity =
+                new AnswerJpaEntity(
+                    ansReq.id() != null ? ansReq.id() : UuidV7.randomUuid(),
+                    existing,
+                    ansReq.label(),
+                    ansReq.pictureFilename(),
+                    Objects.requireNonNullElse(ansReq.isCorrect(), Boolean.FALSE),
+                    ansReq.answerOrder() != null ? ansReq.answerOrder() : ansOrder++);
+            existing.addAnswer(ansEntity);
+          }
+          existing.setUpdatedAt(Instant.now());
+          return questionJpaRepository.save(existing);
+        }
+      }
+
+      final var theme = resolveTheme(qReq.themeId(), qReq.themeName());
+      final var newQuestion =
+          new QuestionJpaEntity(
+              qReq.id() != null ? qReq.id() : UuidV7.randomUuid(),
+              qReq.type() != null ? qReq.type() : "QUIZZ",
+              qReq.label(),
+              qReq.pictureFilename(),
+              theme,
+              Instant.now(),
+              Instant.now());
+
+      var ansOrder = 1;
+      for (final var ansReq : answersReq) {
+        final var ansEntity =
+            new AnswerJpaEntity(
+                ansReq.id() != null ? ansReq.id() : UuidV7.randomUuid(),
+                newQuestion,
+                ansReq.label(),
+                ansReq.pictureFilename(),
+                Objects.requireNonNullElse(ansReq.isCorrect(), Boolean.FALSE),
+                ansReq.answerOrder() != null ? ansReq.answerOrder() : ansOrder++);
+        newQuestion.addAnswer(ansEntity);
+      }
+      return questionJpaRepository.save(newQuestion);
+    }
+
+    if (slideReq.questionId() != null) {
+      final var question =
+          questionJpaRepository
+              .findById(slideReq.questionId())
+              .orElseThrow(
+                  () ->
+                      new ResponseStatusException(
+                          HttpStatus.BAD_REQUEST, "Question not found: " + slideReq.questionId()));
+
+      final var answers = question.getAnswers();
+      if (answers == null || answers.isEmpty()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Question #" + order + " has no answers");
+      }
+
+      return question;
+    }
+
+    throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST,
+        "Slide #" + order + " must provide a questionId or inline question");
+  }
+
+  private ThemeJpaEntity resolveTheme(@Nullable UUID themeId, @Nullable String themeName) {
+    if (themeId != null) {
+      return themeJpaRepository
+          .findById(themeId)
+          .orElseThrow(
+              () ->
+                  new ResponseStatusException(
+                      HttpStatus.BAD_REQUEST, "Theme not found: " + themeId));
+    }
+    if (themeName != null && !themeName.isBlank()) {
+      return themeJpaRepository
+          .findByName(themeName.trim())
+          .orElseGet(
+              () ->
+                  themeJpaRepository.save(
+                      new ThemeJpaEntity(UuidV7.randomUuid(), themeName.trim(), Instant.now())));
+    }
+    return themeJpaRepository
+        .findByName("Général")
+        .orElseGet(
+            () ->
+                themeJpaRepository.save(
+                    new ThemeJpaEntity(UuidV7.randomUuid(), "Général", Instant.now())));
   }
 
   @DeleteMapping("{id}/questions/{questionId}")

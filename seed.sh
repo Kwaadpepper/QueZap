@@ -1,19 +1,27 @@
 #!/bin/bash
 set -e
 
-BASE_URL="http://localhost:8080/apiv1"
+BASE_URL="${BASE_URL:-}"
+if [ -z "$BASE_URL" ]; then
+  if curl -s -m 2 "http://localhost:8000/apiv1/auth/login" > /dev/null 2>&1; then
+    BASE_URL="http://localhost:8000/apiv1"
+  else
+    BASE_URL="http://localhost:8080/apiv1"
+  fi
+fi
 RAND_SUFFIX=$(( RANDOM % 9000 + 1000 ))
 
 echo "=========================================="
 echo "🌱 Seeding QueZap Database via REST API"
+echo "📡 Cible : $BASE_URL"
 echo "=========================================="
 
 # Check if backend is reachable
 if ! curl -s -m 2 "$BASE_URL/auth/login" > /dev/null 2>&1 && ! curl -s -m 2 "http://localhost:8080/actuator/health" > /dev/null 2>&1; then
-  echo "❌ Le backend n'est pas accessible sur http://localhost:8080"
+  echo "❌ Le backend n'est pas accessible sur $BASE_URL"
   echo "👉 Démarre-le d'abord avec l'une des commandes suivantes :"
-  echo "   - Mode Dev : cd back && java -jar quezap-api/build/libs/quezap-api.jar (ou ./gradlew :quezap-api:bootRun)"
-  echo "   - Mode Docker : docker compose up -d backend"
+  echo "   - Mode Docker : docker compose up -d"
+  echo "   - Mode Dev    : ./gradlew :quezap-api:bootRun"
   exit 1
 fi
 

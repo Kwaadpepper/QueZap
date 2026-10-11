@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -16,6 +18,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - quezap-net
 
   minio:
     image: minio/minio:latest
@@ -25,31 +29,37 @@ services:
     environment:
       MINIO_ROOT_USER: quezap_java_writer
       MINIO_ROOT_PASSWORD: LocalPassword
-    ports:
-      - "9190:9000"
-      - "9191:9001"
+    expose:
+      - "9000"
+      - "9001"
     volumes:
       - quezap_minio_data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - quezap-net
 
   minio-init:
     image: minio/mc:latest
     container_name: quezap-minio-init
     depends_on:
       minio:
-        condition: service_started
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      sleep 2;
-      /usr/bin/mc alias set myminio http://minio:9000 quezap_java_writer LocalPassword;
+      until /usr/bin/mc alias set myminio http://minio:9000 quezap_java_writer LocalPassword; do
+        echo 'En attente de MinIO...';
+        sleep 1;
+      done;
       /usr/bin/mc mb myminio/quezap-public-images || true;
       /usr/bin/mc anonymous set download myminio/quezap-public-images || true;
       exit 0;
       "
+    networks:
+      - quezap-net
 
   backend:
     build:
@@ -68,14 +78,29 @@ services:
       APP_DB_PASSWORD: quezap_password
       APP_S3_HOST: minio
       APP_S3_PORT: 9000
-      APP_S3_PUBLIC_ENDPOINT: http://localhost:9190
+      APP_S3_PUBLIC_ENDPOINT: http://localhost:8000
       APP_S3_BUCKET_NAME: quezap-public-images
       APP_S3_ACCESS_KEY_ID: quezap_java_writer
       APP_S3_SECRET_ACCESS_KEY: LocalPassword
       APP_JWT_SECRET_KEY: 4a3c4e58311739e4a396ad7a38a5454ad65cfde67b0fef9aeb351cbb3c478fef
       APP_JWT_ISSUER: quezap.com
+    expose:
+      - "8080"
+    networks:
+      - quezap-net
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: quezap-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
     ports:
-      - "8080:8080"
+      - "8000:80"
+    networks:
+      - quezap-net
 
   cli:
     build:
@@ -96,7 +121,7 @@ services:
       APP_DB_PASSWORD: quezap_password
       APP_S3_HOST: minio
       APP_S3_PORT: 9000
-      APP_S3_PUBLIC_ENDPOINT: http://localhost:9190
+      APP_S3_PUBLIC_ENDPOINT: http://localhost:8000
       APP_S3_BUCKET_NAME: quezap-public-images
       APP_S3_ACCESS_KEY_ID: quezap_java_writer
       APP_S3_SECRET_ACCESS_KEY: LocalPassword
@@ -105,17 +130,29 @@ services:
     stdin_open: true
     tty: true
     command: ["./gradlew", ":quezap-cli:bootRun", "--console=plain"]
+    networks:
+      - quezap-net
 
-  frontend:
-    build:
-      context: ./front
-      dockerfile: Dockerfile
-    container_name: quezap-frontend
-    restart: unless-stopped
+  seed:
+    image: curlimages/curl:latest
+    container_name: quezap-seed
+    profiles:
+      - seed
     depends_on:
       - backend
-    ports:
-      - "8000:80"
+    volumes:
+      - ./seed.sh:/seed.sh:ro
+    environment:
+      BASE_URL: http://backend:8080/apiv1
+      FRONT_PORT: "8000"
+    entrypoint: ["/bin/sh", "/seed.sh"]
+    networks:
+      - quezap-net
+
+networks:
+  quezap-net:
+    driver: bridge
+    name: quezap-net
 
 volumes:
   quezap_postgres_data:

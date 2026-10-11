@@ -2,22 +2,75 @@
 
 Le jeu de Quizz pour mon amoureuse et ses élèves.
 
+## 🚀 Démarrage rapide avec Docker Compose
 
-## Frontend
+L'application peut être lancée facilement avec Docker Compose dans un environnement isolé :
 
-## Backend
+```bash
+docker compose up -d --build
+```
 
-[back/README.md](back/README.md)
+### 🌐 Ports exposés
 
-## Stack technique
+Pour respecter la sécurité et l'isolation des composants, **seuls la BDD et le Frontend sont exposés sur la machine hôte** :
 
-Utilisation de SpringBoot et Angular avec TailwindCss sur les dernières versions.
+| Service | Port hôte | Description |
+| :--- | :--- | :--- |
+| **Frontend** (`frontend`) | `http://localhost:8000` | Application Angular servie par Nginx (avec reverse proxy pour l'API REST `/apiv1/` et les images MinIO `/quezap-public-images/`) |
+| **BDD** (`postgres`) | `5432` | PostgreSQL 17 (accès local direct via psql, DBeaver, etc.) |
+| **Backend** (`backend`) | *Non exposé* | Accessible uniquement au sein du réseau Docker dédié `quezap-net` via Nginx |
+| **MinIO** (`minio`) | *Non exposé* | Stockage d'images S3 interne, images servies publiquement via le reverse proxy Frontend |
 
-## Hébergement
+### 🔒 Réseau dédié
 
-Autohebergé sur mon serveur privé <https://quezap.fr>.
-La version du backend executé est celle compilé nativement
-et fonctionnant en tant que service systemd.
+Tous les conteneurs communiquent au sein d'un réseau bridge dédié isolé nommé `quezap-net`.
 
-Elle est servi au travers de SSLH <-> Apache (reverse proxy) <-> Backend
+### 🌱 Peupler la base de données (Seeding)
 
+Pour injecter automatiquement un compte administrateur, des thèmes, des questions et une session de quiz active :
+
+```bash
+# Option 1 : Via Docker Compose (profil seed)
+docker compose --profile seed run --rm seed
+
+# Option 2 : Via le script hôte (passe par le port 8000 du front)
+./seed.sh
+```
+
+Identifiants admin créés :
+- **Identifiant** : `admin@quezap.com`
+- **Mot de passe** : `Password123!`
+
+### 💻 CLI d'administration
+
+Pour lancer le shell interactif d'administration Spring Shell :
+
+```bash
+docker compose --profile cli run --rm cli
+```
+
+### 🛑 Arrêt des conteneurs
+
+```bash
+docker compose down
+```
+
+Pour supprimer également les volumes de données (BDD et MinIO) :
+
+```bash
+docker compose down -v
+```
+
+---
+
+## 🛠️ Stack technique
+
+- **Backend** : Spring Boot 3.5+ (Java 25), architecture hexagonale & DDD, Spring Security, S3 (MinIO), PostgreSQL.
+- **Frontend** : Angular 21, Tailwind CSS, Nginx, PWA / Service Worker, SSE (Server-Sent Events).
+
+Documentation détaillée du backend : [back/README.md](back/README.md)
+
+## 🌍 Hébergement
+
+Auto-hébergé sur <https://quezap.fr>.
+La version du backend exécutée est compilée nativement avec GraalVM et fonctionne en tant que service systemd servi au travers de SSLH <-> Apache (reverse proxy) <-> Backend.

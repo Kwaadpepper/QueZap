@@ -1,5 +1,6 @@
 package com.quezap.api.v1.routes.sessions;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -54,11 +55,16 @@ import com.quezap.api.v1.dto.response.sessions.JoinSessionResponseDto;
 import com.quezap.api.v1.dto.response.sessions.LeaderboardEntryDto;
 import com.quezap.api.v1.dto.response.sessions.LeaderboardResponseDto;
 import com.quezap.api.v1.dto.response.sessions.NextQuestionResponseDto;
+import com.quezap.api.v1.dto.response.sessions.QuestionAnswerStatDto;
+import com.quezap.api.v1.dto.response.sessions.QuestionReportDto;
 import com.quezap.api.v1.dto.response.sessions.SessionCreatedDto;
 import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
+import com.quezap.api.v1.dto.response.sessions.SessionParticipantReportDto;
+import com.quezap.api.v1.dto.response.sessions.SessionReportDto;
 import com.quezap.api.v1.dto.response.sessions.SessionStatusDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
 import com.quezap.api.v1.services.SessionSseService;
+import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.ports.services.UserNameSanitizer;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
@@ -335,6 +341,7 @@ public class SessionController {
     final var now = Instant.now();
     sessionJpa.setStartedAt(now);
     sessionJpa.setCurrentSlideIndex(1);
+    sessionJpa.setCurrentSlideStartedAt(now);
     sessionJpaRepository.save(sessionJpa);
 
     final var startedAt = sessionJpa.getStartedAt() != null ? sessionJpa.getStartedAt() : now;
@@ -440,6 +447,7 @@ public class SessionController {
     }
 
     sessionJpa.setCurrentSlideIndex(nextIndex);
+    sessionJpa.setCurrentSlideStartedAt(Instant.now());
     sessionJpaRepository.save(sessionJpa);
 
     // Get current slide question details for SSE (Safe without isCorrect)
@@ -556,7 +564,17 @@ public class SessionController {
           final var answerEntity = answers.get(request.answerIndex());
           isCorrect = Boolean.TRUE.equals(answerEntity.getIsCorrect());
           if (isCorrect) {
-            pointsAwarded = qq.getPoints();
+            final var slideStartedAt =
+                sessionJpa.getCurrentSlideStartedAt() != null
+                    ? sessionJpa.getCurrentSlideStartedAt()
+                    : sessionJpa.getStartedAt();
+            final var elapsedMillis =
+                slideStartedAt != null
+                    ? Math.max(0, Duration.between(slideStartedAt, Instant.now()).toMillis())
+                    : 0L;
+            final var timerSeconds = qq.getTimerSeconds() != null ? qq.getTimerSeconds() : 30;
+            final var basePoints = qq.getPoints() != null ? qq.getPoints() : 1000;
+            pointsAwarded = Session.calculateScore(basePoints, timerSeconds, elapsedMillis, true);
           }
         }
       }
@@ -695,6 +713,133 @@ public class SessionController {
 
     return new LeaderboardResponseDto(
         sessionJpa.getId(), sessionJpa.getCurrentSlideIndex(), leaderboard);
+  }
+
+  @GetMapping("{id}/report")
+  @Transactional(readOnly = true)
+  public SessionReportDto getReport(@PathVariable UUID id) {
+    final var sessionJpa =
+        sessionJpaRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+    assertSessionHost(sessionJpa);
+
+    final var quezap = sessionJpa.getQuezap();
+    final var questionsList =
+        quezap != null
+            ? quezap.getQuestions().stream()
+                .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
+                .toList()
+            : List.<QuezapQuestionJpaEntity>of();
+
+    final var totalQuestions = questionsList.size();
+
+    final var activeParticipants =
+        sessionJpa.getParticipants().stream()
+            .filter(p -> !p.getIsKicked())
+            .sorted(Comparator.comparing(SessionParticipantJpaEntity::getScore).reversed())
+            .toList();
+
+    final var totalParticipants = activeParticipants.size();
+
+    var rank = 1;
+    final var participantReports = new ArrayList<SessionParticipantReportDto>();
+    var totalScoreSum = 0L;
+    var totalAccuracySum = 0.0;
+
+    for (final var p : activeParticipants) {
+      final var correctCount =
+          (int)
+              sessionJpa.getAnswers().stream()
+                  .filter(
+                      a ->
+                          a.getParticipantName().equals(p.getName())
+                              && Boolean.TRUE.equals(a.getIsCorrect()))
+                  .count();
+      final var accuracyRate =
+          totalQuestions > 0 ? (double) correctCount / totalQuestions * 100.0 : 0.0;
+      totalScoreSum += p.getScore();
+      totalAccuracySum += accuracyRate;
+
+      participantReports.add(
+          new SessionParticipantReportDto(
+              rank++,
+              p.getName(),
+              p.getScore(),
+              correctCount,
+              totalQuestions,
+              Math.round(accuracyRate * 10.0) / 10.0));
+    }
+
+    final var averageScore =
+        totalParticipants > 0 ? (double) totalScoreSum / totalParticipants : 0.0;
+    final var averageAccuracyRate =
+        totalParticipants > 0 ? totalAccuracySum / totalParticipants : 0.0;
+
+    final var questionReports = new ArrayList<QuestionReportDto>();
+    for (var idx = 0; idx < questionsList.size(); idx++) {
+      final var qq = questionsList.get(idx);
+      final var slideIndex = idx + 1;
+      final var q = qq.getQuestion();
+      final var answersList =
+          q.getAnswers().stream()
+              .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+              .toList();
+
+      final var slideAnswers =
+          sessionJpa.getAnswers().stream()
+              .filter(a -> a.getSlideIndex().equals(slideIndex))
+              .toList();
+
+      final var slideTotalAnswers = slideAnswers.size();
+      final var slideCorrectAnswers =
+          (int) slideAnswers.stream().filter(a -> Boolean.TRUE.equals(a.getIsCorrect())).count();
+      final var successRate =
+          slideTotalAnswers > 0 ? (double) slideCorrectAnswers / slideTotalAnswers * 100.0 : 0.0;
+
+      final var answerStats = new ArrayList<QuestionAnswerStatDto>();
+      for (var answerIndex = 0; answerIndex < answersList.size(); answerIndex++) {
+        final var ans = answersList.get(answerIndex);
+        final var targetIndex = answerIndex;
+        final var count =
+            (int)
+                slideAnswers.stream().filter(sa -> sa.getAnswerIndex().equals(targetIndex)).count();
+        final var percentage =
+            slideTotalAnswers > 0 ? (double) count / slideTotalAnswers * 100.0 : 0.0;
+        answerStats.add(
+            new QuestionAnswerStatDto(
+                answerIndex,
+                ans.getLabel() != null ? ans.getLabel() : "",
+                Boolean.TRUE.equals(ans.getIsCorrect()),
+                count,
+                Math.round(percentage * 10.0) / 10.0));
+      }
+
+      questionReports.add(
+          new QuestionReportDto(
+              slideIndex,
+              q.getLabel() != null ? q.getLabel() : "",
+              q.getType() != null ? q.getType() : "QUIZZ",
+              slideTotalAnswers,
+              slideCorrectAnswers,
+              Math.round(successRate * 10.0) / 10.0,
+              answerStats));
+    }
+
+    return new SessionReportDto(
+        sessionJpa.getId(),
+        sessionJpa.getNumber(),
+        formatSessionCode(sessionJpa.getNumber()),
+        sessionJpa.getName(),
+        sessionJpa.getStartedAt(),
+        sessionJpa.getEndedAt(),
+        totalParticipants,
+        totalQuestions,
+        Math.round(averageScore * 10.0) / 10.0,
+        Math.round(averageAccuracyRate * 10.0) / 10.0,
+        participantReports,
+        questionReports);
   }
 
   @PostMapping("{id}/participants/{name}/kick")

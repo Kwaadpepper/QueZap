@@ -89,6 +89,18 @@ class AuthControllerTest {
 
   @Test
   void shouldRefreshToken() throws Exception {
+    final var userId = UUID.randomUUID();
+    final var cred =
+        new CredentialJpaEntity(
+            UUID.randomUUID(), "hid", "hpass", null, Instant.now(), Instant.now());
+    final var userEntity =
+        new UserJpaEntity(userId, "Tournesol", cred, Instant.now(), Instant.now());
+    final var payload =
+        com.quezap.infrastructure.adapter.services.jwt.JwtToken.JwtPayload.builder(
+                userId.toString(), Instant.now().getEpochSecond() + 3600)
+            .build();
+    when(jwtService.validateAndParse("refresh-token-xyz")).thenReturn(payload);
+    when(userJpaRepository.findById(userId)).thenReturn(Optional.of(userEntity));
     when(jwtService.generateToken(any())).thenReturn("refreshed-jwt-token");
 
     final var response = authController.refresh(new RefreshTokenRequest("refresh-token-xyz"));

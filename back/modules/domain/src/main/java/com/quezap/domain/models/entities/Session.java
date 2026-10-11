@@ -264,6 +264,20 @@ public class Session extends AggregateRoot<SessionId> {
     answers.add(answer);
   }
 
+  public static int calculateScore(
+      int basePoints, int timerSeconds, long elapsedMillis, boolean isCorrect) {
+    if (!isCorrect) {
+      return 0;
+    }
+    if (timerSeconds <= 0) {
+      return basePoints;
+    }
+    final var elapsedSeconds = elapsedMillis / 1000.0;
+    final var remainingSeconds = Math.max(0.0, timerSeconds - elapsedSeconds);
+    final var timeRatio = remainingSeconds / timerSeconds;
+    return (int) Math.round(basePoints * (0.5 + 0.5 * timeRatio));
+  }
+
   @Override
   public boolean equals(@Nullable Object obj) {
     if (this == obj) {

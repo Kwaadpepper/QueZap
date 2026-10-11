@@ -64,6 +64,9 @@ public class SessionJpaEntity {
   @Column(name = "started_at")
   private @Nullable Instant startedAt;
 
+  @Column(name = "current_slide_started_at")
+  private @Nullable Instant currentSlideStartedAt;
+
   @Column(name = "ended_at")
   private @Nullable Instant endedAt;
 
@@ -176,6 +179,14 @@ public class SessionJpaEntity {
 
   public void setStartedAt(@Nullable Instant startedAt) {
     this.startedAt = startedAt;
+  }
+
+  public @Nullable Instant getCurrentSlideStartedAt() {
+    return currentSlideStartedAt;
+  }
+
+  public void setCurrentSlideStartedAt(@Nullable Instant currentSlideStartedAt) {
+    this.currentSlideStartedAt = currentSlideStartedAt;
   }
 
   public @Nullable Instant getEndedAt() {
