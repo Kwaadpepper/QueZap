@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http'
 import {
-  ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal, WritableSignal,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef,
+  inject, OnDestroy, OnInit, signal, viewChild, WritableSignal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute } from '@angular/router'
@@ -17,6 +18,7 @@ export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'PODIUM'
 interface QuestionPresenterModel {
   id: string
   title: string
+  pictureUrl?: string
   explanation?: string
   answers: {
     id: string
@@ -96,6 +98,9 @@ export class SessionPresenter implements OnInit, OnDestroy {
   protected readonly sessionName = signal<string>('')
   protected readonly stage: WritableSignal<PresenterStage> = signal('LOBBY')
 
+  protected readonly confettiCanvas = viewChild<ElementRef<HTMLCanvasElement>>('confettiCanvas')
+  private confettiAnimId: number | null = null
+
   protected readonly podiumStep = signal<number>(0)
   private podiumTimeouts: ReturnType<typeof setTimeout>[] = []
 
@@ -111,6 +116,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
   protected readonly currentQuestionIndex = signal(0)
   protected readonly totalQuestions = signal(1)
   protected readonly timer = signal(30)
+  protected readonly initialQuestionDuration = signal(30)
+
+  protected readonly timerProgressPercent = computed(() => {
+    const total = this.initialQuestionDuration() || 30
+    return Math.max(0, Math.min(100, (this.timer() / total) * 100))
+  })
+
   protected readonly answersReceived = signal(0)
 
   protected readonly currentQuestion = signal<QuestionPresenterModel>({
@@ -137,6 +149,8 @@ export class SessionPresenter implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id') || '018e3a2b-8888-7def-8123-abcdef888888'
     this.sessionId.set(id)
 
+    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id)
+
     this.sessionService.getSession(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
       if (output.kind === 'success') {
         const session = output.result
@@ -146,7 +160,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
         if (session.participants && session.participants.length > 0) {
           this.participants.set(session.participants.map(p => ({ name: p.name })))
         }
-        if (session.id !== id && session.id) {
+        if (!isUuid && session.id) {
           if (this.eventSource) {
             this.eventSource.close()
           }
@@ -162,7 +176,9 @@ export class SessionPresenter implements OnInit, OnDestroy {
         }
       }
     })
-    this.connectSse(id)
+    if (isUuid) {
+      this.connectSse(id)
+    }
   }
 
   protected launchPodiumAnimation(): void {
@@ -171,16 +187,89 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.podiumTimeouts.push(
       setTimeout(() => this.podiumStep.set(1), 1200),
       setTimeout(() => this.podiumStep.set(2), 2600),
-      setTimeout(() => this.podiumStep.set(3), 4000),
+      setTimeout(() => {
+        this.podiumStep.set(3)
+        this.triggerCanvasConfetti()
+      }, 4000),
     )
   }
 
   protected skipPodiumAnimation(): void {
     this.clearPodiumTimeouts()
     this.podiumStep.set(3)
+    this.triggerCanvasConfetti()
+  }
+
+  private triggerCanvasConfetti(): void {
+    if (typeof window === 'undefined') return
+    setTimeout(() => {
+      const canvasEl = this.confettiCanvas()?.nativeElement
+      if (canvasEl) {
+        this.startCanvasConfetti(canvasEl)
+      }
+    }, 100)
+  }
+
+  private startCanvasConfetti(canvas: HTMLCanvasElement): void {
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+
+    const particles: {
+      x: number
+      y: number
+      size: number
+      color: string
+      vx: number
+      vy: number
+      angle: number
+      dAngle: number
+    }[] = []
+
+    const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#fbbf24']
+    for (let i = 0; i < 80; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * 200,
+        size: 8 + Math.random() * 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 4,
+        vy: 2.5 + Math.random() * 4,
+        angle: Math.random() * Math.PI * 2,
+        dAngle: (Math.random() - 0.5) * 0.1,
+      })
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      for (const p of particles) {
+        p.x += p.vx
+        p.y += p.vy
+        p.angle += p.dAngle
+
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(p.angle)
+        ctx.fillStyle = p.color
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.4)
+        ctx.restore()
+
+        if (p.y > canvas.height + 30) {
+          p.y = -20
+          p.x = Math.random() * canvas.width
+        }
+      }
+      this.confettiAnimId = requestAnimationFrame(draw)
+    }
+    this.confettiAnimId = requestAnimationFrame(draw)
   }
 
   private clearPodiumTimeouts(): void {
+    if (this.confettiAnimId !== null && typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(this.confettiAnimId)
+      this.confettiAnimId = null
+    }
     for (const t of this.podiumTimeouts) {
       clearTimeout(t)
     }
@@ -201,6 +290,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   private startCountdown(seconds: number): void {
     this.stopCountdown()
+    this.initialQuestionDuration.set(seconds)
     this.timer.set(seconds)
     this.timerInterval = setInterval(() => {
       this.timer.update((t) => {
@@ -286,9 +376,11 @@ export class SessionPresenter implements OnInit, OnDestroy {
           }
           const q = payload.question || payload
           const rawAnswers = q.answers || payload.answers || []
+          const picture = q.pictureFilename || payload.pictureFilename || (q as { picture?: string }).picture
           this.currentQuestion.set({
             id: q.id || payload.questionId || '',
             title: q.label || payload.title || payload.label || '',
+            pictureUrl: picture,
             answers: rawAnswers.map((a: SseAnswer, idx: number) => ({
               id: a.id || String(a.index ?? idx),
               label: a.label || a.value || '',
@@ -330,6 +422,14 @@ export class SessionPresenter implements OnInit, OnDestroy {
         const payload = envelope.payload as { answeredCount?: number, totalCount?: number } | undefined
         if (payload && payload.answeredCount !== undefined) {
           this.answersReceived.set(payload.answeredCount)
+        }
+        break
+      }
+      case 'PARTICIPANT_KICKED': {
+        const payload = envelope.payload as { participantName?: string } | undefined
+        if (payload?.participantName) {
+          const kickedName = payload.participantName.trim().toLowerCase()
+          this.participants.update(list => list.filter(p => p.name.trim().toLowerCase() !== kickedName))
         }
         break
       }

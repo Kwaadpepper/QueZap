@@ -2,6 +2,7 @@ import {
   computed, DestroyRef, effect, ErrorHandler, inject, Injector, isDevMode, runInInjectionContext,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { Router } from '@angular/router'
 
 import {
   patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState,
@@ -25,7 +26,7 @@ import {
 import {
   IntermediateLeaderboardData,
   NoMoreQuestions, QuestionRevealData, SESSION_API_SERVICE,
-  SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionStarted,
+  SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionKicked, sessionStarted,
   sessionWaitingStart,
   WaitingQuestion,
 } from '../services'
@@ -180,6 +181,7 @@ export const ActiveSessionStore = signalStore(
       destroyRef = inject(DestroyRef),
       injector = inject(Injector),
       errorHandler = inject(ErrorHandler),
+      router = inject(Router),
     ) {
       // * Run Listeners in injection context
       runInInjectionContext(injector, () => {
@@ -195,11 +197,20 @@ export const ActiveSessionStore = signalStore(
           }
         })
 
-        // * React to participants updates
+        // * React to participants updates with deduplication
         effect(() => {
-          const participants = sessionObserver.participants()
-          console.debug('Updating participants list from session observer', participants)
-          patchState(store, { _participants: participants })
+          const incoming = sessionObserver.participants()
+          console.debug('Updating participants list from session observer', incoming)
+          const seen = new Set<string>()
+          const list: Participant[] = []
+          for (const p of incoming) {
+            const key = p.nickname.trim().toLowerCase()
+            if (!seen.has(key)) {
+              seen.add(key)
+              list.push(p)
+            }
+          }
+          patchState(store, { _participants: list })
         })
 
         // * React to question updates
@@ -269,6 +280,16 @@ export const ActiveSessionStore = signalStore(
                 },
                 _sessionIsRunning: false,
               })
+            }
+
+            if (sessionKicked(event)) {
+              const myNickname = store.nickname()?.value()
+              if (myNickname && myNickname.trim().toLowerCase() === event.participantName.trim().toLowerCase()) {
+                activeSessionPersistence.clear()
+                patchState(store, initialState)
+                patchState(store, { _sessionIsLoaded: true })
+                router.navigate(['/quizz/expired'])
+              }
             }
 
             return of(void 0)

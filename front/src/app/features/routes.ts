@@ -48,4 +48,10 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./admin/sessions/pages/session-presenter/session-presenter').then(m => m.SessionPresenter),
   },
+  {
+    path: 'present/:id',
+    title: 'Écran de Projection',
+    loadComponent: () =>
+      import('./admin/sessions/pages/session-presenter/session-presenter').then(m => m.SessionPresenter),
+  },
 ]

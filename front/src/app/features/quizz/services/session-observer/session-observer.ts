@@ -101,6 +101,9 @@ export function sessionQuestionRevealed(session: SessionEvent): session is Sessi
 export function sessionLeaderboardUpdated(session: SessionEvent): session is SessionLeaderboardUpdated {
   return session.type === 'SessionLeaderboardUpdated'
 }
+export function sessionKicked(session: SessionEvent): session is SessionKicked {
+  return session.type === 'SessionKicked'
+}
 
 type AllQuestionTypes = MixedQuestion | WaitingQuestion | NoMoreQuestions
 

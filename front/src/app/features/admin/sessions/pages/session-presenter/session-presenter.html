@@ -104,7 +104,7 @@
 
         <div class="flex flex-wrap justify-center gap-3 p-6 bg-slate-900/60 rounded-3xl min-h-[160px] border border-slate-800/80 shadow-inner">
           @for (p of participants(); track p.name) {
-            <div class="flex items-center gap-3 bg-slate-800/90 px-4 py-2.5 rounded-2xl border border-slate-700/80 text-xl font-bold shadow-md transition-all hover:scale-105 group">
+            <div class="player-card-anim flex items-center gap-3 bg-slate-800/90 px-4 py-2.5 rounded-2xl border border-slate-700/80 text-xl font-bold shadow-md transition-all hover:scale-105 group">
               <span class="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-black shadow-inner" [class]="getParticipantColor(p.name)">
                 {{ getInitials(p.name) }}
               </span>
@@ -151,11 +151,21 @@
       </div>
 
       <!-- Question Title XXL -->
-      <div class="my-8 text-center px-4">
+      <div class="my-6 text-center px-4">
         <h2 class="text-4xl md:text-6xl font-black text-white leading-tight max-w-5xl mx-auto tracking-tight drop-shadow-lg">
           {{ currentQuestion().title }}
         </h2>
       </div>
+
+      @if (currentQuestion().pictureUrl) {
+        <div class="my-3 flex justify-center">
+          <img
+            alt="Illustration de la question"
+            class="max-h-56 max-w-full rounded-2xl object-contain shadow-2xl border-2 border-indigo-500/40 backdrop-blur-sm"
+            [src]="currentQuestion().pictureUrl"
+          />
+        </div>
+      }
 
       <!-- Answers 2x2 Grid XXL -->
       <div class="choice-grid max-w-6xl mx-auto w-full my-6">
@@ -187,6 +197,18 @@
           <span>Révéler les réponses</span>
           <i class="pi pi-eye text-xl"></i>
         </button>
+      </div>
+
+      <!-- Bottom Animated Timer Progress Bar -->
+      <div class="fixed bottom-0 inset-x-0 h-3 bg-slate-950/80 backdrop-blur z-30 overflow-hidden">
+        <div
+          class="h-full transition-all duration-1000 ease-linear shadow-lg"
+          [class.bg-emerald-500]="timer() > 10"
+          [class.bg-amber-500]="timer() <= 10 && timer() > 5"
+          [class.bg-red-500]="timer() <= 5"
+          [class.animate-pulse]="timer() <= 5"
+          [style.width.%]="timerProgressPercent()">
+        </div>
       </div>
     </main>
   }
@@ -267,8 +289,9 @@
 
   <!-- PODIUM & LEADERBOARD SCREEN -->
   @if (stage() === 'PODIUM') {
-    <!-- Floating CSS Confetti Shower -->
+    <!-- Floating HTML5 Canvas Confetti -->
     @if (podiumStep() >= 3) {
+      <canvas #confettiCanvas class="pointer-events-none fixed inset-0 z-30 w-full h-full"></canvas>
       @for (c of confettiPieces; track c.id) {
         <div
           class="confetti-piece"

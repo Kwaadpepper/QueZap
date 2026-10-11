@@ -225,3 +225,12 @@
     color: #99f6e4;
   }
 }
+
+.answer-option:has(input:checked) textarea {
+  background-color: rgb(0 0 0 / 25%) !important;
+  color: #fff !important;
+}
+
+.answer-option:has(input:checked) textarea::placeholder {
+  color: rgb(255 255 255 / 70%) !important;
+}
