@@ -10,6 +10,8 @@ import {
   QuestionId, QuestionType, QuestionWithAnswers, Score,
 } from '@quezap/domain/models'
 
+import { ActiveSessionPersistence } from '../active-session-persistence/active-session-persistence'
+
 import {
   CurrentQuestion,
   IntermediateLeaderboardData,

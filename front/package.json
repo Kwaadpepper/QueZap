@@ -73,6 +73,7 @@
     "@tailwindcss/postcss": "^4.2.1",
     "@types/jest": "^30.0.0",
     "angular-eslint": "21.2.0",
+    "baseline-browser-mapping": "^2.11.28",
     "eslint": "^9.21.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",

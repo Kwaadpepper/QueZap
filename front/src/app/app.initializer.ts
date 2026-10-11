@@ -17,10 +17,11 @@ export async function AppInitializer() {
 
   // Configure Hey API client
   const apiUrl = config.appConfig.value().apiUrl
+  const baseHost = apiUrl.replace(/\/apiv1\/?$/, '')
   client.setConfig({
-    baseUrl: typeof window !== 'undefined' && !apiUrl.startsWith('http')
-      ? `${window.location.origin}${apiUrl}`
-      : apiUrl,
+    baseUrl: typeof window !== 'undefined' && !baseHost.startsWith('http')
+      ? `${window.location.origin}${baseHost}`
+      : baseHost,
   })
 
   // Init tasks

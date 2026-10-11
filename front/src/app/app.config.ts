@@ -15,6 +15,8 @@ import Quezap from '@quezap/themes/Quezap'
 
 import { AppInitializer } from './app.initializer'
 import { routes } from './app.routes'
+import { provideHeyApiClient } from './core/api-client/client/client.gen'
+import { client } from './core/api-client/client.gen'
 import { createErrorNotifier, ERROR_NOTIFIER, GlobalErrorHandler } from './core/errors'
 import { loadingProgressionInterceptor } from './core/interceptors/loading-progression/loading-progression-interceptor'
 import { refreshSessionInterceptor } from './core/interceptors/refresh-session/refresh-session-interceptor'
@@ -86,6 +88,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([loadingProgressionInterceptor, refreshSessionInterceptor])),
+    provideHeyApiClient(client),
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {

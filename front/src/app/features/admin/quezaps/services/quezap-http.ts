@@ -1,17 +1,19 @@
-import { HttpClient, HttpParams } from '@angular/common/http'
-import { inject, Injectable } from '@angular/core'
+import { Injectable } from '@angular/core'
 
-import { catchError, map, of } from 'rxjs'
+import { catchError, from, map, of } from 'rxjs'
 
 import {
   CreateQuezapRequest,
   InlineAnswerRequest,
   InlineQuestionRequest,
+  PageOfDtoQuezapSummaryDto,
+  QuezapDetailDto,
+  QuezapIdDto,
   QuezapSlideRequest,
   UpdateQuezapRequest,
 } from '@quezap/core/api-client'
+import { client } from '@quezap/core/api-client/client.gen'
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
-import { Config } from '@quezap/core/services/config/config'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import {
   QuestionId, QuestionType, QuestionWithAnswersAndResponses, Quezap, QuezapId,
@@ -20,157 +22,104 @@ import {
 
 import { QuezapService } from './quezap'
 
-interface QuezapSlideResponse {
-  order: number
-  timer?: number
-  timerSeconds?: number
-  points?: number
-  question: {
-    id: string
-    type: string
-    label: string
-    pictureFilename?: string
-    theme?: { id: string, name: string }
-    answers: {
-      id: string
-      label: string
-      isCorrect: boolean
-      pictureFilename?: string
-    }[]
-  }
-}
-
-interface QuezapApiResponse {
-  id: string
-  title: string
-  description?: string
-  authorId?: string
-  isPublic?: boolean
-  totalQuestions?: number
-  theme?: {
-    id: string
-    name: string
-  }
-  slides?: QuezapSlideResponse[]
-  questions?: {
-    id: string
-    title: string
-    type: string
-    timerSeconds: number
-    points: number
-    answers: {
-      id: string
-      label: string
-      isCorrect: boolean
-    }[]
-  }[]
-}
-
-interface PageOfApiResponse<T> {
-  data: T[]
-  totalElements: number
-  totalPages: number
-  page: number
-  pageSize: number
-  hasNext: boolean
-  hasPrevious: boolean
-}
-
 @Injectable({ providedIn: 'root' })
 export class QuezapHttpService implements QuezapService {
-  private readonly http = inject(HttpClient)
-  private readonly config = inject(Config)
-
-  private get apiUrl(): string {
-    return this.config.appConfig.value().apiUrl
-  }
-
   getQuezapPage(page: Pagination): ServiceOutput<PageOf<QuezapWithTheme>> {
     const p = toPageBasedPagination(page)
-    const params = new HttpParams()
-      .set('page', p.page.toString())
-      .set('pageSize', p.pageSize.toString())
 
-    return this.http.get<PageOfApiResponse<QuezapApiResponse>>(`${this.apiUrl}/quezaps`, { params }).pipe(
-      map(res => ({
-        kind: 'success' as const,
-        result: {
-          data: res.data.map(q => ({
-            id: q.id as QuezapId,
-            title: q.title,
-            description: q.description || '',
-            totalQuestions: q.totalQuestions ?? 0,
-            theme: {
-              id: (q.theme?.id || '018e3a2b-8888-7def-8123-abcdef888888') as ThemeId,
-              name: q.theme?.name || 'Général',
-            } as Theme,
-          })),
-          totalElements: res.totalElements,
-          totalPages: res.totalPages,
-          page: res.page,
-          pageSize: res.pageSize,
-          hasNext: res.hasNext,
-          hasPrevious: res.hasPrevious,
+    return from(
+      client.get<{ 200: PageOfDtoQuezapSummaryDto }>({
+        url: '/apiv1/quezaps',
+        query: {
+          page: p.page,
+          pageSize: p.pageSize,
         },
-      })),
-      catchError(error => of({
-        kind: 'failure' as const,
-        error: new NotFoundError(error.message || 'Erreur lors du chargement des quezaps'),
-      })),
-    )
-  }
-
-  find(quezapId: QuezapId): ServiceOutput<QuezapWithQuestionsAndAnswers, NotFoundError> {
-    return this.http.get<QuezapApiResponse>(`${this.apiUrl}/quezaps/${quezapId}`).pipe(
-      map((res) => {
-        if (res.slides && res.slides.length > 0) {
+      }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data) {
           return {
-            kind: 'success' as const,
-            result: {
-              id: res.id as QuezapId,
-              title: res.title,
-              description: res.description || '',
-              questionWithAnswersAndResponses: res.slides.map(s => ({
-                id: s.question.id as QuestionId,
-                value: s.question.label,
-                type: (s.question.type as QuestionType) || QuestionType.Quizz,
-                limit: { seconds: s.timer || s.timerSeconds || 30 },
-                answers: (s.question.answers || []).map((a, idx) => ({
-                  index: idx,
-                  points: s.points || 1000,
-                  value: a.label,
-                  isCorrect: a.isCorrect,
-                })),
-              })),
-            },
+            kind: 'failure' as const,
+            error: new NotFoundError('Erreur lors du chargement des quezaps'),
           }
         }
 
         return {
           kind: 'success' as const,
           result: {
-            id: res.id as QuezapId,
-            title: res.title,
-            description: res.description || '',
-            questionWithAnswersAndResponses: (res.questions || []).map(q => ({
-              id: q.id as QuestionId,
-              value: q.title,
-              type: (q.type as QuestionType) || QuestionType.Quizz,
-              limit: { seconds: q.timerSeconds },
-              answers: (q.answers || []).map((a, idx) => ({
+            data: (data.data ?? []).map(q => ({
+              id: (q.id ?? '') as QuezapId,
+              title: q.title ?? '',
+              description: q.description || '',
+              totalQuestions: q.totalQuestions ?? 0,
+              theme: {
+                id: '018e3a2b-8888-7def-8123-abcdef888888' as ThemeId,
+                name: 'Général',
+              } as Theme,
+            })),
+            totalElements: data.totalElements ?? 0,
+            totalPages: data.totalPages ?? 0,
+            page: data.page ?? 0,
+            pageSize: data.pageSize ?? p.pageSize,
+            hasNext: data.hasNext ?? false,
+            hasPrevious: data.hasPrevious ?? false,
+          },
+        }
+      }),
+      catchError((error: unknown) =>
+        of({
+          kind: 'failure' as const,
+          error: new NotFoundError(
+            error instanceof Error ? error.message : 'Erreur lors du chargement des quezaps',
+          ),
+        }),
+      ),
+    )
+  }
+
+  find(quezapId: QuezapId): ServiceOutput<QuezapWithQuestionsAndAnswers, NotFoundError> {
+    return from(
+      client.get<{ 200: QuezapDetailDto }>({ url: `/apiv1/quezaps/${quezapId}` }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data) {
+          return {
+            kind: 'failure' as const,
+            error: new NotFoundError('Quezap introuvable'),
+          }
+        }
+
+        const slides = data.slides ?? []
+
+        return {
+          kind: 'success' as const,
+          result: {
+            id: (data.id ?? quezapId) as QuezapId,
+            title: data.title ?? '',
+            description: data.description || '',
+            questionWithAnswersAndResponses: slides.map(s => ({
+              id: (s.question?.id ?? '') as QuestionId,
+              value: s.question?.label ?? '',
+              type: (s.question?.type as QuestionType) || QuestionType.Quizz,
+              limit: { seconds: s.timer || 30 },
+              answers: (s.question?.answers || []).map((a, idx) => ({
                 index: idx,
-                points: q.points || 1000,
-                value: a.label,
-                isCorrect: a.isCorrect,
+                points: s.points || 1000,
+                value: a.label ?? '',
+                isCorrect: a.isCorrect ?? false,
               })),
             })),
           },
         }
       }),
-      catchError(error => of({
-        kind: 'failure' as const,
-        error: new NotFoundError(error.message || 'Quezap introuvable'),
-      })),
+      catchError((error: unknown) =>
+        of({
+          kind: 'failure' as const,
+          error: new NotFoundError(
+            error instanceof Error ? error.message : 'Quezap introuvable',
+          ),
+        }),
+      ),
     )
   }
 
@@ -179,7 +128,7 @@ export class QuezapHttpService implements QuezapService {
   ): ServiceOutput<Pick<Quezap, 'id'>> {
     const slides = this.buildSlidesPayload(quezap.questionWithAnswersAndResponses)
 
-    if (quezap.id && quezap.id.length > 0) {
+    if (quezap.id && String(quezap.id).length > 0) {
       const payload: UpdateQuezapRequest = {
         title: quezap.title,
         description: quezap.description || '',
@@ -187,18 +136,34 @@ export class QuezapHttpService implements QuezapService {
         slides,
       }
 
-      return this.http.put<void>(`${this.apiUrl}/quezaps/${quezap.id}`, payload).pipe(
-        map(() => ({
-          kind: 'success' as const,
-          result: { id: quezap.id as QuezapId },
-        })),
-        catchError(error => of({
-          kind: 'failure' as const,
-          error: new ValidationError(
-            {},
-            error.error?.message || error.message || 'Erreur lors de la mise à jour du Quezap',
-          ),
-        })),
+      return from(
+        client.put<void>({
+          url: `/apiv1/quezaps/${quezap.id}`,
+          body: payload,
+        }),
+      ).pipe(
+        map(({ error }) => {
+          if (error) {
+            return {
+              kind: 'failure' as const,
+              error: new ValidationError({}, 'Erreur lors de la mise à jour du Quezap'),
+            }
+          }
+
+          return {
+            kind: 'success' as const,
+            result: { id: quezap.id as QuezapId },
+          }
+        }),
+        catchError((error: unknown) =>
+          of({
+            kind: 'failure' as const,
+            error: new ValidationError(
+              {},
+              error instanceof Error ? error.message : 'Erreur lors de la mise à jour du Quezap',
+            ),
+          }),
+        ),
       )
     }
 
@@ -210,18 +175,34 @@ export class QuezapHttpService implements QuezapService {
       questions: slides,
     }
 
-    return this.http.post<{ id: string }>(`${this.apiUrl}/quezaps`, payload).pipe(
-      map(res => ({
-        kind: 'success' as const,
-        result: { id: res.id as QuezapId },
-      })),
-      catchError(error => of({
-        kind: 'failure' as const,
-        error: new ValidationError(
-          {},
-          error.error?.message || error.message || 'Erreur lors de la sauvegarde du Quezap',
-        ),
-      })),
+    return from(
+      client.post<{ 200: QuezapIdDto, 201: QuezapIdDto }>({
+        url: '/apiv1/quezaps',
+        body: payload,
+      }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data?.id) {
+          return {
+            kind: 'failure' as const,
+            error: new ValidationError({}, 'Erreur lors de la sauvegarde du Quezap'),
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: { id: data.id as QuezapId },
+        }
+      }),
+      catchError((error: unknown) =>
+        of({
+          kind: 'failure' as const,
+          error: new ValidationError(
+            {},
+            error instanceof Error ? error.message : 'Erreur lors de la sauvegarde du Quezap',
+          ),
+        }),
+      ),
     )
   }
 
@@ -234,7 +215,7 @@ export class QuezapHttpService implements QuezapService {
       }))
 
       const inlineQuestion: InlineQuestionRequest = {
-        id: q.id && q.id.length > 0 ? q.id : undefined,
+        id: q.id && String(q.id).length > 0 ? q.id : undefined,
         label: q.value,
         type: q.type || 'QUIZZ',
         answers,
@@ -245,24 +226,40 @@ export class QuezapHttpService implements QuezapService {
         timerSeconds: q.limit?.seconds || 30,
         points: q.answers[0]?.points || 1000,
         question: inlineQuestion,
-        ...(q.id && q.id.length > 0 ? { questionId: q.id } : {}),
+        ...(q.id && String(q.id).length > 0 ? { questionId: q.id } : {}),
       }
     })
   }
 
   duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>> {
-    return this.http.post<{ id: string }>(`${this.apiUrl}/quezaps/${quezapId}/duplicate`, {}).pipe(
-      map(res => ({
-        kind: 'success' as const,
-        result: { id: res.id as QuezapId },
-      })),
-      catchError(error => of({
-        kind: 'failure' as const,
-        error: new ValidationError(
-          {},
-          error.error?.message || error.message || 'Erreur lors de la duplication du Quezap',
-        ),
-      })),
+    return from(
+      client.post<{ 200: QuezapIdDto, 201: QuezapIdDto }>({
+        url: `/apiv1/quezaps/${quezapId}/duplicate`,
+        body: {},
+      }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data?.id) {
+          return {
+            kind: 'failure' as const,
+            error: new ValidationError({}, 'Erreur lors de la duplication du Quezap'),
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: { id: data.id as QuezapId },
+        }
+      }),
+      catchError((error: unknown) =>
+        of({
+          kind: 'failure' as const,
+          error: new ValidationError(
+            {},
+            error instanceof Error ? error.message : 'Erreur lors de la duplication du Quezap',
+          ),
+        }),
+      ),
     )
   }
 }

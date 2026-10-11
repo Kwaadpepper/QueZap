@@ -59,18 +59,18 @@ const initialState: ActiveSessionState = {
 
 export const ActiveSessionStore = signalStore(
   withState(initialState),
-  withComputed(store => ({
+  withComputed((store, sessionPersistence = inject(ActiveSessionPersistence)) => ({
     session: computed(() => store._session?.()),
     nickname: computed(() => store._nickname?.()),
     restorationComplete: computed(() => store._sessionIsLoaded()),
     participants: computed(() => store._participants()),
     sessionHasStarted: computed(() => store._sessionIsRunning()),
     myRanking: computed(() => {
-      const nickname = store._nickname?.()?.value
+      const myName = sessionPersistence.getParticipantName()
       const lb = store.lastLeaderboard()
-      if (!nickname || !lb) return undefined
+      if (!myName || !lb) return undefined
       return lb.leaderboard.find(
-        e => e.participantName.trim().toLowerCase() === nickname.trim().toLowerCase(),
+        e => e.participantName.trim().toLowerCase() === myName.trim().toLowerCase(),
       )
     }),
   })),

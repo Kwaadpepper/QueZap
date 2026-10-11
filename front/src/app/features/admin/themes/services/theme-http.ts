@@ -1,89 +1,101 @@
-import { HttpClient, HttpParams } from '@angular/common/http'
-import { inject, Injectable } from '@angular/core'
+import { Injectable } from '@angular/core'
 
-import { catchError, map, of } from 'rxjs'
+import { from, map } from 'rxjs'
 
+import { PageOfDtoThemeDto, ThemeIdDto } from '@quezap/core/api-client'
+import { client } from '@quezap/core/api-client/client.gen'
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
-import { Config } from '@quezap/core/services/config/config'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Theme, ThemeId } from '@quezap/domain/models'
 
 import { NewThemeDTO, ThemeService } from './theme'
 
-interface ThemeApiResponse {
-  id?: string
-  uuid?: string
-  name: string
-}
-
-interface PageOfApiResponse<T> {
-  data: T[]
-  totalElements: number
-  totalPages: number
-  page: number
-  pageSize: number
-  hasNext: boolean
-  hasPrevious: boolean
-}
-
 @Injectable({ providedIn: 'root' })
 export class ThemeHttpService implements ThemeService {
-  private readonly http = inject(HttpClient)
-  private readonly config = inject(Config)
-
-  private get apiUrl(): string {
-    return this.config.appConfig.value().apiUrl
-  }
-
   getThemePage(page: Pagination): ServiceOutput<PageOf<Theme>> {
     const p = toPageBasedPagination(page)
-    const params = new HttpParams()
-      .set('page', p.page.toString())
-      .set('pageSize', p.pageSize.toString())
 
-    return this.http.get<PageOfApiResponse<ThemeApiResponse>>(`${this.apiUrl}/themes`, { params }).pipe(
-      map(res => ({
-        kind: 'success' as const,
-        result: {
-          data: res.data.map(t => ({ id: (t.id || t.uuid) as ThemeId, name: t.name })),
-          totalElements: res.totalElements,
-          totalPages: res.totalPages,
-          page: res.page,
-          pageSize: res.pageSize,
-          hasNext: res.hasNext,
-          hasPrevious: res.hasPrevious,
+    return from(
+      client.get<{ 200: PageOfDtoThemeDto }>({
+        url: '/apiv1/themes',
+        query: {
+          page: p.page,
+          pageSize: p.pageSize,
         },
-      })),
-      catchError(error => of({
-        kind: 'failure' as const,
-        error: new NotFoundError(error.message || 'Erreur lors du chargement des thèmes'),
-      })),
+      }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data) {
+          return {
+            kind: 'failure' as const,
+            error: new NotFoundError('Erreur lors du chargement des thèmes'),
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: {
+            data: (data.data ?? []).map(t => ({
+              id: (t.id || t.uuid) as ThemeId,
+              name: t.name ?? '',
+            })),
+            totalElements: data.totalElements ?? 0,
+            totalPages: data.totalPages ?? 0,
+            page: data.page ?? 0,
+            pageSize: data.pageSize ?? p.pageSize,
+            hasNext: data.hasNext ?? false,
+            hasPrevious: data.hasPrevious ?? false,
+          },
+        }
+      }),
     )
   }
 
   create(newTheme: NewThemeDTO): ServiceOutput<ThemeId> {
-    return this.http.post<{ id?: string, uuid?: string }>(`${this.apiUrl}/themes`, { name: newTheme.name }).pipe(
-      map(res => ({
-        kind: 'success' as const,
-        result: (res.id || res.uuid) as ThemeId,
-      })),
-      catchError(error => of({
-        kind: 'failure' as const,
-        error: new ValidationError({ name: [error.message || 'Erreur de création'] }, error.message),
-      })),
+    return from(
+      client.post<{ 200: ThemeIdDto, 201: ThemeIdDto }>({
+        url: '/apiv1/themes',
+        body: { name: newTheme.name },
+      }),
+    ).pipe(
+      map(({ data, error }) => {
+        const id = data?.id || (data as unknown as { uuid?: string })?.uuid
+
+        if (error || !id) {
+          return {
+            kind: 'failure' as const,
+            error: new ValidationError({ name: ['Erreur de création'] }, 'Erreur de création'),
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: id as ThemeId,
+        }
+      }),
     )
   }
 
   update(theme: Theme): ServiceOutput<void> {
-    return this.http.patch<void>(`${this.apiUrl}/themes/${theme.id}`, { name: theme.name }).pipe(
-      map(() => ({
-        kind: 'success' as const,
-        result: undefined,
-      })),
-      catchError(error => of({
-        kind: 'failure' as const,
-        error: new ValidationError({ name: [error.message || 'Erreur de modification'] }, error.message),
-      })),
+    return from(
+      client.patch<void>({
+        url: `/apiv1/themes/${theme.id}`,
+        body: { name: theme.name },
+      }),
+    ).pipe(
+      map(({ error }) => {
+        if (error) {
+          return {
+            kind: 'failure' as const,
+            error: new ValidationError({ name: ['Erreur de modification'] }, 'Erreur de modification'),
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: undefined,
+        }
+      }),
     )
   }
 }

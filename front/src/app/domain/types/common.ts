@@ -1,6 +1,6 @@
 interface UUIDBrand {
   readonly UUID: unique symbol
-  readonly __type: 'UUID'
+  readonly __type?: string
 }
 
 interface JWTBrand {

@@ -7,14 +7,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute, RouterLink } from '@angular/router'
 
 import { Button } from 'primeng/button'
-import { Card } from 'primeng/card'
 import { Message } from 'primeng/message'
-import { ProgressBar } from 'primeng/progressbar'
 import { TableModule } from 'primeng/table'
 
 import { SessionReportDto } from '@quezap/core/api-client'
 import { Config } from '@quezap/core/services/config/config'
-import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
 import { SESSION_SERVICE } from '../../services/session'
@@ -27,11 +24,8 @@ import { SESSION_SERVICE } from '../../services/session'
     DatePipe,
     RouterLink,
     Button,
-    Card,
     Message,
-    ProgressBar,
     TableModule,
-    IconFacade,
     Spinner,
   ],
 })
