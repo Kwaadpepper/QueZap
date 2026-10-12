@@ -25,7 +25,7 @@ import { FieldError } from '@quezap/shared/directives/field-error'
 })
 export class JoinForm {
   readonly #joinUrl = '/quizz/join'
-  readonly #mockedCode = 'A2B3C4'
+  readonly #mockedCode = '20082'
   private readonly router = inject(Router)
   private readonly config = inject(Config)
 
@@ -40,7 +40,7 @@ export class JoinForm {
         ? []
         : {
             kind: 'invalid-value',
-            message: 'Le code PIN est invalide (ex: QZ-12345 ou AB12CD).',
+            message: 'Le code PIN est invalide (ex: 20082).',
           }
     })
   })

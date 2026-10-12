@@ -1,25 +1,24 @@
 :host {
-  --base-color: var(--color-slate-900);
-  --stroke-color: var(--color-white);
-  --checked-fill: color-mix(in srgb, var(--question-icon-color) 100%, white 30%);
-  --checked-stroke: var(--color-slate-900);
+  --base-color: #fff;
+  --stroke-color: rgb(0 0 0 / 25%);
+  --checked-fill: #fff;
+  --checked-stroke: rgb(0 0 0 / 40%);
 
-  @media (prefers-color-scheme: dark) {
-    --base-color: var(--color-slate-300);
-    --stroke-color: var(--color-slate-900);
-    --checked-fill: color-mix(in srgb, var(--question-icon-color) 100%, white 90%);
-    --checked-stroke: var(--color-white);
-  }
-
-  path, polygon, circle, rect {
+  path,
+  polygon,
+  circle,
+  rect {
     fill: var(--base-color) !important;
     stroke: var(--stroke-color) !important;
-    stroke-width: 0.2rem;
+    stroke-width: 0.15rem;
     transition: all 0.2s;
   }
 
   .checked {
-    path, polygon, circle, rect {
+    path,
+    polygon,
+    circle,
+    rect {
       fill: var(--checked-fill) !important;
       stroke: var(--checked-stroke) !important;
     }
