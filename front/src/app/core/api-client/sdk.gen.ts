@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, ServerSentEventsResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateData, ActivateResponses, AddAffirmationData, AddAffirmationResponses, AddBinaryData, AddBinaryResponses, AddData, AddQuestionData, AddQuestionResponses, AddQuizzData, AddQuizzResponses, AddResponses, CloneData, CloneResponses, Create1Data, Create1Responses, Create2Data, Create2Responses, CreateData, CreateResponses, Delete1Data, Delete1Responses, Delete2Data, Delete2Responses, Delete3Data, Delete3Responses, DeleteData, DeleteResponses, DuplicateData, DuplicateResponses, ExportCsvData, ExportCsvResponses, Find1Data, Find1Responses, Find2Data, Find2Responses, Find3Data, Find3Responses, FindData, FindResponses, ForgottenPasswordData, ForgottenPasswordResponses, GetByCodeData, GetByCodeResponses, GetById1Data, GetById1Responses, GetById2Data, GetById2Responses, GetByIdData, GetByIdResponses, GetReportData, GetReportResponses, GetScoresData, GetScoresResponses, JoinData, JoinResponses, KickParticipantData, KickParticipantResponses, List1Data, List1Responses, List2Data, List2Responses, ListData, ListResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, MeData, MeResponses, NextQuestionData, NextQuestionResponses, RefreshData, RefreshResponses, RemoveQuestionData, RemoveQuestionResponses, Rename1Data, Rename1Responses, RenameData, RenameResponses, ResetPasswordData, ResetPasswordResponses, RevealData, RevealResponses, StartData, StartResponses, StreamEventsData, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerResponses, UpdateData, UpdatePasswordData, UpdatePasswordResponses, UpdateResponses, VerifyResetTokenData, VerifyResetTokenResponses } from './types.gen';
+import type { ActivateData, ActivateResponses, AddAffirmationData, AddAffirmationResponses, AddBinaryData, AddBinaryResponses, AddData, AddQuestionData, AddQuestionResponses, AddQuizzData, AddQuizzResponses, AddResponses, CloneData, CloneResponses, Create1Data, Create1Responses, Create2Data, Create2Responses, CreateData, CreateResponses, Delete1Data, Delete1Responses, Delete2Data, Delete2Responses, Delete3Data, Delete3Responses, DeleteData, DeleteResponses, DuplicateData, DuplicateResponses, ExportCsvData, ExportCsvResponses, Find1Data, Find1Responses, Find2Data, Find2Responses, Find3Data, Find3Responses, FindData, FindResponses, ForgottenPasswordData, ForgottenPasswordResponses, GetByCodeData, GetByCodeResponses, GetById1Data, GetById1Responses, GetById2Data, GetById2Responses, GetByIdData, GetByIdResponses, GetReportData, GetReportResponses, GetScoresData, GetScoresResponses, JoinData, JoinResponses, KickParticipantData, KickParticipantResponses, List1Data, List1Responses, List2Data, List2Responses, ListData, ListResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, MeData, MeResponses, NextQuestionData, NextQuestionResponses, PauseSessionData, PauseSessionResponses, RefreshData, RefreshResponses, RemoveQuestionData, RemoveQuestionResponses, Rename1Data, Rename1Responses, RenameData, RenameResponses, ResetPasswordData, ResetPasswordResponses, RevealData, RevealResponses, StartData, StartResponses, StreamEventsData, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerResponses, UpdateData, UpdatePasswordData, UpdatePasswordResponses, UpdateResponses, UpdateSettingsData, UpdateSettingsResponses, VerifyResetTokenData, VerifyResetTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,6 +21,16 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const updatePassword = <ThrowOnError extends boolean = false>(options: Options<UpdatePasswordData, ThrowOnError>): RequestResult<UpdatePasswordResponses, unknown, ThrowOnError> => (options.client ?? client).put<UpdatePasswordResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/users/{id}/password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const updateSettings = <ThrowOnError extends boolean = false>(options: Options<UpdateSettingsData, ThrowOnError>): RequestResult<UpdateSettingsResponses, unknown, ThrowOnError> => (options.client ?? client).put<UpdateSettingsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/apiv1/sessions/{id}/settings',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -108,6 +118,16 @@ export const reveal = <ThrowOnError extends boolean = false>(options: Options<Re
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/reveal',
     ...options
+});
+
+export const pauseSession = <ThrowOnError extends boolean = false>(options: Options<PauseSessionData, ThrowOnError>): RequestResult<PauseSessionResponses, unknown, ThrowOnError> => (options.client ?? client).post<PauseSessionResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/apiv1/sessions/{id}/pause',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 export const kickParticipant = <ThrowOnError extends boolean = false>(options: Options<KickParticipantData, ThrowOnError>): RequestResult<KickParticipantResponses, unknown, ThrowOnError> => (options.client ?? client).post<KickParticipantResponses, unknown, ThrowOnError>({

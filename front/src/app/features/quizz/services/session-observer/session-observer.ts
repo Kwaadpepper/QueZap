@@ -35,6 +35,7 @@ export interface QuestionRevealData {
   readonly slideIndex: number
   readonly correctIndices: number[]
   readonly explanation?: string
+  readonly mobileCorrectionAllowed?: boolean
   readonly stats: {
     readonly answerIndex: number
     readonly count: number
@@ -66,6 +67,11 @@ export interface SessionLeaderboardUpdated {
   readonly data: IntermediateLeaderboardData
 }
 
+export interface SessionPauseStatus {
+  readonly type: 'SessionPauseStatus'
+  readonly isPaused: boolean
+}
+
 export type SessionEvent
   = | SessionWaitingStart
     | SessionStarted
@@ -74,6 +80,7 @@ export type SessionEvent
     | SessionKicked
     | SessionQuestionRevealed
     | SessionLeaderboardUpdated
+    | SessionPauseStatus
 
 export type CurrentQuestion = WaitingQuestion | MixedQuestion & QuestionWithAnswers | NoMoreQuestions
 
@@ -104,6 +111,9 @@ export function sessionLeaderboardUpdated(session: SessionEvent): session is Ses
 }
 export function sessionKicked(session: SessionEvent): session is SessionKicked {
   return session.type === 'SessionKicked'
+}
+export function sessionPauseStatus(session: SessionEvent): session is SessionPauseStatus {
+  return session.type === 'SessionPauseStatus'
 }
 
 type AllQuestionTypes = MixedQuestion | WaitingQuestion | NoMoreQuestions

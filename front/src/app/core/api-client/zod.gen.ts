@@ -7,6 +7,18 @@ export const zUpdatePasswordRequest = z.object({
     newPassword: z.string()
 });
 
+export const zSessionSettingsRequestDto = z.object({
+    progressionMode: z.string().optional(),
+    explanationDurationSeconds: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    mobileCorrectionEnabled: z.boolean().optional()
+});
+
+export const zSessionSettingsResponseDto = z.object({
+    progressionMode: z.string().optional(),
+    explanationDurationSeconds: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    mobileCorrectionEnabled: z.boolean().optional()
+});
+
 export const zInlineAnswerRequest = z.object({
     id: z.uuid().optional(),
     label: z.string(),
@@ -81,6 +93,15 @@ export const zSessionCreatedDto = z.object({
 
 export const zSessionStatusDto = z.object({
     status: z.string().optional()
+});
+
+export const zSessionPauseRequestDto = z.object({
+    paused: z.boolean().optional()
+});
+
+export const zSessionPauseResponseDto = z.object({
+    sessionId: z.uuid().optional(),
+    isPaused: z.boolean().optional()
 });
 
 export const zNextQuestionResponseDto = z.object({
@@ -293,7 +314,11 @@ export const zSessionDetailDto = z.object({
     participants: z.array(zParticipantDto).optional(),
     authorId: z.uuid().optional(),
     startedAt: z.iso.datetime().optional(),
-    endedAt: z.iso.datetime().optional()
+    endedAt: z.iso.datetime().optional(),
+    progressionMode: z.string().optional(),
+    isPaused: z.boolean().optional(),
+    explanationDurationSeconds: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    mobileCorrectionEnabled: z.boolean().optional()
 });
 
 export const zPageOfDtoSessionDetailDto = z.object({
@@ -457,6 +482,17 @@ export const zUpdatePasswordPath = z.object({
  */
 export const zUpdatePasswordResponse = z.void();
 
+export const zUpdateSettingsBody = zSessionSettingsRequestDto;
+
+export const zUpdateSettingsPath = z.object({
+    id: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zUpdateSettingsResponse = zSessionSettingsResponseDto;
+
 export const zDeletePath = z.object({
     id: z.uuid()
 });
@@ -548,6 +584,17 @@ export const zStartResponse = zSessionStatusDto;
 export const zRevealPath = z.object({
     id: z.uuid()
 });
+
+export const zPauseSessionBody = zSessionPauseRequestDto;
+
+export const zPauseSessionPath = z.object({
+    id: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zPauseSessionResponse = zSessionPauseResponseDto;
 
 export const zKickParticipantPath = z.object({
     id: z.uuid(),

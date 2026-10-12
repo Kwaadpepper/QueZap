@@ -112,8 +112,56 @@ export class SessionPresenter implements OnInit, OnDestroy {
   protected readonly autoReveal = signal<boolean>(true)
   protected readonly intermediateLeaderboard = signal<IntermediateLeaderboardEntry[]>([])
 
+  protected readonly progressionMode = signal<'MANUAL' | 'AUTOMATIC'>('MANUAL')
+  protected readonly explanationDurationSeconds = signal<number>(15)
+  protected readonly isPaused = signal<boolean>(false)
+  protected readonly explanationTimer = signal<number>(15)
+  protected readonly classMetrics = signal<{
+    totalParticipants: number
+    averageScore: number
+    globalSuccessRate: number
+  } | null>(null)
+
+  protected readonly top5Entries = computed(() => this.leaderboard().slice(0, 5))
+
   protected toggleAutoReveal(): void {
     this.autoReveal.update(v => !v)
+  }
+
+  protected toggleProgressionMode(): void {
+    const nextMode = this.progressionMode() === 'MANUAL' ? 'AUTOMATIC' : 'MANUAL'
+    this.setProgressionMode(nextMode)
+  }
+
+  protected setProgressionMode(mode: 'MANUAL' | 'AUTOMATIC'): void {
+    this.progressionMode.set(mode)
+    this.sessionService.updateSettings(this.sessionId(), {
+      progressionMode: mode,
+      explanationDurationSeconds: this.explanationDurationSeconds(),
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+
+    if (mode === 'AUTOMATIC' && this.stage() === 'REVEAL' && !this.explanationTimerInterval) {
+      this.startExplanationCountdown()
+    }
+    else if (mode === 'MANUAL') {
+      this.stopExplanationCountdown()
+    }
+  }
+
+  protected setExplanationDuration(seconds: number): void {
+    this.explanationDurationSeconds.set(seconds)
+    this.sessionService.updateSettings(this.sessionId(), {
+      progressionMode: this.progressionMode(),
+      explanationDurationSeconds: seconds,
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+  }
+
+  protected togglePause(): void {
+    const nextPaused = !this.isPaused()
+    this.isPaused.set(nextPaused)
+    this.sessionService.pauseSession(this.sessionId(), nextPaused)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe()
   }
 
   protected showIntermediateLeaderboard(): void {
@@ -219,6 +267,15 @@ export class SessionPresenter implements OnInit, OnDestroy {
             this.eventSource.close()
           }
           this.connectSse(session.id)
+        }
+        if (session.progressionMode === 'AUTOMATIC' || session.progressionMode === 'MANUAL') {
+          this.progressionMode.set(session.progressionMode)
+        }
+        if (session.explanationDurationSeconds) {
+          this.explanationDurationSeconds.set(session.explanationDurationSeconds)
+        }
+        if (session.isPaused !== undefined) {
+          this.isPaused.set(session.isPaused)
         }
         if (session.status === 'STARTED') {
           this.stage.set('QUESTION')
@@ -334,11 +391,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   private timerInterval: ReturnType<typeof setInterval> | null = null
+  private explanationTimerInterval: ReturnType<typeof setInterval> | null = null
 
   ngOnDestroy(): void {
     this.layout.asWebsite.set(true)
     this.layout.inContainer.set(true)
     this.stopCountdown()
+    this.stopExplanationCountdown()
     this.clearPodiumTimeouts()
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout)
@@ -350,16 +409,12 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }
   }
 
-  private startCountdown(seconds: number, deadline?: string): void {
+  private startCountdown(seconds: number): void {
     this.stopCountdown()
     this.initialQuestionDuration.set(seconds)
     this.timer.set(seconds)
 
-    const targetTime = deadline ? new Date(deadline).getTime() : Date.now() + seconds * 1000
-    const initialRemaining = Math.max(0, Math.ceil((targetTime - Date.now()) / 1000))
-    this.timer.set(initialRemaining)
-
-    if (initialRemaining <= 0) {
+    if (seconds <= 0) {
       if (this.autoReveal() && this.stage() === 'QUESTION') {
         this.revealAnswers()
       }
@@ -367,23 +422,61 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }
 
     this.timerInterval = setInterval(() => {
-      const now = Date.now()
-      const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000))
-      this.timer.set(remaining)
-
-      if (remaining <= 0) {
+      if (this.isPaused()) {
+        return
+      }
+      const current = this.timer()
+      if (current <= 1) {
+        this.timer.set(0)
         this.stopCountdown()
         if (this.autoReveal() && this.stage() === 'QUESTION') {
           this.revealAnswers()
         }
       }
-    }, 500)
+      else {
+        this.timer.set(current - 1)
+      }
+    }, 1000)
   }
 
   private stopCountdown(): void {
     if (this.timerInterval) {
       clearInterval(this.timerInterval)
       this.timerInterval = null
+    }
+  }
+
+  private startExplanationCountdown(): void {
+    this.stopExplanationCountdown()
+    const duration = this.explanationDurationSeconds()
+    this.explanationTimer.set(duration)
+
+    if (this.progressionMode() !== 'AUTOMATIC') {
+      return
+    }
+
+    this.explanationTimerInterval = setInterval(() => {
+      if (this.isPaused()) {
+        return
+      }
+      const current = this.explanationTimer()
+      if (current <= 1) {
+        this.explanationTimer.set(0)
+        this.stopExplanationCountdown()
+        if (this.stage() === 'REVEAL') {
+          this.nextStep()
+        }
+      }
+      else {
+        this.explanationTimer.set(current - 1)
+      }
+    }, 1000)
+  }
+
+  private stopExplanationCountdown(): void {
+    if (this.explanationTimerInterval) {
+      clearInterval(this.explanationTimerInterval)
+      this.explanationTimerInterval = null
     }
   }
 
@@ -455,6 +548,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       'ANSWER_RECEIVED',
       'SESSION_ENDED',
       'PARTICIPANT_KICKED',
+      'SESSION_PAUSE_STATUS',
     ]
 
     for (const name of eventNames) {
@@ -477,6 +571,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       case 'QUESTION_START': {
         const payload = envelope.payload
         if (payload) {
+          this.stopExplanationCountdown()
           this.stage.set('QUESTION')
           if (payload.answeredCount !== undefined) {
             this.answersReceived.set(payload.answeredCount)
@@ -491,7 +586,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
             this.totalQuestions.set(payload.totalSlides)
           }
           const seconds = payload.remainingSeconds ?? payload.timerSeconds ?? 30
-          this.startCountdown(seconds, payload.deadline)
+          this.startCountdown(seconds)
           const q = payload.question || payload
           const qType = (q as { type?: string }).type || (payload as { type?: string }).type || ''
           const rawAnswers = q.answers || payload.answers || []
@@ -520,6 +615,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       case 'QUESTION_REVEAL': {
         this.stopCountdown()
         this.stage.set('REVEAL')
+        this.startExplanationCountdown()
         const payload = envelope.payload
         if (payload) {
           const correctIds: string[] = payload.correctAnswerIds || []
@@ -570,12 +666,27 @@ export class SessionPresenter implements OnInit, OnDestroy {
         }
         break
       }
-      case 'SESSION_ENDED':
+      case 'SESSION_PAUSE_STATUS': {
+        const payload = envelope.payload as { isPaused?: boolean } | undefined
+        if (payload?.isPaused !== undefined) {
+          this.isPaused.set(payload.isPaused)
+        }
+        break
+      }
+      case 'SESSION_ENDED': {
         this.stopCountdown()
+        this.stopExplanationCountdown()
         this.stage.set('PODIUM')
+        const payload = envelope.payload as {
+          metrics?: { totalParticipants: number, averageScore: number, globalSuccessRate: number }
+        } | undefined
+        if (payload?.metrics) {
+          this.classMetrics.set(payload.metrics)
+        }
         this.fetchScores()
         this.launchPodiumAnimation()
         break
+      }
     }
   }
 
@@ -584,6 +695,14 @@ export class SessionPresenter implements OnInit, OnDestroy {
       if (output.kind === 'success') {
         const leaderboard = output.result.leaderboard || []
         this.leaderboard.set(leaderboard.map(s => ({ name: s.participantName || '', score: s.score || 0 })))
+        if (!this.classMetrics() && leaderboard.length > 0) {
+          const avg = Math.round(leaderboard.reduce((acc, cur) => acc + (cur.score || 0), 0) / leaderboard.length)
+          this.classMetrics.set({
+            totalParticipants: leaderboard.length,
+            averageScore: avg,
+            globalSuccessRate: 0,
+          })
+        }
       }
     })
   }
@@ -613,6 +732,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   protected nextStep(): void {
+    this.stopExplanationCountdown()
     this.sessionService.nextQuestion(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
   }
 

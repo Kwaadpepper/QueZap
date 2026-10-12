@@ -21,6 +21,38 @@
         <span class="text-slate-400 text-sm font-semibold">joueurs</span>
       </div>
 
+      <!-- Mode Manuel / Automatique -->
+      <button
+        type="button"
+        class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
+        title="Basculer entre transition manuelle et automatique après explication"
+        [class.bg-indigo-950/80]="progressionMode() === 'AUTOMATIC'"
+        [class.border-indigo-500/60]="progressionMode() === 'AUTOMATIC'"
+        [class.text-indigo-300]="progressionMode() === 'AUTOMATIC'"
+        [class.bg-slate-800/90]="progressionMode() === 'MANUAL'"
+        [class.border-slate-700]="progressionMode() === 'MANUAL'"
+        [class.text-slate-400]="progressionMode() === 'MANUAL'"
+        (click)="toggleProgressionMode()">
+        <i class="pi" [class.pi-bolt]="progressionMode() === 'AUTOMATIC'" [class.pi-user]="progressionMode() === 'MANUAL'"></i>
+        <span>{{ progressionMode() === 'AUTOMATIC' ? 'Mode Auto (' + explanationDurationSeconds() + 's)' : 'Mode Manuel' }}</span>
+      </button>
+
+      <!-- Bouton Pause explications -->
+      <button
+        type="button"
+        class="flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-extrabold transition shadow-md cursor-pointer active:scale-95"
+        [class.bg-amber-500]="isPaused()"
+        [class.text-slate-950]="isPaused()"
+        [class.border-amber-400]="isPaused()"
+        [class.animate-pulse]="isPaused()"
+        [class.bg-slate-800/90]="!isPaused()"
+        [class.border-slate-700]="!isPaused()"
+        [class.text-amber-400]="!isPaused()"
+        (click)="togglePause()">
+        <i class="pi" [class.pi-play]="isPaused()" [class.pi-pause]="!isPaused()"></i>
+        <span>{{ isPaused() ? '▶️ Reprendre' : '⏸️ Pause explications' }}</span>
+      </button>
+
       <button
         type="button"
         class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
@@ -43,6 +75,16 @@
       </button>
     </div>
   </header>
+
+  <!-- BANDEAU EN PAUSE -->
+  @if (isPaused()) {
+    <div
+      class="my-4 py-3 px-6 bg-amber-500 border-2 border-amber-300 rounded-2xl text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center gap-3 shadow-2xl animate-pulse relative z-30"
+      role="alert">
+      <span>⏸️ EN PAUSE</span>
+      <span class="text-base md:text-xl font-bold text-slate-900">— Explications du professeur en cours</span>
+    </div>
+  }
 
   <!-- LOBBY SCREEN -->
   @if (stage() === 'LOBBY') {
@@ -361,8 +403,21 @@
             <i class="pi pi-chart-bar text-xl"></i>
             <span>📊 Voir le Classement</span>
           </button>
-        } @else {
-          <div></div>
+        }
+
+        @if (progressionMode() === 'AUTOMATIC') {
+          <div class="flex items-center gap-3 px-6 py-3 rounded-2xl border shadow-md transition-all"
+               [class.bg-amber-950/80]="isPaused()"
+               [class.border-amber-400/80]="isPaused()"
+               [class.text-amber-300]="isPaused()"
+               [class.bg-indigo-950/70]="!isPaused()"
+               [class.border-indigo-500/50]="!isPaused()"
+               [class.text-indigo-200]="!isPaused()">
+            <i class="pi" [class.pi-pause]="isPaused()" [class.pi-spin]="!isPaused()" [class.pi-spinner]="!isPaused()"></i>
+            <span class="font-bold text-lg">
+              {{ isPaused() ? 'Compte à rebours en pause' : 'Suite automatique dans ' + explanationTimer() + 's' }}
+            </span>
+          </div>
         }
 
         <button
@@ -562,45 +617,53 @@
         </div>
       </div>
 
-      <!-- Leaderboard table for the entire class -->
-      @if (podiumStep() >= 3) {
-        <div class="w-full max-w-3xl mt-8 bg-slate-900/90 rounded-3xl p-6 sm:p-8 border border-slate-800/90 shadow-2xl backdrop-blur-xl">
-          <h3 class="text-2xl font-black text-slate-200 mb-6 flex items-center justify-center gap-2">
-            <span>📊 Classement Général</span>
-          </h3>
-          <div class="space-y-3">
-          @for (player of leaderboard(); track player.name; let rank = $index) {
-            <div class="flex justify-between items-center bg-slate-800/80 hover:bg-slate-800 px-5 py-3 rounded-2xl text-xl border border-slate-700/60 shadow-sm transition">
-              <div class="flex items-center gap-4">
-                <span
-                  class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base"
-                  [class.bg-yellow-400]="rank === 0"
-                  [class.text-slate-950]="rank === 0"
-                  [class.bg-slate-300]="rank === 1"
-                  [class.text-slate-900]="rank === 1"
-                  [class.bg-amber-600]="rank === 2"
-                  [class.text-white]="rank === 2"
-                  [class.bg-slate-700]="rank >= 3"
-                  [class.text-slate-300]="rank >= 3">
-                  #{{ rank + 1 }}
-                </span>
-                <span class="font-bold text-white text-xl">{{ player.name }}</span>
-              </div>
-              <span class="font-black text-indigo-400 text-2xl font-mono">{{ player.score }} pts</span>
+      <!-- Top 4 & 5 Runners-up (Compact, no scroll) -->
+      @if (podiumStep() >= 3 && top5Entries().length >= 4) {
+        <div class="flex items-center justify-center gap-4 my-2 max-w-2xl mx-auto w-full">
+          @if (top5Entries().length >= 4) {
+            <div class="flex-1 flex items-center justify-between bg-slate-900/80 px-5 py-2.5 rounded-2xl border border-slate-700/70 shadow-md">
+              <span class="text-base font-bold text-slate-300">#4 {{ top5Entries()[3].name }}</span>
+              <span class="text-base font-black text-indigo-400 font-mono">{{ top5Entries()[3].score }} pts</span>
+            </div>
+          }
+          @if (top5Entries().length >= 5) {
+            <div class="flex-1 flex items-center justify-between bg-slate-900/80 px-5 py-2.5 rounded-2xl border border-slate-700/70 shadow-md">
+              <span class="text-base font-bold text-slate-300">#5 {{ top5Entries()[4].name }}</span>
+              <span class="text-base font-black text-indigo-400 font-mono">{{ top5Entries()[4].score }} pts</span>
             </div>
           }
         </div>
+      }
 
-        <div class="mt-8 flex justify-center">
-          <button
-            class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xl rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
-            (click)="downloadCsv()">
-            <i class="pi pi-download text-xl"></i>
-            <span>Télécharger les notes (CSV)</span>
-          </button>
+      <!-- Collective Group Metrics (Class Average & Cohesion) -->
+      @if (podiumStep() >= 3) {
+        <div class="w-full max-w-3xl my-3 bg-slate-900/90 rounded-2xl p-5 border border-slate-800 shadow-2xl backdrop-blur-xl">
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700/60">
+              <p class="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Participants</p>
+              <p class="text-2xl font-black text-white mt-1">{{ classMetrics()?.totalParticipants ?? participants().length }}</p>
+            </div>
+            <div class="p-3 bg-indigo-950/70 rounded-xl border border-indigo-500/40">
+              <p class="text-xs uppercase font-extrabold text-indigo-300 tracking-wider">Moyenne Classe</p>
+              <p class="text-2xl font-black text-indigo-200 mt-1">{{ classMetrics()?.averageScore ?? 0 }} pts</p>
+            </div>
+            <div class="p-3 bg-emerald-950/70 rounded-xl border border-emerald-500/40">
+              <p class="text-xs uppercase font-extrabold text-emerald-300 tracking-wider">Réussite Globale</p>
+              <p class="text-2xl font-black text-emerald-200 mt-1">{{ classMetrics()?.globalSuccessRate ?? 0 }}%</p>
+            </div>
+          </div>
+
+          <div class="mt-4 flex justify-center">
+            <button
+              type="button"
+              class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 cursor-pointer flex items-center gap-2 text-sm"
+              (click)="downloadCsv()">
+              <i class="pi pi-download"></i>
+              <span>Télécharger les notes complètes (CSV)</span>
+            </button>
+          </div>
         </div>
-      </div>
-    }
+      }
     </main>
   }
 </div>

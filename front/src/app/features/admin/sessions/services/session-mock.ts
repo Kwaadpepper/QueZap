@@ -2,7 +2,14 @@ import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
-import { LeaderboardResponseDto, SessionDetailDto, SessionReportDto } from '@quezap/core/api-client'
+import {
+  LeaderboardResponseDto,
+  SessionDetailDto,
+  SessionPauseResponseDto,
+  SessionReportDto,
+  SessionSettingsRequestDto,
+  SessionSettingsResponseDto,
+} from '@quezap/core/api-client'
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
@@ -131,5 +138,26 @@ export class SessionMockService implements SessionService {
 
   kickParticipant(_sessionId: string, _name: string): ServiceOutput<void> {
     return of({ kind: 'success' as const, result: undefined })
+  }
+
+  pauseSession(id: string, paused: boolean): ServiceOutput<SessionPauseResponseDto> {
+    return of({
+      kind: 'success' as const,
+      result: {
+        sessionId: id,
+        isPaused: paused,
+      },
+    })
+  }
+
+  updateSettings(_id: string, settings: SessionSettingsRequestDto): ServiceOutput<SessionSettingsResponseDto> {
+    return of({
+      kind: 'success' as const,
+      result: {
+        progressionMode: settings.progressionMode ?? 'MANUAL',
+        explanationDurationSeconds: settings.explanationDurationSeconds ?? 15,
+        mobileCorrectionEnabled: settings.mobileCorrectionEnabled ?? false,
+      },
+    })
   }
 }

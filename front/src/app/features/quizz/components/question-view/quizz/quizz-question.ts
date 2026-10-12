@@ -78,7 +78,10 @@ export class QuizzQuestionView {
       for (const [key, val] of Object.entries(resp)) {
         if (val === true) {
           this.hasSubmitted.set(true)
-          this.sessionApi.submitAnswer(Number(key)).subscribe()
+          const chosenIdx = Number(key)
+          const chosenAnswer = this.question().answers.find(a => a.index === chosenIdx)
+          this.sessionStore.submitMyChoice(chosenIdx, chosenAnswer?.value || `Choix ${chosenIdx + 1}`)
+          this.sessionApi.submitAnswer(chosenIdx).subscribe()
           break
         }
       }

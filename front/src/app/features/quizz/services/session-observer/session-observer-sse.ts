@@ -156,6 +156,7 @@ export class SessionObserverSseService implements SessionObserverService {
         'INTERMEDIATE_LEADERBOARD',
         'SESSION_ENDED',
         'PARTICIPANT_KICKED',
+        'SESSION_PAUSE_STATUS',
       ]
 
       for (const name of eventNames) {
@@ -229,6 +230,7 @@ export class SessionObserverSseService implements SessionObserverService {
           correctAnswerIndices?: number[]
           correctIndices?: number[]
           explanation?: string
+          mobileCorrectionAllowed?: boolean
           answersStats?: { answerIndex: number, count: number, percentage: number }[]
           stats?: { answerIndex: number, count: number, percentage: number }[]
         }
@@ -236,6 +238,7 @@ export class SessionObserverSseService implements SessionObserverService {
           slideIndex: payload.slideIndex ?? 0,
           correctIndices: payload.correctAnswerIndices || payload.correctIndices || [],
           explanation: payload.explanation,
+          mobileCorrectionAllowed: payload.mobileCorrectionAllowed,
           stats: (payload.answersStats || payload.stats || []).map(s => ({
             answerIndex: s.answerIndex ?? 0,
             count: s.count ?? 0,
@@ -298,6 +301,11 @@ export class SessionObserverSseService implements SessionObserverService {
             correctAnswers?: number
             correctCount?: number
           }[]
+          metrics?: {
+            totalParticipants?: number
+            averageScore?: number
+            globalSuccessRate?: number
+          }
           podium?: { first: string, second?: string, third?: string }
         } | undefined
         const leaderboardList = payload?.finalLeaderboard || payload?.leaderboard
@@ -306,22 +314,46 @@ export class SessionObserverSseService implements SessionObserverService {
           const myEntry = leaderboardList.find(
             e => e.participantName.trim().toLowerCase() === myNickname.trim().toLowerCase(),
           )
-          if (myEntry) {
-            const finalScore = myEntry.totalScore ?? myEntry.score ?? 0
-            const correctCount = myEntry.correctCount ?? myEntry.correctAnswers ?? 0
-            this.sessionPersistence.saveFinalResults({
-              rank: myEntry.rank,
-              totalParticipants: leaderboardList.length,
-              score: finalScore,
-              correctAnswers: correctCount,
-              isPodium: myEntry.rank <= 3,
-            })
-          }
+          const finalScore = myEntry ? (myEntry.totalScore ?? myEntry.score ?? 0) : 0
+          const correctCount = myEntry ? (myEntry.correctCount ?? myEntry.correctAnswers ?? 0) : 0
+          const classAvg = payload?.metrics?.averageScore
+            ?? (leaderboardList.length > 0
+              ? Math.round(
+                  leaderboardList.reduce((acc, cur) => acc + (cur.totalScore ?? cur.score ?? 0), 0)
+                  / leaderboardList.length,
+                )
+              : 0)
+
+          this.sessionPersistence.saveFinalResults({
+            rank: myEntry ? myEntry.rank : leaderboardList.length + 1,
+            totalParticipants: payload?.metrics?.totalParticipants ?? leaderboardList.length,
+            score: finalScore,
+            correctAnswers: correctCount,
+            isPodium: myEntry ? myEntry.rank <= 3 : false,
+            classAverageScore: classAvg,
+            classSuccessRate: payload?.metrics?.globalSuccessRate ?? 0,
+            fullLeaderboard: leaderboardList.map(l => ({
+              rank: l.rank,
+              participantName: l.participantName,
+              score: l.totalScore ?? l.score ?? 0,
+              correctCount: l.correctCount ?? l.correctAnswers,
+            })),
+          })
         }
         this.eventsSubject.next({
           type: 'SessionEnded',
           session: { endedAt: new Date(envelope.timestamp) },
         })
+        break
+      }
+      case 'SESSION_PAUSE_STATUS': {
+        const payload = envelope.payload as { isPaused?: boolean } | undefined
+        if (payload?.isPaused !== undefined) {
+          this.eventsSubject.next({
+            type: 'SessionPauseStatus',
+            isPaused: payload.isPaused,
+          })
+        }
         break
       }
       case 'PARTICIPANT_KICKED': {

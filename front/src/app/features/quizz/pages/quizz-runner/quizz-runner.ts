@@ -56,6 +56,8 @@ export class QuizzRunner {
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly question = signal<QuestionWithAnswers | undefined>(undefined)
   protected readonly lastReveal = computed(() => this.sessionStore.lastReveal())
+  protected readonly isSessionPaused = computed(() => this.sessionStore.isSessionPaused())
+  protected readonly mySubmittedChoice = computed(() => this.sessionStore.mySubmittedChoice())
   protected readonly myRanking = computed(() => this.sessionStore.myRanking())
   protected readonly pointsEarned = computed(() => {
     const rank = this.myRanking()
@@ -64,12 +66,12 @@ export class QuizzRunner {
   })
 
   protected readonly liveAnnouncement = computed<string>(() => {
+    if (this.isSessionPaused()) {
+      return 'Session en pause. Écoutez les consignes du professeur.'
+    }
     const reveal = this.lastReveal()
     if (reveal) {
-      const pts = this.pointsEarned()
-      return pts > 0
-        ? `Résultats révélés. Bien joué ! Vous avez gagné ${pts} points.`
-        : 'Résultats révélés. Réponse incorrecte.'
+      return 'Résultats révélés. Regardez le tableau pour les explications.'
     }
     const q = this.question()
     if (q) {

@@ -109,7 +109,10 @@ export class BooleanQuestionView {
 
       if (!this.hasSubmitted() && selectedKeys.length === 1) {
         this.hasSubmitted.set(true)
-        this.sessionApi.submitAnswer(Number(selectedKeys[0])).subscribe()
+        const chosenIdx = Number(selectedKeys[0])
+        const label = chosenIdx === 0 ? 'Vrai' : 'Faux'
+        this.sessionStore.submitMyChoice(chosenIdx, label)
+        this.sessionApi.submitAnswer(chosenIdx).subscribe()
       }
     })
   }

@@ -96,7 +96,10 @@ export class BinaryQuestionView {
 
       if (!this.hasSubmitted() && selectedKeys.length === 1) {
         this.hasSubmitted.set(true)
-        this.sessionApi.submitAnswer(Number(selectedKeys[0])).subscribe()
+        const chosenIdx = Number(selectedKeys[0])
+        const chosenAnswer = this.question().answers.find(a => a.index === chosenIdx)
+        this.sessionStore.submitMyChoice(chosenIdx, chosenAnswer?.value || `Choix ${chosenIdx + 1}`)
+        this.sessionApi.submitAnswer(chosenIdx).subscribe()
       }
     })
   }

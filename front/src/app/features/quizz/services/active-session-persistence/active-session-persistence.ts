@@ -15,6 +15,14 @@ export interface FinalParticipantResults {
   score: number
   correctAnswers: number
   isPodium: boolean
+  classAverageScore?: number
+  classSuccessRate?: number
+  fullLeaderboard?: {
+    rank: number
+    participantName: string
+    score: number
+    correctCount?: number
+  }[]
 }
 
 @Injectable({ providedIn: 'root' })

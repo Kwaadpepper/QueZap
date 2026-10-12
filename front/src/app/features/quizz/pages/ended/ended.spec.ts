@@ -62,4 +62,34 @@ describe('Ended', () => {
     expect(compiled.textContent).toContain('sur 20')
     expect(compiled.textContent).toContain('450')
   })
+
+  it('should display collective class benchmark and full leaderboard', () => {
+    jest.spyOn(persistence, 'getParticipantName').mockReturnValue('Charlie')
+    persistence.saveFinalResults({
+      rank: 2,
+      totalParticipants: 3,
+      score: 800,
+      correctAnswers: 2,
+      isPodium: true,
+      classAverageScore: 750,
+      classSuccessRate: 67,
+      fullLeaderboard: [
+        { rank: 1, participantName: 'Alice', score: 950 },
+        { rank: 2, participantName: 'Charlie', score: 800 },
+        { rank: 3, participantName: 'Bob', score: 500 },
+      ],
+    })
+    fixture.detectChanges()
+
+    const compiled = fixture.nativeElement as HTMLElement
+    expect(compiled.textContent).toContain('Dynamique collective de la classe')
+    expect(compiled.textContent).toContain('750 pts')
+    expect(compiled.textContent).toContain('67%')
+    expect(compiled.textContent).toContain('Classement complet de la classe (3)')
+    expect(compiled.textContent).toContain('Alice')
+    expect(compiled.textContent).toContain('Charlie')
+    expect(compiled.textContent).toContain('(Toi)')
+    expect(compiled.textContent).toContain('Bob')
+    expect(compiled.textContent).toContain('Bravo pour ton apport au résultat de la classe !')
+  })
 })

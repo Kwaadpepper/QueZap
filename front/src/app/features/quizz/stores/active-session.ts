@@ -26,7 +26,7 @@ import {
 import {
   IntermediateLeaderboardData,
   NoMoreQuestions, QuestionRevealData, SESSION_API_SERVICE,
-  SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionKicked, sessionStarted,
+  SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionKicked, sessionPauseStatus, sessionStarted,
   sessionWaitingStart,
   WaitingQuestion,
 } from '../services'
@@ -45,6 +45,8 @@ interface ActiveSessionState {
   _participants: Participant[]
   lastReveal: QuestionRevealData | undefined
   lastLeaderboard: IntermediateLeaderboardData | undefined
+  isSessionPaused: boolean
+  mySubmittedChoice: { answerIndex: number, label: string } | undefined
 }
 
 const initialState: ActiveSessionState = {
@@ -56,6 +58,8 @@ const initialState: ActiveSessionState = {
   _participants: [],
   lastReveal: undefined,
   lastLeaderboard: undefined,
+  isSessionPaused: false,
+  mySubmittedChoice: undefined,
 }
 
 export const ActiveSessionStore = signalStore(
@@ -66,6 +70,8 @@ export const ActiveSessionStore = signalStore(
     restorationComplete: computed(() => store._sessionIsLoaded()),
     participants: computed(() => store._participants()),
     sessionHasStarted: computed(() => store._sessionIsRunning()),
+    isSessionPaused: computed(() => store.isSessionPaused()),
+    mySubmittedChoice: computed(() => store.mySubmittedChoice()),
     myRanking: computed(() => {
       const myName = sessionPersistence.getParticipantName()
       const lb = store.lastLeaderboard()
@@ -81,6 +87,14 @@ export const ActiveSessionStore = signalStore(
     sessionApi = inject(SESSION_API_SERVICE),
     activeSessionPersistence = inject(ActiveSessionPersistence),
   ) => ({
+
+    submitMyChoice: (answerIndex: number, label: string): void => {
+      patchState(store, { mySubmittedChoice: { answerIndex, label } })
+    },
+
+    clearMyChoice: (): void => {
+      patchState(store, { mySubmittedChoice: undefined })
+    },
 
     joinSession: (code: SessionCode): Observable<void | NotFoundError | ExpiredError> => {
       return sessionApi.joinSessionWith(code).pipe(
@@ -217,7 +231,7 @@ export const ActiveSessionStore = signalStore(
         effect(() => {
           const question = sessionObserver.question()
           console.debug('Updating current question from session observer', question)
-          patchState(store, { question, lastReveal: undefined })
+          patchState(store, { question, lastReveal: undefined, mySubmittedChoice: undefined })
         })
 
         // * React to reveal updates
@@ -280,6 +294,10 @@ export const ActiveSessionStore = signalStore(
                 },
                 _sessionIsRunning: false,
               })
+            }
+
+            if (sessionPauseStatus(event)) {
+              patchState(store, { isSessionPaused: event.isPaused })
             }
 
             if (sessionKicked(event)) {

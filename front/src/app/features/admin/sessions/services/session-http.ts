@@ -6,7 +6,10 @@ import {
   LeaderboardResponseDto,
   PageOfDtoSessionDetailDto,
   SessionDetailDto,
+  SessionPauseResponseDto,
   SessionReportDto,
+  SessionSettingsRequestDto,
+  SessionSettingsResponseDto,
 } from '@quezap/core/api-client'
 import { client } from '@quezap/core/api-client/client.gen'
 import { NotFoundError } from '@quezap/core/errors'
@@ -224,6 +227,46 @@ export class SessionHttpService implements SessionService {
           }
         }
         return { kind: 'success' as const, result: undefined }
+      }),
+    )
+  }
+
+  pauseSession(id: string, paused: boolean): ServiceOutput<SessionPauseResponseDto> {
+    return from(
+      client.post<{ 200: SessionPauseResponseDto }>({
+        url: '/apiv1/sessions/{id}/pause',
+        path: { id },
+        body: { paused },
+      }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data) {
+          return {
+            kind: 'failure' as const,
+            error: new NotFoundError('Erreur mise en pause de la session'),
+          }
+        }
+        return { kind: 'success' as const, result: data }
+      }),
+    )
+  }
+
+  updateSettings(id: string, settings: SessionSettingsRequestDto): ServiceOutput<SessionSettingsResponseDto> {
+    return from(
+      client.put<{ 200: SessionSettingsResponseDto }>({
+        url: '/apiv1/sessions/{id}/settings',
+        path: { id },
+        body: settings,
+      }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data) {
+          return {
+            kind: 'failure' as const,
+            error: new NotFoundError('Erreur mise à jour des réglages'),
+          }
+        }
+        return { kind: 'success' as const, result: data }
       }),
     )
   }

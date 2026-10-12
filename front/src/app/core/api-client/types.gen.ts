@@ -9,6 +9,18 @@ export type UpdatePasswordRequest = {
     newPassword: string;
 };
 
+export type SessionSettingsRequestDto = {
+    progressionMode?: string;
+    explanationDurationSeconds?: number;
+    mobileCorrectionEnabled?: boolean;
+};
+
+export type SessionSettingsResponseDto = {
+    progressionMode?: string;
+    explanationDurationSeconds?: number;
+    mobileCorrectionEnabled?: boolean;
+};
+
 export type InlineAnswerRequest = {
     id?: string;
     label: string;
@@ -83,6 +95,15 @@ export type SessionCreatedDto = {
 
 export type SessionStatusDto = {
     status?: string;
+};
+
+export type SessionPauseRequestDto = {
+    paused?: boolean;
+};
+
+export type SessionPauseResponseDto = {
+    sessionId?: string;
+    isPaused?: boolean;
 };
 
 export type NextQuestionResponseDto = {
@@ -306,6 +327,10 @@ export type SessionDetailDto = {
     authorId?: string;
     startedAt?: string;
     endedAt?: string;
+    progressionMode?: string;
+    isPaused?: boolean;
+    explanationDurationSeconds?: number;
+    mobileCorrectionEnabled?: boolean;
 };
 
 export type LeaderboardEntryDto = {
@@ -465,6 +490,24 @@ export type UpdatePasswordResponses = {
 };
 
 export type UpdatePasswordResponse = UpdatePasswordResponses[keyof UpdatePasswordResponses];
+
+export type UpdateSettingsData = {
+    body: SessionSettingsRequestDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/apiv1/sessions/{id}/settings';
+};
+
+export type UpdateSettingsResponses = {
+    /**
+     * OK
+     */
+    200: SessionSettingsResponseDto;
+};
+
+export type UpdateSettingsResponse = UpdateSettingsResponses[keyof UpdateSettingsResponses];
 
 export type DeleteData = {
     body?: never;
@@ -657,6 +700,24 @@ export type RevealResponses = {
      */
     200: unknown;
 };
+
+export type PauseSessionData = {
+    body: SessionPauseRequestDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/apiv1/sessions/{id}/pause';
+};
+
+export type PauseSessionResponses = {
+    /**
+     * OK
+     */
+    200: SessionPauseResponseDto;
+};
+
+export type PauseSessionResponse = PauseSessionResponses[keyof PauseSessionResponses];
 
 export type KickParticipantData = {
     body?: never;

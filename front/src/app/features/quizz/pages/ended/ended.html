@@ -42,6 +42,88 @@
           <span class="text-xs text-slate-400">bonnes rép.</span>
         </div>
       </div>
+
+      <!-- Collective Group Benchmark Card -->
+      <div class="w-full rounded-2xl bg-indigo-950/20 dark:bg-indigo-950/50 border border-indigo-500/40 p-4 mb-6 text-left shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-lg">🤝</span>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-200">
+            Dynamique collective de la classe
+          </h3>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-center my-2">
+          <div class="p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-indigo-200 dark:border-indigo-800">
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold block">Moyenne de classe</span>
+            <span class="text-xl font-black text-indigo-600 dark:text-indigo-300 font-mono">{{ classAverageScore() }} pts</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-indigo-200 dark:border-indigo-800">
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold block">Réussite collective</span>
+            <span class="text-xl font-black text-emerald-600 dark:text-emerald-300 font-mono">{{ classSuccessRate() }}%</span>
+          </div>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 font-medium">
+          @if (isAboveOrEqualAverage()) {
+            🌟 Bravo pour ton apport au résultat de la classe !
+          } @else {
+            💪 Ton investissement a fait avancer le groupe !
+          }
+        </p>
+      </div>
+
+      <!-- Full Scrollable Class Leaderboard -->
+      @let leaderboard = fullLeaderboard();
+      @if (leaderboard.length > 0) {
+        <div class="w-full rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-4 mb-6 text-left shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+              Classement complet de la classe ({{ leaderboard.length }})
+            </h3>
+            <span class="text-xs text-slate-400">Dérouler pour voir</span>
+          </div>
+          <div class="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+            @for (entry of leaderboard; track entry.participantName) {
+              @let isMe = entry.participantName.trim().toLowerCase() === nickname().trim().toLowerCase();
+              <div
+                class="flex items-center justify-between p-2.5 rounded-xl border text-sm transition-all"
+                [class.bg-indigo-500/20]="isMe"
+                [class.border-indigo-500/60]="isMe"
+                [class.font-bold]="isMe"
+                [class.bg-white]="!isMe"
+                [class.dark:bg-slate-800/60]="!isMe"
+                [class.border-slate-200]="!isMe"
+                [class.dark:border-slate-700/50]="!isMe"
+              >
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span
+                    class="flex h-6 w-6 items-center justify-center rounded-md text-xs font-black shrink-0"
+                    [class.bg-amber-400]="entry.rank === 1"
+                    [class.text-amber-950]="entry.rank === 1"
+                    [class.bg-slate-300]="entry.rank === 2"
+                    [class.text-slate-800]="entry.rank === 2"
+                    [class.bg-amber-700]="entry.rank === 3"
+                    [class.text-amber-100]="entry.rank === 3"
+                    [class.bg-slate-200]="entry.rank > 3"
+                    [class.dark:bg-slate-700]="entry.rank > 3"
+                    [class.text-slate-600]="entry.rank > 3"
+                    [class.dark:text-slate-300]="entry.rank > 3"
+                  >
+                    {{ entry.rank }}
+                  </span>
+                  <span class="truncate text-slate-800 dark:text-slate-100">
+                    {{ entry.participantName }}
+                    @if (isMe) {
+                      <span class="text-xs text-indigo-500 font-extrabold ml-1">(Toi)</span>
+                    }
+                  </span>
+                </div>
+                <span class="font-mono text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0 ml-2">
+                  {{ entry.score }} pts
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
     }
 
     <p class="mt-1 max-w-md text-sm text-slate-600 dark:text-slate-400">

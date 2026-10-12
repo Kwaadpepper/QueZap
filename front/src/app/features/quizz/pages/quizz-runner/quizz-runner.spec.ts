@@ -85,12 +85,59 @@ describe('QuizzRunner', () => {
     patchState(sessionStore, {
       lastReveal: {
         slideIndex: 1,
-        correctAnswers: [0],
+        correctIndices: [0],
         stats: [],
       },
     })
     fixture.detectChanges()
 
     expect(clearTimerSpy).toHaveBeenCalled()
+  })
+
+  it('should display pause alert banner when isSessionPaused is true', () => {
+    patchState(sessionStore, { isSessionPaused: true })
+    fixture.detectChanges()
+
+    const banner = fixture.nativeElement.querySelector('aside[role="alert"]')
+    expect(banner).toBeTruthy()
+    expect(banner?.textContent).toContain('EN PAUSE')
+    expect(component['liveAnnouncement']()).toContain('Session en pause')
+  })
+
+  it('should display calm board reminder and submitted choice without score/ranking on reveal', () => {
+    patchState(sessionStore, {
+      mySubmittedChoice: { answerIndex: 2, label: 'Option C' },
+      lastReveal: {
+        slideIndex: 1,
+        correctIndices: [1],
+        explanation: 'Explication détaillée',
+        stats: [],
+      },
+    })
+    fixture.detectChanges()
+
+    const text = fixture.nativeElement.textContent
+    expect(text).toContain('Regarde le tableau')
+    expect(text).toContain('Ta réponse enregistrée')
+    expect(text).toContain('Option C')
+    expect(text).toContain('Explication détaillée')
+    expect(text).not.toContain('Classement :')
+    expect(text).not.toContain('Points gagnés')
+  })
+
+  it('should display mobile correction indicator when mobileCorrectionAllowed is true', () => {
+    patchState(sessionStore, {
+      mySubmittedChoice: { answerIndex: 1, label: 'Bonne réponse' },
+      lastReveal: {
+        slideIndex: 1,
+        correctIndices: [1],
+        mobileCorrectionAllowed: true,
+        stats: [],
+      },
+    })
+    fixture.detectChanges()
+
+    const text = fixture.nativeElement.textContent
+    expect(text).toContain('Bonne réponse !')
   })
 })

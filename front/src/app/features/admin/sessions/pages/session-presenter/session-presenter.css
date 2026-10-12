@@ -24,17 +24,17 @@
 
 .podium-box {
   display: flex;
-  min-height: 420px;
+  min-height: 280px;
   align-items: flex-end;
   justify-content: center;
-  gap: 2.5rem;
+  gap: 2rem;
   perspective: 1000px;
 }
 
 .podium-step {
   position: relative;
   display: flex;
-  width: 190px;
+  width: 170px;
   flex-direction: column;
   align-items: center;
   border-radius: 1.5rem 1.5rem 0 0;
@@ -43,19 +43,19 @@
 }
 
 .step-first {
-  height: 320px;
+  height: 240px;
   background: linear-gradient(180deg, #fde047 0%, #ca8a04 100%);
   box-shadow: 0 0 50px rgb(250 204 21 / 50%), inset 0 2px 6px rgb(255 255 255 / 60%);
 }
 
 .step-second {
-  height: 240px;
+  height: 180px;
   background: linear-gradient(180deg, #e2e8f0 0%, #64748b 100%);
   box-shadow: 0 0 35px rgb(148 163 184 / 40%), inset 0 2px 6px rgb(255 255 255 / 60%);
 }
 
 .step-third {
-  height: 180px;
+  height: 140px;
   background: linear-gradient(180deg, #fdba74 0%, #9a3412 100%);
   box-shadow: 0 0 30px rgb(249 115 22 / 40%), inset 0 2px 6px rgb(255 255 255 / 50%);
 }

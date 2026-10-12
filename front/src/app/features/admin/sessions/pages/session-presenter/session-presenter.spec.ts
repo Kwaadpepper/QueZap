@@ -25,6 +25,8 @@ describe('SessionPresenter', () => {
     nextQuestion: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
     revealAnswers: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
     kickParticipant: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
+    pauseSession: jest.fn().mockReturnValue(of({ kind: 'success', result: { isPaused: true } })),
+    updateSettings: jest.fn().mockReturnValue(of({ kind: 'success', result: {} })),
   }
 
   beforeEach(async () => {
@@ -245,5 +247,110 @@ describe('SessionPresenter', () => {
 
     component['stage'].set('REVEAL')
     expect(component['stage']()).toBe('REVEAL')
+  })
+
+  it('should toggle progression mode and call updateSettings', () => {
+    expect(component['progressionMode']()).toBe('MANUAL')
+    component['toggleProgressionMode']()
+    expect(component['progressionMode']()).toBe('AUTOMATIC')
+    expect(mockSessionService.updateSettings).toHaveBeenCalledWith('test-session-id', {
+      progressionMode: 'AUTOMATIC',
+      explanationDurationSeconds: 15,
+    })
+
+    component['toggleProgressionMode']()
+    expect(component['progressionMode']()).toBe('MANUAL')
+  })
+
+  it('should toggle pause, call pauseSession API, and freeze timer countdown', fakeAsync(() => {
+    component['handleEvent']({
+      type: 'QUESTION_START',
+      payload: {
+        slideIndex: 1,
+        totalSlides: 1,
+        timerSeconds: 10,
+      },
+    })
+    expect(component['timer']()).toBe(10)
+    expect(component['isPaused']()).toBe(false)
+
+    tick(2000)
+    expect(component['timer']()).toBe(8)
+
+    // Pause
+    component['togglePause']()
+    expect(component['isPaused']()).toBe(true)
+    expect(mockSessionService.pauseSession).toHaveBeenCalledWith('test-session-id', true)
+
+    // Timer should be frozen while paused
+    tick(3000)
+    expect(component['timer']()).toBe(8)
+
+    // Resume
+    component['togglePause']()
+    expect(component['isPaused']()).toBe(false)
+    expect(mockSessionService.pauseSession).toHaveBeenCalledWith('test-session-id', false)
+
+    tick(2000)
+    expect(component['timer']()).toBe(6)
+  }))
+
+  it('should handle SESSION_PAUSE_STATUS SSE event', () => {
+    expect(component['isPaused']()).toBe(false)
+    component['handleEvent']({
+      type: 'SESSION_PAUSE_STATUS',
+      payload: { isPaused: true } as unknown as SsePayload,
+    })
+    expect(component['isPaused']()).toBe(true)
+
+    component['handleEvent']({
+      type: 'SESSION_PAUSE_STATUS',
+      payload: { isPaused: false } as unknown as SsePayload,
+    })
+    expect(component['isPaused']()).toBe(false)
+  })
+
+  it('should auto-advance after explanation countdown in AUTOMATIC mode during REVEAL', fakeAsync(() => {
+    mockSessionService.nextQuestion.mockClear()
+    component['setProgressionMode']('AUTOMATIC')
+    component['setExplanationDuration'](5)
+
+    component['handleEvent']({
+      type: 'QUESTION_REVEAL',
+      payload: {
+        slideIndex: 1,
+        correctAnswerIndices: [0],
+      },
+    })
+
+    expect(component['stage']()).toBe('REVEAL')
+    expect(component['explanationTimer']()).toBe(5)
+
+    tick(3000)
+    expect(component['explanationTimer']()).toBe(2)
+    expect(mockSessionService.nextQuestion).not.toHaveBeenCalled()
+
+    tick(2500)
+    expect(component['explanationTimer']()).toBe(0)
+    expect(mockSessionService.nextQuestion).toHaveBeenCalled()
+  }))
+
+  it('should store class metrics on SESSION_ENDED event', () => {
+    component['handleEvent']({
+      type: 'SESSION_ENDED',
+      payload: {
+        metrics: {
+          totalParticipants: 20,
+          averageScore: 7500,
+          globalSuccessRate: 85.0,
+        },
+      } as unknown as SsePayload,
+    })
+
+    expect(component['classMetrics']()).toEqual({
+      totalParticipants: 20,
+      averageScore: 7500,
+      globalSuccessRate: 85.0,
+    })
   })
 })

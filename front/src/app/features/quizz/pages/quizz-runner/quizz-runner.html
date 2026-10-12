@@ -1,5 +1,16 @@
 <quizz-exit-button />
 
+@if (isSessionPaused()) {
+  <aside
+    class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-3 bg-amber-500 py-3 px-4 text-slate-950 font-black text-base sm:text-lg shadow-2xl animate-pulse"
+    role="alert"
+    aria-live="assertive"
+  >
+    <span class="text-2xl">⏸️</span>
+    <span>EN PAUSE — Écoutez le professeur</span>
+  </aside>
+}
+
 <div class="relative flex w-full flex-col items-center">
   <div class="sr-only" aria-live="polite" aria-atomic="true">
     {{ liveAnnouncement() }}
@@ -12,60 +23,63 @@
 
   @let reveal = lastReveal();
   @if (reveal !== undefined) {
-    <!-- REVEAL SCREEN: Dedicated, centered, no overlap with vote buttons or timer -->
+    <!-- REVEAL SCREEN: Calm, focused on board, no intermediate scores/ranks to avoid distraction/exclusion -->
     <main class="quezap-theme-background flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
-      @let points = pointsEarned();
-      @let rank = myRanking();
-      @let isSuccess = points > 0;
-
-      <div class="w-full max-w-md mx-auto flex flex-col gap-5 text-white animate-fade-in">
-        <!-- Status Header Banner -->
-        <div
-          class="rounded-3xl p-6 text-center border-2 shadow-2xl transition-all"
-          [class.bg-emerald-950/90]="isSuccess"
-          [class.border-emerald-500/80]="isSuccess"
-          [class.text-emerald-100]="isSuccess"
-          [class.bg-amber-950/90]="!isSuccess"
-          [class.border-amber-500/80]="!isSuccess"
-          [class.text-amber-100]="!isSuccess">
-          <div class="text-5xl mb-2">{{ isSuccess ? '🎉' : '💡' }}</div>
-          <h2 class="text-3xl font-black uppercase tracking-wide">
-            {{ isSuccess ? 'Bien joué !' : 'Oups, pas tout à fait !' }}
+      <div class="w-full max-w-md mx-auto flex flex-col gap-4 text-white animate-fade-in">
+        <!-- Call to look at the board -->
+        <div class="rounded-3xl p-5 text-center bg-indigo-950/80 border-2 border-indigo-500/70 shadow-2xl text-indigo-100">
+          <div class="text-4xl mb-2">👀</div>
+          <h2 class="text-2xl font-black uppercase tracking-wide">
+            Regarde le tableau
           </h2>
-          <p class="text-sm font-semibold opacity-80 mt-1">
-            {{ isSuccess ? 'Excellente réponse rapide !' : 'Ne baisse pas les bras pour la suite !' }}
+          <p class="text-xs font-semibold text-indigo-200/90 mt-1">
+            Le professeur commente la question avec la classe.
           </p>
         </div>
 
-        <!-- Score & Rank Card -->
+        <!-- Question & Student Response Card -->
         <div class="bg-slate-900/95 border border-slate-700/80 rounded-3xl p-5 shadow-2xl backdrop-blur-xl flex flex-col gap-4">
-          <div class="grid grid-cols-2 gap-3 text-center">
-            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/60">
-              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Points gagnés</span>
-              <span class="text-3xl font-black" [class.text-emerald-400]="isSuccess" [class.text-slate-400]="!isSuccess">
-                {{ isSuccess ? '+' + points : '0' }} pts
-              </span>
+          @let currentQ = question();
+          @if (currentQ) {
+            <div class="border-b border-slate-800 pb-3">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Question</span>
+              <p class="text-base font-bold text-slate-100">{{ currentQ.value }}</p>
             </div>
+          }
 
-            @if (rank !== undefined) {
-              <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/60">
-                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Score total</span>
-                <span class="text-3xl font-black text-indigo-400 font-mono">{{ rank.score }} pts</span>
+          @let choice = mySubmittedChoice();
+          <div>
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Ta réponse enregistrée</span>
+            @if (choice) {
+              <div class="p-3 rounded-2xl bg-slate-800/90 border border-slate-700/60 text-slate-100 font-bold text-base flex items-center justify-between">
+                <span>{{ choice.label }}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">Enregistrée</span>
+              </div>
+            } @else {
+              <div class="p-3 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-400 italic text-sm">
+                Pas de réponse enregistrée pour cette question
               </div>
             }
           </div>
 
-          @if (rank !== undefined) {
-            <div class="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-800/60 border border-slate-700/40">
-              <span class="text-amber-400 text-lg">🏆</span>
-              <span class="font-extrabold text-base text-slate-200">
-                Classement : <strong class="text-amber-300 font-black text-lg">#{{ rank.rank }}</strong>
-              </span>
+          <!-- Optional Teacher-enabled Mobile Correction -->
+          @if (reveal.mobileCorrectionAllowed) {
+            @let isCorrect = choice !== null && choice !== undefined && reveal.correctIndices.includes(choice.answerIndex);
+            <div
+              class="p-3 rounded-2xl text-center font-black uppercase text-sm border shadow-sm transition-all"
+              [class.bg-emerald-950/90]="isCorrect"
+              [class.border-emerald-500/80]="isCorrect"
+              [class.text-emerald-300]="isCorrect"
+              [class.bg-rose-950/90]="!isCorrect"
+              [class.border-rose-500/80]="!isCorrect"
+              [class.text-rose-300]="!isCorrect">
+              <span>{{ isCorrect ? '✅ Bonne réponse !' : '❌ Réponse incorrecte' }}</span>
             </div>
           }
 
+          <!-- Teacher Explanation (if provided) -->
           @if (reveal.explanation) {
-            <div class="bg-indigo-950/60 border border-indigo-500/40 rounded-2xl p-3.5 text-indigo-100 text-sm flex items-start gap-2.5">
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3.5 text-slate-200 text-sm flex items-start gap-2.5">
               <span class="text-indigo-400 text-base shrink-0 mt-0.5">ℹ️</span>
               <div class="min-w-0">
                 <strong class="font-bold text-white block text-xs uppercase mb-0.5">Explication</strong>
@@ -74,10 +88,6 @@
             </div>
           }
         </div>
-
-        <p class="text-xs text-center text-slate-400 font-medium">
-          👀 Regarde le grand écran pour la suite !
-        </p>
       </div>
     </main>
   } @else {
