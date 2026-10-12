@@ -57,6 +57,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*")
                     .permitAll()
+                    // Public read access to quiz catalog and preview; private visibility and
+                    // answer masking are strictly enforced at method level in QuezapController.
                     .requestMatchers(HttpMethod.GET, "/apiv1/quezaps/**")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/themes/**")

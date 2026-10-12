@@ -82,6 +82,7 @@ class SessionControllerTest {
         new SessionController(
             sessionDataPort,
             sessionSseService,
+            new com.quezap.api.v1.services.SessionReportService(),
             new com.quezap.api.v1.mappers.PaginationMapper(),
             userNameSanitizer,
             transactionManager);

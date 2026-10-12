@@ -23,6 +23,15 @@ import com.quezap.api.v1.dto.events.SafeQuestionDto;
 import com.quezap.api.v1.dto.events.SessionEndedPayload;
 import com.quezap.api.v1.dto.events.SessionEventEnvelope;
 import com.quezap.api.v1.dto.events.SessionStartedPayload;
+import com.quezap.api.v1.dto.response.sessions.JoinSessionResponseDto;
+import com.quezap.api.v1.dto.response.sessions.LeaderboardEntryDto;
+import com.quezap.api.v1.dto.response.sessions.LeaderboardResponseDto;
+import com.quezap.api.v1.dto.response.sessions.QuestionAnswerStatDto;
+import com.quezap.api.v1.dto.response.sessions.QuestionReportDto;
+import com.quezap.api.v1.dto.response.sessions.SessionCreatedDto;
+import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
+import com.quezap.api.v1.dto.response.sessions.SessionParticipantReportDto;
+import com.quezap.api.v1.dto.response.sessions.SessionReportDto;
 import com.quezap.api.v1.services.SessionSseService;
 
 import org.jspecify.annotations.Nullable;
@@ -54,6 +63,15 @@ public class QuezapApiRuntimeHints implements RuntimeHintsRegistrar {
             AnswerStatDto.class,
             FinalLeaderboardEntryDto.class,
             PodiumDto.class,
+            SessionDetailDto.class,
+            SessionCreatedDto.class,
+            JoinSessionResponseDto.class,
+            LeaderboardResponseDto.class,
+            LeaderboardEntryDto.class,
+            SessionReportDto.class,
+            SessionParticipantReportDto.class,
+            QuestionReportDto.class,
+            QuestionAnswerStatDto.class,
             SessionSseService.StoredEvent.class);
 
     for (final var clazz : classes) {
