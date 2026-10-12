@@ -1085,7 +1085,7 @@ public class SessionController {
   }
 
   private String formatSessionCode(Long number) {
-    return "QZ-" + number;
+    return String.valueOf(number);
   }
 
   private Long parseSessionCode(String code) {

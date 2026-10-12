@@ -132,7 +132,7 @@ class SessionControllerTest {
     final var response = sessionController.create(request);
 
     assertThat(response.id()).isNotNull();
-    assertThat(response.code()).startsWith("QZ-");
+    assertThat(response.code()).matches("\\d+");
     verify(sessionJpaRepository).save(any(SessionJpaEntity.class));
   }
 
@@ -431,7 +431,7 @@ class SessionControllerTest {
     final var report = sessionController.getReport(sessionId);
 
     assertThat(report.sessionId()).isEqualTo(sessionId);
-    assertThat(report.sessionCode()).isEqualTo("QZ-1042");
+    assertThat(report.sessionCode()).isEqualTo("1042");
     assertThat(report.totalParticipants()).isEqualTo(2);
     assertThat(report.totalQuestions()).isEqualTo(1);
     assertThat(report.averageScore()).isEqualTo(500.0);
