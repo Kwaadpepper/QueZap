@@ -15,7 +15,10 @@ describe('SessionPresenter', () => {
 
   const mockSessionService = {
     getSession: jest.fn().mockReturnValue(
-      of({ kind: 'success', result: { code: 'ABCDEF', name: 'Test Session', status: 'WAITING' } }),
+      of({
+        kind: 'success',
+        result: { id: 'test-session-id', code: 'ABCDEF', name: 'Test Session', status: 'WAITING' },
+      }),
     ),
     getScores: jest.fn().mockReturnValue(of({ kind: 'success', result: { leaderboard: [] } })),
     startSession: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
@@ -217,4 +220,30 @@ describe('SessionPresenter', () => {
     expect(component['timer']()).toBe(0)
     expect(mockSessionService.revealAnswers).not.toHaveBeenCalled()
   }))
+
+  it('should manage accessible kick confirmation workflow safely', () => {
+    mockSessionService.kickParticipant.mockClear()
+    expect(component['playerToKick']()).toBeNull()
+
+    component['requestKick']('BadPlayer')
+    expect(component['playerToKick']()).toBe('BadPlayer')
+    expect(mockSessionService.kickParticipant).not.toHaveBeenCalled()
+
+    component['cancelKick']()
+    expect(component['playerToKick']()).toBeNull()
+    expect(mockSessionService.kickParticipant).not.toHaveBeenCalled()
+
+    component['requestKick']('BadPlayer')
+    component['confirmKick']()
+    expect(mockSessionService.kickParticipant).toHaveBeenCalledWith(expect.any(String), 'BadPlayer')
+    expect(component['playerToKick']()).toBeNull()
+  })
+
+  it('should allow returning to REVEAL view from LEADERBOARD view', () => {
+    component['showIntermediateLeaderboard']()
+    expect(component['stage']()).toBe('LEADERBOARD')
+
+    component['stage'].set('REVEAL')
+    expect(component['stage']()).toBe('REVEAL')
+  })
 })

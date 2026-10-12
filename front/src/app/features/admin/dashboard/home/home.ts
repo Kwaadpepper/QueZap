@@ -81,9 +81,12 @@ export class Home implements OnInit {
           this.launchingId.set(null)
           if (res.kind === 'success') {
             const targetUrl = this.router.serializeUrl(
-              this.router.createUrlTree(['/projector', res.result.id]),
+              this.router.createUrlTree(['/admin/sessions', res.result.id, 'present']),
             )
-            window.open(targetUrl, '_blank')
+            const win = window.open(targetUrl, '_blank')
+            if (!win) {
+              this.router.navigate(['/admin/sessions', res.result.id, 'present'])
+            }
           }
         },
         error: () => this.launchingId.set(null),

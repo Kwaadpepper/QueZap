@@ -207,7 +207,7 @@ export class SessionObserverSseService implements SessionObserverService {
           id: questionId,
           value: q.label || payload.title || payload.label || 'Question',
           picture: (q.pictureFilename || q.picture || payload.picture) as PictureUrl | undefined,
-          limit: { seconds },
+          limit: { seconds, deadline: payload.deadline },
           answers: rawAnswers.map((a, idx) => ({
             index: typeof a.index === 'number' ? a.index : idx,
             points: payload.points || 1000,

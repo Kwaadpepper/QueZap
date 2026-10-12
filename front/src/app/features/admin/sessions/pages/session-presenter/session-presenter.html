@@ -121,7 +121,7 @@
                 class="ml-1 text-slate-400 hover:text-red-400 focus:text-red-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition cursor-pointer p-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
                 [attr.aria-label]="'Exclure le joueur ' + p.name"
                 [title]="'Exclure le joueur ' + p.name"
-                (click)="kick(p.name)">
+                (click)="requestKick(p.name)">
                 <i class="pi pi-times-circle text-lg"></i>
               </button>
             </div>
@@ -133,6 +133,51 @@
           }
         </div>
       </div>
+
+      <!-- Accessible Kick Confirmation Modal -->
+      @if (playerToKick(); as targetPlayer) {
+        <div
+          class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+          tabindex="0"
+          role="button"
+          aria-label="Fermer la boîte de confirmation"
+          (keydown.escape)="cancelKick()"
+          (click)="cancelKick()">
+          <div
+            class="bg-slate-900 border-2 border-red-500/60 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full text-center animate-scale-in"
+            tabindex="0"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="kick-modal-title"
+            (keydown)="$event.stopPropagation()"
+            (click)="$event.stopPropagation()">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center text-3xl">
+              ⚠️
+            </div>
+            <h3 id="kick-modal-title" class="text-2xl font-black text-white mb-2">
+              Exclure ce participant ?
+            </h3>
+            <p class="text-slate-300 text-sm mb-6">
+              Voulez-vous vraiment exclure <strong class="text-red-400 font-bold">{{ targetPlayer }}</strong> de la session ? Cette action est immédiate.
+            </p>
+            <div class="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition cursor-pointer text-sm"
+                (click)="cancelKick()">
+                Annuler
+              </button>
+              <button
+                type="button"
+                class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg transition cursor-pointer text-sm flex items-center gap-2"
+                (click)="confirmKick()">
+                <i class="pi pi-user-minus text-sm"></i>
+                <span>Confirmer l'exclusion</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
 
       <!-- Sticky Action Bar on Lobby Bottom -->
       <div class="sticky bottom-0 inset-x-0 w-full mt-8 py-4 px-6 bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 flex items-center justify-between z-30 shadow-2xl rounded-2xl">
@@ -387,7 +432,15 @@
         }
       </div>
 
-      <div class="flex justify-end pt-6 border-t border-slate-800/80">
+      <div class="flex justify-between items-center pt-6 border-t border-slate-800/80">
+        <button
+          type="button"
+          class="px-6 py-3.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-lg rounded-2xl border border-slate-700 shadow-md transition cursor-pointer flex items-center gap-2"
+          (click)="stage.set('REVEAL')">
+          <i class="pi pi-arrow-left text-lg"></i>
+          <span>Revoir les réponses</span>
+        </button>
+
         <button
           class="px-10 py-5 bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-2xl rounded-2xl shadow-[0_0_35px_rgba(99,102,241,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
           (click)="nextStep()">

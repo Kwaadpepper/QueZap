@@ -49,9 +49,12 @@ export class QuezapCard {
           detail: `Code PIN : ${res.result.code || res.result.sessionCode}`,
         })
         const url = this.router.serializeUrl(
-          this.router.createUrlTree(['/projector', res.result.id]),
+          this.router.createUrlTree(['/admin/sessions', res.result.id, 'present']),
         )
-        window.open(url, '_blank')
+        const win = window.open(url, '_blank')
+        if (!win) {
+          this.router.navigate(['/admin/sessions', res.result.id, 'present'])
+        }
       }
       else {
         this.messageService.add({

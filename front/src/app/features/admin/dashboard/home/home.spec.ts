@@ -106,7 +106,7 @@ describe('Home', () => {
       expect.stringContaining('Quiz Maths -'),
     )
     expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('/projector/session-xyz'),
+      expect.stringContaining('/admin/sessions/session-xyz/present'),
       '_blank',
     )
     openSpy.mockRestore()

@@ -52,26 +52,52 @@ export class QuestionTimer {
   constructor() {
     effect(() => {
       if (this.started()) {
-        this.remainingSeconds.set(this.limit())
+        const deadline = this.timer()?.deadline
+        if (deadline) {
+          const remaining = Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000))
+          this.remainingSeconds.set(remaining)
+        }
+        else {
+          this.remainingSeconds.set(this.limit())
+        }
       }
     })
 
     toObservable(this.started).pipe(
       takeUntilDestroyed(),
       filter(started => started),
-      // Initialize remaining seconds
-      tap(() => this.remainingSeconds.set(this.limit())),
-      // Tick every second
-      switchMap(() => interval(1000).pipe(
-        takeWhile(() => this.remainingSeconds() > 0 && this.questionStore.started()),
-        tap(() => this.remainingSeconds.update(seconds => seconds - 1)),
-        tap(() => this.questionStore.setTimeLeft(this.remainingSeconds())),
-        tap(() => {
-          if (this.remainingSeconds() === 0) {
-            this.exhausted.emit()
-          }
-        }),
-      )),
+      tap(() => {
+        const deadline = this.timer()?.deadline
+        if (deadline) {
+          const remaining = Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000))
+          this.remainingSeconds.set(remaining)
+        }
+        else {
+          this.remainingSeconds.set(this.limit())
+        }
+      }),
+      switchMap(() => {
+        const deadline = this.timer()?.deadline
+        const targetTime = deadline ? new Date(deadline).getTime() : null
+        return interval(targetTime ? 500 : 1000).pipe(
+          takeWhile(() => this.remainingSeconds() > 0 && this.questionStore.started()),
+          tap(() => {
+            if (targetTime) {
+              const remaining = Math.max(0, Math.ceil((targetTime - Date.now()) / 1000))
+              this.remainingSeconds.set(remaining)
+            }
+            else {
+              this.remainingSeconds.update(seconds => Math.max(0, seconds - 1))
+            }
+          }),
+          tap(() => this.questionStore.setTimeLeft(this.remainingSeconds())),
+          tap(() => {
+            if (this.remainingSeconds() === 0) {
+              this.exhausted.emit()
+            }
+          }),
+        )
+      }),
     ).subscribe()
   }
 }

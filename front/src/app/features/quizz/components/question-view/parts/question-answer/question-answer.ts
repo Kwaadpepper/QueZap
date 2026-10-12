@@ -38,23 +38,32 @@ export class QuestionAnswer {
   protected readonly phrase = computed<string>(() => this.answer()?.value ?? '')
   protected readonly pictureUrl = computed<PictureUrl | undefined>(() => this.answer()?.picture ?? undefined)
 
-  // --- Compute icon form based on question ID and answer index ---
-  private readonly forms = Object.values(QuestionIconType)
+  // --- Unified forms and colors matching host projector (P1-3) ---
+  private readonly forms = [
+    QuestionIconType.Circle,
+    QuestionIconType.Diamond,
+    QuestionIconType.Cross,
+    QuestionIconType.Hexagon,
+  ]
 
-  protected readonly uniqueSeed = computed<number>(() => {
-    const questionId = String(this.questionId())
-    const questionIdPart = Number(
-      questionId.split('-').map(v => `0x${v}`).map(Number)
-        .map(n => n % 100)
-        .reduce((a, b) => a + b, ''),
-    )
-
-    return questionIdPart % this.forms.length
+  protected readonly isBooleanChoice = computed<boolean>(() => {
+    const text = this.phrase().trim().toLowerCase()
+    return text === 'vrai' || text === 'faux'
   })
 
-  protected readonly currentFormIndex = computed<number>(() => (
-    this.uniqueSeed() + this.identifier()
-  ) % this.forms.length)
+  protected readonly currentFormIndex = computed<number>(() => {
+    if (this.isBooleanChoice()) {
+      return this.phrase().trim().toLowerCase() === 'vrai' ? 3 : 0
+    }
+    return this.identifier() % 4
+  })
 
-  protected readonly currentForm = computed<QuestionIconType>(() => this.forms[this.currentFormIndex()])
+  protected readonly currentForm = computed<QuestionIconType>(() => {
+    if (this.isBooleanChoice()) {
+      return this.phrase().trim().toLowerCase() === 'vrai'
+        ? QuestionIconType.Circle
+        : QuestionIconType.Cross
+    }
+    return this.forms[this.identifier() % this.forms.length]
+  })
 }

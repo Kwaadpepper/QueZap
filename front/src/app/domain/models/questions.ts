@@ -2,6 +2,7 @@ import { UUID } from '../types'
 
 export interface Timer {
   readonly seconds: number
+  readonly deadline?: string
 }
 
 export type PictureUrl = string & {

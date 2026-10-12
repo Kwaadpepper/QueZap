@@ -326,6 +326,15 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.timer.set(seconds)
 
     const targetTime = deadline ? new Date(deadline).getTime() : Date.now() + seconds * 1000
+    const initialRemaining = Math.max(0, Math.ceil((targetTime - Date.now()) / 1000))
+    this.timer.set(initialRemaining)
+
+    if (initialRemaining <= 0) {
+      if (this.autoReveal() && this.stage() === 'QUESTION') {
+        this.revealAnswers()
+      }
+      return
+    }
 
     this.timerInterval = setInterval(() => {
       const now = Date.now()
@@ -557,6 +566,24 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   protected isLastQuestion(): boolean {
     return this.currentQuestionIndex() + 1 >= this.totalQuestions()
+  }
+
+  protected readonly playerToKick = signal<string | null>(null)
+
+  protected requestKick(name: string): void {
+    this.playerToKick.set(name)
+  }
+
+  protected cancelKick(): void {
+    this.playerToKick.set(null)
+  }
+
+  protected confirmKick(): void {
+    const name = this.playerToKick()
+    if (name) {
+      this.kick(name)
+      this.playerToKick.set(null)
+    }
   }
 
   protected kick(name: string): void {

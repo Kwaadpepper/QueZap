@@ -1,4 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing'
+
+import { TimerStore } from '@quezap/features/quizz/stores'
 
 import { QuestionTimer } from './question-timer'
 
@@ -18,4 +20,14 @@ describe('QuestionTimer', () => {
   it('should create', () => {
     expect(component).toBeTruthy()
   })
+
+  it('should synchronize remainingSeconds using timer deadline', fakeAsync(() => {
+    const store = TestBed.inject(TimerStore)
+    const futureDate = new Date(Date.now() + 15000).toISOString()
+    store.setTimer({ seconds: 20, deadline: futureDate })
+    tick(10)
+
+    fixture.detectChanges()
+    expect(component['limit']()).toBe(20)
+  }))
 })

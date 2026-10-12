@@ -52,4 +52,13 @@ describe('QuezapCard', () => {
   it('should create', () => {
     expect(component).toBeTruthy()
   })
+
+  it('should create a session and open presenter on onQuezapLaunch', () => {
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
+    component['onQuezapLaunch']()
+    const sessionService = TestBed.inject(SESSION_SERVICE)
+    expect(sessionService.createSession).toHaveBeenCalledWith('1', expect.stringContaining('Plantes caducs -'))
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('/admin/sessions/s1/present'), '_blank')
+    openSpy.mockRestore()
+  })
 })
