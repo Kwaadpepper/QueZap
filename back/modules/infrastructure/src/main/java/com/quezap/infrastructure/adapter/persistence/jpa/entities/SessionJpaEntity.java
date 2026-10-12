@@ -73,6 +73,18 @@ public class SessionJpaEntity {
   @Column(name = "last_revealed_slide_index")
   private @Nullable Integer lastRevealedSlideIndex = 0;
 
+  @Column(name = "progression_mode", nullable = false, length = 20)
+  private String progressionMode = "MANUAL";
+
+  @Column(name = "is_paused", nullable = false)
+  private Boolean isPaused = false;
+
+  @Column(name = "explanation_duration_seconds", nullable = false)
+  private Integer explanationDurationSeconds = 15;
+
+  @Column(name = "mobile_correction_enabled", nullable = false)
+  private Boolean mobileCorrectionEnabled = false;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
@@ -206,6 +218,38 @@ public class SessionJpaEntity {
 
   public void setLastRevealedSlideIndex(@Nullable Integer lastRevealedSlideIndex) {
     this.lastRevealedSlideIndex = lastRevealedSlideIndex;
+  }
+
+  public String getProgressionMode() {
+    return progressionMode;
+  }
+
+  public void setProgressionMode(String progressionMode) {
+    this.progressionMode = progressionMode;
+  }
+
+  public Boolean getIsPaused() {
+    return isPaused;
+  }
+
+  public void setIsPaused(Boolean isPaused) {
+    this.isPaused = isPaused;
+  }
+
+  public Integer getExplanationDurationSeconds() {
+    return explanationDurationSeconds;
+  }
+
+  public void setExplanationDurationSeconds(Integer explanationDurationSeconds) {
+    this.explanationDurationSeconds = explanationDurationSeconds;
+  }
+
+  public Boolean getMobileCorrectionEnabled() {
+    return mobileCorrectionEnabled;
+  }
+
+  public void setMobileCorrectionEnabled(Boolean mobileCorrectionEnabled) {
+    this.mobileCorrectionEnabled = mobileCorrectionEnabled;
   }
 
   public Instant getCreatedAt() {

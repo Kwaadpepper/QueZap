@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import com.quezap.domain.models.entities.Session;
+import com.quezap.domain.models.valueobjects.ProgressionMode;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
@@ -49,6 +50,11 @@ public class SessionJpaMapper {
             domain.getStartedAt() != null ? domain.getStartedAt().position() : null,
             domain.getEndedAt() != null ? domain.getEndedAt().position() : null,
             domain.getCreatedAt().position());
+
+    entity.setProgressionMode(domain.getProgressionMode().name());
+    entity.setIsPaused(domain.isPaused());
+    entity.setExplanationDurationSeconds(domain.getExplanationDurationSeconds());
+    entity.setMobileCorrectionEnabled(domain.isMobileCorrectionEnabled());
 
     if (!domain.getQuestionSlides().isEmpty() && authorEntity != null) {
       final var quezap =
@@ -138,6 +144,15 @@ public class SessionJpaMapper {
               sa.getAnswerIndex()));
     }
 
+    ProgressionMode progressionMode = ProgressionMode.MANUAL;
+    if (entity.getProgressionMode() != null) {
+      try {
+        progressionMode = ProgressionMode.valueOf(entity.getProgressionMode());
+      } catch (IllegalArgumentException ignored) {
+        // Fallback to MANUAL
+      }
+    }
+
     return Session.hydrate(
         new SessionId(entity.getId()),
         new SessionName(entity.getName()),
@@ -147,6 +162,12 @@ public class SessionJpaMapper {
         participants,
         answers,
         new UserId(entity.getAuthorId()),
+        progressionMode,
+        Boolean.TRUE.equals(entity.getIsPaused()),
+        entity.getExplanationDurationSeconds() != null
+            ? entity.getExplanationDurationSeconds()
+            : Session.DEFAULT_EXPLANATION_DURATION_SECONDS,
+        Boolean.TRUE.equals(entity.getMobileCorrectionEnabled()),
         entity.getStartedAt() != null ? TimelinePoint.at(entity.getStartedAt()) : null,
         entity.getEndedAt() != null ? TimelinePoint.at(entity.getEndedAt()) : null);
   }

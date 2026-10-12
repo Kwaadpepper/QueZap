@@ -20,4 +20,8 @@ public record SessionDetailDto(
     List<ParticipantDto> participants,
     UUID authorId,
     @Nullable Instant startedAt,
-    @Nullable Instant endedAt) {}
+    @Nullable Instant endedAt,
+    String progressionMode,
+    boolean isPaused,
+    int explanationDurationSeconds,
+    boolean mobileCorrectionEnabled) {}

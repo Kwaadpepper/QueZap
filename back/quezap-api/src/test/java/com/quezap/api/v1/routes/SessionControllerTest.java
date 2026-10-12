@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,9 +22,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.quezap.api.v1.dto.events.IntermediateLeaderboardPayload;
 import com.quezap.api.v1.dto.events.QuestionStartPayload;
+import com.quezap.api.v1.dto.events.SessionEndedPayload;
+import com.quezap.api.v1.dto.events.SessionPausePayload;
 import com.quezap.api.v1.dto.request.sessions.CreateSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.JoinSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.SubmitAnswerRequest;
+import com.quezap.api.v1.dto.sessions.SessionPauseRequestDto;
+import com.quezap.api.v1.dto.sessions.SessionSettingsRequestDto;
 import com.quezap.api.v1.ports.SessionDataPort;
 import com.quezap.api.v1.routes.sessions.SessionController;
 import com.quezap.api.v1.services.SessionSseService;
@@ -903,5 +908,134 @@ class SessionControllerTest {
 
     assertThat(emitter).isNotNull();
     verify(sessionSseService).sendStoredEventToEmitter(any(), eq(sessionId), eq(storedEvent));
+  }
+
+  @Test
+  void shouldPauseAndResumeSessionAndBroadcastEvent() {
+    final var sessionId = UUID.randomUUID();
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId, 1234L, "Session Pause Test", 1, authorId, null, null, null, Instant.now());
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    // Pause
+    final var pauseResp =
+        sessionController.pauseSession(sessionId, new SessionPauseRequestDto(true));
+    assertThat(pauseResp.sessionId()).isEqualTo(sessionId);
+    assertThat(pauseResp.isPaused()).isTrue();
+    assertThat(sessionEntity.getIsPaused()).isTrue();
+    verify(sessionDataPort).saveAndFlushSession(sessionEntity);
+    verify(sessionSseService)
+        .broadcast(
+            eq(sessionId), eq("SESSION_PAUSE_STATUS"), eq(1234L), any(SessionPausePayload.class));
+
+    // Resume
+    final var resumeResp =
+        sessionController.pauseSession(sessionId, new SessionPauseRequestDto(false));
+    assertThat(resumeResp.isPaused()).isFalse();
+    assertThat(sessionEntity.getIsPaused()).isFalse();
+  }
+
+  @Test
+  void shouldUpdateSessionSettings() {
+    final var sessionId = UUID.randomUUID();
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            1234L,
+            "Session Settings Test",
+            1,
+            authorId,
+            null,
+            null,
+            null,
+            Instant.now());
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    final var request = new SessionSettingsRequestDto("AUTOMATIC", 20, true);
+    final var response = sessionController.updateSettings(sessionId, request);
+
+    assertThat(response.progressionMode()).isEqualTo("AUTOMATIC");
+    assertThat(response.explanationDurationSeconds()).isEqualTo(20);
+    assertThat(response.mobileCorrectionEnabled()).isTrue();
+    assertThat(sessionEntity.getProgressionMode()).isEqualTo("AUTOMATIC");
+    assertThat(sessionEntity.getExplanationDurationSeconds()).isEqualTo(20);
+    assertThat(sessionEntity.getMobileCorrectionEnabled()).isTrue();
+    verify(sessionDataPort).saveAndFlushSession(sessionEntity);
+  }
+
+  @Test
+  void shouldIncludeGroupMetricsAndTop5WhenSessionEnds() {
+    final var sessionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Sciences", Instant.now());
+    final var question =
+        new QuestionJpaEntity(
+            UUID.randomUUID(), "QUIZZ", "Question 1", null, theme, Instant.now(), Instant.now());
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(), "Test Quezap", null, author, true, Instant.now(), Instant.now());
+    final var qq = new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, question, 30, 100, 1);
+    quezap.addQuestion(qq);
+
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            1234L,
+            "Session Ending Test",
+            1,
+            authorId,
+            quezap,
+            Instant.now(),
+            null,
+            Instant.now());
+
+    // Add 6 participants
+    for (int i = 1; i <= 6; i++) {
+      final var p =
+          new SessionParticipantJpaEntity(
+              UUID.randomUUID(),
+              sessionEntity,
+              "Student" + i,
+              i * 100,
+              "token" + i,
+              false,
+              Instant.now());
+      sessionEntity.addParticipant(p);
+      final var answer =
+          new SessionAnswerJpaEntity(
+              UUID.randomUUID(),
+              sessionEntity,
+              "Student" + i,
+              1,
+              0,
+              i % 2 == 0 ? 100 : 0,
+              i % 2 == 0,
+              Instant.now());
+      sessionEntity.addAnswer(answer);
+    }
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    // Next question exceeds total slides (slide 1 of 1) -> ends session
+    sessionController.nextQuestion(sessionId);
+
+    assertThat(sessionEntity.getEndedAt()).isNotNull();
+
+    final var payloadCaptor = ArgumentCaptor.forClass(SessionEndedPayload.class);
+    verify(sessionSseService)
+        .broadcast(eq(sessionId), eq("SESSION_ENDED"), eq(1234L), payloadCaptor.capture());
+
+    final var endedPayload = payloadCaptor.getValue();
+    assertThat(endedPayload.finalLeaderboard()).hasSize(6);
+    final var top5 = Objects.requireNonNull(endedPayload.top5());
+    assertThat(top5).hasSize(5);
+    final var metrics = Objects.requireNonNull(endedPayload.metrics());
+    assertThat(metrics.totalParticipants()).isEqualTo(6);
+    // Average score: (600 + 500 + 400 + 300 + 200 + 100) / 6 = 350
+    assertThat(metrics.averageScore()).isEqualTo(350);
+    // Success rate: 3 correct out of 6 answers = 50.0%
+    assertThat(metrics.globalSuccessRate()).isEqualTo(50.0);
   }
 }

@@ -22,6 +22,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +46,8 @@ import com.quezap.api.v1.dto.events.QuestionStartPayload;
 import com.quezap.api.v1.dto.events.SafeAnswerDto;
 import com.quezap.api.v1.dto.events.SafeQuestionDto;
 import com.quezap.api.v1.dto.events.SessionEndedPayload;
+import com.quezap.api.v1.dto.events.SessionGroupMetricsDto;
+import com.quezap.api.v1.dto.events.SessionPausePayload;
 import com.quezap.api.v1.dto.events.SessionStartedPayload;
 import com.quezap.api.v1.dto.request.PaginationDto;
 import com.quezap.api.v1.dto.request.sessions.CreateSessionRequest;
@@ -60,6 +63,10 @@ import com.quezap.api.v1.dto.response.sessions.SessionCreatedDto;
 import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
 import com.quezap.api.v1.dto.response.sessions.SessionReportDto;
 import com.quezap.api.v1.dto.response.sessions.SessionStatusDto;
+import com.quezap.api.v1.dto.sessions.SessionPauseRequestDto;
+import com.quezap.api.v1.dto.sessions.SessionPauseResponseDto;
+import com.quezap.api.v1.dto.sessions.SessionSettingsRequestDto;
+import com.quezap.api.v1.dto.sessions.SessionSettingsResponseDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
 import com.quezap.api.v1.ports.SessionDataPort;
 import com.quezap.api.v1.services.SessionReportService;
@@ -151,7 +158,11 @@ public class SessionController {
                       List.of(),
                       sessionJpa.getAuthorId(),
                       sessionJpa.getStartedAt(),
-                      sessionJpa.getEndedAt());
+                      sessionJpa.getEndedAt(),
+                      sessionJpa.getProgressionMode(),
+                      Boolean.TRUE.equals(sessionJpa.getIsPaused()),
+                      sessionJpa.getExplanationDurationSeconds(),
+                      Boolean.TRUE.equals(sessionJpa.getMobileCorrectionEnabled()));
                 })
             .toList();
 
@@ -235,7 +246,11 @@ public class SessionController {
         participantList,
         sessionJpa.getAuthorId(),
         sessionJpa.getStartedAt(),
-        sessionJpa.getEndedAt());
+        sessionJpa.getEndedAt(),
+        sessionJpa.getProgressionMode(),
+        Boolean.TRUE.equals(sessionJpa.getIsPaused()),
+        sessionJpa.getExplanationDurationSeconds(),
+        Boolean.TRUE.equals(sessionJpa.getMobileCorrectionEnabled()));
   }
 
   @GetMapping("by-code/{code}")
@@ -271,7 +286,11 @@ public class SessionController {
         participantList,
         sessionJpa.getAuthorId(),
         sessionJpa.getStartedAt(),
-        sessionJpa.getEndedAt());
+        sessionJpa.getEndedAt(),
+        sessionJpa.getProgressionMode(),
+        Boolean.TRUE.equals(sessionJpa.getIsPaused()),
+        sessionJpa.getExplanationDurationSeconds(),
+        Boolean.TRUE.equals(sessionJpa.getMobileCorrectionEnabled()));
   }
 
   @PostMapping("join")
@@ -475,7 +494,33 @@ public class SessionController {
               sortedParticipants.size() > 1 ? sortedParticipants.get(1).getName() : null,
               sortedParticipants.size() > 2 ? sortedParticipants.get(2).getName() : null);
 
-      final var endedPayload = new SessionEndedPayload(endedAt, finalLeaderboard, podium);
+      final var totalParticipants = finalLeaderboard.size();
+      final var averageScore =
+          totalParticipants > 0
+              ? (int)
+                  Math.round(
+                      finalLeaderboard.stream()
+                          .mapToInt(FinalLeaderboardEntryDto::totalScore)
+                          .average()
+                          .orElse(0.0))
+              : 0;
+
+      final var totalAnswers = sessionJpa.getAnswers().size();
+      final var correctAnswers =
+          sessionJpa.getAnswers().stream()
+              .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+              .count();
+      final var globalSuccessRate =
+          totalAnswers > 0
+              ? Math.round((double) correctAnswers / totalAnswers * 1000.0) / 10.0
+              : 0.0;
+
+      final var groupMetrics =
+          new SessionGroupMetricsDto(totalParticipants, averageScore, globalSuccessRate);
+      final var top5 = finalLeaderboard.subList(0, Math.min(5, finalLeaderboard.size()));
+
+      final var endedPayload =
+          new SessionEndedPayload(endedAt, finalLeaderboard, podium, groupMetrics, top5);
       sessionSseService.broadcast(
           sessionJpa.getId(), "SESSION_ENDED", sessionJpa.getNumber(), endedPayload);
 
@@ -718,6 +763,57 @@ public class SessionController {
     assertSessionHost(sessionJpa);
     final var currentSlide = Math.max(sessionJpa.getCurrentSlideIndex(), 1);
     broadcastRevealAndLeaderboard(sessionJpa, currentSlide);
+  }
+
+  @PostMapping("{id}/pause")
+  @Transactional
+  public SessionPauseResponseDto pauseSession(
+      @PathVariable UUID id, @Valid @RequestBody SessionPauseRequestDto request) {
+    final var sessionJpa =
+        sessionDataPort
+            .findSessionById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+    assertSessionHost(sessionJpa);
+
+    sessionJpa.setIsPaused(request.paused());
+    sessionDataPort.saveAndFlushSession(sessionJpa);
+
+    final var pausePayload = new SessionPausePayload(request.paused(), Instant.now());
+    sessionSseService.broadcast(
+        sessionJpa.getId(), "SESSION_PAUSE_STATUS", sessionJpa.getNumber(), pausePayload);
+
+    return new SessionPauseResponseDto(
+        sessionJpa.getId(), Boolean.TRUE.equals(sessionJpa.getIsPaused()));
+  }
+
+  @PutMapping("{id}/settings")
+  @Transactional
+  public SessionSettingsResponseDto updateSettings(
+      @PathVariable UUID id, @Valid @RequestBody SessionSettingsRequestDto request) {
+    final var sessionJpa =
+        sessionDataPort
+            .findSessionById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+    assertSessionHost(sessionJpa);
+
+    if (request.progressionMode() != null) {
+      sessionJpa.setProgressionMode(request.progressionMode());
+    }
+    if (request.explanationDurationSeconds() != null) {
+      sessionJpa.setExplanationDurationSeconds(request.explanationDurationSeconds());
+    }
+    if (request.mobileCorrectionEnabled() != null) {
+      sessionJpa.setMobileCorrectionEnabled(request.mobileCorrectionEnabled());
+    }
+
+    sessionDataPort.saveAndFlushSession(sessionJpa);
+
+    return new SessionSettingsResponseDto(
+        sessionJpa.getProgressionMode(),
+        sessionJpa.getExplanationDurationSeconds(),
+        Boolean.TRUE.equals(sessionJpa.getMobileCorrectionEnabled()));
   }
 
   @GetMapping(value = "{id}/export/csv", produces = "text/csv")
@@ -1016,7 +1112,12 @@ public class SessionController {
       }
     }
 
-    return new QuestionRevealPayload(slideIndex, correctIndices, null, stats);
+    return new QuestionRevealPayload(
+        slideIndex,
+        correctIndices,
+        null,
+        stats,
+        Boolean.TRUE.equals(sessionJpa.getMobileCorrectionEnabled()));
   }
 
   private IntermediateLeaderboardPayload buildIntermediateLeaderboardPayload(

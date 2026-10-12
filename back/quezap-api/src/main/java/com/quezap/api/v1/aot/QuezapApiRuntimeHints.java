@@ -22,6 +22,8 @@ import com.quezap.api.v1.dto.events.SafeAnswerDto;
 import com.quezap.api.v1.dto.events.SafeQuestionDto;
 import com.quezap.api.v1.dto.events.SessionEndedPayload;
 import com.quezap.api.v1.dto.events.SessionEventEnvelope;
+import com.quezap.api.v1.dto.events.SessionGroupMetricsDto;
+import com.quezap.api.v1.dto.events.SessionPausePayload;
 import com.quezap.api.v1.dto.events.SessionStartedPayload;
 import com.quezap.api.v1.dto.response.sessions.JoinSessionResponseDto;
 import com.quezap.api.v1.dto.response.sessions.LeaderboardEntryDto;
@@ -32,6 +34,10 @@ import com.quezap.api.v1.dto.response.sessions.SessionCreatedDto;
 import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
 import com.quezap.api.v1.dto.response.sessions.SessionParticipantReportDto;
 import com.quezap.api.v1.dto.response.sessions.SessionReportDto;
+import com.quezap.api.v1.dto.sessions.SessionPauseRequestDto;
+import com.quezap.api.v1.dto.sessions.SessionPauseResponseDto;
+import com.quezap.api.v1.dto.sessions.SessionSettingsRequestDto;
+import com.quezap.api.v1.dto.sessions.SessionSettingsResponseDto;
 import com.quezap.api.v1.services.SessionSseService;
 
 import org.jspecify.annotations.Nullable;
@@ -55,6 +61,12 @@ public class QuezapApiRuntimeHints implements RuntimeHintsRegistrar {
             QuestionRevealPayload.class,
             IntermediateLeaderboardPayload.class,
             SessionEndedPayload.class,
+            SessionGroupMetricsDto.class,
+            SessionPausePayload.class,
+            SessionPauseRequestDto.class,
+            SessionPauseResponseDto.class,
+            SessionSettingsRequestDto.class,
+            SessionSettingsResponseDto.class,
             ParticipantKickedPayload.class,
             AnswerCountPayload.class,
             ParticipantDto.class,

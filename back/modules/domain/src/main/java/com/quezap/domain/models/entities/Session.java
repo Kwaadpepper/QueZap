@@ -5,7 +5,10 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.quezap.domain.events.sessions.SessionEnded;
+import com.quezap.domain.events.sessions.SessionPaused;
+import com.quezap.domain.events.sessions.SessionResumed;
 import com.quezap.domain.events.sessions.SessionStarted;
+import com.quezap.domain.models.valueobjects.ProgressionMode;
 import com.quezap.domain.models.valueobjects.SessionName;
 import com.quezap.domain.models.valueobjects.SessionNumber;
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
@@ -23,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 public class Session extends AggregateRoot<SessionId> {
   public static final int QUESTIONS_COUNT_MAX_SIZE = 60;
+  public static final int DEFAULT_EXPLANATION_DURATION_SECONDS = 15;
 
   private final SessionName name;
   private final SessionNumber number;
@@ -31,6 +35,10 @@ public class Session extends AggregateRoot<SessionId> {
   private final Set<Participant> participants;
   private final Set<QuestionAnswer> answers;
   private final UserId author;
+  private ProgressionMode progressionMode;
+  private boolean isPaused;
+  private int explanationDurationSeconds;
+  private boolean mobileCorrectionEnabled;
   private @Nullable TimelinePoint startedAt;
   private @Nullable TimelinePoint endedAt;
 
@@ -63,6 +71,32 @@ public class Session extends AggregateRoot<SessionId> {
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
       UserId author) {
+    this(
+        name,
+        number,
+        currentSlideIndex,
+        questionSlides,
+        participants,
+        answers,
+        author,
+        ProgressionMode.MANUAL,
+        false,
+        DEFAULT_EXPLANATION_DURATION_SECONDS,
+        false);
+  }
+
+  public Session(
+      SessionName name,
+      SessionNumber number,
+      Integer currentSlideIndex,
+      Set<QuestionSlide> questionSlides,
+      Set<Participant> participants,
+      Set<QuestionAnswer> answers,
+      UserId author,
+      ProgressionMode progressionMode,
+      boolean isPaused,
+      int explanationDurationSeconds,
+      boolean mobileCorrectionEnabled) {
     super();
     validateCommonInvariants(questionSlides, currentSlideIndex, startedAt, endedAt);
     this.name = name;
@@ -72,6 +106,10 @@ public class Session extends AggregateRoot<SessionId> {
     this.participants = new HashSet<>(participants);
     this.answers = new HashSet<>(answers);
     this.author = author;
+    this.progressionMode = progressionMode;
+    this.isPaused = isPaused;
+    this.explanationDurationSeconds = explanationDurationSeconds;
+    this.mobileCorrectionEnabled = mobileCorrectionEnabled;
     this.startedAt = null;
     this.endedAt = null;
   }
@@ -86,6 +124,10 @@ public class Session extends AggregateRoot<SessionId> {
       Set<Participant> participants,
       Set<QuestionAnswer> answers,
       UserId author,
+      ProgressionMode progressionMode,
+      boolean isPaused,
+      int explanationDurationSeconds,
+      boolean mobileCorrectionEnabled,
       @Nullable TimelinePoint startedAt,
       @Nullable TimelinePoint endedAt) {
     super(id.value());
@@ -97,6 +139,10 @@ public class Session extends AggregateRoot<SessionId> {
     this.participants = new HashSet<>(participants);
     this.answers = new HashSet<>(answers);
     this.author = author;
+    this.progressionMode = progressionMode;
+    this.isPaused = isPaused;
+    this.explanationDurationSeconds = explanationDurationSeconds;
+    this.mobileCorrectionEnabled = mobileCorrectionEnabled;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
   }
@@ -113,6 +159,39 @@ public class Session extends AggregateRoot<SessionId> {
       UserId author,
       @Nullable TimelinePoint startedAt,
       @Nullable TimelinePoint endedAt) {
+    return hydrate(
+        id,
+        name,
+        number,
+        currentSlideIndex,
+        questionSlides,
+        participants,
+        answers,
+        author,
+        ProgressionMode.MANUAL,
+        false,
+        DEFAULT_EXPLANATION_DURATION_SECONDS,
+        false,
+        startedAt,
+        endedAt);
+  }
+
+  @SuppressWarnings("java:S107")
+  public static Session hydrate(
+      SessionId id,
+      SessionName name,
+      SessionNumber number,
+      Integer currentSlideIndex,
+      Set<QuestionSlide> questionSlides,
+      Set<Participant> participants,
+      Set<QuestionAnswer> answers,
+      UserId author,
+      ProgressionMode progressionMode,
+      boolean isPaused,
+      int explanationDurationSeconds,
+      boolean mobileCorrectionEnabled,
+      @Nullable TimelinePoint startedAt,
+      @Nullable TimelinePoint endedAt) {
     return new Session(
         id,
         name,
@@ -122,6 +201,10 @@ public class Session extends AggregateRoot<SessionId> {
         participants,
         answers,
         author,
+        progressionMode,
+        isPaused,
+        explanationDurationSeconds,
+        mobileCorrectionEnabled,
         startedAt,
         endedAt);
   }
@@ -187,6 +270,51 @@ public class Session extends AggregateRoot<SessionId> {
   @Override
   public TimelinePoint getCreatedAt() {
     return createdAt;
+  }
+
+  public ProgressionMode getProgressionMode() {
+    return progressionMode;
+  }
+
+  public void setProgressionMode(ProgressionMode progressionMode) {
+    this.progressionMode = progressionMode;
+  }
+
+  public boolean isPaused() {
+    return isPaused;
+  }
+
+  public int getExplanationDurationSeconds() {
+    return explanationDurationSeconds;
+  }
+
+  public void setExplanationDurationSeconds(int explanationDurationSeconds) {
+    Domain.checkDomain(
+        () -> explanationDurationSeconds >= 5 && explanationDurationSeconds <= 120,
+        "Explanation duration must be between 5 and 120 seconds");
+    this.explanationDurationSeconds = explanationDurationSeconds;
+  }
+
+  public boolean isMobileCorrectionEnabled() {
+    return mobileCorrectionEnabled;
+  }
+
+  public void setMobileCorrectionEnabled(boolean mobileCorrectionEnabled) {
+    this.mobileCorrectionEnabled = mobileCorrectionEnabled;
+  }
+
+  public void pauseSession() {
+    Domain.checkDomain(this::isRunning, "Cannot pause a session that is not running");
+    Domain.checkDomain(() -> !isPaused, "Session is already paused");
+    this.isPaused = true;
+    registerEvent(new SessionPaused(getId()));
+  }
+
+  public void resumeSession() {
+    Domain.checkDomain(this::isRunning, "Cannot resume a session that is not running");
+    Domain.checkDomain(() -> isPaused, "Session is not paused");
+    this.isPaused = false;
+    registerEvent(new SessionResumed(getId()));
   }
 
   public boolean isRunning() {

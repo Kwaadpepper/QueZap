@@ -8,4 +8,5 @@ public record QuestionRevealPayload(
     int slideIndex,
     List<Integer> correctAnswerIndices,
     @Nullable String explanation,
-    List<AnswerStatDto> answersStats) {}
+    List<AnswerStatDto> answersStats,
+    @Nullable Boolean mobileCorrectionAllowed) {}
