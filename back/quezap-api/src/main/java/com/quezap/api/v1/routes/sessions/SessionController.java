@@ -385,8 +385,13 @@ public class SessionController {
               .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
               .toList();
 
-      for (final var a : sortedAnswers) {
-        safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+      if ("BOOLEAN".equalsIgnoreCase(question.getType())) {
+        safeAnswers.add(new SafeAnswerDto(0, "Vrai", null));
+        safeAnswers.add(new SafeAnswerDto(1, "Faux", null));
+      } else {
+        for (final var a : sortedAnswers) {
+          safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+        }
       }
 
       final var safeQuestion =
@@ -486,8 +491,13 @@ public class SessionController {
             .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
             .toList();
 
-    for (final var a : sortedAnswers) {
-      safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+    if ("BOOLEAN".equalsIgnoreCase(question.getType())) {
+      safeAnswers.add(new SafeAnswerDto(0, "Vrai", null));
+      safeAnswers.add(new SafeAnswerDto(1, "Faux", null));
+    } else {
+      for (final var a : sortedAnswers) {
+        safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+      }
     }
 
     final var safeQuestion =
@@ -555,6 +565,13 @@ public class SessionController {
             ? request.slideIndex()
             : Math.max(sessionJpa.getCurrentSlideIndex(), 1);
 
+    // Rejet strict des réponses post-reveal (P0-3)
+    if (sessionJpa.getLastRevealedSlideIndex() != null
+        && sessionJpa.getLastRevealedSlideIndex() >= effectiveSlideIndex) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "Les réponses sont verrouillées pour cette question");
+    }
+
     // Check duplicate answer for this slide
     final var existingAnswer =
         sessionJpa.getAnswers().stream()
@@ -581,25 +598,54 @@ public class SessionController {
       final var slideIdx = effectiveSlideIndex - 1;
       if (slideIdx >= 0 && slideIdx < questions.size()) {
         final var qq = questions.get(slideIdx);
+        final var timerSeconds = qq.getTimerSeconds() != null ? qq.getTimerSeconds() : 30;
+        final var slideStartedAt =
+            sessionJpa.getCurrentSlideStartedAt() != null
+                ? sessionJpa.getCurrentSlideStartedAt()
+                : sessionJpa.getStartedAt();
+        if (slideStartedAt != null) {
+          final var elapsedSeconds = Duration.between(slideStartedAt, Instant.now()).toSeconds();
+          if (elapsedSeconds > timerSeconds + 2) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Le temps imparti est écoulé");
+          }
+        }
+
         final var answers =
             qq.getQuestion().getAnswers().stream()
                 .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
                 .toList();
-        if (request.answerIndex() >= 0 && request.answerIndex() < answers.size()) {
-          final var answerEntity = answers.get(request.answerIndex());
-          isCorrect = Boolean.TRUE.equals(answerEntity.getIsCorrect());
-          if (isCorrect) {
-            final var slideStartedAt =
-                sessionJpa.getCurrentSlideStartedAt() != null
-                    ? sessionJpa.getCurrentSlideStartedAt()
-                    : sessionJpa.getStartedAt();
-            final var elapsedMillis =
-                slideStartedAt != null
-                    ? Math.max(0, Duration.between(slideStartedAt, Instant.now()).toMillis())
-                    : 0L;
-            final var timerSeconds = qq.getTimerSeconds() != null ? qq.getTimerSeconds() : 30;
-            final var basePoints = qq.getPoints() != null ? qq.getPoints() : 1000;
-            pointsAwarded = Session.calculateScore(basePoints, timerSeconds, elapsedMillis, true);
+
+        final var questionType = qq.getQuestion().getType();
+        if ("BOOLEAN".equalsIgnoreCase(questionType)) {
+          if (request.answerIndex() == 0 || request.answerIndex() == 1) {
+            final var answerEntity = answers.isEmpty() ? null : answers.get(0);
+            final var statementIsTrue =
+                answerEntity != null && Boolean.TRUE.equals(answerEntity.getIsCorrect());
+            isCorrect =
+                (request.answerIndex() == 0 && statementIsTrue)
+                    || (request.answerIndex() == 1 && !statementIsTrue);
+            if (isCorrect) {
+              final var elapsedMillis =
+                  slideStartedAt != null
+                      ? Math.max(0, Duration.between(slideStartedAt, Instant.now()).toMillis())
+                      : 0L;
+              final var basePoints = qq.getPoints() != null ? qq.getPoints() : 1000;
+              pointsAwarded = Session.calculateScore(basePoints, timerSeconds, elapsedMillis, true);
+            }
+          }
+        } else {
+          if (request.answerIndex() >= 0 && request.answerIndex() < answers.size()) {
+            final var answerEntity = answers.get(request.answerIndex());
+            isCorrect = Boolean.TRUE.equals(answerEntity.getIsCorrect());
+            if (isCorrect) {
+              final var elapsedMillis =
+                  slideStartedAt != null
+                      ? Math.max(0, Duration.between(slideStartedAt, Instant.now()).toMillis())
+                      : 0L;
+              final var basePoints = qq.getPoints() != null ? qq.getPoints() : 1000;
+              pointsAwarded = Session.calculateScore(basePoints, timerSeconds, elapsedMillis, true);
+            }
           }
         }
       }
@@ -823,22 +869,46 @@ public class SessionController {
       final var successRate =
           slideTotalAnswers > 0 ? (double) slideCorrectAnswers / slideTotalAnswers * 100.0 : 0.0;
 
+      final var isBoolean = "BOOLEAN".equalsIgnoreCase(q.getType());
       final var answerStats = new ArrayList<QuestionAnswerStatDto>();
-      for (var answerIndex = 0; answerIndex < answersList.size(); answerIndex++) {
-        final var ans = answersList.get(answerIndex);
-        final var targetIndex = answerIndex;
-        final var count =
-            (int)
-                slideAnswers.stream().filter(sa -> sa.getAnswerIndex().equals(targetIndex)).count();
-        final var percentage =
-            slideTotalAnswers > 0 ? (double) count / slideTotalAnswers * 100.0 : 0.0;
-        answerStats.add(
-            new QuestionAnswerStatDto(
-                answerIndex,
-                ans.getLabel() != null ? ans.getLabel() : "",
-                Boolean.TRUE.equals(ans.getIsCorrect()),
-                count,
-                Math.round(percentage * 10.0) / 10.0));
+      if (isBoolean) {
+        final var answerEntity = answersList.isEmpty() ? null : answersList.get(0);
+        final var statementIsTrue =
+            answerEntity != null && Boolean.TRUE.equals(answerEntity.getIsCorrect());
+        for (var answerIndex = 0; answerIndex < 2; answerIndex++) {
+          final var targetIndex = answerIndex;
+          final var count =
+              (int)
+                  slideAnswers.stream()
+                      .filter(sa -> sa.getAnswerIndex().equals(targetIndex))
+                      .count();
+          final var percentage =
+              slideTotalAnswers > 0 ? (double) count / slideTotalAnswers * 100.0 : 0.0;
+          final var label = answerIndex == 0 ? "Vrai" : "Faux";
+          final var isOptCorrect = answerIndex == 0 ? statementIsTrue : !statementIsTrue;
+          answerStats.add(
+              new QuestionAnswerStatDto(
+                  answerIndex, label, isOptCorrect, count, Math.round(percentage * 10.0) / 10.0));
+        }
+      } else {
+        for (var answerIndex = 0; answerIndex < answersList.size(); answerIndex++) {
+          final var ans = answersList.get(answerIndex);
+          final var targetIndex = answerIndex;
+          final var count =
+              (int)
+                  slideAnswers.stream()
+                      .filter(sa -> sa.getAnswerIndex().equals(targetIndex))
+                      .count();
+          final var percentage =
+              slideTotalAnswers > 0 ? (double) count / slideTotalAnswers * 100.0 : 0.0;
+          answerStats.add(
+              new QuestionAnswerStatDto(
+                  answerIndex,
+                  ans.getLabel() != null ? ans.getLabel() : "",
+                  Boolean.TRUE.equals(ans.getIsCorrect()),
+                  count,
+                  Math.round(percentage * 10.0) / 10.0));
+        }
       }
 
       questionReports.add(
@@ -951,15 +1021,19 @@ public class SessionController {
         final var currentQq = questionsList.get(nextIndex - 1);
         final var question = currentQq.getQuestion();
 
-        var answerIndex = 0;
         final var safeAnswers = new ArrayList<SafeAnswerDto>();
-        final var sortedAnswers =
-            question.getAnswers().stream()
-                .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
-                .toList();
-
-        for (final var a : sortedAnswers) {
-          safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+        if ("BOOLEAN".equalsIgnoreCase(question.getType())) {
+          safeAnswers.add(new SafeAnswerDto(0, "Vrai", null));
+          safeAnswers.add(new SafeAnswerDto(1, "Faux", null));
+        } else {
+          var answerIndex = 0;
+          final var sortedAnswers =
+              question.getAnswers().stream()
+                  .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+                  .toList();
+          for (final var a : sortedAnswers) {
+            safeAnswers.add(new SafeAnswerDto(answerIndex++, a.getLabel(), a.getPictureFilename()));
+          }
         }
 
         final var safeQuestion =
@@ -1003,6 +1077,9 @@ public class SessionController {
   }
 
   private void broadcastRevealAndLeaderboard(SessionJpaEntity sessionJpa, int slideIndex) {
+    sessionJpa.setLastRevealedSlideIndex(slideIndex);
+    sessionJpaRepository.save(sessionJpa);
+
     final var quezap = sessionJpa.getQuezap();
     if (quezap == null) {
       return;
@@ -1029,17 +1106,38 @@ public class SessionController {
         sessionJpa.getAnswers().stream().filter(a -> a.getSlideIndex().equals(slideIndex)).toList();
 
     final var totalCount = Math.max(slideAnswers.size(), 1);
+    final var questionType = qq.getQuestion().getType();
 
-    for (var i = 0; i < answers.size(); i++) {
-      final var a = answers.get(i);
-      if (Boolean.TRUE.equals(a.getIsCorrect())) {
-        correctIndices.add(i);
+    if ("BOOLEAN".equalsIgnoreCase(questionType)) {
+      final var answerEntity = answers.isEmpty() ? null : answers.get(0);
+      final var statementIsTrue =
+          answerEntity != null && Boolean.TRUE.equals(answerEntity.getIsCorrect());
+      if (statementIsTrue) {
+        correctIndices.add(0);
+      } else {
+        correctIndices.add(1);
       }
-      final var answerIndex = i;
-      final var count =
-          (int) slideAnswers.stream().filter(sa -> sa.getAnswerIndex().equals(answerIndex)).count();
-      final var percentage = (double) count / totalCount * 100.0;
-      stats.add(new AnswerStatDto(i, count, percentage));
+      for (var i = 0; i < 2; i++) {
+        final var answerIndex = i;
+        final var count =
+            (int)
+                slideAnswers.stream().filter(sa -> sa.getAnswerIndex().equals(answerIndex)).count();
+        final var percentage = (double) count / totalCount * 100.0;
+        stats.add(new AnswerStatDto(i, count, percentage));
+      }
+    } else {
+      for (var i = 0; i < answers.size(); i++) {
+        final var a = answers.get(i);
+        if (Boolean.TRUE.equals(a.getIsCorrect())) {
+          correctIndices.add(i);
+        }
+        final var answerIndex = i;
+        final var count =
+            (int)
+                slideAnswers.stream().filter(sa -> sa.getAnswerIndex().equals(answerIndex)).count();
+        final var percentage = (double) count / totalCount * 100.0;
+        stats.add(new AnswerStatDto(i, count, percentage));
+      }
     }
 
     final var revealPayload = new QuestionRevealPayload(slideIndex, correctIndices, null, stats);
@@ -1056,7 +1154,33 @@ public class SessionController {
     var rank = 1;
     final var leaderboard = new ArrayList<LeaderboardEntryDto>();
     for (final var p : sortedParticipants) {
-      leaderboard.add(new LeaderboardEntryDto(rank++, p.getName(), p.getScore(), p.getScore(), 1));
+      final var currentAnswerOpt =
+          sessionJpa.getAnswers().stream()
+              .filter(
+                  a ->
+                      a.getParticipantName().equals(p.getName())
+                          && a.getSlideIndex().equals(slideIndex))
+              .findFirst();
+      final var delta = currentAnswerOpt.map(SessionAnswerJpaEntity::getPointsAwarded).orElse(0);
+
+      var streak = 0;
+      for (int s = slideIndex; s >= 1; s--) {
+        final int sIdx = s;
+        final var ans =
+            sessionJpa.getAnswers().stream()
+                .filter(
+                    a ->
+                        a.getParticipantName().equals(p.getName())
+                            && a.getSlideIndex().equals(sIdx))
+                .findFirst();
+        if (ans.isPresent() && Boolean.TRUE.equals(ans.get().getIsCorrect())) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+
+      leaderboard.add(new LeaderboardEntryDto(rank++, p.getName(), p.getScore(), delta, streak));
     }
 
     final var leaderboardPayload = new IntermediateLeaderboardPayload(slideIndex, leaderboard);

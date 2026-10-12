@@ -70,6 +70,9 @@ public class SessionJpaEntity {
   @Column(name = "ended_at")
   private @Nullable Instant endedAt;
 
+  @Column(name = "last_revealed_slide_index")
+  private @Nullable Integer lastRevealedSlideIndex = 0;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
@@ -195,6 +198,14 @@ public class SessionJpaEntity {
 
   public void setEndedAt(@Nullable Instant endedAt) {
     this.endedAt = endedAt;
+  }
+
+  public @Nullable Integer getLastRevealedSlideIndex() {
+    return lastRevealedSlideIndex;
+  }
+
+  public void setLastRevealedSlideIndex(@Nullable Integer lastRevealedSlideIndex) {
+    this.lastRevealedSlideIndex = lastRevealedSlideIndex;
   }
 
   public Instant getCreatedAt() {
