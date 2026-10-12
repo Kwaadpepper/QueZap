@@ -5,9 +5,9 @@
   <input
     class="checkbox"
     [type]="radio() ? 'radio' : 'checkbox'"
-    [attr.role]="radio() ? 'radio' : 'checkbox'"
+    [attr.name]="'question-' + questionId()"
+    [attr.aria-label]="phrase() || ('Option ' + (identifier() + 1))"
     [checked]="field()().value()"
-    [multiple]="!radio()"
   />
   <div class="relative z-10 flex w-full items-center gap-3 sm:gap-4">
     <!-- Geometric icon container with high-contrast badge -->

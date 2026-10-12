@@ -256,6 +256,9 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   private triggerCanvasConfetti(): void {
     if (typeof window === 'undefined') return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      return
+    }
     setTimeout(() => {
       const canvasEl = this.confettiCanvas()?.nativeElement
       if (canvasEl) {

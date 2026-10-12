@@ -111,6 +111,38 @@ test.describe('Classroom Quiz Simulation', () => {
     await revealBtn.click()
     await expect(hostPage.locator('body')).toContainText('BONNE RÉPONSE RÉVÉLÉE')
 
+    // 7. Intermediate Leaderboard
+    const leaderboardBtn = hostPage.getByRole('button', { name: /Voir le Classement/i })
+    await leaderboardBtn.waitFor({ state: 'visible', timeout: 5000 })
+    await leaderboardBtn.click()
+    await expect(hostPage.locator('body')).toContainText('CLASSEMENT INTERMÉDIAIRE')
+    await expect(hostPage.locator('body')).toContainText('Top 5 de la Classe')
+
+    // 8. Progress through remaining questions if any
+    const totalQuestions = Number(quezap.totalQuestions ?? 1)
+    for (let q = 2; q <= totalQuestions; q++) {
+      const nextBtn = hostPage.getByRole('button', { name: /Question suivante/i })
+      await nextBtn.click()
+      await hostPage.waitForSelector('.choice-grid', { timeout: 10000 })
+
+      // Students & bots vote on slide q
+      await Promise.all(
+        botTokens.map(tok =>
+          api(`/sessions/${sessionId}/answers`, 'POST', { answerIndex: 0, slideIndex: q }, undefined, { 'X-Participant-Token': tok }),
+        ),
+      )
+
+      // Host reveals
+      const rev = hostPage.getByRole('button', { name: /Révéler/i })
+      await rev.click()
+      await expect(hostPage.locator('body')).toContainText('BONNE RÉPONSE RÉVÉLÉE')
+    }
+
+    // 9. Final Podium of the classroom
+    const podiumBtn = hostPage.getByRole('button', { name: /Afficher le Podium Final/i })
+    await podiumBtn.click()
+    await expect(hostPage.locator('body')).toContainText('PODIUM DE LA CLASSE')
+
     await hostContext.close()
     for (const sp of studentPages) {
       await sp.context().close()

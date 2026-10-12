@@ -14,8 +14,17 @@
       --color-brand-yellow-dark: #c0862a;
       --color-ui-primary-default-base: #2a3278;
       --color-ui-primary-light: #4f59a5;
-      --color-ui-primary-dark: #1f255a;
       --color-ui-danger-default-base: #c02a3a;
+
+      /* --- Choix de Réponses QCM (Harmonisés Mobile & Écran Présentateur) --- */
+      --color-choice-red-start: #ef4444;
+      --color-choice-red-end: #b91c1c;
+      --color-choice-blue-start: #3b82f6;
+      --color-choice-blue-end: #1d4ed8;
+      --color-choice-yellow-start: #f59e0b;
+      --color-choice-yellow-end: #b45309;
+      --color-choice-green-start: #22c55e;
+      --color-choice-green-end: #15803d;
 
       /* --- Fonds (Light/Dark) - Primitives --- */
       --color-background-light: hsl(0deg 0% 100%); /* #ffffff */
