@@ -1,0 +1,146 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "QueZap Live Quiz Session Contracts",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/apiv1/sessions/{id}/pause": {
+      "post": {
+        "summary": "Basculer la mise en pause explications de la session",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionPauseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "État de pause mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPauseResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apiv1/sessions/{id}/settings": {
+      "put": {
+        "summary": "Mettre à jour les réglages de diffusion de la session",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionSettingsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Réglages appliqués",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSettingsResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SessionPauseRequestDto": {
+        "type": "object",
+        "required": ["paused"],
+        "properties": {
+          "paused": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SessionPauseResponseDto": {
+        "type": "object",
+        "required": ["sessionId", "isPaused"],
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isPaused": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SessionSettingsRequestDto": {
+        "type": "object",
+        "properties": {
+          "progressionMode": {
+            "type": "string",
+            "enum": ["MANUAL", "AUTOMATIC"]
+          },
+          "explanationDurationSeconds": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 120,
+            "default": 15
+          },
+          "mobileCorrectionEnabled": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "SessionSettingsResponseDto": {
+        "type": "object",
+        "required": ["progressionMode", "explanationDurationSeconds", "mobileCorrectionEnabled"],
+        "properties": {
+          "progressionMode": {
+            "type": "string",
+            "enum": ["MANUAL", "AUTOMATIC"]
+          },
+          "explanationDurationSeconds": {
+            "type": "integer"
+          },
+          "mobileCorrectionEnabled": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}
