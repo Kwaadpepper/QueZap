@@ -1,6 +1,7 @@
 package com.quezap.api.v1.services;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,12 +22,17 @@ import org.slf4j.LoggerFactory;
 @EnableScheduling
 public class SessionSseService {
 
+  public record StoredEvent(long sequence, String eventType, Long sessionNumber, Object payload) {}
+
   private static final Logger logger = LoggerFactory.getLogger(SessionSseService.class);
-  private static final long DEFAULT_TIMEOUT_MS = 30 * 60 * 1000L; // 30 minutes
+  private static final long DEFAULT_TIMEOUT_MS = 120 * 60 * 1000L; // 2 hours
+  private static final int MAX_HISTORY_SIZE = 50;
 
   private final ConcurrentHashMap<UUID, CopyOnWriteArrayList<SseEmitter>> emitters =
       new ConcurrentHashMap<>();
   private final ConcurrentHashMap<UUID, AtomicLong> sessionSequences = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<UUID, CopyOnWriteArrayList<StoredEvent>> eventHistory =
+      new ConcurrentHashMap<>();
 
   public long nextSequence(UUID sessionId) {
     return sessionSequences.computeIfAbsent(sessionId, k -> new AtomicLong(0)).incrementAndGet();
@@ -90,12 +96,18 @@ public class SessionSseService {
   }
 
   public <T> void broadcast(UUID sessionId, String eventType, Long sessionNumber, T payload) {
+    final var sequence = nextSequence(sessionId);
+    final var history = eventHistory.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>());
+    history.add(new StoredEvent(sequence, eventType, sessionNumber, payload));
+    while (history.size() > MAX_HISTORY_SIZE) {
+      history.remove(0);
+    }
+
     final var sessionEmitters = emitters.get(sessionId);
     if (sessionEmitters == null || sessionEmitters.isEmpty()) {
       return;
     }
 
-    final var sequence = nextSequence(sessionId);
     final var envelope =
         SessionEventEnvelope.of(eventType, sequence, sessionNumber, sessionId, payload);
     final var deadEmitters = new ArrayList<SseEmitter>();
@@ -120,6 +132,36 @@ public class SessionSseService {
       if (sessionEmitters.isEmpty()) {
         emitters.remove(sessionId);
       }
+    }
+  }
+
+  public List<StoredEvent> getEventsSince(UUID sessionId, long lastSequence) {
+    final var history = eventHistory.get(sessionId);
+    if (history == null) {
+      return List.of();
+    }
+    return history.stream().filter(e -> e.sequence() > lastSequence).toList();
+  }
+
+  public void sendStoredEventToEmitter(
+      SseEmitter emitter, UUID sessionId, StoredEvent storedEvent) {
+    try {
+      final var envelope =
+          SessionEventEnvelope.of(
+              storedEvent.eventType(),
+              storedEvent.sequence(),
+              storedEvent.sessionNumber(),
+              sessionId,
+              storedEvent.payload());
+      synchronized (emitter) {
+        emitter.send(
+            SseEmitter.event()
+                .id(String.valueOf(storedEvent.sequence()))
+                .name(storedEvent.eventType())
+                .data(envelope, MediaType.APPLICATION_JSON));
+      }
+    } catch (Exception e) {
+      logger.debug("Failed to replay stored event to SSE emitter for session {}", sessionId, e);
     }
   }
 

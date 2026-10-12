@@ -24,6 +24,7 @@ import com.quezap.api.v1.dto.events.QuestionStartPayload;
 import com.quezap.api.v1.dto.request.sessions.CreateSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.JoinSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.SubmitAnswerRequest;
+import com.quezap.api.v1.ports.SessionDataPort;
 import com.quezap.api.v1.routes.sessions.SessionController;
 import com.quezap.api.v1.services.SessionSseService;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
@@ -36,9 +37,6 @@ import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionJpaEnti
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionParticipantJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.ThemeJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.UserJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuezapJpaRepository;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.SessionJpaRepository;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,9 +46,7 @@ import org.mockito.Mockito;
 
 class SessionControllerTest {
 
-  private SessionJpaRepository sessionJpaRepository;
-  private QuezapJpaRepository quezapJpaRepository;
-  private UserJpaRepository userJpaRepository;
+  private SessionDataPort sessionDataPort;
   private SessionSseService sessionSseService;
   private com.quezap.domain.ports.services.UserNameSanitizer userNameSanitizer;
   private SessionController sessionController;
@@ -59,9 +55,7 @@ class SessionControllerTest {
 
   @BeforeEach
   void setUp() {
-    sessionJpaRepository = Mockito.mock(SessionJpaRepository.class);
-    quezapJpaRepository = Mockito.mock(QuezapJpaRepository.class);
-    userJpaRepository = Mockito.mock(UserJpaRepository.class);
+    sessionDataPort = Mockito.mock(SessionDataPort.class);
     sessionSseService = Mockito.mock(SessionSseService.class);
     userNameSanitizer = Mockito.mock(com.quezap.domain.ports.services.UserNameSanitizer.class);
     final var transactionManager =
@@ -86,9 +80,7 @@ class SessionControllerTest {
         };
     sessionController =
         new SessionController(
-            sessionJpaRepository,
-            quezapJpaRepository,
-            userJpaRepository,
+            sessionDataPort,
             sessionSseService,
             new com.quezap.api.v1.mappers.PaginationMapper(),
             userNameSanitizer,
@@ -98,7 +90,7 @@ class SessionControllerTest {
         new CredentialJpaEntity(
             UUID.randomUUID(), "hid", "hpass", null, Instant.now(), Instant.now());
     author = new UserJpaEntity(authorId, "HostUser", cred, Instant.now(), Instant.now());
-    when(userJpaRepository.findById(authorId)).thenReturn(Optional.of(author));
+    when(sessionDataPort.findUserById(authorId)).thenReturn(Optional.of(author));
     when(userNameSanitizer.sanitize(anyString())).thenAnswer(inv -> inv.getArgument(0));
 
     final var auth = new UsernamePasswordAuthenticationToken(authorId.toString(), null, List.of());
@@ -132,7 +124,7 @@ class SessionControllerTest {
             quezapId, "Physics Finals", null, author, true, Instant.now(), Instant.now());
     quezap.addQuestion(
         new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, question, 20, 100, 1));
-    when(quezapJpaRepository.findById(quezapId)).thenReturn(Optional.of(quezap));
+    when(sessionDataPort.findQuezapById(quezapId)).thenReturn(Optional.of(quezap));
 
     final var request = new CreateSessionRequest("Physics Finals", quezapId);
 
@@ -140,7 +132,7 @@ class SessionControllerTest {
 
     assertThat(response.id()).isNotNull();
     assertThat(response.code()).matches("\\d+");
-    verify(sessionJpaRepository).save(any(SessionJpaEntity.class));
+    verify(sessionDataPort).saveSession(any(SessionJpaEntity.class));
   }
 
   @Test
@@ -150,7 +142,7 @@ class SessionControllerTest {
         new SessionJpaEntity(
             sessionId, 1042L, "Physics Finals", 0, authorId, null, null, null, Instant.now());
 
-    when(sessionJpaRepository.findByNumber(1042L)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionByNumber(1042L)).thenReturn(Optional.of(sessionEntity));
 
     final var response = sessionController.join(new JoinSessionRequest("QZ-1042", "Arthur"));
 
@@ -188,7 +180,7 @@ class SessionControllerTest {
         new SessionJpaEntity(
             sessionId, 1042L, "Physics Finals", 0, authorId, quezap, null, null, Instant.now());
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var response = sessionController.start(sessionId);
 
@@ -223,7 +215,7 @@ class SessionControllerTest {
         new SessionJpaEntity(
             sessionId, 1042L, "Physics Finals", 0, authorId, quezap, null, null, Instant.now());
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var response = sessionController.nextQuestion(sessionId);
 
@@ -273,7 +265,7 @@ class SessionControllerTest {
             UUID.randomUUID(), sessionEntity, "Arthur", 0, "ptk_123", false, Instant.now());
     sessionEntity.addParticipant(participant);
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var response =
         sessionController.submitAnswer(sessionId, "ptk_123", new SubmitAnswerRequest(1, 0));
@@ -322,7 +314,7 @@ class SessionControllerTest {
             UUID.randomUUID(), sessionEntity, "Speedy", 0, "ptk_speed", false, Instant.now());
     sessionEntity.addParticipant(participant);
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var response =
         sessionController.submitAnswer(sessionId, "ptk_speed", new SubmitAnswerRequest(1, 0));
@@ -366,7 +358,7 @@ class SessionControllerTest {
             UUID.randomUUID(), sessionEntity, "LatePlayer", 0, "ptk_late", false, Instant.now());
     sessionEntity.addParticipant(participant);
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     assertThatThrownBy(
             () ->
@@ -418,7 +410,7 @@ class SessionControllerTest {
             Instant.now());
     sessionEntity.addParticipant(participant);
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     assertThatThrownBy(
             () ->
@@ -470,7 +462,7 @@ class SessionControllerTest {
             UUID.randomUUID(), sessionEntity, "Clever", 0, "ptk_clever", false, Instant.now());
     sessionEntity.addParticipant(participant);
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var response =
         sessionController.submitAnswer(sessionId, "ptk_clever", new SubmitAnswerRequest(1, 1));
@@ -493,7 +485,7 @@ class SessionControllerTest {
             UUID.randomUUID(), sessionEntity, "BadPlayer", 0, "ptk_bad", false, Instant.now());
     sessionEntity.addParticipant(participant);
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     sessionController.kickParticipant(sessionId, "BadPlayer");
 
@@ -517,7 +509,7 @@ class SessionControllerTest {
     sessionEntity.addParticipant(p1);
     sessionEntity.addParticipant(p2);
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var response = sessionController.getScores(sessionId);
 
@@ -581,7 +573,7 @@ class SessionControllerTest {
         new SessionAnswerJpaEntity(
             UUID.randomUUID(), sessionEntity, "Bob", 1, 1, 0, false, Instant.now()));
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var report = sessionController.getReport(sessionId);
 
@@ -658,12 +650,12 @@ class SessionControllerTest {
         new SessionAnswerJpaEntity(
             UUID.randomUUID(), sessionEntity, "Loser", 1, 1, 0, false, Instant.now()));
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     sessionController.reveal(sessionId);
 
     assertThat(sessionEntity.getLastRevealedSlideIndex()).isEqualTo(1);
-    verify(sessionJpaRepository).save(sessionEntity);
+    verify(sessionDataPort).saveSession(sessionEntity);
 
     final var captor = ArgumentCaptor.forClass(IntermediateLeaderboardPayload.class);
     verify(sessionSseService)
@@ -734,7 +726,7 @@ class SessionControllerTest {
         new SessionAnswerJpaEntity(
             UUID.randomUUID(), sessionEntity, "PlayerFaux", 1, 1, 800, true, Instant.now()));
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     final var report = sessionController.getReport(sessionId);
 
@@ -779,7 +771,7 @@ class SessionControllerTest {
         new SessionJpaEntity(
             sessionId, 12345L, "Session Test", 0, authorId, quezap, null, null, Instant.now());
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
 
     sessionController.start(sessionId);
 
@@ -830,10 +822,10 @@ class SessionControllerTest {
         new SessionAnswerJpaEntity(
             UUID.randomUUID(), sessionEntity, "Player2", 1, 0, 850, true, Instant.now()));
 
-    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
     when(sessionSseService.registerEmitter(sessionId)).thenReturn(new SseEmitter());
 
-    sessionController.streamEvents(sessionId);
+    sessionController.streamEvents(sessionId, null);
 
     final var captor = ArgumentCaptor.forClass(QuestionStartPayload.class);
     verify(sessionSseService)
@@ -846,11 +838,69 @@ class SessionControllerTest {
 
     // Now if the question was already revealed
     sessionEntity.setLastRevealedSlideIndex(1);
-    sessionController.streamEvents(sessionId);
+    sessionController.streamEvents(sessionId, null);
 
     verify(sessionSseService)
         .sendToEmitter(any(), eq("QUESTION_REVEAL"), eq(12345L), eq(sessionId), any());
     verify(sessionSseService)
         .sendToEmitter(any(), eq("INTERMEDIATE_LEADERBOARD"), eq(12345L), eq(sessionId), any());
+  }
+
+  @Test
+  void shouldRejectParticipantNameWithHtmlTags() {
+    assertThatThrownBy(
+            () ->
+                sessionController.join(
+                    new JoinSessionRequest("QZ-1042", "<script>alert(1)</script>")))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void shouldNeutralizeFormulaPrefixesInCsvExport() {
+    final var sessionId = UUID.randomUUID();
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId, 1234L, "Session CSV", 1, authorId, null, null, null, Instant.now());
+    final var maliciousParticipant =
+        new SessionParticipantJpaEntity(
+            UUID.randomUUID(),
+            sessionEntity,
+            "=cmd|' /C calc'!A0",
+            100,
+            "ptk_hack",
+            false,
+            Instant.now());
+    sessionEntity.addParticipant(maliciousParticipant);
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    final var response = sessionController.exportCsv(sessionId);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    // Formula prefix '=' must be neutralized with a leading single quote "'" and enclosed in quotes
+    assertThat(response.getBody()).contains("\"'=cmd|' /C calc'!A0\"");
+  }
+
+  @Test
+  void shouldReplayMissedEventsWithLastEventId() {
+    final var sessionId = UUID.randomUUID();
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId, 1234L, "Session Replay", 1, authorId, null, null, null, Instant.now());
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionSseService.registerEmitter(sessionId)).thenReturn(new SseEmitter());
+
+    final var storedEvent =
+        new SessionSseService.StoredEvent(
+            5L, "QUESTION_START", 1234L, java.util.Map.of("count", 1));
+    when(sessionSseService.getEventsSince(sessionId, 4L)).thenReturn(List.of(storedEvent));
+
+    final var emitter = sessionController.streamEvents(sessionId, "4");
+
+    assertThat(emitter).isNotNull();
+    verify(sessionSseService).sendStoredEventToEmitter(any(), eq(sessionId), eq(storedEvent));
   }
 }

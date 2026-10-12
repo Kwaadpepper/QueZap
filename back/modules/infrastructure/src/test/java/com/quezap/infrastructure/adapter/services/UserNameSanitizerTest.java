@@ -34,6 +34,8 @@ class UserNameSanitizerTest {
     "'shit john crotte doe shit', 'John Doe'",
     "'shitjohnshitdoeshit', 'Johndoe'",
     "'shitjohncuntdoeshitcunt', 'Johndoe'",
+    "'<script>alert(1)</script>', 'Alert(1)'",
+    "'<b>Bob</b>', 'Bob'",
   })
   void canSanitizeUserName(String userName, String expectedSanitized) {
     // WHEN

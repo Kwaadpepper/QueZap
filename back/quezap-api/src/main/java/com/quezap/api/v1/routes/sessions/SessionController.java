@@ -65,6 +65,7 @@ import com.quezap.api.v1.dto.response.sessions.SessionParticipantReportDto;
 import com.quezap.api.v1.dto.response.sessions.SessionReportDto;
 import com.quezap.api.v1.dto.response.sessions.SessionStatusDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
+import com.quezap.api.v1.ports.SessionDataPort;
 import com.quezap.api.v1.services.SessionSseService;
 import com.quezap.domain.models.entities.Session;
 import com.quezap.domain.ports.services.UserNameSanitizer;
@@ -75,9 +76,6 @@ import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionAnswerJ
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.SessionParticipantJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.UserJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuezapJpaRepository;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.SessionJpaRepository;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
 import com.quezap.lib.utils.UuidV7;
 
 import jakarta.validation.Valid;
@@ -87,25 +85,19 @@ import org.jspecify.annotations.Nullable;
 @RequestMapping("apiv1/sessions")
 public class SessionController {
 
-  private final SessionJpaRepository sessionJpaRepository;
-  private final QuezapJpaRepository quezapJpaRepository;
-  private final UserJpaRepository userJpaRepository;
+  private final SessionDataPort sessionDataPort;
   private final SessionSseService sessionSseService;
   private final PaginationMapper paginationMapper;
   private final UserNameSanitizer userNameSanitizer;
   private final TransactionTemplate transactionTemplate;
 
   public SessionController(
-      SessionJpaRepository sessionJpaRepository,
-      QuezapJpaRepository quezapJpaRepository,
-      UserJpaRepository userJpaRepository,
+      SessionDataPort sessionDataPort,
       SessionSseService sessionSseService,
       PaginationMapper paginationMapper,
       UserNameSanitizer userNameSanitizer,
       PlatformTransactionManager transactionManager) {
-    this.sessionJpaRepository = sessionJpaRepository;
-    this.quezapJpaRepository = quezapJpaRepository;
-    this.userJpaRepository = userJpaRepository;
+    this.sessionDataPort = sessionDataPort;
     this.sessionSseService = sessionSseService;
     this.paginationMapper = paginationMapper;
     this.userNameSanitizer = userNameSanitizer;
@@ -125,18 +117,18 @@ public class SessionController {
 
     Page<SessionJpaEntity> page;
     if (authorId != null) {
-      page = sessionJpaRepository.findByAuthorId(authorId, pageRequest);
+      page = sessionDataPort.findSessionsByAuthorId(authorId, pageRequest);
     } else {
       final var auth = SecurityContextHolder.getContext().getAuthentication();
       if (auth != null && auth.getPrincipal() != null) {
         try {
           final var userUuid = UUID.fromString(auth.getPrincipal().toString());
-          page = sessionJpaRepository.findByAuthorId(userUuid, pageRequest);
+          page = sessionDataPort.findSessionsByAuthorId(userUuid, pageRequest);
         } catch (IllegalArgumentException _) {
-          page = sessionJpaRepository.findAll(pageRequest);
+          page = sessionDataPort.findAllSessions(pageRequest);
         }
       } else {
-        page = sessionJpaRepository.findAll(pageRequest);
+        page = sessionDataPort.findAllSessions(pageRequest);
       }
     }
 
@@ -186,8 +178,8 @@ public class SessionController {
     }
 
     final var quezapEntity =
-        quezapJpaRepository
-            .findById(request.quezapId())
+        sessionDataPort
+            .findQuezapById(request.quezapId())
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
@@ -207,7 +199,7 @@ public class SessionController {
             null,
             Instant.now());
 
-    sessionJpaRepository.save(sessionJpa);
+    sessionDataPort.saveSession(sessionJpa);
 
     return new SessionCreatedDto(
         sessionJpa.getId(), sessionNumber, formatSessionCode(sessionNumber));
@@ -217,8 +209,8 @@ public class SessionController {
   @Transactional(readOnly = true)
   public SessionDetailDto getById(@PathVariable UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
@@ -251,8 +243,8 @@ public class SessionController {
   public SessionDetailDto getByCode(@PathVariable String code) {
     final var sessionNumber = parseSessionCode(code);
     final var sessionJpa =
-        sessionJpaRepository
-            .findByNumber(sessionNumber)
+        sessionDataPort
+            .findSessionByNumber(sessionNumber)
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
@@ -285,10 +277,15 @@ public class SessionController {
   @PostMapping("join")
   @Transactional
   public JoinSessionResponseDto join(@Valid @RequestBody JoinSessionRequest request) {
+    if (request.participantName().contains("<") || request.participantName().contains(">")) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Participant name must not contain HTML tags");
+    }
+
     final var sessionNumber = parseSessionCode(request.code());
     final var sessionJpa =
-        sessionJpaRepository
-            .findByNumber(sessionNumber)
+        sessionDataPort
+            .findSessionByNumber(sessionNumber)
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
@@ -315,7 +312,7 @@ public class SessionController {
             UuidV7.randomUuid(), sessionJpa, sanitizedName, 0, token, false, Instant.now());
 
     sessionJpa.addParticipant(participant);
-    sessionJpaRepository.saveAndFlush(sessionJpa);
+    sessionDataPort.saveAndFlushSession(sessionJpa);
 
     // Broadcast LOBBY_STATE to all SSE subscribers
     final var participantList =
@@ -341,8 +338,8 @@ public class SessionController {
   @Transactional
   public SessionStatusDto start(@PathVariable UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
@@ -367,7 +364,7 @@ public class SessionController {
     sessionJpa.setStartedAt(now);
     sessionJpa.setCurrentSlideIndex(1);
     sessionJpa.setCurrentSlideStartedAt(now);
-    sessionJpaRepository.saveAndFlush(sessionJpa);
+    sessionDataPort.saveAndFlushSession(sessionJpa);
 
     final var startedAt = sessionJpa.getStartedAt() != null ? sessionJpa.getStartedAt() : now;
     final var payload = new SessionStartedPayload(startedAt, totalSlides, 3);
@@ -426,8 +423,8 @@ public class SessionController {
   @Transactional
   public NextQuestionResponseDto nextQuestion(@PathVariable UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
@@ -449,7 +446,7 @@ public class SessionController {
     if (nextIndex > totalSlides) {
       final var endedAt = Instant.now();
       sessionJpa.setEndedAt(endedAt);
-      sessionJpaRepository.saveAndFlush(sessionJpa);
+      sessionDataPort.saveAndFlushSession(sessionJpa);
 
       final var sortedParticipants =
           sessionJpa.getParticipants().stream()
@@ -487,7 +484,7 @@ public class SessionController {
 
     sessionJpa.setCurrentSlideIndex(nextIndex);
     sessionJpa.setCurrentSlideStartedAt(Instant.now());
-    sessionJpaRepository.saveAndFlush(sessionJpa);
+    sessionDataPort.saveAndFlushSession(sessionJpa);
 
     // Get current slide question details for SSE (Safe without isCorrect)
     final var currentQq = questionsList.get(Math.min(nextIndex - 1, totalSlides - 1));
@@ -545,8 +542,8 @@ public class SessionController {
       @Valid @RequestBody SubmitAnswerRequest request) {
 
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
@@ -678,7 +675,7 @@ public class SessionController {
 
     sessionJpa.addAnswer(answerEntity);
     participant.setScore(participant.getScore() + pointsAwarded);
-    sessionJpaRepository.save(sessionJpa);
+    sessionDataPort.saveSession(sessionJpa);
 
     // Check if all active participants have answered this slide
     final var totalActive =
@@ -714,8 +711,8 @@ public class SessionController {
   @Transactional
   public void reveal(@PathVariable UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
     assertSessionHost(sessionJpa);
@@ -727,8 +724,8 @@ public class SessionController {
   @Transactional(readOnly = true)
   public ResponseEntity<String> exportCsv(@PathVariable UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
     assertSessionHost(sessionJpa);
@@ -762,7 +759,7 @@ public class SessionController {
               Locale.US,
               "%d,%s,%d,%d,%d,%.1f%%\n",
               rank++,
-              p.getName(),
+              escapeCsvCell(p.getName()),
               p.getScore(),
               correctCount,
               totalQuestions,
@@ -775,12 +772,31 @@ public class SessionController {
         .body(sb.toString());
   }
 
+  public static String escapeCsvCell(@Nullable String value) {
+    if (value == null) {
+      return "\"\"";
+    }
+    var sanitized = value;
+    if (!sanitized.isEmpty()) {
+      final var firstChar = sanitized.charAt(0);
+      if (firstChar == '='
+          || firstChar == '+'
+          || firstChar == '-'
+          || firstChar == '@'
+          || firstChar == '\t'
+          || firstChar == '\r') {
+        sanitized = "'" + sanitized;
+      }
+    }
+    return "\"" + sanitized.replace("\"", "\"\"") + "\"";
+  }
+
   @GetMapping("{id}/scores")
   @Transactional(readOnly = true)
   public LeaderboardResponseDto getScores(@PathVariable UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
@@ -804,8 +820,8 @@ public class SessionController {
   @Transactional(readOnly = true)
   public SessionReportDto getReport(@PathVariable UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
     assertSessionHost(sessionJpa);
@@ -956,8 +972,8 @@ public class SessionController {
   @Transactional
   public void kickParticipant(@PathVariable UUID id, @PathVariable String name) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
     assertSessionHost(sessionJpa);
@@ -970,7 +986,7 @@ public class SessionController {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Participant not found"));
 
     participant.setIsKicked(true);
-    sessionJpaRepository.saveAndFlush(sessionJpa);
+    sessionDataPort.saveAndFlushSession(sessionJpa);
 
     // Broadcast PARTICIPANT_KICKED
     final var kickedPayload = new ParticipantKickedPayload(name, "HOST_KICK");
@@ -1004,8 +1020,8 @@ public class SessionController {
   @Transactional(readOnly = true)
   protected InitialEventsData getInitialStreamData(UUID id) {
     final var sessionJpa =
-        sessionJpaRepository
-            .findById(id)
+        sessionDataPort
+            .findSessionById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
@@ -1105,12 +1121,29 @@ public class SessionController {
   }
 
   @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public SseEmitter streamEvents(@PathVariable UUID id) {
+  public SseEmitter streamEvents(
+      @PathVariable UUID id,
+      @RequestHeader(value = "Last-Event-ID", required = false) @Nullable String lastEventId) {
     final var initialData = transactionTemplate.execute(status -> getInitialStreamData(id));
     if (initialData == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");
     }
     final var emitter = sessionSseService.registerEmitter(id);
+
+    if (lastEventId != null && !lastEventId.isBlank()) {
+      try {
+        final var lastSeq = Long.parseLong(lastEventId.trim());
+        final var missedEvents = sessionSseService.getEventsSince(id, lastSeq);
+        if (!missedEvents.isEmpty()) {
+          for (final var ev : missedEvents) {
+            sessionSseService.sendStoredEventToEmitter(emitter, id, ev);
+          }
+          return emitter;
+        }
+      } catch (NumberFormatException _) {
+        // Fall back to initial full state
+      }
+    }
 
     sessionSseService.sendToEmitter(
         emitter, "LOBBY_STATE", initialData.sessionNumber(), id, initialData.lobbyPayload());
@@ -1238,7 +1271,7 @@ public class SessionController {
 
   private void broadcastRevealAndLeaderboard(SessionJpaEntity sessionJpa, int slideIndex) {
     sessionJpa.setLastRevealedSlideIndex(slideIndex);
-    sessionJpaRepository.save(sessionJpa);
+    sessionDataPort.saveSession(sessionJpa);
 
     final var quezap = sessionJpa.getQuezap();
     if (quezap == null) {
@@ -1274,7 +1307,7 @@ public class SessionController {
   private Long generateUniqueSessionNumber() {
     for (int i = 0; i < 20; i++) {
       final var number = ThreadLocalRandom.current().nextLong(10000, 99999);
-      if (!sessionJpaRepository.existsByNumber(number)) {
+      if (!sessionDataPort.existsSessionByNumber(number)) {
         return number;
       }
     }
@@ -1303,12 +1336,12 @@ public class SessionController {
       final var principal = auth.getPrincipal().toString();
       try {
         final var userId = UUID.fromString(principal);
-        final var userOpt = userJpaRepository.findById(userId);
+        final var userOpt = sessionDataPort.findUserById(userId);
         if (userOpt.isPresent()) {
           return userOpt.get();
         }
       } catch (IllegalArgumentException _) {
-        final var userOpt = userJpaRepository.findByName(principal);
+        final var userOpt = sessionDataPort.findUserByName(principal);
         if (userOpt.isPresent()) {
           return userOpt.get();
         }

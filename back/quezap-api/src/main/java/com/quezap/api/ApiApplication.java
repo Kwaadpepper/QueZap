@@ -23,7 +23,8 @@ import org.jspecify.annotations.Nullable;
     basePackages = "com.quezap.infrastructure.adapter.persistence.jpa.repositories")
 @ImportRuntimeHints({
   com.quezap.application.aot.QuezapRuntimeHints.class,
-  com.quezap.infrastructure.aot.QuezapRuntimeHints.class
+  com.quezap.infrastructure.aot.QuezapRuntimeHints.class,
+  com.quezap.api.v1.aot.QuezapApiRuntimeHints.class
 })
 public class ApiApplication {
 

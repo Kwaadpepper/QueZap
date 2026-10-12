@@ -37,7 +37,9 @@ public class UserNameSanitizerImpl implements UserNameSanitizer {
 
   @Override
   public String sanitize(String userName) {
-    var normalized = normalizeWhitespace(userName).toLowerCase(Locale.ROOT);
+    final var stripped =
+        userName.replaceAll("<[^>]*>", "").replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
+    var normalized = normalizeWhitespace(stripped).toLowerCase(Locale.ROOT);
 
     @Nullable String profanity;
 
