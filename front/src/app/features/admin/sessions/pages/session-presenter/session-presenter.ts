@@ -18,6 +18,7 @@ export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'PODIUM'
 interface QuestionPresenterModel {
   id: string
   title: string
+  type?: string
   pictureUrl?: string
   explanation?: string
   answers: {
@@ -104,10 +105,15 @@ export class SessionPresenter implements OnInit, OnDestroy {
   protected readonly podiumStep = signal<number>(0)
   private podiumTimeouts: ReturnType<typeof setTimeout>[] = []
 
+  protected readonly displayJoinUrl = computed(() => {
+    const host = typeof window !== 'undefined' ? window.location.host : 'localhost:8000'
+    return `${host}/quizz/join`
+  })
+
   protected readonly joinUrl = computed(() => {
     const code = this.sessionCode()
-    if (!code) return 'https://quezap.fr'
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'
+    if (!code) return `${origin}/quizz/join`
     return `${origin}/quizz/join/${code}`
   })
 
@@ -390,17 +396,26 @@ export class SessionPresenter implements OnInit, OnDestroy {
             this.startCountdown(payload.timerSeconds)
           }
           const q = payload.question || payload
+          const qType = (q as { type?: string }).type || (payload as { type?: string }).type || ''
           const rawAnswers = q.answers || payload.answers || []
           const picture = q.pictureFilename || payload.pictureFilename || (q as { picture?: string }).picture
+          let mappedAnswers = rawAnswers.map((a: SseAnswer, idx: number) => ({
+            id: a.id || String(a.index ?? idx),
+            label: a.label || a.value || '',
+            isCorrect: false,
+          }))
+          if (qType === 'BOOLEAN' && mappedAnswers.length <= 1) {
+            mappedAnswers = [
+              { id: '0', label: 'Vrai', isCorrect: false },
+              { id: '1', label: 'Faux', isCorrect: false },
+            ]
+          }
           this.currentQuestion.set({
             id: q.id || payload.questionId || '',
             title: q.label || payload.title || payload.label || '',
+            type: qType,
             pictureUrl: picture,
-            answers: rawAnswers.map((a: SseAnswer, idx: number) => ({
-              id: a.id || String(a.index ?? idx),
-              label: a.label || a.value || '',
-              isCorrect: false,
-            })),
+            answers: mappedAnswers,
           })
         }
         break
@@ -550,6 +565,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   protected getChoiceColorClass(index: number): string {
+    const isBool
+      = this.currentQuestion().type === 'BOOLEAN'
+        || (this.currentQuestion().answers.length === 2
+          && this.currentQuestion().answers[0].label === 'Vrai')
+    if (isBool) {
+      return index === 0 ? 'choice-green' : 'choice-red'
+    }
     const colors = ['choice-red', 'choice-blue', 'choice-yellow', 'choice-green']
     return colors[index % colors.length]
   }

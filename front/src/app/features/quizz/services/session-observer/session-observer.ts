@@ -48,6 +48,7 @@ export interface LeaderboardEntry {
   readonly score: number
   readonly previousScore: number
   readonly rankDelta: number
+  readonly delta?: number
 }
 
 export interface IntermediateLeaderboardData {

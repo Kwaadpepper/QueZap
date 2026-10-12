@@ -18,4 +18,24 @@ describe('QuestionAlert', () => {
   it('should create', () => {
     expect(component).toBeTruthy()
   })
+
+  it('should display timer warning when timeLeft <= 15 and hide when isRevealing', () => {
+    fixture.componentRef.setInput('timeLeft', 10)
+    fixture.detectChanges()
+    expect(component['showTimerWarning']()).toBe(true)
+
+    fixture.componentRef.setInput('isRevealing', true)
+    fixture.detectChanges()
+    expect(component['showTimerWarning']()).toBe(false)
+  })
+
+  it('should hide timesUp alert when isRevealing is true', () => {
+    fixture.componentRef.setInput('timeLeft', 0)
+    fixture.detectChanges()
+    expect(component['timesUp']()).toBe(true)
+
+    fixture.componentRef.setInput('isRevealing', true)
+    fixture.detectChanges()
+    expect(component['timesUp']()).toBe(false)
+  })
 })

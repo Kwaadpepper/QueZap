@@ -83,4 +83,32 @@ describe('SessionPresenter', () => {
     component['toggleQrZoom']()
     expect(component['qrZoomed']()).toBe(false)
   })
+
+  it('should compute displayJoinUrl dynamically based on host', () => {
+    expect(component['displayJoinUrl']()).toContain('/quizz/join')
+  })
+
+  it('should format BOOLEAN question with Vrai and Faux and correct choice colors', () => {
+    component['handleEvent']({
+      type: 'QUESTION_START',
+      payload: {
+        slideIndex: 1,
+        totalSlides: 1,
+        timerSeconds: 30,
+        question: {
+          id: 'q1',
+          type: 'BOOLEAN',
+          label: 'La Terre est ronde ?',
+          answers: [{ id: 'ans1', label: 'True' }],
+        },
+      },
+    })
+
+    const q = component['currentQuestion']()
+    expect(q.answers.length).toBe(2)
+    expect(q.answers[0].label).toBe('Vrai')
+    expect(q.answers[1].label).toBe('Faux')
+    expect(component['getChoiceColorClass'](0)).toBe('choice-green')
+    expect(component['getChoiceColorClass'](1)).toBe('choice-red')
+  })
 })

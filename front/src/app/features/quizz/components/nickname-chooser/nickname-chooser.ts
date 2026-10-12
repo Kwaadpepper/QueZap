@@ -1,7 +1,9 @@
 import {
-  ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, signal,
+  ChangeDetectionStrategy, Component, computed, effect, ErrorHandler, inject, signal,
 } from '@angular/core'
-import { form, FormField, minLength, required, submit } from '@angular/forms/signals'
+import {
+  form, FormField, maxLength, minLength, required, submit,
+} from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
@@ -38,6 +40,7 @@ export class NicknameChooser {
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly selectedNickname = computed(() => this.sessionStore.nickname()?.value())
   protected readonly nicknameValidated = signal(this.selectedNickname() !== undefined)
+  protected readonly conflictError = signal<string | null>(null)
 
   private readonly nickname = signal({
     nicknameValue: this.sessionStore.nickname()?.value() ?? '',
@@ -46,8 +49,16 @@ export class NicknameChooser {
 
   protected nicknameForm = form(this.nickname, (path) => {
     required(path.nicknameValue, { message: 'Le pseudo est requis' })
-    minLength(path.nicknameValue, 3, { message: 'Le pseudo doit faire au moins 3 caractères' })
+    minLength(path.nicknameValue, 2, { message: 'Le pseudo doit faire au moins 2 caractères' })
+    maxLength(path.nicknameValue, 50, { message: 'Le pseudo ne peut pas dépasser 50 caractères' })
   })
+
+  constructor() {
+    effect(() => {
+      this.nickname()
+      this.conflictError.set(null)
+    })
+  }
 
   protected readonly currentNicknameText = computed(() => {
     const fromForm = this.nickname().nicknameValue.trim()
@@ -92,6 +103,11 @@ export class NicknameChooser {
       ).pipe(
         exhaustMap((result) => {
           if (result instanceof ValidationError) {
+            const errs = result.getErrors().get('nicknameValue') || result.getErrors().get('nickname')
+            const msg = (errs && errs.length > 0)
+              ? errs[0].message
+              : 'Ce pseudo est déjà utilisé dans ce salon. Choisis un autre prénom ou ajoute une initiale.'
+            this.conflictError.set(msg)
             return of(result.getErrorsForForm(this.nicknameForm))
           }
           if (result instanceof ForbidenError) {

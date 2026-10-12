@@ -60,10 +60,16 @@ export class QuizzRunner {
   protected readonly pointsEarned = computed(() => {
     const rank = this.myRanking()
     if (!rank) return 0
-    return Math.max(0, rank.score - rank.previousScore)
+    return rank.delta !== undefined ? rank.delta : Math.max(0, rank.score - rank.previousScore)
   })
 
   constructor() {
+    effect(() => {
+      if (this.sessionStore.lastReveal() !== undefined) {
+        this.timerStore.clearTimer()
+      }
+    })
+
     effect((onCleanup) => {
       const question = this.sessionStore.question()
       if (!question) {

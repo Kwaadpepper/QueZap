@@ -28,8 +28,8 @@
 
       <!-- TIMER -->
       @let secondsLeft = timeLeft();
-      @if (secondsLeft !== undefined) {
-        <quizz-question-alert class="ms-auto" [timeLeft]="secondsLeft" />
+      @if (secondsLeft !== undefined && !isRevealing()) {
+        <quizz-question-alert class="ms-auto" [timeLeft]="secondsLeft" [isRevealing]="isRevealing()" />
       }
     </div>
 

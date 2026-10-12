@@ -1,6 +1,7 @@
 @import './tailwind.css';
 @import './fonts.css';
 @import './quezap-theme/index.css';
+@import 'primeicons/primeicons.css';
 
 html,
 body {

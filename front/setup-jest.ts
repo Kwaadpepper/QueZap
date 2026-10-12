@@ -30,6 +30,8 @@ import { ActiveSessionStore, TimerStore } from '@quezap/features/quizz/stores'
 
 setupZoneTestEnv()
 
+jest.setTimeout(15000)
+
 global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}

@@ -30,7 +30,7 @@
   @if (stage() === 'LOBBY') {
     <main class="flex-1 flex flex-col items-center justify-center text-center my-auto py-8 relative z-20">
       <p class="text-slate-300 text-2xl md:text-3xl mb-4 font-semibold tracking-wide">
-        Rejoignez la partie sur <strong class="text-indigo-400 font-extrabold text-3xl md:text-4xl underline decoration-indigo-500/50 underline-offset-8">quezap.fr</strong>
+        Rejoignez la partie sur <strong class="text-indigo-400 font-extrabold text-3xl md:text-4xl underline decoration-indigo-500/50 underline-offset-8">{{ displayJoinUrl() }}</strong>
       </p>
 
       <!-- Giant PIN and QR Code Card Container -->

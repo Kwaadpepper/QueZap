@@ -7,7 +7,7 @@ import * as zod from 'zod/v4'
 
 import { BinaryQuestion, PictureUrl, QuestionId, QuestionWithAnswers } from '@quezap/domain/models'
 import { SESSION_API_SERVICE } from '@quezap/features/quizz/services'
-import { TimerStore } from '@quezap/features/quizz/stores'
+import { ActiveSessionStore, TimerStore } from '@quezap/features/quizz/stores'
 
 import { Picture, PrintableAnswer, QuestionAlert, QuestionAnswer } from '../parts'
 
@@ -31,9 +31,11 @@ type Responses = Record<number, boolean>
 })
 export class BinaryQuestionView {
   private readonly timerStore = inject(TimerStore)
+  private readonly sessionStore = inject(ActiveSessionStore)
   private readonly sessionApi = inject(SESSION_API_SERVICE)
   protected readonly hasSubmitted = signal(false)
 
+  protected readonly isRevealing = computed<boolean>(() => this.sessionStore.lastReveal() !== undefined)
   protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
 
   // Question related signals

@@ -53,14 +53,27 @@
         pInputText
         id="nickname-value"
         placeholder="Ex: Alex, Lucas, SuperMarie..."
-        class="w-full py-3 text-center text-lg font-bold rounded-xl border-2 border-indigo-200 dark:border-indigo-800/80 focus:border-indigo-500 transition-all shadow-inner"
+        class="w-full py-3 text-center text-lg font-bold rounded-xl border-2 border-indigo-200 dark:border-indigo-800/80 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal transition-all shadow-inner"
         autocomplete="nickname"
         inputmode="text"
-        aria-describedby="join-help"
+        aria-describedby="nickname-feedback"
         quizzFieldError
         [fieldState]="nicknameForm.nicknameValue"
         [formField]="nicknameForm.nicknameValue"
       />
+
+      <!-- Feedback explicite d'erreur sous le champ (P0-6) -->
+      @if (conflictError()) {
+        <p id="nickname-feedback" class="text-xs text-rose-500 font-bold text-center animate-fade-in" role="alert">
+          {{ conflictError() }}
+        </p>
+      } @else if (nicknameForm.nicknameValue().touched() && nicknameForm.nicknameValue().invalid()) {
+        <p id="nickname-feedback" class="text-xs text-rose-500 font-bold text-center animate-fade-in" role="alert">
+          @for (error of nicknameForm.nicknameValue().errors(); track error.message) {
+            <span>{{ error.message }}</span>
+          }
+        </p>
+      }
 
       <div class="flex items-center justify-center gap-2 py-1">
         <p-checkbox inputId="remember-me" [binary]="true" [formField]="nicknameForm.rememberMe" />

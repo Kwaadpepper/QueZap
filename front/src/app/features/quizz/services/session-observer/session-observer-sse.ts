@@ -248,8 +248,9 @@ export class SessionObserverSseService implements SessionObserverService {
             rank: number
             participantName: string
             score: number
-            previousScore: number
-            rankDelta: number
+            delta?: number
+            previousScore?: number
+            rankDelta?: number
           }[]
         }
         const lbData: IntermediateLeaderboardData = {
@@ -258,8 +259,9 @@ export class SessionObserverSseService implements SessionObserverService {
             rank: l.rank,
             participantName: l.participantName,
             score: l.score,
-            previousScore: l.previousScore,
-            rankDelta: l.rankDelta,
+            delta: l.delta ?? (l.previousScore !== undefined ? Math.max(0, l.score - l.previousScore) : 0),
+            previousScore: l.previousScore !== undefined ? l.previousScore : (l.score - (l.delta ?? 0)),
+            rankDelta: l.rankDelta ?? 0,
           })),
         }
         this._leaderboard.set(lbData)
@@ -272,20 +274,38 @@ export class SessionObserverSseService implements SessionObserverService {
       case 'SESSION_ENDED': {
         this._question.set({ type: 'NoMoreQuestions' })
         const payload = envelope.payload as {
-          leaderboard?: { rank: number, participantName: string, score: number, correctAnswers: number }[]
+          leaderboard?: {
+            rank: number
+            participantName: string
+            score?: number
+            totalScore?: number
+            correctAnswers?: number
+            correctCount?: number
+          }[]
+          finalLeaderboard?: {
+            rank: number
+            participantName: string
+            score?: number
+            totalScore?: number
+            correctAnswers?: number
+            correctCount?: number
+          }[]
           podium?: { first: string, second?: string, third?: string }
         } | undefined
-        if (payload?.leaderboard) {
+        const leaderboardList = payload?.finalLeaderboard || payload?.leaderboard
+        if (leaderboardList) {
           const myNickname = this.sessionPersistence.getParticipantName() || ''
-          const myEntry = payload.leaderboard.find(
+          const myEntry = leaderboardList.find(
             e => e.participantName.trim().toLowerCase() === myNickname.trim().toLowerCase(),
           )
           if (myEntry) {
+            const finalScore = myEntry.totalScore ?? myEntry.score ?? 0
+            const correctCount = myEntry.correctCount ?? myEntry.correctAnswers ?? 0
             this.sessionPersistence.saveFinalResults({
               rank: myEntry.rank,
-              totalParticipants: payload.leaderboard.length,
-              score: myEntry.score,
-              correctAnswers: myEntry.correctAnswers,
+              totalParticipants: leaderboardList.length,
+              score: finalScore,
+              correctAnswers: correctCount,
               isPodium: myEntry.rank <= 3,
             })
           }

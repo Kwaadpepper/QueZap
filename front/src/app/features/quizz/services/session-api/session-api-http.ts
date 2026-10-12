@@ -112,9 +112,16 @@ export class SessionApiHttpService implements SessionApiService {
       }),
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409 || err.status === 400) {
+          const detail
+            = err.status === 409
+              ? 'Ce pseudo est déjà utilisé dans ce salon. Choisis un autre prénom ou ajoute une initiale.'
+              : err.error?.message || 'Pseudo déjà utilisé ou invalide'
           return of({
             kind: 'failure' as const,
-            error: new ValidationError({ nickname: [err.error?.message || 'Pseudo déjà utilisé ou invalide'] }),
+            error: new ValidationError({
+              nickname: [detail],
+              nicknameValue: [detail],
+            }),
           })
         }
         return of({
