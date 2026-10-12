@@ -1,0 +1,64 @@
+# ==============================================================================
+# QueZap Audit Screenshots Index (44 visual captures)
+# Standard Viewports: Host Desktop (1920x1080) | Player Mobile (390x844 @2x Retina)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Static Host Administration Screens (Desktop 1920x1080)
+# ------------------------------------------------------------------------------
+host_00_landing <- http://localhost:8000/ (Host - Landing page)
+host_01_login <- http://localhost:8000/auth/login (Host - Login page)
+host_02_reset <- http://localhost:8000/auth/reset (Host - Password reset page)
+host_03_about <- http://localhost:8000/about (Host - About page)
+host_10_admin_dashboard <- http://localhost:8000/admin/dashboard (Host - Admin dashboard with KPI cards)
+host_11_admin_sessions <- http://localhost:8000/admin/sessions (Host - Admin sessions list)
+host_12_admin_sessions_create <- http://localhost:8000/admin/sessions/create (Host - Admin session creation)
+host_13_admin_quezaps <- http://localhost:8000/admin/quezaps (Host - Admin quiz library)
+host_14_admin_quezaps_create <- http://localhost:8000/admin/quezaps/create (Host - Admin quiz editor / creator)
+host_15_admin_themes <- http://localhost:8000/admin/themes (Host - Admin themes management)
+
+# ------------------------------------------------------------------------------
+# 2. Static Player Screens (Mobile 390x844)
+# ------------------------------------------------------------------------------
+player_join <- http://localhost:8000/quizz/join (Player - PIN entry screen)
+player_join_code <- http://localhost:8000/quizz/join/ABC123 (Player - Join screen with prefilled code)
+player_expired <- http://localhost:8000/quizz/expired (Player - Session expired error screen)
+player_ended <- http://localhost:8000/quizz/ended (Player - Session ended screen)
+player_lobby <- http://localhost:8000/quizz/expired (Player - Attempt to access /quizz/lobby without session, redirected to /quizz/expired)
+
+# ------------------------------------------------------------------------------
+# 3. Live Host Projection Screens (Desktop 1920x1080)
+# ------------------------------------------------------------------------------
+host_20_lobby_empty <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Lobby with 0 players, giant PIN & QR code)
+host_21_lobby_35_players <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Lobby with 35 players connected, full page view)
+host_21b_lobby_35_viewport <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Lobby with 35 players connected, standard 1080p viewport)
+host_22_question_running <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 1 running, active countdown timer)
+host_23_question_votes_counting <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 1 with incoming votes, 31/35 answers received bar)
+host_24_question_after_host_reload <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 1 after host browser reload, state desynchronization)
+host_25_reveal <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 1 reveal with vote percentage statistics)
+host_26_question_2 <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 2 running)
+host_27_question_3 <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 3 running, 4-choice QCM)
+host_28_reveal_2 <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 2 reveal with vote stats)
+host_29_reveal_3 <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Question 3 reveal with vote stats)
+host_30_podium <- http://localhost:8000/admin/sessions/{id}/present (Host Live - Final podium, animated steps 1/2/3, confetti canvas, class leaderboard)
+host_31_session_report <- http://localhost:8000/admin/sessions/{id}/report (Host Live - Post-session analytics report, full page view)
+
+# ------------------------------------------------------------------------------
+# 4. Live Student Player Screens (Mobile 390x844 @2x Retina: 780x1688)
+# ------------------------------------------------------------------------------
+player_01_join_prefilled <- http://localhost:8000/quizz/join/{code} (Player Live - Join screen with session PIN pre-filled)
+player_02_nickname_filled <- http://localhost:8000/quizz/join/{code} (Player Live - Nickname entry screen)
+player_03_lobby <- http://localhost:8000/quizz/lobby (Player Live - Lobby waiting room for Player 1 'Léa')
+player_03b_lobby_long_name <- http://localhost:8000/quizz/lobby (Player Live - Lobby with 52-char long nickname edge case)
+player_03c_lobby_35 <- http://localhost:8000/quizz/lobby (Player Live - Lobby with 35 participants connected)
+player_04_active_vote_boolean <- http://localhost:8000/quizz/runner (Player Live - Active voting screen on Question 1, Boolean True/False)
+player_05_feedback_after_vote <- http://localhost:8000/quizz/runner (Player Live - Vote confirmed feedback banner 'Réponse transmise')
+player_06_after_reload_mid_question <- http://localhost:8000/quizz/runner (Player Live - Student browser reloaded mid-question, state recovery)
+player_07_reveal_result <- http://localhost:8000/quizz/runner (Player Live - Question 1 reveal overlay showing rank, points, score)
+player_07b_reveal_result_other <- http://localhost:8000/quizz/runner (Player Live - Question 1 reveal overlay for Player 2)
+player_08_question_2 <- http://localhost:8000/quizz/runner (Player Live - Active voting screen on Question 2)
+player_08_question_3 <- http://localhost:8000/quizz/runner (Player Live - Active voting screen on Question 3, 4-choice QCM)
+player_09_reveal_2 <- http://localhost:8000/quizz/runner (Player Live - Question 2 reveal overlay on mobile)
+player_09_reveal_3 <- http://localhost:8000/quizz/runner (Player Live - Question 3 reveal overlay on mobile)
+player_10_end_of_game <- http://localhost:8000/quizz/ended (Player Live - End of game screen for Player 1)
+player_10b_end_of_game_p3 <- http://localhost:8000/quizz/ended (Player Live - End of game screen for Player 3)

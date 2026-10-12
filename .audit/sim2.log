@@ -1,0 +1,43 @@
+SESSION 01a12cd1-4cbd-783e-b484-9dafe9b38a6b 62702
+SHOT player_02_nickname_filled http://localhost:8000/quizz/join/62702
+P0 url http://localhost:8000/quizz/join/62702 body: SALLE D'ATTENTE | BIENVENUE DANS LE SALON | LÉ | JOUEUR PRÊT | Léa | En attente du lancement par l'enseignant... | 👥 Participants dans la salle | 1 en ligne | Léa
+P1ERR Failed to load resource: the server responded with a status of 400 ()
+P1 url http://localhost:8000/quizz/join/62702 body: SALLE D'ATTENTE | BIENVENUE DANS LE SALON | MA | Choisis ton pseudo |  | Visible par toute la classe sur le grand écran |  | Ton pseudonyme | Mémoriser ce pseudo | Rejoindre le salon |  | Choisis un p
+P2 url http://localhost:8000/quizz/join/62702 body: SALLE D'ATTENTE | BIENVENUE DANS LE SALON | ZO | JOUEUR PRÊT | Zoé 🦊 | En attente du lancement par l'enseignant... | 👥 Participants dans la salle | 2 en ligne | Léa | Zoé 🦊
+SHOT player_03_lobby http://localhost:8000/quizz/join/62702
+SHOT player_03b_lobby_long_name http://localhost:8000/quizz/join/62702
+TOKENS sample {"sessionId":"01a12cd1-4cbd-783e-b484-9dafe9b38a6b","participationToken":"ptk_9aa402d3-3fae-4196-9b29-22b6c5061a9f","participantName":"Eleve1"}
+SHOT host_21_lobby_35_players http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT host_21b_lobby_35_viewport http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT player_03c_lobby_35 http://localhost:8000/quizz/join/62702
+DUPNAME 409 {"code":409,"message":"Participant name is already taken in this session","timestamp":"2026-10-11T21:14:52.095329877Z"}
+XSSNAME 200 {"sessionId":"01a12cd1-4cbd-783e-b484-9dafe9b38a6b","participationToken":"ptk_cdbb8ecc-01ab-4198-bf9c-e0c36a108678","participantName":"<script>alert(1)</script>"}
+HUGENAME 400 {"code":400,"message":"Participant name must be between 2 and 50 characters","timestamp":"2026-10-11T21:14:52.125812006Z"}
+SHOT host_22_question_running http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT player_04_active_vote_boolean http://localhost:8000/quizz/join/62702
+P0 body LA TERRE MET 365 JOURS ET UN QUART POUR FAIRE LE TOUR DU SOLEIL ? | Vrai | Faux | 17 | SEC
+P0 buttons ["",""]
+SHOT player_05_feedback_after_vote http://localhost:8000/quizz/join/62702
+CONCURRENT 30 ANSWERS {"201":30} 166ms ""
+SHOT host_23_question_votes_counting http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT host_24_question_after_host_reload http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+HOST RELOAD body QUEZAP | Audit Live 594 | 35 | joueurs | Plein écran | Question 1 / 3 | 17 | SECONDES | La Terre met 365 jours et un quart pour faire le tour du Soleil ? | ▲ | True | 0 / 35 réponses enregistrées | Révéler les réponses
+SHOT player_06_after_reload_mid_question http://localhost:8000/quizz/join/62702
+SHOT host_25_reveal http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+LATE ANSWER AFTER REVEAL 201 {"accepted":true,"receivedAt":"2026-10-11T21:15:08.102180825Z"}
+SHOT player_07_reveal_result http://localhost:8000/quizz/join/62702
+SHOT player_07b_reveal_result_other http://localhost:8000/quizz/join/62702
+SHOT host_26_question_2 http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT player_08_question_2 http://localhost:8000/quizz/join/62702
+STEPFAIL vote2 locator.click: Timeout 4000ms exceeded.
+SHOT host_28_reveal_2 http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT player_09_reveal_2 http://localhost:8000/quizz/join/62702
+SHOT host_27_question_3 http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT player_08_question_3 http://localhost:8000/quizz/join/62702
+SHOT host_29_reveal_3 http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT player_09_reveal_3 http://localhost:8000/quizz/join/62702
+SHOT host_30_podium http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/present
+SHOT player_10_end_of_game http://localhost:8000/quizz/ended
+SHOT player_10b_end_of_game_p3 http://localhost:8000/quizz/ended
+SHOT host_31_session_report http://localhost:8000/admin/sessions/01a12cd1-4cbd-783e-b484-9dafe9b38a6b/report
+BROWSER CLOSED
