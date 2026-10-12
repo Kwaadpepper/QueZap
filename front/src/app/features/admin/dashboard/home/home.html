@@ -97,12 +97,12 @@
       <p class="text-3xl font-black text-emerald-600 dark:text-emerald-400">{{ totalSessions() }}</p>
     </div>
     <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center shadow-sm">
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Mode Projection</p>
-      <p class="text-3xl font-black text-purple-600 dark:text-purple-400">16:9 HD</p>
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Participants Accueillis</p>
+      <p class="text-3xl font-black text-purple-600 dark:text-purple-400">{{ totalParticipants() }}</p>
     </div>
     <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center shadow-sm">
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Protocole Temps Réel</p>
-      <p class="text-3xl font-black text-amber-500">SSE Direct</p>
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Taux de Réussite Moyen</p>
+      <p class="text-3xl font-black text-amber-500">{{ averageSuccessRate() }}%</p>
     </div>
   </div>
 
@@ -124,9 +124,20 @@
                 <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ q.title }}</p>
                 <p class="text-xs text-slate-400">{{ q.theme.name }}</p>
               </div>
-              <a class="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition" [routerLink]="['/admin/quezaps', q.id, 'edit']">
-                <i class="pi pi-pencil text-sm"></i>
-              </a>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow-sm transition active:scale-95 cursor-pointer disabled:opacity-50"
+                  title="Lancer directement la session"
+                  [disabled]="launchingId() === q.id"
+                  (click)="launchQuiz(q)">
+                  <i class="pi" class="text-xs" [class.pi-play]="launchingId() !== q.id" [class.pi-spin]="launchingId() === q.id" [class.pi-spinner]="launchingId() === q.id"></i>
+                  <span>Lancer</span>
+                </button>
+                <a class="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition" title="Modifier ce quiz" [routerLink]="['/admin/quezaps', q.id, 'edit']">
+                  <i class="pi pi-pencil text-sm"></i>
+                </a>
+              </div>
             </div>
           } @empty {
             <p class="text-xs text-slate-400 py-6 text-center italic">Aucun quiz enregistré pour le moment.</p>

@@ -55,6 +55,11 @@ interface SsePayload {
   label?: string
   type?: string
   timerSeconds?: number
+  remainingSeconds?: number
+  deadline?: string
+  answeredCount?: number
+  slideIndex?: number
+  totalSlides?: number
   points?: number
   picture?: string
   pictureFilename?: string
@@ -194,12 +199,15 @@ export class SessionObserverSseService implements SessionObserverService {
         const q = payload.question || payload
         const questionId = (q.id || payload.questionId || '018e3a2b-8888-7def-8123-abcdef888888') as QuestionId
         const rawAnswers = q.answers || payload.answers || []
+        const seconds = payload.remainingSeconds ?? (payload.deadline
+          ? Math.max(1, Math.round((new Date(payload.deadline).getTime() - Date.now()) / 1000))
+          : (payload.timerSeconds || q.timerSeconds || 30))
         const questionObj: MixedQuestion & QuestionWithAnswers = {
           type: (q.type as QuestionType) || (payload.type as QuestionType) || QuestionType.Quizz,
           id: questionId,
           value: q.label || payload.title || payload.label || 'Question',
           picture: (q.pictureFilename || q.picture || payload.picture) as PictureUrl | undefined,
-          limit: { seconds: payload.timerSeconds || q.timerSeconds || 30 },
+          limit: { seconds },
           answers: rawAnswers.map((a, idx) => ({
             index: typeof a.index === 'number' ? a.index : idx,
             points: payload.points || 1000,

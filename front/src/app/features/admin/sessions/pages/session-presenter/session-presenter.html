@@ -19,6 +19,21 @@
       </div>
 
       <button
+        type="button"
+        class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
+        title="Révéler automatiquement la bonne réponse quand le compte à rebours atteint 0s"
+        [class.bg-emerald-950/80]="autoReveal()"
+        [class.border-emerald-500/60]="autoReveal()"
+        [class.text-emerald-300]="autoReveal()"
+        [class.bg-slate-800/90]="!autoReveal()"
+        [class.border-slate-700]="!autoReveal()"
+        [class.text-slate-400]="!autoReveal()"
+        (click)="toggleAutoReveal()">
+        <i class="pi" [class.pi-check-circle]="autoReveal()" [class.pi-circle]="!autoReveal()"></i>
+        <span>Auto-reveal 0s</span>
+      </button>
+
+      <button
         class="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-2xl font-bold transition shadow-md active:scale-95 cursor-pointer"
         (click)="toggleFullscreen()">
         <i class="pi pi-expand mr-2"></i>Plein écran
@@ -92,14 +107,6 @@
           <h3 class="text-xl md:text-2xl font-extrabold text-slate-200">
             Joueurs connectés ({{ participants().length }})
           </h3>
-          @if (participants().length >= 1) {
-            <button
-              class="px-8 py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-2xl rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3 animate-pulse"
-              (click)="startQuiz()">
-              <span>Démarrer le Quizz</span>
-              <i class="pi pi-arrow-right text-2xl"></i>
-            </button>
-          }
         </div>
 
         <div class="flex flex-wrap justify-center gap-3 p-6 bg-slate-900/60 rounded-3xl min-h-[160px] border border-slate-800/80 shadow-inner">
@@ -110,8 +117,10 @@
               </span>
               <span class="text-white">{{ p.name }}</span>
               <button
-                class="ml-1 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                title="Exclure ce joueur"
+                type="button"
+                class="ml-1 text-slate-400 hover:text-red-400 focus:text-red-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition cursor-pointer p-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+                [attr.aria-label]="'Exclure le joueur ' + p.name"
+                [title]="'Exclure le joueur ' + p.name"
                 (click)="kick(p.name)">
                 <i class="pi pi-times-circle text-lg"></i>
               </button>
@@ -123,6 +132,24 @@
             </div>
           }
         </div>
+      </div>
+
+      <!-- Sticky Action Bar on Lobby Bottom -->
+      <div class="sticky bottom-0 inset-x-0 w-full mt-8 py-4 px-6 bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 flex items-center justify-between z-30 shadow-2xl rounded-2xl">
+        <div class="flex items-center gap-3">
+          <i class="pi pi-users text-2xl text-emerald-400"></i>
+          <span class="text-xl font-bold text-white">
+            <strong class="text-2xl font-black text-emerald-400">{{ participants().length }}</strong> joueur(s) dans le salon
+          </span>
+        </div>
+        @if (participants().length >= 1) {
+          <button
+            class="px-8 py-3.5 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-xl rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+            (click)="startQuiz()">
+            <span>Démarrer le Quizz</span>
+            <i class="pi pi-arrow-right text-xl"></i>
+          </button>
+        }
       </div>
     </main>
   }
@@ -171,8 +198,9 @@
       <div class="choice-grid max-w-6xl mx-auto w-full my-6">
         @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
           <div class="choice-card text-white shadow-xl" [class]="getChoiceColorClass(i)">
-            <span class="w-16 h-16 rounded-2xl bg-black/25 flex items-center justify-center mr-5 text-3xl font-black shrink-0 shadow-inner">
-              {{ getSymbol(i) }}
+            <span class="w-16 h-16 rounded-2xl bg-black/25 flex items-center justify-center mr-5 shrink-0 shadow-inner gap-1">
+              <span class="text-xl font-black text-white/80 mr-1">{{ i + 1 }}</span>
+              <quizz-question-icon class="w-8 h-8" [form]="getChoiceForm(i)" [checked]="true" />
             </span>
             <span class="flex-1 text-2xl md:text-3xl leading-snug">{{ ans.label }}</span>
           </div>
@@ -243,8 +271,9 @@
 
             <div class="relative z-10 flex items-center justify-between w-full">
               <div class="flex items-center flex-1 min-w-0 mr-4">
-                <span class="w-14 h-14 rounded-2xl bg-black/25 flex items-center justify-center mr-4 text-2xl font-black shrink-0 shadow-inner">
-                  {{ getSymbol(i) }}
+                <span class="w-14 h-14 rounded-2xl bg-black/25 flex items-center justify-center mr-4 shrink-0 shadow-inner gap-1">
+                  <span class="text-lg font-black text-white/80 mr-1">{{ i + 1 }}</span>
+                  <quizz-question-icon class="w-7 h-7" [form]="getChoiceForm(i)" [checked]="true" />
                 </span>
                 <span class="text-xl md:text-2xl leading-snug font-extrabold truncate">{{ ans.label }}</span>
               </div>
@@ -275,6 +304,88 @@
           </div>
         </div>
       }
+
+      <div class="flex justify-between items-center pt-6 border-t border-slate-800/80">
+        @if (intermediateLeaderboard().length > 0) {
+          <button
+            class="px-8 py-4 bg-slate-800/90 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xl rounded-2xl shadow-lg transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+            (click)="showIntermediateLeaderboard()">
+            <i class="pi pi-chart-bar text-xl"></i>
+            <span>📊 Voir le Classement</span>
+          </button>
+        } @else {
+          <div></div>
+        }
+
+        <button
+          class="px-10 py-5 bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-2xl rounded-2xl shadow-[0_0_35px_rgba(99,102,241,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+          (click)="nextStep()">
+          <span>{{ isLastQuestion() ? '🏆 Afficher le Podium Final' : 'Question suivante' }}</span>
+          <i class="pi pi-arrow-right text-2xl"></i>
+        </button>
+      </div>
+    </main>
+  }
+
+  <!-- INTERMEDIATE LEADERBOARD SCREEN -->
+  @if (stage() === 'LEADERBOARD') {
+    <main class="flex-1 flex flex-col justify-between py-6 max-w-5xl mx-auto w-full relative z-20">
+      <div class="text-center">
+        <span class="inline-block px-5 py-1.5 bg-amber-950/70 border border-amber-500/60 text-amber-300 font-black text-lg rounded-full mb-3 shadow-md">
+          🏆 CLASSEMENT INTERMÉDIAIRE
+        </span>
+        <h2 class="text-3xl md:text-5xl font-black text-white mb-2">Top 5 de la Classe</h2>
+        <p class="text-slate-400 text-lg">Question {{ currentQuestionIndex() + 1 }} sur {{ totalQuestions() }}</p>
+      </div>
+
+      <!-- Top 5 Leaderboard List -->
+      <div class="my-6 space-y-3 max-w-3xl mx-auto w-full">
+        @for (entry of intermediateLeaderboard().slice(0, 5); track entry.participantName; let i = $index) {
+          <div
+            class="player-card-anim flex items-center justify-between p-4 px-6 rounded-2xl border transition-all shadow-xl backdrop-blur-md"
+            [class.bg-gradient-to-r]="i === 0"
+            [class.from-amber-500/20]="i === 0"
+            [class.to-amber-900/40]="i === 0"
+            [class.border-amber-400/80]="i === 0"
+            [class.bg-slate-800/80]="i > 0"
+            [class.border-slate-700/80]="i > 0">
+            <div class="flex items-center gap-4">
+              <span class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-2xl shadow-inner"
+                [class.bg-amber-400]="i === 0"
+                [class.text-slate-950]="i === 0"
+                [class.bg-slate-300]="i === 1"
+                [class.text-slate-950]="i === 1"
+                [class.bg-amber-600]="i === 2"
+                [class.text-white]="i === 2"
+                [class.bg-slate-700]="i > 2"
+                [class.text-slate-300]="i > 2">
+                {{ i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : '#' + entry.rank)) }}
+              </span>
+              <div>
+                <span class="text-2xl font-black text-white block">{{ entry.participantName }}</span>
+                @if (entry.streak > 1) {
+                  <span class="text-xs font-bold text-amber-400 flex items-center gap-1">
+                    🔥 Série de {{ entry.streak }} bonnes réponses
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              @if (entry.delta > 0) {
+                <span class="px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono font-bold text-sm">
+                  +{{ entry.delta }} pts
+                </span>
+              }
+              <span class="text-3xl font-black text-white font-mono">{{ entry.score }} pts</span>
+            </div>
+          </div>
+        } @empty {
+          <div class="text-center py-12 text-slate-400 italic">
+            Aucun score enregistré pour l'instant.
+          </div>
+        }
+      </div>
 
       <div class="flex justify-end pt-6 border-t border-slate-800/80">
         <button

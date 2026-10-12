@@ -291,7 +291,9 @@ export const zSessionDetailDto = z.object({
     totalSlides: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     participantsCount: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     participants: z.array(zParticipantDto).optional(),
-    authorId: z.uuid().optional()
+    authorId: z.uuid().optional(),
+    startedAt: z.iso.datetime().optional(),
+    endedAt: z.iso.datetime().optional()
 });
 
 export const zPageOfDtoSessionDetailDto = z.object({

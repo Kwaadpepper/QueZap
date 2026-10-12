@@ -6,91 +6,120 @@
       <quizz-debug-toolbar />
     }
   </div>
-  <div class="quezap-theme-background flex h-dvh w-full flex-row items-center justify-center">
-    @let questionToShow = question();
-    @if (questionToShow === undefined) {
-      <div class="flex flex-col items-center justify-center gap-4 p-4">
-        <span class="h1 text-center">En attente de la question suivante</span>
-        <quizz-spinner />
-      </div>
-    } @else {
-      @defer {
-        @if (isBoolean(questionToShow)) {
-          <quizz-question-boolean [question]="questionToShow" />
-        } @else if (isBinary(questionToShow)) {
-          <quizz-question-binary [question]="questionToShow" />
-        } @else if (isQuizz(questionToShow)) {
-          <quizz-question-quizz [question]="questionToShow" />
-        } @else {
-          <div class="flex flex-col items-center justify-center p-4">
-            <p-message type="error" class="mx-auto max-w-md">
-              <span> Type de question non géré : {{ questionToShow.type }} </span>
-            </p-message>
-          </div>
-        }
-      } @loading {
-        <div class="flex flex-col items-center justify-center p-4">
-          <quizz-spinner />
-        </div>
-      } @error {
-        <div class="flex flex-col items-center justify-center p-4">
-          <p-message type="error" class="mx-auto max-w-md">
-            <span> Une erreur est survenue lors du chargement de la question. </span>
-            <p-button class="mt-4" severity="warn" (onClick)="reloadQuestion()">
-              <span>Recharger la question</span>
-            </p-button>
-          </p-message>
-        </div>
-      }
-    }
-    <quizz-timer
-      class="pointer-events-none absolute right-5 bottom-5 z-10"
-      (exhausted)="onTimeExhausted()"
-    />
-  </div>
 
   @let reveal = lastReveal();
   @if (reveal !== undefined) {
-    <div class="fixed inset-x-4 bottom-6 z-50 max-w-lg mx-auto bg-slate-900/95 border-2 border-amber-500/80 rounded-3xl p-5 shadow-2xl backdrop-blur-xl text-white animate-fade-in flex flex-col gap-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">✨</span>
-          <span class="font-black text-lg text-amber-400 uppercase tracking-wide">Résultats du tour</span>
-        </div>
-        @let rank = myRanking();
-        @if (rank !== undefined) {
-          <span class="px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full font-black text-amber-300 text-sm">
-            Rang #{{ rank.rank }}
-          </span>
-        }
-      </div>
-
+    <!-- REVEAL SCREEN: Dedicated, centered, no overlap with vote buttons or timer -->
+    <main class="quezap-theme-background flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
       @let points = pointsEarned();
-      <div class="flex items-center justify-between bg-slate-800/80 rounded-2xl p-3 border border-slate-700/60">
-        <div class="flex flex-col">
-          <span class="text-xs text-slate-400 font-semibold">Points gagnés</span>
-          <span class="text-2xl font-black" [class.text-emerald-400]="points > 0" [class.text-slate-400]="points === 0">
-            {{ points > 0 ? '+' + points : '0' }} pts
-          </span>
+      @let rank = myRanking();
+      @let isSuccess = points > 0;
+
+      <div class="w-full max-w-md mx-auto flex flex-col gap-5 text-white animate-fade-in">
+        <!-- Status Header Banner -->
+        <div
+          class="rounded-3xl p-6 text-center border-2 shadow-2xl transition-all"
+          [class.bg-emerald-950/90]="isSuccess"
+          [class.border-emerald-500/80]="isSuccess"
+          [class.text-emerald-100]="isSuccess"
+          [class.bg-amber-950/90]="!isSuccess"
+          [class.border-amber-500/80]="!isSuccess"
+          [class.text-amber-100]="!isSuccess">
+          <div class="text-5xl mb-2">{{ isSuccess ? '🎉' : '💡' }}</div>
+          <h2 class="text-3xl font-black uppercase tracking-wide">
+            {{ isSuccess ? 'Bien joué !' : 'Oups, pas tout à fait !' }}
+          </h2>
+          <p class="text-sm font-semibold opacity-80 mt-1">
+            {{ isSuccess ? 'Excellente réponse rapide !' : 'Ne baisse pas les bras pour la suite !' }}
+          </p>
         </div>
-        @if (rank !== undefined) {
-          <div class="flex flex-col text-right">
-            <span class="text-xs text-slate-400 font-semibold">Score total</span>
-            <span class="text-2xl font-black text-indigo-400 font-mono">{{ rank.score }} pts</span>
+
+        <!-- Score & Rank Card -->
+        <div class="bg-slate-900/95 border border-slate-700/80 rounded-3xl p-5 shadow-2xl backdrop-blur-xl flex flex-col gap-4">
+          <div class="grid grid-cols-2 gap-3 text-center">
+            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/60">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Points gagnés</span>
+              <span class="text-3xl font-black" [class.text-emerald-400]="isSuccess" [class.text-slate-400]="!isSuccess">
+                {{ isSuccess ? '+' + points : '0' }} pts
+              </span>
+            </div>
+
+            @if (rank !== undefined) {
+              <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/60">
+                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Score total</span>
+                <span class="text-3xl font-black text-indigo-400 font-mono">{{ rank.score }} pts</span>
+              </div>
+            }
+          </div>
+
+          @if (rank !== undefined) {
+            <div class="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-800/60 border border-slate-700/40">
+              <span class="text-amber-400 text-lg">🏆</span>
+              <span class="font-extrabold text-base text-slate-200">
+                Classement : <strong class="text-amber-300 font-black text-lg">#{{ rank.rank }}</strong>
+              </span>
+            </div>
+          }
+
+          @if (reveal.explanation) {
+            <div class="bg-indigo-950/60 border border-indigo-500/40 rounded-2xl p-3.5 text-indigo-100 text-sm flex items-start gap-2.5">
+              <span class="text-indigo-400 text-base shrink-0 mt-0.5">ℹ️</span>
+              <div class="min-w-0">
+                <strong class="font-bold text-white block text-xs uppercase mb-0.5">Explication</strong>
+                <p class="leading-relaxed">{{ reveal.explanation }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <p class="text-xs text-center text-slate-400 font-medium">
+          👀 Regarde le grand écran pour la suite !
+        </p>
+      </div>
+    </main>
+  } @else {
+    <!-- VOTING VIEW -->
+    <div class="quezap-theme-background flex h-dvh w-full flex-row items-center justify-center">
+      @let questionToShow = question();
+      @if (questionToShow === undefined) {
+        <div class="flex flex-col items-center justify-center gap-4 p-4">
+          <span class="h1 text-center">En attente de la question suivante</span>
+          <quizz-spinner />
+        </div>
+      } @else {
+        @defer {
+          @if (isBoolean(questionToShow)) {
+            <quizz-question-boolean [question]="questionToShow" />
+          } @else if (isBinary(questionToShow)) {
+            <quizz-question-binary [question]="questionToShow" />
+          } @else if (isQuizz(questionToShow)) {
+            <quizz-question-quizz [question]="questionToShow" />
+          } @else {
+            <div class="flex flex-col items-center justify-center p-4">
+              <p-message type="error" class="mx-auto max-w-md">
+                <span> Type de question non géré : {{ questionToShow.type }} </span>
+              </p-message>
+            </div>
+          }
+        } @loading {
+          <div class="flex flex-col items-center justify-center p-4">
+            <quizz-spinner />
+          </div>
+        } @error {
+          <div class="flex flex-col items-center justify-center p-4">
+            <p-message type="error" class="mx-auto max-w-md">
+              <span> Une erreur est survenue lors du chargement de la question. </span>
+              <p-button class="mt-4" severity="warn" (onClick)="reloadQuestion()">
+                <span>Recharger la question</span>
+              </p-button>
+            </p-message>
           </div>
         }
-      </div>
-
-      @if (reveal.explanation) {
-        <p class="text-sm text-slate-300 bg-slate-800/50 rounded-xl p-2.5 border border-slate-700/30">
-          💡 {{ reveal.explanation }}
-        </p>
       }
-
-      <p class="text-xs text-center text-slate-400 font-medium">
-        Regarde le grand écran pour les détails et la prochaine question !
-      </p>
+      <quizz-timer
+        class="pointer-events-none absolute right-5 bottom-5 z-10"
+        (exhausted)="onTimeExhausted()"
+      />
     </div>
   }
 </div>
-

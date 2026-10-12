@@ -111,4 +111,110 @@ describe('SessionPresenter', () => {
     expect(component['getChoiceColorClass'](0)).toBe('choice-green')
     expect(component['getChoiceColorClass'](1)).toBe('choice-red')
   })
+
+  it('should return appropriate shape icons for choices', () => {
+    expect(component['getChoiceForm'](0)).toBe('circle')
+    expect(component['getChoiceForm'](1)).toBe('diamond')
+    expect(component['getChoiceForm'](2)).toBe('cross')
+    expect(component['getChoiceForm'](3)).toBe('hexagon')
+  })
+
+  it('should restore answeredCount from QUESTION_START payload', () => {
+    component['handleEvent']({
+      type: 'QUESTION_START',
+      payload: {
+        slideIndex: 1,
+        totalSlides: 2,
+        timerSeconds: 20,
+        answeredCount: 4,
+        question: {
+          id: 'q1',
+          type: 'QUIZZ',
+          label: 'Test',
+          answers: [
+            { id: 'a1', label: '1' },
+            { id: 'a2', label: '2' },
+          ],
+        },
+      },
+    })
+
+    expect(component['answersReceived']()).toBe(4)
+  })
+
+  it('should update intermediateLeaderboard and transition to LEADERBOARD on showIntermediateLeaderboard', () => {
+    component['handleEvent']({
+      type: 'INTERMEDIATE_LEADERBOARD',
+      payload: {
+        slideIndex: 1,
+        totalSlides: 3,
+        leaderboard: [
+          { rank: 1, participantName: 'Alice', score: 1000, streak: 3 },
+          { rank: 2, participantName: 'Bob', score: 800, streak: 1 },
+        ],
+      },
+    })
+
+    expect(component['intermediateLeaderboard']().length).toBe(2)
+    expect(component['intermediateLeaderboard']()[0].participantName).toBe('Alice')
+
+    component['showIntermediateLeaderboard']()
+    expect(component['stage']()).toBe('LEADERBOARD')
+  })
+
+  it('should automatically reveal answers at countdown 0 when autoReveal is enabled', fakeAsync(() => {
+    component.autoReveal.set(true)
+    mockSessionService.revealAnswers.mockClear()
+
+    component['handleEvent']({
+      type: 'QUESTION_START',
+      payload: {
+        slideIndex: 1,
+        totalSlides: 2,
+        timerSeconds: 3,
+        question: {
+          id: 'q1',
+          type: 'QUIZZ',
+          label: 'Test',
+          answers: [
+            { id: 'a1', label: '1' },
+            { id: 'a2', label: '2' },
+          ],
+        },
+      },
+    })
+
+    expect(component['timer']()).toBe(3)
+    tick(3500)
+    expect(component['timer']()).toBe(0)
+    expect(mockSessionService.revealAnswers).toHaveBeenCalled()
+    expect(component['stage']()).toBe('REVEAL')
+  }))
+
+  it('should not automatically reveal answers at countdown 0 when autoReveal is disabled', fakeAsync(() => {
+    component.autoReveal.set(false)
+    mockSessionService.revealAnswers.mockClear()
+
+    component['handleEvent']({
+      type: 'QUESTION_START',
+      payload: {
+        slideIndex: 1,
+        totalSlides: 2,
+        timerSeconds: 3,
+        question: {
+          id: 'q1',
+          type: 'QUIZZ',
+          label: 'Test',
+          answers: [
+            { id: 'a1', label: '1' },
+            { id: 'a2', label: '2' },
+          ],
+        },
+      },
+    })
+
+    tick(3500)
+    expect(component['timer']()).toBe(0)
+    expect(mockSessionService.revealAnswers).not.toHaveBeenCalled()
+  }))
 })

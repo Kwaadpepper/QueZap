@@ -11,9 +11,21 @@ import { QRCodeComponent } from 'angularx-qrcode'
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
+import {
+  QuestionIcon,
+  QuestionIconType,
+} from '../../../../quizz/components/question-view/parts/question-icon/question-icon'
 import { SESSION_SERVICE } from '../../services/session'
 
-export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'PODIUM'
+export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'LEADERBOARD' | 'PODIUM'
+
+export interface IntermediateLeaderboardEntry {
+  rank: number
+  participantName: string
+  score: number
+  delta: number
+  streak: number
+}
 
 interface QuestionPresenterModel {
   id: string
@@ -61,6 +73,8 @@ interface SsePayload {
   pictureFilename?: string
   participants?: SseParticipant[]
   timerSeconds?: number
+  deadline?: string
+  remainingSeconds?: number
   points?: number
   slideIndex?: number
   totalSlides?: number
@@ -73,6 +87,7 @@ interface SsePayload {
   correctAnswerIndices?: number[]
   answeredCount?: number
   totalCount?: number
+  leaderboard?: IntermediateLeaderboardEntry[]
 }
 
 interface SseEnvelope {
@@ -84,7 +99,7 @@ interface SseEnvelope {
   selector: 'quizz-session-presenter',
   templateUrl: './session-presenter.html',
   styleUrls: ['./session-presenter.css'],
-  imports: [QRCodeComponent],
+  imports: [QRCodeComponent, QuestionIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SessionPresenter implements OnInit, OnDestroy {
@@ -93,6 +108,17 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private readonly config = inject(Config)
   private readonly http = inject(HttpClient)
   private readonly layout = inject(LayoutSettings)
+
+  protected readonly autoReveal = signal<boolean>(true)
+  protected readonly intermediateLeaderboard = signal<IntermediateLeaderboardEntry[]>([])
+
+  protected toggleAutoReveal(): void {
+    this.autoReveal.update(v => !v)
+  }
+
+  protected showIntermediateLeaderboard(): void {
+    this.stage.set('LEADERBOARD')
+  }
 
   protected readonly sessionId = signal<string>('')
   protected readonly sessionCode = signal<string>('')
@@ -294,19 +320,25 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }
   }
 
-  private startCountdown(seconds: number): void {
+  private startCountdown(seconds: number, deadline?: string): void {
     this.stopCountdown()
     this.initialQuestionDuration.set(seconds)
     this.timer.set(seconds)
+
+    const targetTime = deadline ? new Date(deadline).getTime() : Date.now() + seconds * 1000
+
     this.timerInterval = setInterval(() => {
-      this.timer.update((t) => {
-        if (t <= 1) {
-          this.stopCountdown()
-          return 0
+      const now = Date.now()
+      const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000))
+      this.timer.set(remaining)
+
+      if (remaining <= 0) {
+        this.stopCountdown()
+        if (this.autoReveal() && this.stage() === 'QUESTION') {
+          this.revealAnswers()
         }
-        return t - 1
-      })
-    }, 1000)
+      }
+    }, 500)
   }
 
   private stopCountdown(): void {
@@ -385,16 +417,20 @@ export class SessionPresenter implements OnInit, OnDestroy {
         const payload = envelope.payload
         if (payload) {
           this.stage.set('QUESTION')
-          this.answersReceived.set(0)
+          if (payload.answeredCount !== undefined) {
+            this.answersReceived.set(payload.answeredCount)
+          }
+          else {
+            this.answersReceived.set(0)
+          }
           if (payload.slideIndex !== undefined) {
             this.currentQuestionIndex.set(payload.slideIndex - 1)
           }
           if (payload.totalSlides !== undefined) {
             this.totalQuestions.set(payload.totalSlides)
           }
-          if (payload.timerSeconds) {
-            this.startCountdown(payload.timerSeconds)
-          }
+          const seconds = payload.remainingSeconds ?? payload.timerSeconds ?? 30
+          this.startCountdown(seconds, payload.deadline)
           const q = payload.question || payload
           const qType = (q as { type?: string }).type || (payload as { type?: string }).type || ''
           const rawAnswers = q.answers || payload.answers || []
@@ -445,6 +481,16 @@ export class SessionPresenter implements OnInit, OnDestroy {
               }
             }),
           }))
+        }
+        break
+      }
+      case 'INTERMEDIATE_LEADERBOARD': {
+        const payload = envelope.payload as {
+          slideIndex?: number
+          leaderboard?: IntermediateLeaderboardEntry[]
+        } | undefined
+        if (payload?.leaderboard) {
+          this.intermediateLeaderboard.set(payload.leaderboard)
         }
         break
       }
@@ -559,9 +605,25 @@ export class SessionPresenter implements OnInit, OnDestroy {
     return colors[Math.abs(hash) % colors.length]
   }
 
+  protected getChoiceForm(index: number): QuestionIconType {
+    const isBool
+      = this.currentQuestion().type === 'BOOLEAN'
+        || (this.currentQuestion().answers.length === 2
+          && this.currentQuestion().answers[0].label === 'Vrai')
+    if (isBool) {
+      return index === 0 ? QuestionIconType.Circle : QuestionIconType.Cross
+    }
+    const forms = [
+      QuestionIconType.Circle,
+      QuestionIconType.Diamond,
+      QuestionIconType.Cross,
+      QuestionIconType.Hexagon,
+    ]
+    return forms[index % forms.length]
+  }
+
   protected getSymbol(index: number): string {
-    const symbols = ['▲', '◆', '●', '■']
-    return symbols[index % symbols.length]
+    return String(index + 1)
   }
 
   protected getChoiceColorClass(index: number): string {

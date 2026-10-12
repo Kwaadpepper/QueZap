@@ -304,6 +304,8 @@ export type SessionDetailDto = {
     participantsCount?: number;
     participants?: Array<ParticipantDto>;
     authorId?: string;
+    startedAt?: string;
+    endedAt?: string;
 };
 
 export type LeaderboardEntryDto = {
