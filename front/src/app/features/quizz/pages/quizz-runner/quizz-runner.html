@@ -1,6 +1,9 @@
 <quizz-exit-button />
 
 <div class="relative flex w-full flex-col items-center">
+  <div class="sr-only" aria-live="polite" aria-atomic="true">
+    {{ liveAnnouncement() }}
+  </div>
   <div class="absolute top-0 left-2 flex p-4">
     @if (isDebug()) {
       <quizz-debug-toolbar />

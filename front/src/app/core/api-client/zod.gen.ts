@@ -100,7 +100,7 @@ export const zAnswerSubmittedDto = z.object({
 
 export const zJoinSessionRequest = z.object({
     code: z.string().regex(/^\s*[A-Za-z0-9\-]{3,20}\s*$/),
-    participantName: z.string().min(2).max(50)
+    participantName: z.string().min(2).max(50).regex(/^[^<>]*$/)
 });
 
 export const zJoinSessionResponseDto = z.object({
@@ -775,6 +775,10 @@ export const zExportCsvPath = z.object({
  * OK
  */
 export const zExportCsvResponse = z.string();
+
+export const zStreamEventsHeaders = z.object({
+    'Last-Event-ID': z.string().optional()
+});
 
 export const zStreamEventsPath = z.object({
     id: z.uuid()

@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core'
 
 import { catchError, map, of } from 'rxjs'
 
+import { JoinSessionResponseDto, SessionDetailDto } from '@quezap/core/api-client'
 import { ExpiredError, ForbidenError, NotFoundError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { ServiceOutput } from '@quezap/core/types'
@@ -11,27 +12,6 @@ import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 import { ActiveSessionPersistence } from '../active-session-persistence/active-session-persistence'
 
 import { SessionApiService } from './session-api'
-
-interface SessionByCodeResponse {
-  id: string
-  number: number
-  code: string
-  name: string
-  status: 'LOBBY' | 'STARTED' | 'ENDED'
-  currentSlideIndex: number
-  totalSlides: number
-  participantsCount: number
-  authorId: string
-}
-
-interface JoinSessionApiResponse {
-  sessionId: string
-  sessionNumber?: number
-  sessionCode?: string
-  name?: string
-  status?: 'LOBBY' | 'STARTED' | 'ENDED'
-  participationToken: string
-}
 
 @Injectable({ providedIn: 'root' })
 export class SessionApiHttpService implements SessionApiService {
@@ -50,18 +30,19 @@ export class SessionApiHttpService implements SessionApiService {
   joinSessionWith(code: SessionCode): ServiceOutput<Session, NotFoundError | ExpiredError> {
     this.currentSessionCode = (typeof code === 'string' ? code : String(code)).trim().toUpperCase().replace(/\s+/g, '')
 
-    return this.http.get<SessionByCodeResponse>(`${this.apiUrl}/sessions/by-code/${this.currentSessionCode}`).pipe(
+    return this.http.get<SessionDetailDto>(`${this.apiUrl}/sessions/by-code/${this.currentSessionCode}`).pipe(
       map((res) => {
-        this.currentSessionId = res.id
-        this.sessionPersistence.setSessionId(res.id)
+        const id = res.id ?? ''
+        this.currentSessionId = id
+        this.sessionPersistence.setSessionId(id)
         this.sessionPersistence.patch({
           code: (res.code || this.currentSessionCode) as SessionCode,
-          sessionId: res.id,
+          sessionId: id,
         })
         const session: Session = {
-          id: res.id as SessionId,
+          id: id as SessionId,
           code: (res.code || this.currentSessionCode) as SessionCode,
-          name: res.name,
+          name: res.name ?? '',
           startedAt: res.status === 'STARTED' ? new Date() : null,
           endedAt: res.status === 'ENDED' ? new Date() : null,
         }
@@ -93,18 +74,20 @@ export class SessionApiHttpService implements SessionApiService {
       participantName: nickname.trim(),
     }
 
-    return this.http.post<JoinSessionApiResponse>(`${this.apiUrl}/sessions/join`, payload).pipe(
+    return this.http.post<JoinSessionResponseDto>(`${this.apiUrl}/sessions/join`, payload).pipe(
       map((res) => {
-        this.currentParticipationToken = res.participationToken
-        this.currentSessionId = res.sessionId
-        this.sessionPersistence.setSessionId(res.sessionId)
-        this.sessionPersistence.setParticipationToken(res.participationToken)
+        const token = res.participationToken ?? ''
+        const sessId = res.sessionId ?? ''
+        this.currentParticipationToken = token
+        this.currentSessionId = sessId
+        this.sessionPersistence.setSessionId(sessId)
+        this.sessionPersistence.setParticipationToken(token)
         this.sessionPersistence.patch({
-          sessionId: res.sessionId,
-          participationToken: res.participationToken,
+          sessionId: sessId,
+          participationToken: token,
           nickname,
         })
-        this.sessionPersistence.saveParticipationData(res.sessionId, res.participationToken, nickname)
+        this.sessionPersistence.saveParticipationData(sessId, token, nickname)
         return {
           kind: 'success' as const,
           result: undefined,

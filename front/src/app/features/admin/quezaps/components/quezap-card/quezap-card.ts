@@ -46,7 +46,7 @@ export class QuezapCard {
         this.messageService.add({
           severity: 'success',
           summary: 'Session lancée !',
-          detail: `Code PIN : ${res.result.code || res.result.sessionCode}`,
+          detail: `Code PIN : ${res.result.code ?? ''}`,
         })
         const url = this.router.serializeUrl(
           this.router.createUrlTree(['/admin/sessions', res.result.id, 'present']),

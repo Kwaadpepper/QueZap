@@ -3,8 +3,9 @@
   [class]="`answer-option-${currentFormIndex()}`"
 >
   <input
-    type="checkbox"
     class="checkbox"
+    [type]="radio() ? 'radio' : 'checkbox'"
+    [attr.role]="radio() ? 'radio' : 'checkbox'"
     [checked]="field()().value()"
     [multiple]="!radio()"
   />

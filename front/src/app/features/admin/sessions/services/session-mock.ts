@@ -2,12 +2,12 @@ import { Injectable, signal } from '@angular/core'
 
 import { delay, map, of, tap } from 'rxjs'
 
-import { LeaderboardResponseDto, SessionReportDto } from '@quezap/core/api-client'
+import { LeaderboardResponseDto, SessionDetailDto, SessionReportDto } from '@quezap/core/api-client'
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
 
-import { SessionApiResponse, SessionService } from './session'
+import { SessionService } from './session'
 import { MOCK_SESSIONS } from './session.mock'
 
 @Injectable()
@@ -59,31 +59,29 @@ export class SessionMockService implements SessionService {
     )
   }
 
-  getSession(_id: string): ServiceOutput<SessionApiResponse> {
+  getSession(_id: string): ServiceOutput<SessionDetailDto> {
     return of({
       kind: 'success' as const,
       result: {
         id: _id,
-        sessionNumber: 1,
-        sessionCode: 'QZ-8888',
+        number: 1,
+        code: 'QZ-8888',
         name: 'Mock Session',
-        status: 'LOBBY' as const,
+        status: 'LOBBY',
         currentSlideIndex: 0,
-        createdAt: new Date().toISOString(),
       },
     })
   }
 
-  createSession(_quezapId: string, _name: string): ServiceOutput<SessionApiResponse> {
+  createSession(_quezapId: string, _name: string): ServiceOutput<SessionDetailDto> {
     return of({
       kind: 'success' as const,
       result: {
         id: 'mock-id',
-        sessionNumber: 1,
+        number: 1,
         name: _name,
-        status: 'LOBBY' as const,
+        status: 'LOBBY',
         currentSlideIndex: 0,
-        createdAt: new Date().toISOString(),
       },
     })
   }

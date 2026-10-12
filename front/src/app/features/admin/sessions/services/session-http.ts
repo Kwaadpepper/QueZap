@@ -3,23 +3,18 @@ import { inject, Injectable } from '@angular/core'
 
 import { catchError, map, of } from 'rxjs'
 
-import { LeaderboardResponseDto, SessionReportDto } from '@quezap/core/api-client'
+import {
+  LeaderboardResponseDto,
+  PageOfDtoSessionDetailDto,
+  SessionDetailDto,
+  SessionReportDto,
+} from '@quezap/core/api-client'
 import { NotFoundError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 
-import { SessionApiResponse, SessionService } from './session'
-
-interface PageOfApiResponse<T> {
-  data: T[]
-  totalElements: number
-  totalPages: number
-  page: number
-  pageSize: number
-  hasNext: boolean
-  hasPrevious: boolean
-}
+import { SessionService } from './session'
 
 @Injectable({ providedIn: 'root' })
 export class SessionHttpService implements SessionService {
@@ -36,24 +31,24 @@ export class SessionHttpService implements SessionService {
       .set('page', p.page.toString())
       .set('pageSize', p.pageSize.toString())
 
-    return this.http.get<PageOfApiResponse<SessionApiResponse>>(`${this.apiUrl}/sessions`, { params }).pipe(
+    return this.http.get<PageOfDtoSessionDetailDto>(`${this.apiUrl}/sessions`, { params }).pipe(
       map(res => ({
         kind: 'success' as const,
         result: {
-          data: res.data.map(s => ({
-            id: s.id as SessionId,
-            name: s.name,
-            code: (s.code || s.sessionCode || 'QZ1234') as SessionCode,
-            status: s.status,
+          data: (res.data ?? []).map(s => ({
+            id: (s.id ?? '') as SessionId,
+            name: s.name ?? '',
+            code: (s.code ?? 'QZ1234') as SessionCode,
+            status: (s.status as 'LOBBY' | 'STARTED' | 'ENDED') || undefined,
             startedAt: s.startedAt ? new Date(s.startedAt) : null,
             endedAt: s.endedAt ? new Date(s.endedAt) : null,
           })),
-          totalElements: res.totalElements,
-          totalPages: res.totalPages,
-          page: res.page,
-          pageSize: res.pageSize,
-          hasNext: res.hasNext,
-          hasPrevious: res.hasPrevious,
+          totalElements: res.totalElements ?? 0,
+          totalPages: res.totalPages ?? 0,
+          page: res.page ?? p.page,
+          pageSize: res.pageSize ?? p.pageSize,
+          hasNext: res.hasNext ?? false,
+          hasPrevious: res.hasPrevious ?? false,
         },
       })),
       catchError(error => of({
@@ -63,19 +58,19 @@ export class SessionHttpService implements SessionService {
     )
   }
 
-  getSession(id: string): ServiceOutput<SessionApiResponse> {
+  getSession(id: string): ServiceOutput<SessionDetailDto> {
     const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id)
     const endpoint = isUuid
       ? `${this.apiUrl}/sessions/${id}`
       : `${this.apiUrl}/sessions/by-code/${id.replace(/\s+/g, '')}`
-    return this.http.get<SessionApiResponse>(endpoint).pipe(
+    return this.http.get<SessionDetailDto>(endpoint).pipe(
       map(res => ({ kind: 'success' as const, result: res })),
       catchError(error => of({ kind: 'failure' as const, error: new NotFoundError(error.message) })),
     )
   }
 
-  createSession(quezapId: string, name: string): ServiceOutput<SessionApiResponse> {
-    return this.http.post<SessionApiResponse>(`${this.apiUrl}/sessions`, { quezapId, name }).pipe(
+  createSession(quezapId: string, name: string): ServiceOutput<SessionDetailDto> {
+    return this.http.post<SessionDetailDto>(`${this.apiUrl}/sessions`, { quezapId, name }).pipe(
       map(res => ({ kind: 'success' as const, result: res })),
       catchError(error => of({
         kind: 'failure' as const,

@@ -1145,6 +1145,9 @@ export type ExportCsvResponse = ExportCsvResponses[keyof ExportCsvResponses];
 
 export type StreamEventsData = {
     body?: never;
+    headers?: {
+        'Last-Event-ID'?: string;
+    };
     path: {
         id: string;
     };

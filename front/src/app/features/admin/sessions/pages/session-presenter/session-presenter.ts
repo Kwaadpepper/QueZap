@@ -165,8 +165,30 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   protected readonly leaderboard = signal<LeaderboardItem[]>([])
 
+  protected readonly liveAnnouncement = computed<string>(() => {
+    switch (this.stage()) {
+      case 'LOBBY':
+        return `Salon d'attente. ${this.participants().length} participants connectés.`
+      case 'QUESTION':
+        return (
+          `Question ${this.currentQuestionIndex() + 1} sur ${this.totalQuestions()} : `
+          + `${this.currentQuestion().title}`
+        )
+      case 'REVEAL':
+        return 'Bonne réponse révélée.'
+      case 'LEADERBOARD':
+        return 'Classement intermédiaire affiché.'
+      case 'PODIUM':
+        return 'Podium final de la classe.'
+      default:
+        return ''
+    }
+  })
+
   private readonly destroyRef = inject(DestroyRef)
   private eventSource: EventSource | null = null
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
+  private reconnectAttempts = 0
 
   protected readonly qrZoomed = signal(false)
 
@@ -186,11 +208,11 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.sessionService.getSession(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
       if (output.kind === 'success') {
         const session = output.result
-        this.sessionId.set(session.id)
-        this.sessionCode.set(session.code || session.sessionCode || '')
+        this.sessionId.set(session.id || '')
+        this.sessionCode.set(session.code || '')
         this.sessionName.set(session.name || '')
         if (session.participants && session.participants.length > 0) {
-          this.participants.set(session.participants.map(p => ({ name: p.name })))
+          this.participants.set(session.participants.map(p => ({ name: p.name || '' })))
         }
         if (!isUuid && session.id) {
           if (this.eventSource) {
@@ -315,8 +337,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.layout.inContainer.set(true)
     this.stopCountdown()
     this.clearPodiumTimeouts()
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout)
+      this.reconnectTimeout = null
+    }
     if (this.eventSource) {
       this.eventSource.close()
+      this.eventSource = null
     }
   }
 
@@ -370,6 +397,10 @@ export class SessionPresenter implements OnInit, OnDestroy {
     ) {
       return
     }
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout)
+      this.reconnectTimeout = null
+    }
     if (this.eventSource) {
       this.eventSource.close()
       this.eventSource = null
@@ -386,6 +417,24 @@ export class SessionPresenter implements OnInit, OnDestroy {
       }
       catch (e) {
         console.debug('Failed to parse SSE payload', e)
+      }
+    }
+
+    this.eventSource.onopen = () => {
+      this.reconnectAttempts = 0
+    }
+
+    this.eventSource.onerror = (err) => {
+      console.warn('SSE connection error, scheduling reconnect...', err)
+      if (this.eventSource?.readyState === EventSource.CLOSED) {
+        if (this.reconnectTimeout) {
+          clearTimeout(this.reconnectTimeout)
+        }
+        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 15000)
+        this.reconnectAttempts++
+        this.reconnectTimeout = setTimeout(() => {
+          this.connectSse(id)
+        }, delay)
       }
     }
 

@@ -59,7 +59,7 @@ export class ThemeHttpService implements ThemeService {
       }),
     ).pipe(
       map(({ data, error }) => {
-        const id = data?.id || (data as unknown as { uuid?: string })?.uuid
+        const id = data?.id || data?.uuid
 
         if (error || !id) {
           return {

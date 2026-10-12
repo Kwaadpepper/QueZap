@@ -1,23 +1,8 @@
 import { InjectionToken } from '@angular/core'
 
-import { LeaderboardResponseDto, SessionReportDto } from '@quezap/core/api-client'
+import { LeaderboardResponseDto, SessionDetailDto, SessionReportDto } from '@quezap/core/api-client'
 import { PageOf, Pagination, ServiceOutput } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
-
-export interface SessionApiResponse {
-  id: string
-  sessionNumber: number
-  sessionCode?: string
-  code?: string
-  name: string
-  status: 'LOBBY' | 'STARTED' | 'ENDED'
-  currentSlideIndex: number
-  participantsCount?: number
-  participants?: { name: string }[]
-  startedAt?: string
-  endedAt?: string
-  createdAt: string
-}
 
 export interface ScoreResponse {
   name: string
@@ -27,8 +12,8 @@ export interface ScoreResponse {
 
 export interface SessionService {
   getSessionPage(page: Pagination): ServiceOutput<PageOf<Session>>
-  getSession(id: string): ServiceOutput<SessionApiResponse>
-  createSession(quezapId: string, name: string): ServiceOutput<SessionApiResponse>
+  getSession(id: string): ServiceOutput<SessionDetailDto>
+  createSession(quezapId: string, name: string): ServiceOutput<SessionDetailDto>
   startSession(id: string): ServiceOutput<void>
   nextQuestion(id: string): ServiceOutput<void>
   revealAnswers(id: string): ServiceOutput<void>

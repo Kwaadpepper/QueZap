@@ -63,6 +63,21 @@ export class QuizzRunner {
     return rank.delta !== undefined ? rank.delta : Math.max(0, rank.score - rank.previousScore)
   })
 
+  protected readonly liveAnnouncement = computed<string>(() => {
+    const reveal = this.lastReveal()
+    if (reveal) {
+      const pts = this.pointsEarned()
+      return pts > 0
+        ? `Résultats révélés. Bien joué ! Vous avez gagné ${pts} points.`
+        : 'Résultats révélés. Réponse incorrecte.'
+    }
+    const q = this.question()
+    if (q) {
+      return `Nouvelle question : ${q.value}`
+    }
+    return 'En attente de la prochaine question.'
+  })
+
   constructor() {
     effect(() => {
       if (this.sessionStore.lastReveal() !== undefined) {

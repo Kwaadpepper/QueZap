@@ -126,7 +126,7 @@ export class QuezapEditor {
         if (output.kind === 'success') {
           this.message.add({
             summary: 'Session lancée !',
-            detail: `Code PIN : ${output.result.code || output.result.sessionCode}`,
+            detail: `Code PIN : ${output.result.code ?? ''}`,
             severity: 'success',
           })
           const url = this.router.serializeUrl(
