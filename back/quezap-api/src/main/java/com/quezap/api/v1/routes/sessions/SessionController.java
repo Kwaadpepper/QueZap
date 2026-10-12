@@ -402,9 +402,18 @@ public class SessionController {
               question.getPictureFilename(),
               safeAnswers);
 
+      final var timerSeconds = currentQq.getTimerSeconds();
+      final var deadline = now.plusSeconds(timerSeconds);
       final var startPayload =
           new QuestionStartPayload(
-              1, totalSlides, currentQq.getTimerSeconds(), currentQq.getPoints(), safeQuestion);
+              1,
+              totalSlides,
+              timerSeconds,
+              currentQq.getPoints(),
+              safeQuestion,
+              deadline,
+              0,
+              timerSeconds);
 
       sessionSseService.broadcast(
           sessionJpa.getId(), "QUESTION_START", sessionJpa.getNumber(), startPayload);
@@ -508,13 +517,18 @@ public class SessionController {
             question.getPictureFilename(),
             safeAnswers);
 
+    final var timerSeconds = currentQq.getTimerSeconds();
+    final var deadline = Instant.now().plusSeconds(timerSeconds);
     final var startPayload =
         new QuestionStartPayload(
             nextIndex,
             totalSlides,
-            currentQq.getTimerSeconds(),
+            timerSeconds,
             currentQq.getPoints(),
-            safeQuestion);
+            safeQuestion,
+            deadline,
+            0,
+            timerSeconds);
 
     sessionSseService.broadcast(
         sessionJpa.getId(), "QUESTION_START", sessionJpa.getNumber(), startPayload);
@@ -983,7 +997,9 @@ public class SessionController {
   private record InitialEventsData(
       Long sessionNumber,
       LobbyStatePayload lobbyPayload,
-      @Nullable QuestionStartPayload startPayload) {}
+      @Nullable QuestionStartPayload startPayload,
+      @Nullable QuestionRevealPayload revealPayload,
+      @Nullable IntermediateLeaderboardPayload leaderboardPayload) {}
 
   @Transactional(readOnly = true)
   protected InitialEventsData getInitialStreamData(UUID id) {
@@ -1007,6 +1023,9 @@ public class SessionController {
             sessionJpa.getName(), participantList.size(), participantList, totalQuestions);
 
     QuestionStartPayload startPayload = null;
+    QuestionRevealPayload revealPayload = null;
+    IntermediateLeaderboardPayload leaderboardPayload = null;
+
     if (sessionJpa.getStartedAt() != null
         && sessionJpa.getEndedAt() == null
         && sessionJpa.getCurrentSlideIndex() > 0) {
@@ -1044,17 +1063,45 @@ public class SessionController {
                 question.getPictureFilename(),
                 safeAnswers);
 
+        final var slideStartedAt = sessionJpa.getCurrentSlideStartedAt();
+        final var timerSeconds = currentQq.getTimerSeconds();
+        final var elapsedSeconds =
+            slideStartedAt != null
+                ? (int) Math.max(0, Duration.between(slideStartedAt, Instant.now()).toSeconds())
+                : 0;
+        final var remainingSeconds = Math.max(0, timerSeconds - elapsedSeconds);
+        final var deadline =
+            slideStartedAt != null
+                ? slideStartedAt.plusSeconds(timerSeconds)
+                : Instant.now().plusSeconds(remainingSeconds);
+
+        final var answeredCount =
+            (int)
+                sessionJpa.getAnswers().stream()
+                    .filter(a -> a.getSlideIndex().equals(nextIndex))
+                    .count();
+
         startPayload =
             new QuestionStartPayload(
                 nextIndex,
                 questionsList.size(),
-                currentQq.getTimerSeconds(),
+                timerSeconds,
                 currentQq.getPoints(),
-                safeQuestion);
+                safeQuestion,
+                deadline,
+                answeredCount,
+                remainingSeconds);
+
+        if (sessionJpa.getLastRevealedSlideIndex() != null
+            && sessionJpa.getLastRevealedSlideIndex().equals(nextIndex)) {
+          revealPayload = buildRevealPayload(sessionJpa, questionsList, nextIndex);
+          leaderboardPayload = buildIntermediateLeaderboardPayload(sessionJpa, nextIndex);
+        }
       }
     }
 
-    return new InitialEventsData(sessionJpa.getNumber(), lobbyPayload, startPayload);
+    return new InitialEventsData(
+        sessionJpa.getNumber(), lobbyPayload, startPayload, revealPayload, leaderboardPayload);
   }
 
   @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -1073,25 +1120,28 @@ public class SessionController {
           emitter, "QUESTION_START", initialData.sessionNumber(), id, initialData.startPayload());
     }
 
+    if (initialData.revealPayload() != null) {
+      sessionSseService.sendToEmitter(
+          emitter, "QUESTION_REVEAL", initialData.sessionNumber(), id, initialData.revealPayload());
+    }
+
+    if (initialData.leaderboardPayload() != null) {
+      sessionSseService.sendToEmitter(
+          emitter,
+          "INTERMEDIATE_LEADERBOARD",
+          initialData.sessionNumber(),
+          id,
+          initialData.leaderboardPayload());
+    }
+
     return emitter;
   }
 
-  private void broadcastRevealAndLeaderboard(SessionJpaEntity sessionJpa, int slideIndex) {
-    sessionJpa.setLastRevealedSlideIndex(slideIndex);
-    sessionJpaRepository.save(sessionJpa);
-
-    final var quezap = sessionJpa.getQuezap();
-    if (quezap == null) {
-      return;
-    }
-
-    final var questions =
-        quezap.getQuestions().stream()
-            .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
-            .toList();
+  private @Nullable QuestionRevealPayload buildRevealPayload(
+      SessionJpaEntity sessionJpa, List<QuezapQuestionJpaEntity> questions, int slideIndex) {
     final var slideIdx = slideIndex - 1;
     if (slideIdx < 0 || slideIdx >= questions.size()) {
-      return;
+      return null;
     }
 
     final var qq = questions.get(slideIdx);
@@ -1140,11 +1190,11 @@ public class SessionController {
       }
     }
 
-    final var revealPayload = new QuestionRevealPayload(slideIndex, correctIndices, null, stats);
-    sessionSseService.broadcast(
-        sessionJpa.getId(), "QUESTION_REVEAL", sessionJpa.getNumber(), revealPayload);
+    return new QuestionRevealPayload(slideIndex, correctIndices, null, stats);
+  }
 
-    // Intermediate leaderboard
+  private IntermediateLeaderboardPayload buildIntermediateLeaderboardPayload(
+      SessionJpaEntity sessionJpa, int slideIndex) {
     final var sortedParticipants =
         sessionJpa.getParticipants().stream()
             .filter(p -> !p.getIsKicked())
@@ -1183,7 +1233,30 @@ public class SessionController {
       leaderboard.add(new LeaderboardEntryDto(rank++, p.getName(), p.getScore(), delta, streak));
     }
 
-    final var leaderboardPayload = new IntermediateLeaderboardPayload(slideIndex, leaderboard);
+    return new IntermediateLeaderboardPayload(slideIndex, leaderboard);
+  }
+
+  private void broadcastRevealAndLeaderboard(SessionJpaEntity sessionJpa, int slideIndex) {
+    sessionJpa.setLastRevealedSlideIndex(slideIndex);
+    sessionJpaRepository.save(sessionJpa);
+
+    final var quezap = sessionJpa.getQuezap();
+    if (quezap == null) {
+      return;
+    }
+
+    final var questions =
+        quezap.getQuestions().stream()
+            .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
+            .toList();
+
+    final var revealPayload = buildRevealPayload(sessionJpa, questions, slideIndex);
+    if (revealPayload != null) {
+      sessionSseService.broadcast(
+          sessionJpa.getId(), "QUESTION_REVEAL", sessionJpa.getNumber(), revealPayload);
+    }
+
+    final var leaderboardPayload = buildIntermediateLeaderboardPayload(sessionJpa, slideIndex);
     sessionSseService.broadcast(
         sessionJpa.getId(), "INTERMEDIATE_LEADERBOARD", sessionJpa.getNumber(), leaderboardPayload);
   }

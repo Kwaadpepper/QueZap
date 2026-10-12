@@ -17,8 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.quezap.api.v1.dto.events.IntermediateLeaderboardPayload;
+import com.quezap.api.v1.dto.events.QuestionStartPayload;
 import com.quezap.api.v1.dto.request.sessions.CreateSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.JoinSessionRequest;
 import com.quezap.api.v1.dto.request.sessions.SubmitAnswerRequest;
@@ -754,5 +756,101 @@ class SessionControllerTest {
     assertThat(statFaux.isCorrect()).isTrue();
     assertThat(statFaux.count()).isEqualTo(1);
     assertThat(statFaux.percentage()).isEqualTo(50.0);
+  }
+
+  @Test
+  void shouldIncludeDeadlineAndRemainingInQuestionStartPayload() {
+    final var sessionId = UUID.randomUUID();
+
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Sciences", Instant.now());
+    final var question =
+        new QuestionJpaEntity(
+            UUID.randomUUID(), "QUIZZ", "Question 1", null, theme, Instant.now(), Instant.now());
+    question.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), question, "A1", null, true, 0));
+    question.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), question, "A2", null, false, 1));
+
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(), "Quiz Test", null, author, true, Instant.now(), Instant.now());
+    final var qq = new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, question, 15, 100, 1);
+    quezap.addQuestion(qq);
+
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId, 12345L, "Session Test", 0, authorId, quezap, null, null, Instant.now());
+
+    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    sessionController.start(sessionId);
+
+    final var captor = ArgumentCaptor.forClass(QuestionStartPayload.class);
+    verify(sessionSseService)
+        .broadcast(eq(sessionId), eq("QUESTION_START"), eq(12345L), captor.capture());
+
+    final var payload = captor.getValue();
+    assertThat(payload.deadline()).isNotNull();
+    assertThat(payload.timerSeconds()).isEqualTo(15);
+    assertThat(payload.remainingSeconds()).isEqualTo(15);
+    assertThat(payload.answeredCount()).isEqualTo(0);
+  }
+
+  @Test
+  void shouldRestoreStateOnInitialStreamDataWhenReloadingHost() {
+    final var sessionId = UUID.randomUUID();
+
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Sciences", Instant.now());
+    final var question =
+        new QuestionJpaEntity(
+            UUID.randomUUID(), "QUIZZ", "Question 1", null, theme, Instant.now(), Instant.now());
+    question.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), question, "A1", null, true, 0));
+    question.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), question, "A2", null, false, 1));
+
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(), "Quiz Test", null, author, true, Instant.now(), Instant.now());
+    final var qq = new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, question, 20, 100, 1);
+    quezap.addQuestion(qq);
+
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            12345L,
+            "Session Test",
+            1,
+            authorId,
+            quezap,
+            Instant.now().minusSeconds(10),
+            null,
+            Instant.now());
+    sessionEntity.setCurrentSlideStartedAt(Instant.now().minusSeconds(5));
+    sessionEntity.addAnswer(
+        new SessionAnswerJpaEntity(
+            UUID.randomUUID(), sessionEntity, "Player1", 1, 0, 900, true, Instant.now()));
+    sessionEntity.addAnswer(
+        new SessionAnswerJpaEntity(
+            UUID.randomUUID(), sessionEntity, "Player2", 1, 0, 850, true, Instant.now()));
+
+    when(sessionJpaRepository.findById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionSseService.registerEmitter(sessionId)).thenReturn(new SseEmitter());
+
+    sessionController.streamEvents(sessionId);
+
+    final var captor = ArgumentCaptor.forClass(QuestionStartPayload.class);
+    verify(sessionSseService)
+        .sendToEmitter(any(), eq("QUESTION_START"), eq(12345L), eq(sessionId), captor.capture());
+
+    final var startPayload = captor.getValue();
+    assertThat(startPayload.answeredCount()).isEqualTo(2);
+    assertThat(startPayload.remainingSeconds()).isLessThanOrEqualTo(16);
+    assertThat(startPayload.deadline()).isNotNull();
+
+    // Now if the question was already revealed
+    sessionEntity.setLastRevealedSlideIndex(1);
+    sessionController.streamEvents(sessionId);
+
+    verify(sessionSseService)
+        .sendToEmitter(any(), eq("QUESTION_REVEAL"), eq(12345L), eq(sessionId), any());
+    verify(sessionSseService)
+        .sendToEmitter(any(), eq("INTERMEDIATE_LEADERBOARD"), eq(12345L), eq(sessionId), any());
   }
 }
