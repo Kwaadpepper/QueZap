@@ -3,8 +3,6 @@ import { Component, computed, inject } from '@angular/core'
 import { ConfirmationService } from 'primeng/api'
 import { ButtonModule } from 'primeng/button'
 
-import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
-
 import { QuezapEditorStore } from '../../../../../../stores'
 import { QuestionEditorInput } from '../../question-editor'
 
@@ -13,7 +11,6 @@ import { QuestionEditorInput } from '../../question-editor'
   templateUrl: './panel-question-actions.html',
   imports: [
     ButtonModule,
-    IconFacade,
   ],
 })
 export class PanelQuestionActions {

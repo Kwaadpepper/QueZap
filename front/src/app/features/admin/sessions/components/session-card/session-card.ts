@@ -1,19 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { Button, ButtonIcon } from 'primeng/button'
+import { Button } from 'primeng/button'
 import { CardModule } from 'primeng/card'
 
 import { Session } from '@quezap/domain/models'
-import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 @Component({
   selector: 'quizz-session-card',
   imports: [
     CardModule,
     Button,
-    ButtonIcon,
-    IconFacade,
   ],
   templateUrl: './session-card.html',
   styleUrl: './session-card.css',

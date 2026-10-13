@@ -9,16 +9,16 @@
 
     @if (editable()) {
       <p-button
+        icon="pi pi-pencil"
         severity="secondary"
         text
         rounded
         title="Changer le nom du thème"
         size="small"
         class="shrink-0"
+        [ariaLabel]="'Modifier le thème ' + theme().name"
         (onClick)="onOpenEditor()"
-      >
-        <quizz-icon name="pencil" pButtonIcon />
-      </p-button>
+      />
       <quizz-theme-editor [theme]="theme()" [(visible)]="editorIsVisible" />
     }
   </div>

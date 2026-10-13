@@ -1,12 +1,16 @@
 <div class="my-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
   <div>
-    <h1 class="text-3xl font-extrabold tracking-tight">Mes Sessions</h1>
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Mes Sessions</h1>
     <p class="text-sm text-surface-500 dark:text-surface-400 mt-1">Gérez et projetez vos sessions de quiz interactives.</p>
   </div>
-  <button pButton class="gap-2" (click)="onCreateSession()">
-    <quizz-icon name="plus" pButtonIcon />
-    <span>Nouvelle session</span>
-  </button>
+  <p-button
+    label="Nouvelle session"
+    icon="pi pi-plus"
+    severity="primary"
+    ariaLabel="Créer une nouvelle session"
+    styleClass="w-full sm:w-auto font-semibold"
+    (onClick)="onCreateSession()"
+  />
 </div>
 
 <div class="flex items-center justify-between mb-4 flex-wrap gap-2">

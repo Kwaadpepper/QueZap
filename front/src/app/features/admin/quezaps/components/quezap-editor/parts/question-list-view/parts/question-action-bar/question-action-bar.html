@@ -1,7 +1,9 @@
 <div class="h-full rounded-l-lg py-2 text-center" [class.hidden]="!selected()">
   <button
+    type="button"
     class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
     pButton
+    title="Monter la question"
     ariaLabel="Monter la question"
     text
     raised
@@ -14,8 +16,10 @@
     <quizz-icon name="arrow-up" pButtonIcon />
   </button>
   <button
+    type="button"
     class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
     pButton
+    title="Descendre la question"
     ariaLabel="Descendre la question"
     text
     raised
@@ -28,8 +32,10 @@
     <quizz-icon name="arrow-down" pButtonIcon />
   </button>
   <button
+    type="button"
     class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
     pButton
+    title="Dupliquer la question"
     ariaLabel="Dupliquer la question"
     text
     raised
@@ -41,8 +47,10 @@
     <quizz-icon name="copy" pButtonIcon />
   </button>
   <button
+    type="button"
     class="mb-2 bg-neutral-100! dark:bg-neutral-900!"
     pButton
+    title="Supprimer la question"
     ariaLabel="Supprimer la question"
     text
     raised
@@ -67,6 +75,8 @@
           <p-button
             size="small"
             severity="danger"
+            title="Confirmer la suppression"
+            ariaLabel="Confirmer la suppression"
             (onClick)="confirmDeleteQuestionFromViewList.onAccept()"
           >
             <quizz-icon name="confirm" pButtonIcon />
@@ -74,6 +84,8 @@
           <p-button
             size="small"
             severity="primary"
+            title="Annuler la suppression"
+            ariaLabel="Annuler la suppression"
             (onClick)="confirmDeleteQuestionFromViewList.onReject()"
           >
             <quizz-icon name="cancel" pButtonIcon />

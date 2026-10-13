@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, model } from '@angular/core'
 
-import { Button, ButtonIcon } from 'primeng/button'
+import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 
 import { Theme } from '@quezap/domain/models'
@@ -14,7 +14,6 @@ import { ThemeEditor } from '../theme-editor/theme-editor'
     Card,
     Button,
     ThemeEditor,
-    ButtonIcon,
     IconFacade,
   ],
   templateUrl: './theme-card.html',

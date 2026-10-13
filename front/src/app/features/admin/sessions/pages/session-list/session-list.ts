@@ -3,7 +3,6 @@ import { Router } from '@angular/router'
 
 import { ButtonModule } from 'primeng/button'
 
-import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { Paginator } from '@quezap/shared/components/paginator/paginator'
 
 import { SessionCard } from '../../components/session-card/session-card'
@@ -11,7 +10,7 @@ import { SessionPageStore } from '../../stores'
 
 @Component({
   selector: 'quizz-session-list',
-  imports: [Paginator, SessionCard, ButtonModule, IconFacade],
+  imports: [Paginator, SessionCard, ButtonModule],
   templateUrl: './session-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

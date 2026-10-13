@@ -3,44 +3,38 @@
     <quizz-title-editor class="mx-4" />
 
     <!-- Editorial buttons -->
-    <menu class="ms-auto">
-      <button
-        pButton
+    <menu class="ms-auto flex items-center gap-2">
+      <p-button
+        label="Enregistrer"
         raised
-        class="ml-4"
         [severity]="isDirty() ? 'warn' : 'success'"
         [disabled]="persisting() || hasInvalidAnswers()"
         [title]="hasInvalidAnswers() ? 'Chaque question doit comporter au moins une bonne réponse' : ''"
-        (click)="onSaveQuezap()"
+        (onClick)="onSaveQuezap()"
       >
         @if (persisting()) {
           <quizz-icon name="cog" animation="spin" pButtonIcon />
         }
-        <span pButtonLabel>Enregistrer</span>
-      </button>
+      </p-button>
 
       @if (quezap()?.id) {
-        <button
-          pButton
+        <p-button
+          label="Lancer en direct"
           raised
           severity="primary"
-          class="ml-2"
           title="Lancer la session en direct et ouvrir l'écran de projection"
           [disabled]="persisting() || hasInvalidAnswers() || launchingSession()"
-          (click)="onLaunchSession()"
+          (onClick)="onLaunchSession()"
         >
           @if (launchingSession()) {
             <quizz-icon name="cog" animation="spin" pButtonIcon />
           } @else {
             <span pButtonIcon class="text-sm">🚀</span>
           }
-          <span pButtonLabel>Lancer en direct</span>
-        </button>
+        </p-button>
       }
 
-      <button pButton raised severity="secondary" class="ml-2" (click)="onCloseEditor()">
-        <span pButtonLabel>Fermer</span>
-      </button>
+      <p-button label="Fermer" raised severity="secondary" (onClick)="onCloseEditor()" />
     </menu>
 
     <!-- Confirmation dialog for unsaved changes -->

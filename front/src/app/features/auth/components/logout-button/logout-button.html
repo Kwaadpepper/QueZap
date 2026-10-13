@@ -1,14 +1,15 @@
 <button
   pButton
-  class="h-fit py-3"
+  type="button"
+  class="h-fit py-2.5 px-3"
   title="Déconnexion"
+  aria-label="Déconnexion"
   size="small"
   severity="danger"
   text
-  size="small"
+  rounded
   [disabled]="running()"
   (click)="onLogout()"
-  (keydown)="onLogout()"
 >
   @if (running()) {
     <quizz-icon name="cog" animation="spin" size="lg" pButtonIcon />
@@ -16,3 +17,4 @@
     <quizz-icon name="sign-out" size="lg" pButtonIcon />
   }
 </button>
+

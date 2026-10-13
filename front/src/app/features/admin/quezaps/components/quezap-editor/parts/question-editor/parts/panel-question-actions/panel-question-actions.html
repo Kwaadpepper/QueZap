@@ -1,21 +1,19 @@
 <menu class="flex flex-col gap-2 w-full p-0 m-0">
   <p-button
+    label="Dupliquer"
+    icon="pi pi-copy"
     styleClass="w-full justify-center"
     severity="secondary"
     [disabled]="questionsCount() <= 0"
     (onClick)="onDuplicateQuestion()"
-  >
-    <quizz-icon pButtonLabel name="copy" />
-    <span pButtonLabel>Dupliquer</span>
-  </p-button>
+  />
   <p-button
+    label="Supprimer"
+    icon="pi pi-trash"
     styleClass="w-full justify-center"
     severity="danger"
     outlined
     [disabled]="questionsCount() <= 1"
     (onClick)="onDeleteQuestion($event)"
-  >
-    <quizz-icon pButtonLabel name="trash" />
-    <span pButtonLabel>Supprimer</span>
-  </p-button>
+  />
 </menu>

@@ -29,44 +29,47 @@
 
     <!-- Title -->
     <div>
-      <h3 class="session-title text-lg font-bold text-slate-900 dark:text-white line-clamp-1">
+      <h3 class="session-title text-base sm:text-lg font-bold text-slate-900 dark:text-white line-clamp-2 min-h-[3.25rem] flex items-center">
         {{ session().name }}
       </h3>
     </div>
 
     <!-- Action Buttons -->
     <div class="flex items-center justify-between gap-2 pt-2 border-t border-surface-100 dark:border-surface-800">
-      <p-button
-        label="Projeter 📽️"
-        size="small"
-        severity="primary"
-        title="Lancer la vue vidéoprojecteur (nouvel onglet)"
-        (onClick)="onSessionPresent()"
-      >
-        <i class="pi pi-external-link" pButtonIcon></i>
-      </p-button>
-
-      @if (isEnded()) {
+      <div class="flex items-center gap-2 flex-wrap">
         <p-button
-          label="Bilan"
+          label="Projeter"
+          icon="pi pi-external-link"
           size="small"
-          severity="success"
-          title="Consulter le bilan complet de la session"
-          (onClick)="onSessionReport()"
-        >
-          <i class="pi pi-chart-bar" pButtonIcon></i>
-        </p-button>
-      }
+          severity="primary"
+          title="Lancer la vue vidéoprojecteur (nouvel onglet)"
+          [ariaLabel]="'Projeter la session ' + session().name + ' sur grand écran'"
+          (onClick)="onSessionPresent()"
+        />
+
+        @if (isEnded()) {
+          <p-button
+            label="Bilan"
+            icon="pi pi-chart-bar"
+            size="small"
+            severity="success"
+            title="Consulter le bilan complet de la session"
+            [ariaLabel]="'Consulter le bilan de la session ' + session().name"
+            (onClick)="onSessionReport()"
+          />
+        }
+      </div>
 
       <p-button
+        icon="pi pi-pencil"
         size="small"
         severity="secondary"
         text
+        rounded
         title="Modifier la session"
+        [ariaLabel]="'Modifier la session ' + session().name"
         (onClick)="onSessionEdit()"
-      >
-        <quizz-icon name="pencil" pButtonIcon />
-      </p-button>
+      />
     </div>
   </div>
 </p-card>

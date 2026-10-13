@@ -14,7 +14,6 @@ import { FocusTrapModule } from 'primeng/focustrap'
 
 import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
 import { QuestionTypeFrom, QuestionWithAnswersAndResponses } from '@quezap/domain/models'
-import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { QuezapEditorStore } from '../../../../stores'
 
@@ -27,7 +26,6 @@ export type QuestionListViewInput = Omit<QuestionWithAnswersAndResponses, 'id'>[
   imports: [
     ButtonModule,
     FocusTrapModule,
-    IconFacade,
     BadgeModule,
     QuestionPreviewButton,
     QuestionActionBar,

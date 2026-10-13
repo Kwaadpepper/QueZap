@@ -7,7 +7,7 @@
       @if (question().picture) {
         <div class="relative inline-block">
           <img alt="Question Image" class="max-h-48 max-w-full rounded-md object-contain" [src]="question().picture" />
-          <button class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1" title="Supprimer l'image" (click)="removePicture()">
+          <button type="button" class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow focus:outline-hidden focus:ring-2 focus:ring-red-400" title="Supprimer l'image" aria-label="Supprimer l'image de la question" (click)="removePicture()">
             <i class="pi pi-times"></i>
           </button>
         </div>

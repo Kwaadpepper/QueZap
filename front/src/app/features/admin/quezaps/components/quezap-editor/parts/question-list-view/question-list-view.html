@@ -23,8 +23,11 @@
     }
   </div>
 
-  <button pButton severity="primary" class="m-4 ms-10" (click)="onAddQuestion()">
-    <quizz-icon name="plus" pButtonIcon />
-    <span pButtonLabel>Ajouter une question</span>
-  </button>
+  <p-button
+    label="Ajouter une question"
+    icon="pi pi-plus"
+    severity="primary"
+    styleClass="m-4 ms-10 font-semibold"
+    (onClick)="onAddQuestion()"
+  />
 </div>
