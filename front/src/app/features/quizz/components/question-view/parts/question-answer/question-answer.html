@@ -6,14 +6,16 @@
     class="checkbox"
     [type]="radio() ? 'radio' : 'checkbox'"
     [attr.name]="'question-' + questionId()"
-    [attr.aria-label]="phrase() || ('Option ' + (identifier() + 1))"
+    [attr.aria-label]="accessibleLabel()"
     [checked]="field()().value()"
   />
   <div class="relative z-10 flex w-full items-center gap-3 sm:gap-4">
-    <!-- Geometric icon container with high-contrast badge -->
-    <div class="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-black/20 backdrop-blur-sm shadow-inner transition-transform duration-200">
+    <!-- Geometric icon container with high-contrast badge & number (Triple-coding: Number + Shape + Color) -->
+    <div class="flex h-12 min-w-16 sm:h-14 sm:min-w-20 shrink-0 items-center justify-center gap-1.5 px-2 rounded-xl bg-black/25 backdrop-blur-sm shadow-inner transition-transform duration-200">
+      <span class="text-base sm:text-lg font-black text-white/90 font-mono" aria-hidden="true">{{ identifier() + 1 }}</span>
       <quizz-question-icon
-        class="w-7 h-7 sm:w-8 sm:h-8"
+        class="w-6 h-6 sm:w-7 sm:h-7"
+        aria-hidden="true"
         [form]="currentForm()"
         [checked]="field()().value()"
       />

@@ -2,7 +2,7 @@
   <div class="mb-6 flex flex-col items-center text-center max-w-lg w-full">
     @let res = finalResults();
     @if (res !== null && res.isPodium) {
-      <div class="mb-3 flex h-24 w-24 items-center justify-center rounded-3xl bg-amber-500/20 text-5xl shadow-xl border-2 border-amber-400/50 animate-bounce">
+      <div class="mb-3 flex h-24 w-24 items-center justify-center rounded-3xl bg-amber-500/20 text-5xl shadow-xl border-2 border-amber-400/50 motion-safe:animate-bounce">
         @if (res.rank === 1) { 🥇 }
         @else if (res.rank === 2) { 🥈 }
         @else { 🥉 }

@@ -66,4 +66,24 @@ export class QuestionAnswer {
     }
     return this.forms[this.identifier() % this.forms.length]
   })
+
+  protected readonly formName = computed<string>(() => {
+    switch (this.currentForm()) {
+      case QuestionIconType.Circle: return 'Cercle'
+      case QuestionIconType.Diamond: return 'Losange'
+      case QuestionIconType.Cross: return 'Croix'
+      case QuestionIconType.Hexagon: return 'Hexagone'
+      case QuestionIconType.Triangle: return 'Triangle'
+      case QuestionIconType.Square: return 'Carré'
+      case QuestionIconType.Star: return 'Étoile'
+      default: return 'Option'
+    }
+  })
+
+  protected readonly accessibleLabel = computed<string>(() => {
+    const num = this.identifier() + 1
+    const shape = this.formName()
+    const content = this.phrase().trim()
+    return content ? `Option ${num} (${shape}) : ${content}` : `Option ${num} (${shape})`
+  })
 }

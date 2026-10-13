@@ -1,13 +1,13 @@
 <p-button
-  ariaLabel="Quitter le quizz"
-  title="Quitter le quizz"
-  severity="info"
+  ariaLabel="Quitter la session de quiz"
+  title="Quitter la session de quiz"
+  severity="secondary"
   class="fixed top-4 right-4 z-50"
   rounded="true"
   raised="true"
   [pt]="{
     root: {
-      style: 'width: 2rem; height: 2rem',
+      style: 'width: 2.75rem; height: 2.75rem; min-width: 44px; min-height: 44px',
     },
   }"
   (onClick)="onQuitQuizz($event)"
@@ -19,28 +19,23 @@
   [pt]="{ root: { 'aria-label': 'Confirmez vouloir quitter la session', tabindex: 0 } }"
 >
   <ng-template #headless let-message>
-    <div class="rounded p-4">
-      <span>Vous êtes sur de vouloir quitter la session ?</span>
-      <div class="mt-4 flex items-center gap-2">
+    <div class="rounded-xl p-5 max-w-xs">
+      <p class="font-bold text-slate-900 dark:text-white text-base">Voulez-vous quitter la session ?</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Vous pourrez la rejoindre à nouveau avec le code PIN.</p>
+      <div class="mt-4 flex items-center justify-end gap-2">
         <p-button
-          ariaLabel="Oui je veux quitter la session"
-          title="Oui je veux quitter la session"
+          label="Rester"
+          size="small"
+          severity="secondary"
+          text
+          (onClick)="confirmQuitQuizz.onReject()"
+        />
+        <p-button
+          label="Quitter"
           size="small"
           severity="danger"
-          [text]="true"
           (onClick)="confirmQuitQuizz.onAccept()"
-        >
-          <quizz-icon name="check" pButtonIcon />
-        </p-button>
-        <p-button
-          ariaLabel="Retour"
-          title="Retour"
-          size="small"
-          severity="primary"
-          (onClick)="confirmQuitQuizz.onReject()"
-        >
-          <quizz-icon name="exit" pButtonIcon />
-        </p-button>
+        />
       </div>
     </div>
   </ng-template>

@@ -34,13 +34,12 @@
     </div>
 
     <!-- ANSWERS -->
-    <form
-      role="radiogroup"
-      aria-label="Options de réponse"
-      class="grid h-full w-full grow items-start gap-4 pb-20 md:grid-cols-2 md:pb-0 transition-opacity duration-300"
+    <fieldset
+      class="grid h-full w-full grow items-start gap-4 pb-20 md:grid-cols-2 md:pb-0 transition-opacity duration-300 border-0 p-0 m-0"
       [class.opacity-50]="hasSubmitted()"
       [inert]="cannotAnswerAnymore() || hasSubmitted()"
     >
+      <legend class="sr-only">Propositions de réponses</legend>
       @for (answer of answers(); track answer.index) {
         @let response = responseForm[answer.index];
         @if (response !== undefined) {
@@ -56,10 +55,14 @@
           pas de reponse
         }
       }
-    </form>
+    </fieldset>
     @if (hasSubmitted()) {
-      <div class="mt-4 flex flex-col items-center justify-center gap-2 p-4 bg-emerald-950/85 border border-emerald-500/80 rounded-2xl text-emerald-200 font-bold shadow-xl animate-pulse text-center">
-        <span class="text-3xl">⏳</span>
+      <div
+        role="status"
+        aria-live="polite"
+        class="mt-4 flex flex-col items-center justify-center gap-2 p-4 bg-emerald-950/85 border border-emerald-500/80 rounded-2xl text-emerald-200 font-bold shadow-xl motion-safe:animate-pulse text-center"
+      >
+        <span class="text-3xl" aria-hidden="true">⏳</span>
         <span class="text-lg">Réponse transmise !</span>
         <span class="text-sm font-normal text-emerald-300/80">En attente des autres joueurs et de la révélation...</span>
       </div>

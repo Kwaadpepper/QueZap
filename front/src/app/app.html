@@ -1,3 +1,10 @@
+<a
+  href="#main-content"
+  class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[9999] focus:px-4 focus:py-2.5 focus:bg-indigo-700 focus:text-white focus:rounded-xl focus:shadow-2xl focus:font-bold focus:outline-2 focus:outline-white"
+>
+  Aller au contenu principal
+</a>
+
 @if (layout.asWebsite()) {
   <header
     class="website-header flex justify-between pt-4"
@@ -54,7 +61,9 @@
 
 <quizz-loading-bar class="pointer-events-none absolute top-0 left-0 z-50 w-full" />
 <main
-  class="grow"
+  id="main-content"
+  tabindex="-1"
+  class="grow outline-hidden"
   pFocusTrap
   [pFocusTrapDisabled]="asWebsite()"
   [class]="{
