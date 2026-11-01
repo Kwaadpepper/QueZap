@@ -10,10 +10,12 @@ import {
 import { ConfirmationService } from 'primeng/api'
 import { BadgeModule } from 'primeng/badge'
 import { ButtonModule } from 'primeng/button'
+import { ConfirmPopupModule } from 'primeng/confirmpopup'
 import { FocusTrapModule } from 'primeng/focustrap'
 
 import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
 import { QuestionTypeFrom, QuestionWithAnswersAndResponses } from '@quezap/domain/models'
+import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
 import { QuezapEditorStore } from '../../../../stores'
 
@@ -25,8 +27,10 @@ export type QuestionListViewInput = Omit<QuestionWithAnswersAndResponses, 'id'>[
   selector: 'quizz-question-list-view',
   imports: [
     ButtonModule,
+    ConfirmPopupModule,
     FocusTrapModule,
     BadgeModule,
+    IconFacade,
     QuestionPreviewButton,
     QuestionActionBar,
   ],

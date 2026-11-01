@@ -1,5 +1,6 @@
 import { UUID } from '../types'
 
+import { UserId } from './authenticated-user'
 import { Question, QuestionWithAnswersAndResponses } from './questions'
 import { Theme } from './theme'
 
@@ -11,6 +12,7 @@ export interface Quezap {
   readonly id: QuezapId
   readonly title: string
   readonly description: string
+  readonly authorId?: UserId
   readonly totalQuestions?: number
 }
 

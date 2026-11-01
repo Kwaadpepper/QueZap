@@ -1,5 +1,6 @@
 export * from './binary/binary-question'
 export * from './boolean/boolean-question'
+export * from './cash/cash-question'
 export * from './parts/picture/picture'
 export * from './parts/question-alert/question-alert'
 export * from './parts/question-answer/question-answer'

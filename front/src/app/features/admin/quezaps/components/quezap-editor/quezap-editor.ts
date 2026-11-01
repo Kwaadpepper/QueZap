@@ -63,6 +63,7 @@ export class QuezapEditor {
 
   readonly closeEvent = output<void>()
 
+  protected readonly savedQuezapId = computed(() => this.editorStore.quezap().id)
   protected readonly persisting = computed(() => this.editorStore.persisting())
   protected readonly isDirty = computed(() => this.editorStore.isDirty())
   protected readonly hasInvalidAnswers = computed(() => this.editorStore.hasInvalidAnswers())
@@ -102,7 +103,7 @@ export class QuezapEditor {
         if (err instanceof ValidationError) {
           this.message.add({
             summary: 'Validation',
-            detail: 'Vous devez corriger votre questionnaire avant qu\'il soit sauvegardé',
+            detail: err.message || 'Vous devez corriger votre questionnaire avant qu\'il soit sauvegardé',
             severity: 'warn',
           })
           return

@@ -1,50 +1,44 @@
-<div class="flex h-dvh flex-col items-center justify-center p-2">
-  <!-- QUESTION TITLE -->
-  <div
-    class="question-background mt-5 mb-2 w-full rounded px-4 py-2 pt-15 shadow-md md:w-fit md:pt-2"
-  >
-    <h1 class="question-phrase">
-      {{ phrase() }}
-    </h1>
-  </div>
+<div class="flex w-full flex-1 flex-col items-center justify-between gap-3 px-2 py-1 sm:px-4">
+  <!-- QUESTION TITLE & ALERT -->
+  <header class="flex w-full flex-col items-center gap-2">
+    <div class="question-background w-full rounded px-4 py-2.5 shadow-md md:w-fit">
+      <h1 class="question-phrase">
+        {{ phrase() }}
+      </h1>
+    </div>
+
+    @let secondsLeft = timeLeft();
+    @if (secondsLeft !== undefined && !isRevealing()) {
+      <quizz-question-alert [timeLeft]="secondsLeft" [isRevealing]="isRevealing()" />
+    }
+  </header>
 
   <!-- CONTENT FRAME -->
-  <div
-    class="relative flex w-full grow flex-col rounded-2xl border-0 p-4 sm:p-6"
-  >
-    <div class="flex flex-col-reverse items-center justify-between lg:flex-row lg:items-start">
-      <!-- QUESTION ELEMENTS -->
-      @let pictureUrl = picture();
-      @if (pictureUrl !== undefined) {
-        <div class="flex w-full flex-col items-center justify-center px-5 lg:w-1/3">
-          <div class="question-background mb-4 flex w-fit flex-col rounded-xl p-2 shadow-md">
-            <quizz-picture aria-labelledby="question-image-desc" [pictureUrl]="pictureUrl" />
-            <span id="question-image-desc" class="ms-4 text-xl select-none">
-              Image de la question
-            </span>
-          </div>
+  <div class="relative flex w-full grow flex-col gap-4 rounded-2xl border-0 p-2 sm:p-4">
+    <!-- QUESTION ELEMENTS -->
+    @let pictureUrl = picture();
+    @if (pictureUrl !== undefined) {
+      <div class="flex w-full flex-col items-center justify-center px-5">
+        <div class="question-background flex w-fit flex-col rounded-xl p-2 shadow-md">
+          <quizz-picture aria-labelledby="question-image-desc" [pictureUrl]="pictureUrl" />
+          <span id="question-image-desc" class="ms-4 text-xl select-none">
+            Image de la question
+          </span>
         </div>
-      }
-
-      <!-- TIMER -->
-      @let secondsLeft = timeLeft();
-      @if (secondsLeft !== undefined && !isRevealing()) {
-        <quizz-question-alert class="ms-auto" [timeLeft]="secondsLeft" [isRevealing]="isRevealing()" />
-      }
-    </div>
+      </div>
+    }
 
     <!-- ANSWERS -->
     <fieldset
-      class="grid h-full w-full grow items-start gap-4 pb-20 md:grid-cols-2 md:pb-0 transition-opacity duration-300 border-0 p-0 m-0"
-      [class.opacity-50]="hasSubmitted()"
-      [inert]="cannotAnswerAnymore() || hasSubmitted()"
+      class="m-0 grid w-full grow content-center items-stretch gap-4 border-0 p-0 transition-opacity duration-300 md:grid-cols-2"
+      [inert]="cannotAnswerAnymore()"
     >
       <legend class="sr-only">Propositions de réponses</legend>
       @for (answer of answers(); track answer.index) {
         @let response = responseForm[answer.index];
         @if (response !== undefined) {
           <quizz-question-answer
-            class="h-full max-h-40 w-full md:nth-[-n+2]:self-end md:nth-[n+3]:self-start cursor-pointer"
+            class="h-auto min-h-20 w-full cursor-pointer"
             [questionId]="questionId()"
             [answer]="answer"
             [field]="response"
@@ -60,11 +54,13 @@
       <div
         role="status"
         aria-live="polite"
-        class="mt-4 flex flex-col items-center justify-center gap-2 p-4 bg-emerald-950/85 border border-emerald-500/80 rounded-2xl text-emerald-200 font-bold shadow-xl motion-safe:animate-pulse text-center"
+        class="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/60 bg-emerald-950/80 px-4 py-2.5 text-emerald-200 shadow-lg"
       >
-        <span class="text-3xl" aria-hidden="true">⏳</span>
-        <span class="text-lg">Réponse transmise !</span>
-        <span class="text-sm font-normal text-emerald-300/80">En attente des autres joueurs et de la révélation...</span>
+        <div class="flex items-center gap-2 font-bold text-sm">
+          <span class="text-lg" aria-hidden="true">✓</span>
+          <span>Choix enregistré !</span>
+        </div>
+        <span class="text-xs text-emerald-300/80">Modifiable tant que le chrono tourne</span>
       </div>
     }
   </div>

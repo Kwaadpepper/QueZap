@@ -96,7 +96,14 @@ export class SessionApiMockService implements SessionApiService {
     )
   }
 
-  submitAnswer(_answerIndex: number): ServiceOutput<void> {
+  submitAnswer(_answerIndex?: number, _textAnswer?: string): ServiceOutput<void> {
+    return of({
+      kind: 'success' as const,
+      result: undefined,
+    })
+  }
+
+  leaveSession(): ServiceOutput<void> {
     return of({
       kind: 'success' as const,
       result: undefined,

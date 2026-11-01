@@ -335,6 +335,34 @@ describe('SessionPresenter', () => {
     expect(mockSessionService.nextQuestion).toHaveBeenCalled()
   }))
 
+  it('should auto-advance after countdown in AUTOMATIC mode when viewing LEADERBOARD', fakeAsync(() => {
+    mockSessionService.nextQuestion.mockClear()
+    component['setProgressionMode']('AUTOMATIC')
+    component['setExplanationDuration'](5)
+
+    component['handleEvent']({
+      type: 'QUESTION_REVEAL',
+      payload: {
+        slideIndex: 1,
+        correctAnswerIndices: [0],
+      },
+    })
+
+    expect(component['stage']()).toBe('REVEAL')
+    expect(component['explanationTimer']()).toBe(5)
+
+    tick(2000)
+    expect(component['explanationTimer']()).toBe(3)
+
+    // Presenter clicks intermediate leaderboard during countdown
+    component['showIntermediateLeaderboard']()
+    expect(component['stage']()).toBe('LEADERBOARD')
+
+    tick(3500)
+    expect(component['explanationTimer']()).toBe(0)
+    expect(mockSessionService.nextQuestion).toHaveBeenCalled()
+  }))
+
   it('should store class metrics on SESSION_ENDED event', () => {
     component['handleEvent']({
       type: 'SESSION_ENDED',

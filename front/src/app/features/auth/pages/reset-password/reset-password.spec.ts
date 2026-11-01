@@ -1,6 +1,6 @@
 import { signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
-import { Router } from '@angular/router'
+import { ActivatedRoute } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
 import { of } from 'rxjs'
@@ -19,10 +19,7 @@ describe('ResetPassword', () => {
 
   const queryTokenValue = signal<string | null>(null)
 
-  const router = {
-    currentNavigation: jest.fn()
-      .mockReturnValue({ extractedUrl: { queryParamMap: { get: jest.fn(() => queryTokenValue()) } } }),
-  }
+  const activatedRoute = { snapshot: { queryParamMap: { get: jest.fn(() => queryTokenValue()) } } }
 
   const message$ = { add: jest.fn<void, [unknown]>() }
 
@@ -49,7 +46,7 @@ describe('ResetPassword', () => {
     await TestBed.configureTestingModule({
       imports: [ResetPassword],
       providers: [
-        { provide: Router, useValue: router },
+        { provide: ActivatedRoute, useValue: activatedRoute },
         { provide: AUTHENTICATION_SERVICE, useValue: auth$ },
         { provide: MessageService, useValue: message$ },
       ],
@@ -58,6 +55,7 @@ describe('ResetPassword', () => {
 
     queryTokenValue.set(null)
     verifyResetSeviceFails.set(false)
+    jest.clearAllMocks()
 
     createComponent()
   })
@@ -89,7 +87,7 @@ describe('ResetPassword', () => {
     expect(auth$.verifyResetToken).toHaveBeenCalledWith(validJwtToken)
   })
 
-  it('should show a message if the token is invalid', () => {
+  it('should show a message and stop spinner if the token is invalid', () => {
     // GIVEN
     queryTokenValue.set('invalid-token')
 
@@ -98,6 +96,7 @@ describe('ResetPassword', () => {
 
     // THEN
     expect(component['tokenIsInvalid']()).toBe(true)
+    expect(component['verifyingToken']()).toBe(false)
   })
 
   it('should not call the service if the token is invalid', () => {

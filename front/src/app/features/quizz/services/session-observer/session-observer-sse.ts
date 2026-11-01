@@ -31,6 +31,7 @@ interface SsePayloadAnswer {
   label?: string
   value?: string
   picture?: string
+  pictureUrl?: string
   pictureFilename?: string
 }
 
@@ -39,6 +40,7 @@ interface SsePayloadQuestion {
   type?: string
   label?: string
   picture?: string
+  pictureUrl?: string
   pictureFilename?: string
   timerSeconds?: number
   answers?: SsePayloadAnswer[]
@@ -62,6 +64,7 @@ interface SsePayload {
   totalSlides?: number
   points?: number
   picture?: string
+  pictureUrl?: string
   pictureFilename?: string
   question?: SsePayloadQuestion
   theme?: {
@@ -207,13 +210,17 @@ export class SessionObserverSseService implements SessionObserverService {
           type: (q.type as QuestionType) || (payload.type as QuestionType) || QuestionType.Quizz,
           id: questionId,
           value: q.label || payload.title || payload.label || 'Question',
-          picture: (q.pictureFilename || q.picture || payload.picture) as PictureUrl | undefined,
+          picture: (q.pictureUrl
+            || q.pictureFilename
+            || q.picture
+            || payload.pictureUrl
+            || payload.picture) as PictureUrl | undefined,
           limit: { seconds, deadline: payload.deadline },
           answers: rawAnswers.map((a, idx) => ({
             index: typeof a.index === 'number' ? a.index : idx,
             points: payload.points || 1000,
             value: a.label || a.value || '',
-            picture: (a.pictureFilename || a.picture) as PictureUrl | undefined,
+            picture: (a.pictureUrl || a.pictureFilename || a.picture) as PictureUrl | undefined,
           })),
         }
         this._reveal.set(undefined)
@@ -229,6 +236,7 @@ export class SessionObserverSseService implements SessionObserverService {
           slideIndex?: number
           correctAnswerIndices?: number[]
           correctIndices?: number[]
+          acceptedAnswers?: string[]
           explanation?: string
           mobileCorrectionAllowed?: boolean
           answersStats?: { answerIndex: number, count: number, percentage: number }[]
@@ -237,6 +245,7 @@ export class SessionObserverSseService implements SessionObserverService {
         const revealData: QuestionRevealData = {
           slideIndex: payload.slideIndex ?? 0,
           correctIndices: payload.correctAnswerIndices || payload.correctIndices || [],
+          acceptedAnswers: payload.acceptedAnswers,
           explanation: payload.explanation,
           mobileCorrectionAllowed: payload.mobileCorrectionAllowed,
           stats: (payload.answersStats || payload.stats || []).map(s => ({
@@ -374,5 +383,10 @@ export class SessionObserverSseService implements SessionObserverService {
       this.eventSource.close()
       this.eventSource = null
     }
+    this.currentConnectedSessionId = null
+    this._participants.set([])
+    this._question.set({ type: 'WaitingQuestion' })
+    this._reveal.set(undefined)
+    this._leaderboard.set(undefined)
   }
 }

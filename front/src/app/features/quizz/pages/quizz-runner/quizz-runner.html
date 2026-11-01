@@ -1,30 +1,34 @@
-<quizz-exit-button />
-
-@if (isSessionPaused()) {
-  <aside
-    class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-3 bg-amber-500 py-3 px-4 text-slate-950 font-black text-base sm:text-lg shadow-2xl animate-pulse"
-    role="alert"
-    aria-live="assertive"
-  >
-    <span class="text-2xl">⏸️</span>
-    <span>EN PAUSE — Écoutez le professeur</span>
-  </aside>
-}
-
-<div class="relative flex w-full flex-col items-center">
+<div class="quezap-theme-background flex min-h-dvh w-full flex-col">
   <div class="sr-only" aria-live="polite" aria-atomic="true">
     {{ liveAnnouncement() }}
   </div>
-  <div class="absolute top-0 left-2 flex p-4">
-    @if (isDebug()) {
-      <quizz-debug-toolbar />
-    }
-  </div>
+
+  @if (isSessionPaused()) {
+    <aside
+      class="flex w-full shrink-0 items-center justify-center gap-3 bg-amber-500 px-4 py-3 text-base font-black text-slate-950 shadow-2xl sm:text-lg animate-pulse"
+      role="alert"
+      aria-live="assertive"
+    >
+      <span class="text-2xl">⏸️</span>
+      <span>EN PAUSE — Écoutez le professeur</span>
+    </aside>
+  }
+
+  <header class="flex w-full shrink-0 items-center justify-between gap-3 px-4 pt-3 pb-1">
+    <div class="flex items-center gap-2">
+      @if (isDebug()) {
+        <quizz-debug-toolbar />
+      }
+    </div>
+    <div class="ms-auto flex items-center gap-3">
+      <quizz-exit-button />
+    </div>
+  </header>
 
   @let reveal = lastReveal();
   @if (reveal !== undefined) {
     <!-- REVEAL SCREEN: Calm, focused on board, no intermediate scores/ranks to avoid distraction/exclusion -->
-    <main class="quezap-theme-background flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
+    <main class="flex w-full flex-1 flex-col items-center justify-center p-4 py-6">
       <div class="w-full max-w-md mx-auto flex flex-col gap-4 text-white animate-fade-in">
         <!-- Call to look at the board -->
         <div class="rounded-3xl p-5 text-center bg-indigo-950/80 border-2 border-indigo-500/70 shadow-2xl text-indigo-100">
@@ -51,10 +55,31 @@
           <div>
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Ta réponse enregistrée</span>
             @if (choice) {
-              <div class="p-3 rounded-2xl bg-slate-800/90 border border-slate-700/60 text-slate-100 font-bold text-base flex items-center justify-between">
-                <span>{{ choice.label }}</span>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">Enregistrée</span>
-              </div>
+              @if (currentQ?.type === QuestionType.Cash) {
+                <div class="p-3.5 rounded-2xl text-white font-extrabold text-base flex items-center justify-between shadow-lg bg-emerald-600/90 border border-emerald-400/40">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center shrink-0 shadow-inner text-lg">
+                      ✍️
+                    </span>
+                    <span class="truncate text-lg">{{ choice.label }}</span>
+                  </div>
+                  <span class="text-xs px-2.5 py-1 rounded-full bg-black/30 font-semibold shrink-0">Enregistrée</span>
+                </div>
+              } @else {
+                <div
+                  class="p-3.5 rounded-2xl text-white font-extrabold text-base flex items-center justify-between shadow-lg"
+                  [class]="getChoiceColorClass(choice.answerIndex)"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center shrink-0 shadow-inner gap-1">
+                      <span class="text-sm font-black text-white/90">{{ choice.answerIndex + 1 }}</span>
+                      <quizz-question-icon class="w-5 h-5" [form]="getChoiceForm(choice.answerIndex)" [checked]="true" />
+                    </span>
+                    <span class="truncate text-lg">{{ choice.label }}</span>
+                  </div>
+                  <span class="text-xs px-2.5 py-1 rounded-full bg-black/30 font-semibold shrink-0">Enregistrée</span>
+                </div>
+              }
             } @else {
               <div class="p-3 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-400 italic text-sm">
                 Pas de réponse enregistrée pour cette question
@@ -62,9 +87,19 @@
             }
           </div>
 
+          <!-- Accepted variants for Cash question if available -->
+          @if (currentQ?.type === QuestionType.Cash && reveal.acceptedAnswers && reveal.acceptedAnswers.length > 0) {
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3.5 text-slate-200 text-sm flex flex-col gap-1.5">
+              <span class="text-xs text-emerald-400 font-bold uppercase tracking-wider block">Réponse(s) attendue(s)</span>
+              <div class="font-bold text-white text-base">
+                {{ reveal.acceptedAnswers.join(' / ') }}
+              </div>
+            </div>
+          }
+
           <!-- Optional Teacher-enabled Mobile Correction -->
           @if (reveal.mobileCorrectionAllowed) {
-            @let isCorrect = choice !== null && choice !== undefined && reveal.correctIndices.includes(choice.answerIndex);
+            @let isCorrect = choice !== null && choice !== undefined && isChoiceCorrect(choice, reveal);
             <div
               class="p-3 rounded-2xl text-center font-black uppercase text-sm border shadow-sm transition-all"
               [class.bg-emerald-950/90]="isCorrect"
@@ -92,21 +127,25 @@
     </main>
   } @else {
     <!-- VOTING VIEW -->
-    <div class="quezap-theme-background flex h-dvh w-full flex-row items-center justify-center">
+    <main class="flex w-full flex-1 flex-col items-center justify-center">
       @let questionToShow = question();
       @if (questionToShow === undefined) {
-        <div class="flex flex-col items-center justify-center gap-4 p-4">
-          <span class="h1 text-center">En attente de la question suivante</span>
+        <div class="flex flex-col items-center justify-center gap-4 rounded-3xl bg-slate-900/90 border border-slate-700/80 p-8 shadow-2xl backdrop-blur-md max-w-md mx-4 text-center">
+          <span class="text-4xl select-none" aria-hidden="true">⏳</span>
+          <h2 class="text-xl sm:text-2xl font-black text-white">En attente de la question suivante</h2>
+          <p class="text-xs text-slate-300">Préparez-vous, le professeur va lancer la question...</p>
           <quizz-spinner />
         </div>
       } @else {
         @defer {
           @if (isBoolean(questionToShow)) {
-            <quizz-question-boolean [question]="questionToShow" />
+            <quizz-question-boolean class="flex w-full flex-1 flex-col" [question]="questionToShow" />
           } @else if (isBinary(questionToShow)) {
-            <quizz-question-binary [question]="questionToShow" />
+            <quizz-question-binary class="flex w-full flex-1 flex-col" [question]="questionToShow" />
           } @else if (isQuizz(questionToShow)) {
-            <quizz-question-quizz [question]="questionToShow" />
+            <quizz-question-quizz class="flex w-full flex-1 flex-col" [question]="questionToShow" />
+          } @else if (isCash(questionToShow)) {
+            <quizz-question-cash class="flex w-full flex-1 flex-col" [question]="questionToShow" />
           } @else {
             <div class="flex flex-col items-center justify-center p-4">
               <p-message type="error" class="mx-auto max-w-md">
@@ -129,10 +168,13 @@
           </div>
         }
       }
+    </main>
+
+    <footer class="flex w-full shrink-0 items-center justify-end px-4 pt-1 pb-3">
       <quizz-timer
-        class="pointer-events-none absolute right-5 bottom-5 z-10"
+        class="pointer-events-none"
         (exhausted)="onTimeExhausted()"
       />
-    </div>
+    </footer>
   }
 </div>

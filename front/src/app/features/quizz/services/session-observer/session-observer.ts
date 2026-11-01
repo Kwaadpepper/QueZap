@@ -34,6 +34,7 @@ export interface SessionKicked {
 export interface QuestionRevealData {
   readonly slideIndex: number
   readonly correctIndices: number[]
+  readonly acceptedAnswers?: string[]
   readonly explanation?: string
   readonly mobileCorrectionAllowed?: boolean
   readonly stats: {
@@ -138,6 +139,8 @@ export interface SessionObserverService {
   reveal: ServiceState<QuestionRevealData | undefined>
 
   leaderboard: ServiceState<IntermediateLeaderboardData | undefined>
+
+  disconnect?(): void
 }
 
 export const SESSION_OBSERVER_SERVICE = new InjectionToken<SessionObserverService>('SessionObserverService')

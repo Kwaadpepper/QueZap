@@ -1,18 +1,18 @@
 <p-image
-  class="rounded-md shadow-xl hover:rounded-md"
+  class="rounded-2xl shadow-2xl hover:scale-[1.02] transition-transform duration-200"
   [alt]="altText() ?? 'Image d\'illustration'"
   [src]="pictureUrl()"
   [preview]="true"
   [pt]="{
     image: {
-      style: 'object-fit: contain; border-radius: 1rem; border: var(--p-surface-100) 4px solid;',
+      style: 'object-fit: contain; max-height: min(42vh, 360px); width: auto; border-radius: 1rem; border: var(--p-surface-100) 4px solid; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);',
     },
     previewMask: {
       style: 'border-radius: 1rem;',
     },
     original: {
       style:
-        'object-fit: contain; width: 100dvh; border-radius: 1rem; border: var(--p-surface-100) 4px solid;',
+        'object-fit: contain; max-width: 90vw; max-height: 85vh; border-radius: 1rem; border: var(--p-surface-100) 4px solid;',
     },
   }"
 />

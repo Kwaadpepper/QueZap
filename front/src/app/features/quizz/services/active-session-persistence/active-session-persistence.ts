@@ -152,23 +152,42 @@ export class ActiveSessionPersistence {
   }
 
   getParticipationToken(): string | null {
-    return this.getSafeItem(this.sessionStorageRef, this.#participationTokenKey)
+    return this.getSafeItem(this.localStorageRef, this.#participationTokenKey)
+      ?? this.getSafeItem(this.sessionStorageRef, this.#participationTokenKey)
   }
 
   setParticipationToken(token: string): void {
+    this.setSafeItem(this.localStorageRef, this.#participationTokenKey, token)
     this.setSafeItem(this.sessionStorageRef, this.#participationTokenKey, token)
   }
 
   getSessionId(): string | null {
-    return this.getSafeItem(this.sessionStorageRef, this.#sessionIdKey)
+    return this.getSafeItem(this.localStorageRef, this.#sessionIdKey)
+      ?? this.getSafeItem(this.sessionStorageRef, this.#sessionIdKey)
   }
 
   setSessionId(sessionId: string): void {
+    this.setSafeItem(this.localStorageRef, this.#sessionIdKey, sessionId)
     this.setSafeItem(this.sessionStorageRef, this.#sessionIdKey, sessionId)
   }
 
   getParticipantName(): string | null {
-    return this.getSafeItem(this.sessionStorageRef, this.#participantNameKey)
+    return this.getSafeItem(this.localStorageRef, this.#participantNameKey)
+      ?? this.getSafeItem(this.sessionStorageRef, this.#participantNameKey)
+  }
+
+  clearParticipationAuth(): void {
+    this.removeSafeItem(this.localStorageRef, this.#participationTokenKey)
+    this.removeSafeItem(this.sessionStorageRef, this.#participationTokenKey)
+    this.removeSafeItem(this.localStorageRef, this.#participantNameKey)
+    this.removeSafeItem(this.sessionStorageRef, this.#participantNameKey)
+    this.removeSafeItem(this.localStorageRef, this.#finalResultsKey)
+    this.removeSafeItem(this.sessionStorageRef, this.#finalResultsKey)
+    const existing = this.retrieve()
+    if (existing) {
+      delete existing.participationToken
+      this.setSafeItem(this.localStorageRef, this.#storageKey, JSON.stringify(existing))
+    }
   }
 
   saveFinalResults(results: FinalParticipantResults): void {
@@ -188,6 +207,10 @@ export class ActiveSessionPersistence {
 
   clear(): void {
     this.removeSafeItem(this.localStorageRef, this.#storageKey)
+    this.removeSafeItem(this.localStorageRef, this.#participationTokenKey)
+    this.removeSafeItem(this.localStorageRef, this.#sessionIdKey)
+    this.removeSafeItem(this.localStorageRef, this.#participantNameKey)
+    this.removeSafeItem(this.localStorageRef, this.#finalResultsKey)
     this.removeSafeItem(this.sessionStorageRef, this.#participationTokenKey)
     this.removeSafeItem(this.sessionStorageRef, this.#sessionIdKey)
     this.removeSafeItem(this.sessionStorageRef, this.#participantNameKey)

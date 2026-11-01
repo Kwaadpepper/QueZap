@@ -23,4 +23,21 @@ describe('TitleEditor', () => {
   it('should create', () => {
     expect(component).toBeTruthy()
   })
+
+  it('should update title via editorStore.updateTitle and set isDirty to true', () => {
+    const store = TestBed.inject(QuezapEditorStore)
+    store.setQuezap({
+      title: 'Ancien titre',
+      description: '',
+      questionWithAnswersAndResponses: store.questions(),
+    })
+    expect(store.isDirty()).toBe(false)
+
+    component['openCallback']()
+    component['editedTitle'].set('Nouveau titre')
+    component['closeCallback']()
+
+    expect(store.quezap().title).toBe('Nouveau titre')
+    expect(store.isDirty()).toBe(true)
+  })
 })

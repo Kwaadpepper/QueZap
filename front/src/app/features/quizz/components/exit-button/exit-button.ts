@@ -7,6 +7,8 @@ import { ConfirmPopupModule } from 'primeng/confirmpopup'
 
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
+import { ActiveSessionStore } from '../../stores'
+
 @Component({
   selector: 'quizz-exit-button',
   imports: [
@@ -23,11 +25,13 @@ export class ExitButton {
   readonly #exitUrl = '/'
   private readonly router = inject(Router)
   private readonly confirmationService = inject(ConfirmationService)
+  private readonly sessionStore = inject(ActiveSessionStore)
 
   protected onQuitQuizz($event: Event): void {
     this.confirmationService.confirm({
       target: $event.currentTarget as EventTarget,
       accept: () => {
+        this.sessionStore.leaveSession()
         this.router.navigateByUrl(this.#exitUrl)
       },
     })

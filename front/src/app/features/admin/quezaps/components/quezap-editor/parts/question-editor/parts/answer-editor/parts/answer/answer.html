@@ -1,4 +1,4 @@
-<div class="answer-option relative flex h-full w-full items-center rounded-2xl border-2 p-3 transition-all" [class]="`answer-option-${index()}`">
+<div class="answer-option relative flex h-full w-full items-center rounded-2xl border-2 p-3 transition-all" [class]="`answer-option-${currentFormIndex()}`">
   <div class="flex w-full items-center gap-3">
     <quizz-question-icon class="shrink-0" [form]="currentForm()" [checked]="true" />
 
@@ -24,8 +24,9 @@
           chooseIcon="pi pi-image"
           chooseLabel=" "
           accept="image/*"
-          maxFileSize="1000000"
+          maxFileSize="5000000"
           [auto]="true"
+          [customUpload]="true"
           (onSelect)="onUpload($event)"
         />
       }
@@ -36,6 +37,18 @@
           (correctnessChanged)="onCorrectnessChanged($event)"
         />
       </div>
+
+      @if (canDelete()) {
+        <button
+          type="button"
+          class="flex items-center justify-center w-8 h-8 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors focus:outline-hidden"
+          title="Supprimer cette réponse"
+          aria-label="Supprimer cette réponse"
+          (click)="deleteAnswer.emit(index())"
+        >
+          <i class="pi pi-trash text-sm"></i>
+        </button>
+      }
     </div>
   </div>
 </div>

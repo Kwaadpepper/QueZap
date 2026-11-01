@@ -1,20 +1,21 @@
 <div
-  class="container-question-list-view flex h-full w-full flex-col"
+  class="container-question-list-view flex h-full min-h-0 w-full flex-col"
   tabindex="0"
   aria-label="Panneau de sélection des questions"
   role="menu"
   (keydown)="onKeyDown($event)"
 >
-  <div #questionContainer class="flex flex-col gap-3 overflow-y-auto px-3 py-4">
+  <div #questionContainer class="flex min-h-0 grow flex-col gap-3 overflow-x-hidden overflow-y-auto px-3 py-4">
     @for (question of questions(); track $index) {
-      <div class="flex flex-row transition-all duration-300">
+      <div class="flex min-w-0 flex-row transition-all duration-300">
         <!-- QUESTION ACTION BAR -->
-        <div class="w-13">
+        <div class="w-13 shrink-0">
           <quizz-question-action-bar [index]="$index" />
         </div>
 
         <!-- QUESTION PREVIEW BUTTON -->
         <quizz-question-preview-button
+          class="min-w-0 flex-1"
           [question]="question"
           [index]="$index"
           (selected)="onSelectQuestion($index)"
@@ -30,4 +31,37 @@
     styleClass="m-4 ms-10 font-semibold"
     (onClick)="onAddQuestion()"
   />
+
+  <p-confirmpopup
+    #confirmDeleteQuestionFromViewList
+    [pt]="{
+      root: { 'aria-label': 'Confirmez vouloir supprimer la question', tabindex: 0 },
+    }"
+  >
+    <ng-template #headless let-message>
+      <div class="rounded p-4">
+        <span><quizz-icon name="trash" /> Supprimer ?</span>
+        <div class="mt-4 flex items-center gap-2">
+          <p-button
+            size="small"
+            severity="danger"
+            title="Confirmer la suppression"
+            ariaLabel="Confirmer la suppression"
+            (onClick)="confirmDeleteQuestionFromViewList.onAccept()"
+          >
+            <quizz-icon name="confirm" pButtonIcon />
+          </p-button>
+          <p-button
+            size="small"
+            severity="primary"
+            title="Annuler la suppression"
+            ariaLabel="Annuler la suppression"
+            (onClick)="confirmDeleteQuestionFromViewList.onReject()"
+          >
+            <quizz-icon name="cancel" pButtonIcon />
+          </p-button>
+        </div>
+      </div>
+    </ng-template>
+  </p-confirmpopup>
 </div>

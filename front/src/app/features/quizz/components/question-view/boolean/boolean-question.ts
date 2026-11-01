@@ -79,10 +79,12 @@ export class BooleanQuestionView {
   constructor() {
     effect(() => {
       // * Initialize responses when question changes
+      this.question()
       this.responses.set({
         0: false,
         1: false,
       })
+      this.lastSelectedKey.set(null)
       this.hasSubmitted.set(false)
     })
 
@@ -106,22 +108,19 @@ export class BooleanQuestionView {
           1: this.lastSelectedKey() === '1',
         })
       }
-
-      if (!this.hasSubmitted() && selectedKeys.length === 1) {
-        this.hasSubmitted.set(true)
-        const chosenIdx = Number(selectedKeys[0])
-        const label = chosenIdx === 0 ? 'Vrai' : 'Faux'
-        this.sessionStore.submitMyChoice(chosenIdx, label)
-        this.sessionApi.submitAnswer(chosenIdx).subscribe()
-      }
     })
   }
 
   protected selectAnswer(index: number) {
-    if (this.cannotAnswerAnymore() || this.hasSubmitted()) return
+    if (this.cannotAnswerAnymore()) return
     this.responses.set({
       0: index === 0,
       1: index === 1,
     })
+    this.lastSelectedKey.set(index === 0 ? '0' : '1')
+    this.hasSubmitted.set(true)
+    const label = index === 0 ? 'Vrai' : 'Faux'
+    this.sessionStore.submitMyChoice(index, label)
+    this.sessionApi.submitAnswer(index).subscribe()
   }
 }

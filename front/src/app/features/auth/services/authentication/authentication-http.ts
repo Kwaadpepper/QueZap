@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core'
+import { inject, Injectable } from '@angular/core'
 
 import { catchError, from, map, of } from 'rxjs'
 
@@ -10,10 +10,13 @@ import { AuthenticatedUser, UserId } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
 import { JWT } from '@quezap/domain/types'
 
+import { TokenPersitance } from '../token-persistance/token-persitance'
+
 import { AuthenticationService } from './authentication'
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticationHttpService implements AuthenticationService {
+  private readonly tokenPersitance = inject(TokenPersitance)
   login(identifier: string, password: string): ServiceOutput<AuthTokens, UnauthorizedError> {
     return from(
       client.post<{ 200: LoginResponseDto }>({
@@ -82,11 +85,16 @@ export class AuthenticationHttpService implements AuthenticationService {
     )
   }
 
-  logout(): ServiceOutput<void> {
+  logout(refreshToken?: JWT): ServiceOutput<void> {
+    const token = refreshToken ?? this.tokenPersitance.getTokens()?.refreshToken
+    if (!token) {
+      return of({ kind: 'success' as const, result: undefined })
+    }
+
     return from(
       client.post<void>({
         url: '/apiv1/auth/logout',
-        body: {},
+        body: { refreshToken: token },
       }),
     ).pipe(
       map(() => ({ kind: 'success' as const, result: undefined })),

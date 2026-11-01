@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 
 import { DividerModule } from 'primeng/divider'
 import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload'
@@ -36,6 +36,41 @@ export class QuestionEditor {
   private readonly editorStore = inject(QuezapEditorStore)
 
   protected readonly question = computed(() => this.editorStore.selectedQuestion())
+
+  protected readonly mediaFormat = signal<'STANDARD' | 'LARGE' | 'FULLSCREEN'>('LARGE')
+  protected readonly backgroundTheme = signal<'CLASSIC' | 'DARK' | 'CLEAN'>('CLASSIC')
+
+  protected readonly mediaClass = computed(() => {
+    switch (this.mediaFormat()) {
+      case 'STANDARD':
+        return 'max-h-60'
+      case 'FULLSCREEN':
+        return 'max-h-[30rem] w-full'
+      case 'LARGE':
+      default:
+        return 'max-h-80'
+    }
+  })
+
+  protected readonly backgroundClass = computed(() => {
+    switch (this.backgroundTheme()) {
+      case 'DARK':
+        return 'bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white'
+      case 'CLEAN':
+        return 'bg-slate-900 text-white'
+      case 'CLASSIC':
+      default:
+        return 'quezap-theme-background'
+    }
+  })
+
+  protected setMediaFormat(format: 'STANDARD' | 'LARGE' | 'FULLSCREEN') {
+    this.mediaFormat.set(format)
+  }
+
+  protected setBackgroundTheme(theme: 'CLASSIC' | 'DARK' | 'CLEAN') {
+    this.backgroundTheme.set(theme)
+  }
 
   protected onUpload(event: FileSelectEvent) {
     const file = event.files[0]

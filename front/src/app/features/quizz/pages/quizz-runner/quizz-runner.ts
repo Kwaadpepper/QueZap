@@ -9,17 +9,25 @@ import { Message } from 'primeng/message'
 
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
+import { matchesTolerant } from '@quezap/core/services/text-normalizer/text-normalizer'
 import {
-  isBinaryQuestion, isBooleanQuestion, isQuizzQuestion, MixedQuestion, QuestionType, QuestionWithAnswers,
+  isBinaryQuestion,
+  isBooleanQuestion,
+  isCashQuestion,
+  isQuizzQuestion,
+  MixedQuestion,
+  QuestionType,
+  QuestionWithAnswers,
 } from '@quezap/domain/models'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
 import { DebugToolbar } from '../../components/debug-toolbar/debug-toolbar'
 import { ExitButton } from '../../components/exit-button/exit-button'
 import {
-  BinaryQuestionView, BooleanQuestionView,
+  BinaryQuestionView, BooleanQuestionView, CashQuestionView,
   QuestionTimer, QuizzQuestionView,
 } from '../../components/question-view'
+import { QuestionIcon, QuestionIconType } from '../../components/question-view/parts/question-icon/question-icon'
 import { isNoMoreQuestions, isWaitingQuestion, NoMoreQuestions } from '../../services'
 import { ActiveSessionStore, TimerStore } from '../../stores'
 
@@ -32,11 +40,13 @@ import { ActiveSessionStore, TimerStore } from '../../stores'
     BinaryQuestionView,
     BooleanQuestionView,
     QuizzQuestionView,
+    CashQuestionView,
     Message,
     Spinner,
     Button,
     QuestionTimer,
     ExitButton,
+    QuestionIcon,
   ],
 })
 export class QuizzRunner {
@@ -52,6 +62,7 @@ export class QuizzRunner {
   protected readonly isBinary = isBinaryQuestion
   protected readonly isBoolean = isBooleanQuestion
   protected readonly isQuizz = isQuizzQuestion
+  protected readonly isCash = isCashQuestion
 
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly question = signal<QuestionWithAnswers | undefined>(undefined)
@@ -64,6 +75,30 @@ export class QuizzRunner {
     if (!rank) return 0
     return rank.delta !== undefined ? rank.delta : Math.max(0, rank.score - rank.previousScore)
   })
+
+  protected getChoiceColorClass(index: number): string {
+    const q = this.question()
+    const isBool = q?.type === 'BOOLEAN' || (q?.answers?.length === 2 && q.answers[0].value === 'Vrai')
+    if (isBool) {
+      return index === 0 ? 'answer-option-3' : 'answer-option-0'
+    }
+    return `answer-option-${index % 4}`
+  }
+
+  protected getChoiceForm(index: number): QuestionIconType {
+    const q = this.question()
+    const isBool = q?.type === 'BOOLEAN' || (q?.answers?.length === 2 && q.answers[0].value === 'Vrai')
+    if (isBool) {
+      return index === 0 ? QuestionIconType.Circle : QuestionIconType.Cross
+    }
+    const forms = [
+      QuestionIconType.Circle,
+      QuestionIconType.Diamond,
+      QuestionIconType.Cross,
+      QuestionIconType.Hexagon,
+    ]
+    return forms[index % forms.length]
+  }
 
   protected readonly liveAnnouncement = computed<string>(() => {
     if (this.isSessionPaused()) {
@@ -119,7 +154,6 @@ export class QuizzRunner {
 
   protected onTimeExhausted() {
     console.log('Time exhausted for question', this.question()?.id)
-    this.question.set(undefined)
   }
 
   private handleQuestion(question: MixedQuestion & QuestionWithAnswers | NoMoreQuestions) {
@@ -137,11 +171,25 @@ export class QuizzRunner {
       case QuestionType.Boolean:
       case QuestionType.Binary:
       case QuestionType.Quizz:
+      case QuestionType.Cash:
         this.question.set(question)
         this.timerStore.setTimer(question.limit)
         break
       default:
         throw new Error('Unknown question type')
     }
+  }
+
+  protected isChoiceCorrect(
+    choice: { answerIndex: number, label: string },
+    reveal: { correctIndices: number[], acceptedAnswers?: string[] },
+  ): boolean {
+    if (this.question()?.type === QuestionType.Cash) {
+      if (!reveal.acceptedAnswers || reveal.acceptedAnswers.length === 0) {
+        return false
+      }
+      return reveal.acceptedAnswers.some(ans => matchesTolerant(choice.label, ans))
+    }
+    return reveal.correctIndices.includes(choice.answerIndex)
   }
 }

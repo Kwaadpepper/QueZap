@@ -98,4 +98,24 @@ export class ThemeHttpService implements ThemeService {
       }),
     )
   }
+
+  delete(themeId: ThemeId): ServiceOutput<void> {
+    return from(
+      client.delete<void>({ url: `/apiv1/themes/${themeId}` }),
+    ).pipe(
+      map(({ error }) => {
+        if (error) {
+          return {
+            kind: 'failure' as const,
+            error: new ValidationError({ name: ['Erreur de suppression'] }, 'Erreur de suppression'),
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: undefined,
+        }
+      }),
+    )
+  }
 }

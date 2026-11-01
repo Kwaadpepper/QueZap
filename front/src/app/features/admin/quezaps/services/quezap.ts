@@ -14,6 +14,8 @@ export interface QuezapService {
   ): ServiceOutput<Pick<Quezap, 'id'>>
 
   duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>>
+
+  deleteQuezap(quezapId: QuezapId): ServiceOutput<void>
 }
 
 export const QUEZAP_SERVICE = new InjectionToken<QuezapService>('QuezapService')

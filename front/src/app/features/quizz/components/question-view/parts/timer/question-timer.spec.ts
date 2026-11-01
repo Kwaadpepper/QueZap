@@ -30,4 +30,13 @@ describe('QuestionTimer', () => {
     fixture.detectChanges()
     expect(component['limit']()).toBe(20)
   }))
+
+  it('should freeze countdown when session is paused', fakeAsync(() => {
+    const timerStore = TestBed.inject(TimerStore)
+    timerStore.setTimer({ seconds: 10 })
+    tick(10)
+    fixture.detectChanges()
+
+    expect(component['remainingSeconds']()).toBe(10)
+  }))
 })

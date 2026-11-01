@@ -114,4 +114,15 @@ export class QuezapMockService implements QuezapService {
       })),
     )
   }
+
+  deleteQuezap(quezapId: QuezapId): ServiceOutput<void> {
+    this.mockedQuezaps.update(quezaps => quezaps.filter(q => q.id !== quezapId))
+    return of(undefined).pipe(
+      delay(this.MOCK_DELAY()),
+      map(() => ({
+        kind: 'success' as const,
+        result: undefined,
+      })),
+    )
+  }
 }

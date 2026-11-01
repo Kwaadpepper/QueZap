@@ -1,9 +1,9 @@
-<div class="presenter-container p-6 md:p-12 relative overflow-hidden">
+<div class="presenter-container h-screen max-h-screen overflow-hidden flex flex-col p-3 md:p-5 relative select-none">
   <div class="sr-only" aria-live="polite" aria-atomic="true">
     {{ liveAnnouncement() }}
   </div>
   <!-- Top bar -->
-  <header class="flex justify-between items-center pb-6 border-b border-slate-700/50 relative z-20">
+  <header class="flex justify-between items-center pb-2.5 border-b border-slate-700/50 relative z-20 shrink-0">
     <div class="flex items-center gap-4">
       <span class="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-300">QUEZAP</span>
       <span class="px-4 py-1.5 bg-slate-800/90 border border-slate-700 rounded-full text-sm font-bold text-slate-200 shadow-md">
@@ -21,52 +21,56 @@
         <span class="text-slate-400 text-sm font-semibold">joueurs</span>
       </div>
 
-      <!-- Mode Manuel / Automatique -->
-      <button
-        type="button"
-        class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
-        title="Basculer entre transition manuelle et automatique après explication"
-        [class.bg-indigo-950/80]="progressionMode() === 'AUTOMATIC'"
-        [class.border-indigo-500/60]="progressionMode() === 'AUTOMATIC'"
-        [class.text-indigo-300]="progressionMode() === 'AUTOMATIC'"
-        [class.bg-slate-800/90]="progressionMode() === 'MANUAL'"
-        [class.border-slate-700]="progressionMode() === 'MANUAL'"
-        [class.text-slate-400]="progressionMode() === 'MANUAL'"
-        (click)="toggleProgressionMode()">
-        <i class="pi" [class.pi-bolt]="progressionMode() === 'AUTOMATIC'" [class.pi-user]="progressionMode() === 'MANUAL'"></i>
-        <span>{{ progressionMode() === 'AUTOMATIC' ? 'Mode Auto (' + explanationDurationSeconds() + 's)' : 'Mode Manuel' }}</span>
-      </button>
+      <!-- In-game controls (active during quiz stages, hidden in lobby / podium) -->
+      @if (stage() !== 'LOBBY' && stage() !== 'PODIUM') {
+        <!-- Mode Manuel / Automatique -->
+        <button
+          type="button"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
+          title="Basculer entre transition manuelle et automatique après explication"
+          [class.bg-indigo-950/80]="progressionMode() === 'AUTOMATIC'"
+          [class.border-indigo-500/60]="progressionMode() === 'AUTOMATIC'"
+          [class.text-indigo-300]="progressionMode() === 'AUTOMATIC'"
+          [class.bg-slate-800/90]="progressionMode() === 'MANUAL'"
+          [class.border-slate-700]="progressionMode() === 'MANUAL'"
+          [class.text-slate-400]="progressionMode() === 'MANUAL'"
+          (click)="toggleProgressionMode()">
+          <i class="pi" [class.pi-bolt]="progressionMode() === 'AUTOMATIC'" [class.pi-user]="progressionMode() === 'MANUAL'"></i>
+          <span>{{ progressionMode() === 'AUTOMATIC' ? 'Mode Auto (' + explanationDurationSeconds() + 's)' : 'Mode Manuel' }}</span>
+        </button>
 
-      <!-- Bouton Pause explications -->
-      <button
-        type="button"
-        class="flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-extrabold transition shadow-md cursor-pointer active:scale-95"
-        [class.bg-amber-500]="isPaused()"
-        [class.text-slate-950]="isPaused()"
-        [class.border-amber-400]="isPaused()"
-        [class.motion-safe:animate-pulse]="isPaused()"
-        [class.bg-slate-800/90]="!isPaused()"
-        [class.border-slate-700]="!isPaused()"
-        [class.text-amber-400]="!isPaused()"
-        (click)="togglePause()">
-        <i class="pi" [class.pi-play]="isPaused()" [class.pi-pause]="!isPaused()"></i>
-        <span>{{ isPaused() ? '▶️ Reprendre' : '⏸️ Pause explications' }}</span>
-      </button>
+        <!-- Bouton Pause / Reprendre -->
+        <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-extrabold transition shadow-md cursor-pointer active:scale-95"
+          [class.bg-amber-500]="isPaused()"
+          [class.text-slate-950]="isPaused()"
+          [class.border-amber-400]="isPaused()"
+          [class.motion-safe:animate-pulse]="isPaused()"
+          [class.bg-slate-800/90]="!isPaused()"
+          [class.border-slate-700]="!isPaused()"
+          [class.text-amber-400]="!isPaused()"
+          (click)="togglePause()">
+          <i class="pi" [class.pi-play]="isPaused()" [class.pi-pause]="!isPaused()"></i>
+          <span>{{ isPaused() ? '▶️ Reprendre' : '⏸️ Mettre en pause' }}</span>
+        </button>
 
-      <button
-        type="button"
-        class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
-        title="Révéler automatiquement la bonne réponse quand le compte à rebours atteint 0s"
-        [class.bg-emerald-950/80]="autoReveal()"
-        [class.border-emerald-500/60]="autoReveal()"
-        [class.text-emerald-300]="autoReveal()"
-        [class.bg-slate-800/90]="!autoReveal()"
-        [class.border-slate-700]="!autoReveal()"
-        [class.text-slate-400]="!autoReveal()"
-        (click)="toggleAutoReveal()">
-        <i class="pi" [class.pi-check-circle]="autoReveal()" [class.pi-circle]="!autoReveal()"></i>
-        <span>Auto-reveal 0s</span>
-      </button>
+        <!-- Auto-révélation -->
+        <button
+          type="button"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
+          title="Révéler automatiquement la bonne réponse quand le compte à rebours atteint 0s"
+          [class.bg-emerald-950/80]="autoReveal()"
+          [class.border-emerald-500/60]="autoReveal()"
+          [class.text-emerald-300]="autoReveal()"
+          [class.bg-slate-800/90]="!autoReveal()"
+          [class.border-slate-700]="!autoReveal()"
+          [class.text-slate-400]="!autoReveal()"
+          (click)="toggleAutoReveal()">
+          <i class="pi" [class.pi-check-circle]="autoReveal()" [class.pi-circle]="!autoReveal()"></i>
+          <span>Auto-révélation (0s)</span>
+        </button>
+      }
 
       <button
         class="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-2xl font-bold transition shadow-md active:scale-95 cursor-pointer"
@@ -88,29 +92,29 @@
 
   <!-- LOBBY SCREEN -->
   @if (stage() === 'LOBBY') {
-    <main class="flex-1 flex flex-col items-center justify-center text-center my-auto py-8 relative z-20">
-      <p class="text-slate-300 text-2xl md:text-3xl mb-4 font-semibold tracking-wide">
-        Rejoignez la partie sur <strong class="text-indigo-400 font-extrabold text-3xl md:text-4xl underline decoration-indigo-500/50 underline-offset-8">{{ displayJoinUrl() }}</strong>
+    <main class="flex-1 min-h-0 flex flex-col items-center justify-between text-center py-2 relative z-20 overflow-hidden">
+      <p class="text-slate-300 text-xl md:text-2xl mb-1 font-semibold tracking-wide shrink-0">
+        Rejoignez la partie sur <strong class="text-indigo-400 font-extrabold text-2xl md:text-3xl underline decoration-indigo-500/50 underline-offset-4">{{ displayJoinUrl() }}</strong>
       </p>
 
       <!-- Giant PIN and QR Code Card Container -->
-      <div class="my-6 flex flex-col md:flex-row items-center justify-center gap-8 max-w-5xl w-full">
+      <div class="my-2 flex flex-col md:flex-row items-center justify-center gap-6 max-w-4xl w-full shrink-0">
         <!-- Giant PIN Card -->
-        <div class="flex-1 bg-slate-900/90 border-2 border-indigo-500/40 p-8 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-xl">
-          <p class="text-xs sm:text-sm uppercase tracking-[0.3em] font-extrabold text-indigo-400 mb-2">Code PIN de session</p>
-          <p class="glow-pin text-7xl sm:text-8xl md:text-9xl font-black text-white font-mono tracking-[0.15em] select-all">{{ sessionCode() }}</p>
-          <p class="text-xs text-slate-400 mt-2 font-medium">Saisissez ce code sur votre smartphone pour entrer</p>
+        <div class="flex-1 bg-slate-900/90 border-2 border-indigo-500/40 p-4 sm:p-6 rounded-3xl shadow-2xl backdrop-blur-xl">
+          <p class="text-xs uppercase tracking-[0.3em] font-extrabold text-indigo-400 mb-1">Code PIN de session</p>
+          <p class="glow-pin text-6xl sm:text-7xl md:text-8xl font-black text-white font-mono tracking-[0.15em] select-all">{{ sessionCode() }}</p>
+          <p class="text-xs text-slate-400 mt-1 font-medium">Saisissez ce code sur votre smartphone pour entrer</p>
         </div>
 
         <!-- Stylized QR Code Visual Card (Click to zoom) -->
         <button
           type="button"
-          class="qr-box w-64 h-64 sm:w-72 sm:h-72 shrink-0 flex flex-col items-center justify-center bg-white rounded-3xl p-4 shadow-2xl cursor-pointer hover:scale-105 transition-all group text-left border-0"
+          class="qr-box w-48 h-48 sm:w-56 sm:h-56 shrink-0 flex flex-col items-center justify-center bg-white rounded-3xl p-3 shadow-2xl cursor-pointer hover:scale-105 transition-all group text-left border-0"
           title="Cliquez pour agrandir le QR code"
           (click)="toggleQrZoom()">
           <div class="w-full h-full flex flex-col items-center justify-center p-2 border-4 border-slate-900 rounded-2xl bg-slate-50 relative">
-            <qrcode [qrdata]="joinUrl()" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
-            <span class="text-[11px] font-black uppercase tracking-wider text-slate-900 mt-1 flex items-center gap-1 group-hover:text-indigo-600 transition">
+            <qrcode [qrdata]="joinUrl()" [width]="150" [errorCorrectionLevel]="'M'"></qrcode>
+            <span class="text-[10px] font-black uppercase tracking-wider text-slate-900 mt-1 flex items-center gap-1 group-hover:text-indigo-600 transition">
               <i class="pi pi-search-plus text-xs"></i>
               Scanner pour jouer
             </span>
@@ -147,17 +151,17 @@
       }
 
       <!-- Connected Players Area -->
-      <div class="w-full max-w-5xl mt-6">
-        <div class="flex justify-between items-center mb-4 px-2">
-          <h3 class="text-xl md:text-2xl font-extrabold text-slate-200">
+      <div class="w-full max-w-4xl flex-1 min-h-0 flex flex-col overflow-hidden my-2">
+        <div class="flex justify-between items-center mb-2 px-2 shrink-0">
+          <h3 class="text-lg md:text-xl font-extrabold text-slate-200">
             Joueurs connectés ({{ participants().length }})
           </h3>
         </div>
 
-        <div class="flex flex-wrap justify-center gap-3 p-6 bg-slate-900/60 rounded-3xl min-h-[160px] border border-slate-800/80 shadow-inner">
+        <div class="flex flex-wrap justify-center gap-2.5 p-4 bg-slate-900/60 rounded-3xl flex-1 min-h-0 overflow-y-auto border border-slate-800/80 shadow-inner">
           @for (p of participants(); track p.name) {
-            <div class="player-card-anim flex items-center gap-3 bg-slate-800/90 px-4 py-2.5 rounded-2xl border border-slate-700/80 text-xl font-bold shadow-md transition-all hover:scale-105 group">
-              <span class="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-black shadow-inner" [class]="getParticipantColor(p.name)">
+            <div class="player-card-anim flex items-center gap-2.5 bg-slate-800/90 px-3.5 py-2 rounded-2xl border border-slate-700/80 text-lg font-bold shadow-md transition-all hover:scale-105 group">
+              <span class="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black shadow-inner" [class]="getParticipantColor(p.name)">
                 {{ getInitials(p.name) }}
               </span>
               <span class="text-white">{{ p.name }}</span>
@@ -167,13 +171,13 @@
                 [attr.aria-label]="'Exclure le joueur ' + p.name"
                 [title]="'Exclure le joueur ' + p.name"
                 (click)="requestKick(p.name)">
-                <i class="pi pi-times-circle text-lg"></i>
+                <i class="pi pi-times-circle text-base"></i>
               </button>
             </div>
           } @empty {
-            <div class="flex flex-col items-center justify-center my-auto py-8">
-              <i class="pi pi-users text-4xl text-slate-600 mb-2"></i>
-              <p class="text-slate-400 text-lg italic">En attente des premiers participants...</p>
+            <div class="flex flex-col items-center justify-center my-auto py-4">
+              <i class="pi pi-users text-3xl text-slate-600 mb-1"></i>
+              <p class="text-slate-400 text-base italic">En attente des premiers participants...</p>
             </div>
           }
         </div>
@@ -224,20 +228,20 @@
         </div>
       }
 
-      <!-- Sticky Action Bar on Lobby Bottom -->
-      <div class="sticky bottom-0 inset-x-0 w-full mt-8 py-4 px-6 bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 flex items-center justify-between z-30 shadow-2xl rounded-2xl">
+      <!-- Action Bar on Lobby Bottom -->
+      <div class="w-full max-w-4xl shrink-0 py-2.5 px-6 bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 flex items-center justify-between z-30 shadow-2xl rounded-2xl mt-1">
         <div class="flex items-center gap-3">
-          <i class="pi pi-users text-2xl text-emerald-400"></i>
-          <span class="text-xl font-bold text-white">
-            <strong class="text-2xl font-black text-emerald-400">{{ participants().length }}</strong> joueur(s) dans le salon
+          <i class="pi pi-users text-xl text-emerald-400"></i>
+          <span class="text-lg font-bold text-white">
+            <strong class="text-xl font-black text-emerald-400">{{ participants().length }}</strong> joueur(s) dans le salon
           </span>
         </div>
         @if (participants().length >= 1) {
           <button
-            class="px-8 py-3.5 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-xl rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+            class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-lg rounded-2xl shadow-[0_0_25px_rgba(16,185,129,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2"
             (click)="startQuiz()">
             <span>Démarrer le Quizz</span>
-            <i class="pi pi-arrow-right text-xl"></i>
+            <i class="pi pi-arrow-right text-lg"></i>
           </button>
         }
       </div>
@@ -246,79 +250,103 @@
 
   <!-- QUESTION RUNNER SCREEN -->
   @if (stage() === 'QUESTION') {
-    <main class="flex-1 flex flex-col justify-between py-6 max-w-7xl mx-auto w-full relative z-20">
-      <!-- Top indicators -->
-      <div class="flex justify-between items-center">
-        <div class="px-5 py-2 bg-indigo-950/70 border border-indigo-500/50 rounded-2xl">
-          <span class="text-2xl font-black text-indigo-300">Question {{ currentQuestionIndex() + 1 }} / {{ totalQuestions() }}</span>
+    <main class="flex-1 min-h-0 flex flex-col justify-between py-2 max-w-7xl mx-auto w-full relative z-20 overflow-hidden">
+      <!-- Top indicators & compact question header -->
+      <div class="flex items-center justify-between gap-4 shrink-0 px-2 mb-1">
+        <div class="px-4 py-1.5 bg-indigo-950/70 border border-indigo-500/50 rounded-2xl shrink-0">
+          <span class="text-xl md:text-2xl font-black text-indigo-300">Question {{ currentQuestionIndex() + 1 }} / {{ totalQuestions() }}</span>
         </div>
-        
-        <!-- Giant Timer -->
-        <div class="flex items-center gap-4">
+
+        <h2 class="text-2xl md:text-4xl font-black text-white leading-tight max-w-4xl mx-auto text-center tracking-tight drop-shadow-lg line-clamp-2 px-2 flex-1">
+          {{ currentQuestion().title }}
+        </h2>
+
+        <!-- Compact Giant Timer -->
+        <div class="flex items-center gap-2 shrink-0">
           <div
-            class="w-20 h-20 rounded-full border-4 flex items-center justify-center text-3xl font-black text-white bg-slate-900 shadow-2xl transition-all"
+            class="w-14 h-14 md:w-16 md:h-16 rounded-full border-4 flex items-center justify-center text-2xl md:text-3xl font-black text-white bg-slate-900 shadow-xl transition-all"
             [class.border-red-500]="timer() <= 5"
             [class.motion-safe:animate-pulse]="timer() <= 5"
-            [class.scale-110]="timer() <= 5"
+            [class.scale-105]="timer() <= 5"
             [class.border-indigo-500]="timer() > 5">
             {{ timer() }}
           </div>
-          <span class="text-slate-400 text-base font-bold uppercase tracking-wider">secondes</span>
+          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider hidden sm:inline">sec</span>
         </div>
       </div>
 
-      <!-- Question Title XXL -->
-      <div class="my-6 text-center px-4">
-        <h2 class="text-4xl md:text-6xl font-black text-white leading-tight max-w-5xl mx-auto tracking-tight drop-shadow-lg">
-          {{ currentQuestion().title }}
-        </h2>
-      </div>
-
-      @if (currentQuestion().pictureUrl) {
-        <div class="my-3 flex justify-center">
-          <img
-            alt="Illustration de la question"
-            class="max-h-56 max-w-full rounded-2xl object-contain shadow-2xl border-2 border-indigo-500/40 backdrop-blur-sm"
-            [src]="currentQuestion().pictureUrl"
-          />
-        </div>
-      }
-
-      <!-- Answers 2x2 Grid XXL -->
-      <div class="choice-grid max-w-6xl mx-auto w-full my-6">
-        @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
-          <div class="choice-card text-white shadow-xl" [class]="getChoiceColorClass(i)">
-            <span class="w-16 h-16 rounded-2xl bg-black/25 flex items-center justify-center mr-5 shrink-0 shadow-inner gap-1">
-              <span class="text-xl font-black text-white/80 mr-1">{{ i + 1 }}</span>
-              <quizz-question-icon class="w-8 h-8" [form]="getChoiceForm(i)" [checked]="true" />
-            </span>
-            <span class="flex-1 text-2xl md:text-3xl leading-snug">{{ ans.label }}</span>
+      <!-- Scène centrale dynamique flex-1 min-h-0 -->
+      <div class="flex-1 min-h-0 flex flex-col items-center justify-center overflow-hidden my-auto w-full relative p-1">
+        @if (currentQuestion().pictureUrl) {
+          <div class="h-full w-full flex items-center justify-center min-h-0 overflow-hidden">
+            <p-image
+              alt="Illustration de la question"
+              [src]="currentQuestion().pictureUrl!"
+              [preview]="true"
+              [pt]="{
+                image: {
+                  style: 'object-fit: contain; max-height: 100%; max-width: 100%; height: auto; width: auto; border-radius: 1.25rem; border: 3px solid rgba(99, 102, 241, 0.5); box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5); cursor: zoom-in;',
+                },
+                previewMask: {
+                  style: 'border-radius: 1.25rem;',
+                },
+                original: {
+                  style: 'object-fit: contain; max-width: 92vw; max-height: 88vh; border-radius: 1.25rem;',
+                },
+              }"
+            />
+          </div>
+        }
+        @if (currentQuestion().type === 'CASH') {
+          <div class="flex flex-col items-center justify-center gap-3 p-6 bg-slate-900/80 border-2 border-amber-500/50 rounded-3xl backdrop-blur-md shadow-2xl max-w-xl text-center animate-fade-in my-auto">
+            <div class="text-5xl animate-bounce">✍️</div>
+            <h3 class="text-2xl md:text-3xl font-black text-amber-400">Mode Cash — Saisie Libre</h3>
+            <p class="text-slate-200 text-base md:text-lg font-medium">Saisissez votre réponse sur votre smartphone !</p>
+            <div class="flex items-center gap-2 mt-2 px-4 py-2 bg-slate-800/90 rounded-xl border border-slate-700">
+              <i class="pi pi-users text-emerald-400 text-lg"></i>
+              <span class="text-white font-bold">{{ answersReceived() }} / {{ participants().length }} réponses reçues</span>
+            </div>
           </div>
         }
       </div>
 
+      <!-- Answers 2x2 Grid (uniquement pour les questions à choix) -->
+      @if (currentQuestion().type !== 'CASH') {
+        <div class="choice-grid max-w-6xl mx-auto w-full shrink-0 my-2">
+          @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
+            <div class="choice-card text-white shadow-xl" [class]="getChoiceColorClass(i)">
+              <span class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-black/25 flex items-center justify-center mr-3 shrink-0 shadow-inner gap-1">
+                <span class="text-base md:text-lg font-black text-white/80 mr-1">{{ i + 1 }}</span>
+                <quizz-question-icon class="w-5 h-5 md:w-6 md:h-6" [form]="getChoiceForm(i)" [checked]="true" />
+              </span>
+              <span class="flex-1 text-lg md:text-2xl leading-tight font-extrabold truncate">{{ ans.label }}</span>
+            </div>
+          }
+        </div>
+      }
+
       <!-- Footer action -->
-      <div class="flex justify-between items-center pt-6 border-t border-slate-800/80">
-        <div class="flex items-center gap-3 text-slate-300 font-semibold text-xl">
-          <div class="flex h-4 w-48 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+      <div class="flex justify-between items-center pt-2 pb-1 border-t border-slate-800/80 shrink-0">
+        <div class="flex items-center gap-3 text-slate-300 font-semibold text-sm md:text-base">
+          <div class="flex h-3 w-32 md:w-48 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
             <div
               class="bg-indigo-500 h-full rounded-full transition-all duration-300"
               [style.width.%]="participants().length > 0 ? (answersReceived() / participants().length) * 100 : 100">
             </div>
           </div>
-          <span><strong class="text-white font-black text-2xl">{{ answersReceived() }}</strong> / {{ participants().length }} réponses enregistrées</span>
+          <span><strong class="text-white font-black text-base md:text-xl">{{ answersReceived() }}</strong> / {{ participants().length }} réponses enregistrées</span>
         </div>
 
         <button
-          class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xl rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+          class="px-6 py-2.5 md:px-8 md:py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-base md:text-lg rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2"
           (click)="revealAnswers()">
           <span>Révéler les réponses</span>
-          <i class="pi pi-eye text-xl"></i>
+          <i class="pi pi-eye text-base"></i>
         </button>
       </div>
 
       <!-- Bottom Animated Timer Progress Bar -->
-      <div class="fixed bottom-0 inset-x-0 h-3 bg-slate-950/80 backdrop-blur z-30 overflow-hidden">
+      <div class="fixed bottom-0 inset-x-0 h-2 bg-slate-950/80 backdrop-blur z-30 overflow-hidden">
         <div
           class="h-full transition-all duration-1000 ease-linear shadow-lg"
           [class.bg-emerald-500]="timer() > 10"
@@ -333,80 +361,102 @@
 
   <!-- REVEAL & STATS SCREEN -->
   @if (stage() === 'REVEAL') {
-    <main class="flex-1 flex flex-col justify-between py-6 max-w-7xl mx-auto w-full relative z-20">
-      <div class="text-center">
-        <span class="inline-block px-5 py-1.5 bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 font-black text-lg rounded-full mb-3 shadow-md">
+    <main class="flex-1 min-h-0 flex flex-col justify-between py-2 max-w-7xl mx-auto w-full relative z-20 overflow-hidden">
+      <div class="text-center shrink-0 mb-1">
+        <span class="inline-block px-4 py-1 bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 font-black text-sm md:text-base rounded-full mb-1 shadow-md">
           ✨ BONNE RÉPONSE RÉVÉLÉE
         </span>
-        <h2 class="text-3xl md:text-5xl font-black text-white mb-2">{{ currentQuestion().title }}</h2>
+        <h2 class="text-2xl md:text-4xl font-black text-white leading-tight truncate px-4">{{ currentQuestion().title }}</h2>
       </div>
 
-      <!-- Answers Grid with Animated Vote Percentage Bars -->
-      <div class="choice-grid max-w-6xl mx-auto w-full my-6">
-        @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
-          <div
-            class="choice-card text-white shadow-xl flex-col !items-stretch overflow-hidden relative"
-            [class.choice-revealed-correct]="ans.isCorrect"
-            [class.opacity-40]="!ans.isCorrect"
-            [class.scale-98]="!ans.isCorrect"
-            [class]="getChoiceColorClass(i)">
-            
-            <!-- Vote stat background progress fill -->
-            @if (ans.percentage !== undefined && ans.percentage > 0) {
-              <div
-                class="absolute inset-y-0 left-0 bg-white/20 pointer-events-none transition-all duration-1000 ease-out"
-                [style.width.%]="ans.percentage">
-              </div>
-            }
-
-            <div class="relative z-10 flex items-center justify-between w-full">
-              <div class="flex items-center flex-1 min-w-0 mr-4">
-                <span class="w-14 h-14 rounded-2xl bg-black/25 flex items-center justify-center mr-4 shrink-0 shadow-inner gap-1">
-                  <span class="text-lg font-black text-white/80 mr-1">{{ i + 1 }}</span>
-                  <quizz-question-icon class="w-7 h-7" [form]="getChoiceForm(i)" [checked]="true" />
-                </span>
-                <span class="text-xl md:text-2xl leading-snug font-extrabold truncate">{{ ans.label }}</span>
-              </div>
-
-              <div class="flex items-center gap-3 shrink-0">
-                @if (ans.percentage !== undefined) {
-                  <span class="px-3 py-1 bg-black/40 rounded-xl font-mono font-black text-lg text-white shadow-inner">
-                    {{ ans.percentage }}% ({{ ans.count ?? 0 }})
+      <!-- Scène centrale Reveal -->
+      <div class="flex-1 min-h-0 flex flex-col items-center justify-center overflow-hidden my-auto w-full relative p-1">
+        @if (currentQuestion().type === 'CASH') {
+          <div class="flex flex-col items-center justify-center gap-4 p-6 bg-slate-900/90 border-2 border-emerald-500/60 rounded-3xl backdrop-blur-xl shadow-2xl max-w-3xl w-full mx-auto my-auto animate-scale-in">
+            <span class="text-xs font-black uppercase tracking-widest text-emerald-400">Bonne réponse attendue</span>
+            <div class="text-3xl md:text-5xl font-black text-white font-mono bg-emerald-950/80 px-8 py-4 rounded-2xl border border-emerald-500 shadow-inner text-center">
+              {{ currentQuestion().answers[0]?.label || 'Réponse validée' }}
+            </div>
+            @if (currentQuestion().answers.length > 1) {
+              <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
+                <span class="text-sm font-bold text-slate-400">Synonymes / Variantes acceptées :</span>
+                @for (ans of currentQuestion().answers.slice(1); track ans.id) {
+                  <span class="px-3 py-1 bg-slate-800 border border-slate-700 text-slate-200 rounded-xl text-sm font-semibold">
+                    {{ ans.label }}
                   </span>
                 }
-                @if (ans.isCorrect) {
-                  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-slate-950 shadow-xl shrink-0">
-                    <i class="pi pi-check text-xl font-black text-white"></i>
+              </div>
+            }
+          </div>
+        } @else {
+          <!-- Answers Grid with Animated Vote Percentage Bars -->
+          <div class="choice-grid max-w-6xl mx-auto w-full shrink-0 my-auto">
+            @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
+              <div
+                class="choice-card text-white shadow-xl flex-col !items-stretch overflow-hidden relative"
+                [class.choice-revealed-correct]="ans.isCorrect"
+                [class.opacity-40]="!ans.isCorrect"
+                [class.scale-98]="!ans.isCorrect"
+                [class]="getChoiceColorClass(i)">
+
+                <!-- Vote stat background progress fill -->
+                @if (ans.percentage !== undefined && ans.percentage > 0) {
+                  <div
+                    class="absolute inset-y-0 left-0 bg-white/20 pointer-events-none transition-all duration-1000 ease-out"
+                    [style.width.%]="ans.percentage">
                   </div>
                 }
+
+                <div class="relative z-10 flex items-center justify-between w-full">
+                  <div class="flex items-center flex-1 min-w-0 mr-4">
+                    <span class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-black/25 flex items-center justify-center mr-3 shrink-0 shadow-inner gap-1">
+                      <span class="text-sm md:text-base font-black text-white/80 mr-1">{{ i + 1 }}</span>
+                      <quizz-question-icon class="w-5 h-5 md:w-6 md:h-6" [form]="getChoiceForm(i)" [checked]="true" />
+                    </span>
+                    <span class="text-lg md:text-2xl leading-tight font-extrabold truncate">{{ ans.label }}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2 shrink-0">
+                    @if (ans.percentage !== undefined) {
+                      <span class="px-2.5 py-1 bg-black/40 rounded-xl font-mono font-black text-sm md:text-base text-white shadow-inner">
+                        {{ ans.percentage }}% ({{ ans.count ?? 0 }})
+                      </span>
+                    }
+                    @if (ans.isCorrect) {
+                      <div class="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-emerald-500 text-slate-950 shadow-xl shrink-0">
+                        <i class="pi pi-check text-base md:text-lg font-black text-white"></i>
+                      </div>
+                    }
+                  </div>
+                </div>
               </div>
+            }
+          </div>
+        }
+
+        @if (currentQuestion().explanation) {
+          <div class="max-w-4xl mx-auto w-full bg-indigo-950/60 border border-indigo-500/40 rounded-2xl p-3 my-2 text-indigo-100 text-base flex items-start gap-3 shadow-lg shrink-0">
+            <i class="pi pi-info-circle text-xl text-indigo-400 shrink-0 mt-0.5"></i>
+            <div>
+              <strong class="font-bold text-white block mb-0.5">Explication :</strong>
+              <span class="text-sm md:text-base leading-snug">{{ currentQuestion().explanation }}</span>
             </div>
           </div>
         }
       </div>
 
-      @if (currentQuestion().explanation) {
-        <div class="max-w-4xl mx-auto w-full bg-indigo-950/60 border border-indigo-500/40 rounded-2xl p-4 my-2 text-indigo-100 text-lg flex items-start gap-3 shadow-lg">
-          <i class="pi pi-info-circle text-2xl text-indigo-400 shrink-0 mt-0.5"></i>
-          <div>
-            <strong class="font-bold text-white block mb-1">Explication :</strong>
-            <span>{{ currentQuestion().explanation }}</span>
-          </div>
-        </div>
-      }
-
-      <div class="flex justify-between items-center pt-6 border-t border-slate-800/80">
+      <div class="flex justify-between items-center pt-2 pb-1 border-t border-slate-800/80 shrink-0">
         @if (intermediateLeaderboard().length > 0) {
           <button
-            class="px-8 py-4 bg-slate-800/90 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xl rounded-2xl shadow-lg transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+            class="px-6 py-2.5 md:px-8 md:py-3 bg-slate-800/90 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-base md:text-xl rounded-2xl shadow-lg transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2"
             (click)="showIntermediateLeaderboard()">
-            <i class="pi pi-chart-bar text-xl"></i>
-            <span>📊 Voir le Classement</span>
+            <i class="pi pi-chart-bar text-lg"></i>
+            <span>📊 Classement</span>
           </button>
         }
 
         @if (progressionMode() === 'AUTOMATIC') {
-          <div class="flex items-center gap-3 px-6 py-3 rounded-2xl border shadow-md transition-all"
+          <div class="flex items-center gap-2 px-4 py-2 rounded-2xl border shadow-md transition-all text-sm md:text-base"
                [class.bg-amber-950/80]="isPaused()"
                [class.border-amber-400/80]="isPaused()"
                [class.text-amber-300]="isPaused()"
@@ -414,17 +464,17 @@
                [class.border-indigo-500/50]="!isPaused()"
                [class.text-indigo-200]="!isPaused()">
             <i class="pi" [class.pi-pause]="isPaused()" [class.pi-spin]="!isPaused()" [class.pi-spinner]="!isPaused()"></i>
-            <span class="font-bold text-lg">
-              {{ isPaused() ? 'Compte à rebours en pause' : 'Suite automatique dans ' + explanationTimer() + 's' }}
+            <span class="font-bold">
+              {{ isPaused() ? 'Pause' : 'Suite dans ' + explanationTimer() + 's' }}
             </span>
           </div>
         }
 
         <button
-          class="px-10 py-5 bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-2xl rounded-2xl shadow-[0_0_35px_rgba(99,102,241,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+          class="px-8 py-3.5 md:px-10 md:py-4 bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-xl md:text-2xl rounded-2xl shadow-[0_0_35px_rgba(99,102,241,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
           (click)="nextStep()">
           <span>{{ isLastQuestion() ? '🏆 Afficher le Podium Final' : 'Question suivante' }}</span>
-          <i class="pi pi-arrow-right text-2xl"></i>
+          <i class="pi pi-arrow-right text-xl md:text-2xl"></i>
         </button>
       </div>
     </main>
@@ -432,7 +482,7 @@
 
   <!-- INTERMEDIATE LEADERBOARD SCREEN -->
   @if (stage() === 'LEADERBOARD') {
-    <main class="flex-1 flex flex-col justify-between py-6 max-w-5xl mx-auto w-full relative z-20">
+    <main class="flex-1 min-h-0 flex flex-col justify-between py-2 max-w-5xl mx-auto w-full relative z-20 overflow-hidden">
       <div class="text-center">
         <span class="inline-block px-5 py-1.5 bg-amber-950/70 border border-amber-500/60 text-amber-300 font-black text-lg rounded-full mb-3 shadow-md">
           🏆 CLASSEMENT INTERMÉDIAIRE
@@ -499,6 +549,21 @@
           <span>Revoir les réponses</span>
         </button>
 
+        @if (progressionMode() === 'AUTOMATIC') {
+          <div class="flex items-center gap-3 px-6 py-3 rounded-2xl border shadow-md transition-all"
+               [class.bg-amber-950/80]="isPaused()"
+               [class.border-amber-400/80]="isPaused()"
+               [class.text-amber-300]="isPaused()"
+               [class.bg-indigo-950/70]="!isPaused()"
+               [class.border-indigo-500/50]="!isPaused()"
+               [class.text-indigo-200]="!isPaused()">
+            <i class="pi" [class.pi-pause]="isPaused()" [class.pi-spin]="!isPaused()" [class.pi-spinner]="!isPaused()"></i>
+            <span class="font-bold text-lg">
+              {{ isPaused() ? 'Compte à rebours en pause' : 'Suite automatique dans ' + explanationTimer() + 's' }}
+            </span>
+          </div>
+        }
+
         <button
           class="px-10 py-5 bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-2xl rounded-2xl shadow-[0_0_35px_rgba(99,102,241,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
           (click)="nextStep()">
@@ -527,11 +592,11 @@
       }
     }
 
-    <main class="flex-1 flex flex-col items-center justify-center py-6 text-center max-w-6xl mx-auto w-full relative z-20">
-      <div class="mb-4">
-        <span class="text-2xl">🎉 🎊 🏆</span>
+    <main class="flex-1 min-h-0 flex flex-col items-center justify-center py-2 text-center max-w-6xl mx-auto w-full relative z-20 overflow-hidden">
+      <div class="mb-2">
+        <span class="text-xl">🎉 🎊 🏆</span>
       </div>
-      <h2 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 mb-8 drop-shadow-2xl tracking-tight">
+      <h2 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 mb-4 drop-shadow-2xl tracking-tight">
         PODIUM DE LA CLASSE
       </h2>
 

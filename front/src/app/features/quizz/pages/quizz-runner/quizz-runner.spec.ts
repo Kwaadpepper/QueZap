@@ -140,4 +140,73 @@ describe('QuizzRunner', () => {
     const text = fixture.nativeElement.textContent
     expect(text).toContain('Bonne réponse !')
   })
+
+  it('should keep question defined when timer is exhausted so question statement stays available on reveal', () => {
+    const mockQuestion = {
+      id: '018e3a2b-8888-7def-8123-000000000001',
+      type: component['QuestionType'].Boolean,
+      value: 'La Terre est ronde',
+      limit: { seconds: 10 },
+      answers: [],
+    }
+    patchState(sessionStore, { question: mockQuestion as never })
+    fixture.detectChanges()
+
+    expect(component['question']()?.value).toBe('La Terre est ronde')
+
+    component['onTimeExhausted']()
+    fixture.detectChanges()
+
+    expect(component['question']()?.value).toBe('La Terre est ronde')
+
+    patchState(sessionStore, {
+      lastReveal: {
+        slideIndex: 1,
+        correctIndices: [0],
+        stats: [],
+      },
+    })
+    fixture.detectChanges()
+
+    expect(fixture.nativeElement.textContent).toContain('La Terre est ronde')
+  })
+
+  it('should correctly handle and evaluate Cash question responses', () => {
+    const cashQuestion = {
+      id: '018e3a2b-8888-7def-8123-000000000005',
+      type: component['QuestionType'].Cash,
+      value: 'Quelle fleur symbole des Pays-Bas ?',
+      limit: { seconds: 30 },
+      answers: [],
+    }
+    patchState(sessionStore, { question: cashQuestion as never })
+    fixture.detectChanges()
+
+    expect(component['question']()?.value).toBe('Quelle fleur symbole des Pays-Bas ?')
+
+    // Test isChoiceCorrect for Cash with accent and casing tolerance
+    const revealWithCash = {
+      slideIndex: 1,
+      correctIndices: [0],
+      acceptedAnswers: ['Tulipe', 'Tulipe rouge'],
+      mobileCorrectionAllowed: true,
+      stats: [],
+    }
+
+    expect(component['isChoiceCorrect']({ answerIndex: 0, label: '  tulipe  ' }, revealWithCash)).toBe(true)
+    expect(component['isChoiceCorrect']({ answerIndex: 0, label: 'Tulipé' }, revealWithCash)).toBe(true)
+    expect(component['isChoiceCorrect']({ answerIndex: 0, label: 'Rose' }, revealWithCash)).toBe(false)
+
+    patchState(sessionStore, {
+      mySubmittedChoice: { answerIndex: 0, label: 'Tulipe' },
+      lastReveal: revealWithCash,
+    })
+    fixture.detectChanges()
+
+    const text = fixture.nativeElement.textContent
+    expect(text).toContain('Tulipe')
+    expect(text).toContain('Réponse(s) attendue(s)')
+    expect(text).toContain('Tulipe / Tulipe rouge')
+    expect(text).toContain('Bonne réponse !')
+  })
 })

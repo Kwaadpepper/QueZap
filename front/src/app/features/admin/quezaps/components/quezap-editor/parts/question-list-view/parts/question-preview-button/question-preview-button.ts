@@ -37,9 +37,9 @@ export class QuestionPreviewButton {
       case QuestionType.Binary:
         return this.question().answers.slice(0, 2)
       case QuestionType.Boolean:
-        return this.question().answers.slice(0, 2).map(a => ({
+        return this.question().answers.slice(0, 2).map((a, idx) => ({
           ...a,
-          value: '',
+          value: idx === 0 ? 'Vrai' : 'Faux',
         }))
       case QuestionType.Quizz:
       default:
@@ -48,7 +48,13 @@ export class QuestionPreviewButton {
   })
 
   protected readonly hasCorrectAnswer = computed(() => {
-    return this.question().answers.some(a => a.isCorrect)
+    const q = this.question()
+    if (q.type === QuestionType.Cash) {
+      return q.answers.length >= 1
+        && q.answers.some(a => a.isCorrect && Boolean(a.value?.trim()))
+        && q.answers.every(a => Boolean(a.value?.trim()))
+    }
+    return q.answers.some(a => a.isCorrect)
   })
 
   protected onSelectQuestion() {

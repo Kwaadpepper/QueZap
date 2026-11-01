@@ -1,7 +1,20 @@
-<quizz-exit-button />
+<div class="waiting-room-background flex min-h-dvh w-full flex-col p-4 sm:p-6 lg:p-8">
+  <header class="flex w-full shrink-0 items-center justify-end gap-2">
+    @if (isDebug() && readyTonJoinQuizz()) {
+      <p-button
+        aria-label="Démarrer la session (debug)"
+        severity="success"
+        rounded
+        title="Démarrer la session en mode test"
+        (onClick)="onStartSession()"
+      >
+        <quizz-icon name="play-circle" pButtonIcon />
+      </p-button>
+    }
+    <quizz-exit-button />
+  </header>
 
-<div class="waiting-room-background flex min-h-dvh w-full items-center justify-center p-4 sm:p-6 lg:p-8">
-  <div class="relative z-10 w-full max-w-2xl flex flex-col items-center">
+  <div class="relative z-10 m-auto flex w-full max-w-2xl flex-col items-center">
     <div class="mb-6 text-center">
       <span class="inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-300 mb-2">
         Salle d'attente
@@ -10,20 +23,6 @@
         Bienvenue dans le Salon
       </h1>
     </div>
-
-    @if (isDebug() && readyTonJoinQuizz()) {
-      <div class="absolute top-0 right-0 flex justify-center">
-        <p-button
-          aria-label="Démarrer la session (debug)"
-          severity="success"
-          rounded
-          title="Démarrer la session en mode test"
-          (onClick)="onStartSession()"
-        >
-          <quizz-icon name="play-circle" pButtonIcon />
-        </p-button>
-      </div>
-    }
 
     <div class="flex w-full flex-col items-center gap-6">
       <quizz-nickname-chooser class="w-full flex justify-center text-primary" />

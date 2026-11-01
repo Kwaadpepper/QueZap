@@ -1,9 +1,94 @@
-<div class="grid gap-4 xl:grid-cols-2">
-  @for (answer of answers(); track $index) {
-    <quizz-answer
-      [answer]="answer"
-      [readonly]="answersAreReadonly()"
-      (answerChanged)="onAnswerChanged($event)"
-    />
-  }
-</div>
+@if (isCash()) {
+  <div class="flex flex-col gap-4 max-w-3xl mx-auto w-full">
+    <div class="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-sm shadow-xs">
+      <i class="pi pi-info-circle text-lg text-amber-500 shrink-0 mt-0.5"></i>
+      <div class="flex flex-col gap-1">
+        <span class="font-bold">Mode Cash (Saisie libre de texte)</span>
+        <span class="text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
+          Les élèves devront taper la réponse au clavier. QueZap valide automatiquement avec tolérance aux accents, à la casse et aux légères fautes de frappe. Renseignez la réponse principale et jusqu'à 3 synonymes ou variantes acceptées.
+        </span>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      @for (answer of answers(); track answer.index) {
+        <div class="flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all bg-slate-900/40 border-slate-700/60 shadow-sm focus-within:border-emerald-500/70">
+          <div
+            class="shrink-0 flex items-center justify-center w-8 h-8 rounded-xl font-black text-xs"
+            [class]="answer.index === 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-300 border border-slate-700'"
+          >
+            {{ answer.index === 0 ? '★' : answer.index + 1 }}
+          </div>
+
+          <div class="flex-1 flex flex-col min-w-0">
+            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1" [for]="'cash-ans-' + answer.index">
+              {{ answer.index === 0 ? 'Réponse attendue principale (obligatoire)' : 'Variante ou synonyme accepté #' + answer.index }}
+            </label>
+            <input
+              type="text"
+              class="w-full bg-slate-800/80 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 outline-none transition-all"
+              [id]="'cash-ans-' + answer.index"
+              [placeholder]="answer.index === 0 ? 'ex: Napoléon Bonaparte' : 'ex: Bonaparte'"
+              [value]="answer.value ?? ''"
+              (input)="onCashAnswerTextChange(answer.index, $event)"
+            />
+          </div>
+
+          <div class="shrink-0 flex items-center gap-2">
+            @if (canRemoveAnswer()) {
+              <button
+                type="button"
+                class="flex items-center justify-center w-8 h-8 rounded-full text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors focus:outline-hidden cursor-pointer"
+                title="Supprimer cette variante"
+                aria-label="Supprimer cette variante"
+                (click)="removeAnswer(answer.index)"
+              >
+                <i class="pi pi-trash text-sm"></i>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (canAddAnswer()) {
+      <div class="flex justify-center pt-2">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 transition-colors shadow-xs cursor-pointer"
+          (click)="addAnswer()"
+        >
+          <i class="pi pi-plus"></i>
+          <span>Ajouter une variante acceptée</span>
+        </button>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="flex flex-col gap-4">
+    <div class="grid gap-4 xl:grid-cols-2">
+      @for (answer of answers(); track $index) {
+        <quizz-answer
+          [answer]="answer"
+          [readonly]="answersAreReadonly()"
+          [canDelete]="canRemoveAnswer()"
+          (answerChanged)="onAnswerChanged($event)"
+          (deleteAnswer)="removeAnswer($event)"
+        />
+      }
+    </div>
+
+    @if (canAddAnswer()) {
+      <div class="flex justify-center pt-2">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 transition-colors shadow-xs"
+          (click)="addAnswer()"
+        >
+          <i class="pi pi-plus"></i>
+          <span>Ajouter une réponse</span>
+        </button>
+      </div>
+    }
+  </div>
+}

@@ -6,6 +6,7 @@ import { type IS_REFRESHING_ACCESS_TOKEN as _IS_REFRESHING_ACCESS_TOKEN } from '
 import { ServiceOutput } from '@quezap/core/types'
 import { AuthenticatedUser } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
+import { JWT } from '@quezap/domain/types'
 
 export interface AuthenticationService {
   login(email: string, password: string): ServiceOutput<AuthTokens, UnauthorizedError>
@@ -17,7 +18,7 @@ export interface AuthenticationService {
    */
   refresh(tokens: AuthTokens): ServiceOutput<AuthTokens>
 
-  logout(): ServiceOutput<void>
+  logout(refreshToken?: JWT): ServiceOutput<void>
 
   me(): ServiceOutput<AuthenticatedUser, ForbidenError>
 

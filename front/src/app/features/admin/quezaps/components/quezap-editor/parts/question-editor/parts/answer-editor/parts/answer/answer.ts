@@ -29,12 +29,40 @@ export type AnswerInput = AnswerWithResponse
 export class AnswerComponent {
   readonly answer = input.required<AnswerInput>()
   readonly readonly = input.required<boolean>()
+  readonly canDelete = input<boolean>(false)
   readonly answerChanged = output<AnswerInput>()
+  readonly deleteAnswer = output<number>()
 
   protected readonly index = computed(() => this.answer().index)
   protected readonly phrase = computed(() => this.answer().value ?? '')
-  protected readonly currentForm = computed(() => Object.values(QuestionIconType)[this.index()])
   protected readonly isCorrect = computed(() => this.answer().isCorrect)
+
+  protected readonly isBooleanChoice = computed<boolean>(() => {
+    const text = this.phrase().trim().toLowerCase()
+    return text === 'vrai' || text === 'faux'
+  })
+
+  protected readonly currentFormIndex = computed<number>(() => {
+    if (this.isBooleanChoice()) {
+      return this.phrase().trim().toLowerCase() === 'vrai' ? 3 : 0
+    }
+    return this.index() % 4
+  })
+
+  protected readonly currentForm = computed<QuestionIconType>(() => {
+    if (this.isBooleanChoice()) {
+      return this.phrase().trim().toLowerCase() === 'vrai'
+        ? QuestionIconType.Circle
+        : QuestionIconType.Cross
+    }
+    const forms = [
+      QuestionIconType.Circle,
+      QuestionIconType.Diamond,
+      QuestionIconType.Cross,
+      QuestionIconType.Hexagon,
+    ]
+    return forms[this.index() % forms.length]
+  })
 
   protected onPhraseChanged(newPhrase: string) {
     this.answerChanged.emit({

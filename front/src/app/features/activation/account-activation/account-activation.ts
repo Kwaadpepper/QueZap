@@ -1,5 +1,8 @@
-import { Component, ErrorHandler, inject, OnInit, signal } from '@angular/core'
-import { Router } from '@angular/router'
+import {
+  Component, DestroyRef, ErrorHandler, inject, OnInit, signal,
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { ActivatedRoute, Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
 import { Message } from 'primeng/message'
@@ -22,24 +25,19 @@ import { ACCOUNT_ACTIVATION_SERVICE } from '../services'
   templateUrl: './account-activation.html',
 })
 export class AccountActivation implements OnInit {
+  private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly message = inject(MessageService)
   private readonly activationService = inject(ACCOUNT_ACTIVATION_SERVICE)
   private readonly errorHandler = inject(ErrorHandler)
 
   protected readonly errorOccurred = signal(false)
 
-  readonly #activationToken: string | null = null
-
-  constructor() {
-    const query = this.router.currentNavigation()?.initialUrl.queryParamMap ?? null
-
-    this.#activationToken = query?.get('token') ?? null
-  }
-
   ngOnInit() {
-    const token = this.#activationToken
+    const token = this.route.snapshot.queryParamMap.get('token')?.trim() || null
     if (token === null) {
+      this.errorOccurred.set(true)
       this.message.add({
         severity: 'info',
         summary: 'Vous avez été redirigé',
@@ -50,6 +48,7 @@ export class AccountActivation implements OnInit {
 
     firstValueFrom(
       this.activationService.activate(token).pipe(
+        takeUntilDestroyed(this.destroyRef),
         tap((result) => {
           if (isSuccess(result)) {
             this.message.add({
@@ -62,6 +61,7 @@ export class AccountActivation implements OnInit {
           }
 
           if (result.error instanceof ValidationError) {
+            this.errorOccurred.set(true)
             this.message.add({
               severity: 'error',
               summary: 'Échec de l\'activation',

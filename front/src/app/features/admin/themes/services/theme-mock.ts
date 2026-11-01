@@ -155,6 +155,29 @@ export class ThemeMockService implements ThemeService {
     )
   }
 
+  delete(themeId: ThemeId): ServiceOutput<void> {
+    return of(themeId).pipe(
+      delay(this.MOCK_DELAY()),
+      map((id) => {
+        const existingTheme = this.getTheme(id)
+
+        if (!existingTheme) {
+          return {
+            kind: 'failure' as const,
+            error: new NotFoundError('Thème non trouvé'),
+          }
+        }
+
+        this.mockedThemes.update(themes => themes.filter(t => t.id !== id))
+
+        return {
+          kind: 'success' as const,
+          result: undefined,
+        }
+      }),
+    )
+  }
+
   private getTheme(id: UUID): Theme | undefined {
     return this.mockedThemes().find(theme => theme.id === id)
   }

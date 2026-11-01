@@ -28,7 +28,7 @@
   } @else {
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       @for (quezap of quezaps(); track quezap.id) {
-        <quizz-quezap-card [quezap]="quezap" [editable]="true" />
+        <quizz-quezap-card [quezap]="quezap" [editable]="isEditable(quezap)" />
       }
     </div>
   }

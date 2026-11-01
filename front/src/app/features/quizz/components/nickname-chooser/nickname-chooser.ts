@@ -16,6 +16,7 @@ import { Config } from '@quezap/core/services/config/config'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
+import { ActiveSessionPersistence } from '../../services/active-session-persistence/active-session-persistence'
 import { ActiveSessionStore } from '../../stores'
 
 @Component({
@@ -35,6 +36,7 @@ export class NicknameChooser {
   private readonly config = inject(Config)
   private readonly message = inject(MessageService)
   private readonly sessionStore = inject(ActiveSessionStore)
+  private readonly sessionPersistence = inject(ActiveSessionPersistence)
 
   protected readonly loading = signal(false)
   protected readonly isDebug = computed(() => this.config.debug())
@@ -43,8 +45,8 @@ export class NicknameChooser {
   protected readonly conflictError = signal<string | null>(null)
 
   private readonly nickname = signal({
-    nicknameValue: this.sessionStore.nickname()?.value() ?? '',
-    rememberMe: this.sessionStore.nickname()?.remembered() ?? false,
+    nicknameValue: this.sessionStore.nickname()?.value() ?? this.sessionPersistence.retrieve()?.nickname ?? '',
+    rememberMe: this.sessionStore.nickname()?.remembered() ?? Boolean(this.sessionPersistence.retrieve()?.nickname),
   })
 
   protected nicknameForm = form(this.nickname, (path) => {

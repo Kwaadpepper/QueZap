@@ -71,27 +71,16 @@ export class QuizzQuestionView {
       })
       this.hasSubmitted.set(false)
     })
-
-    effect(() => {
-      const resp = this.responses()
-      if (this.hasSubmitted()) return
-      for (const [key, val] of Object.entries(resp)) {
-        if (val === true) {
-          this.hasSubmitted.set(true)
-          const chosenIdx = Number(key)
-          const chosenAnswer = this.question().answers.find(a => a.index === chosenIdx)
-          this.sessionStore.submitMyChoice(chosenIdx, chosenAnswer?.value || `Choix ${chosenIdx + 1}`)
-          this.sessionApi.submitAnswer(chosenIdx).subscribe()
-          break
-        }
-      }
-    })
   }
 
   protected selectAnswer(index: number) {
-    if (this.cannotAnswerAnymore() || this.hasSubmitted()) return
+    if (this.cannotAnswerAnymore()) return
     this.responses.set(
       Object.fromEntries(this.question().answers.map(a => [a.index, a.index === index])),
     )
+    this.hasSubmitted.set(true)
+    const chosenAnswer = this.question().answers.find(a => a.index === index)
+    this.sessionStore.submitMyChoice(index, chosenAnswer?.value || `Choix ${index + 1}`)
+    this.sessionApi.submitAnswer(index).subscribe()
   }
 }

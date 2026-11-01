@@ -2,32 +2,20 @@
   <div
     role="status"
     aria-live="polite"
-    class="my-2 flex items-center gap-3 rounded-2xl bg-amber-500/20 border border-amber-500/60 px-4 py-2 shadow-lg backdrop-blur-md transition-all motion-safe:animate-bounce"
+    class="my-1.5 flex items-center gap-2 rounded-full bg-amber-500/90 text-slate-950 px-3.5 py-1 shadow-lg font-bold text-xs sm:text-sm whitespace-nowrap"
   >
-    <span class="text-2xl select-none" aria-hidden="true">⏱️</span>
-    <div class="select-none">
-      <strong class="text-sm font-black text-amber-900 dark:text-amber-300">Dépêchez-vous !</strong>
-      @if (timeLeft()) {
-        <div class="text-xs text-amber-800 dark:text-amber-200">
-          Il ne reste que <span class="font-mono font-bold text-sm">{{ timeLeft() }}s</span> pour valider.
-        </div>
-      }
-    </div>
+    <span class="text-base select-none" aria-hidden="true">⏱️</span>
+    <span>Plus que <strong class="font-mono font-black">{{ timeLeft() }}s</strong></span>
   </div>
 }
 @if (timesUp()) {
   <div
     role="alert"
     aria-live="assertive"
-    class="my-2 flex items-center gap-3 rounded-2xl bg-red-500/20 border border-red-500/60 px-4 py-2 shadow-lg backdrop-blur-md transition-all"
+    class="my-1.5 flex items-center gap-2 rounded-full bg-rose-600 text-white px-3.5 py-1 shadow-lg font-bold text-xs sm:text-sm whitespace-nowrap"
   >
-    <span class="text-2xl select-none" aria-hidden="true">⏰</span>
-    <div class="select-none">
-      <strong class="text-sm font-black text-red-900 dark:text-red-300">Temps écoulé !</strong>
-      <div class="text-xs text-red-800 dark:text-red-200">
-        Vos réponses sont enregistrées et verrouillées.
-      </div>
-    </div>
+    <span class="text-base select-none" aria-hidden="true">🔒</span>
+    <span>Temps écoulé — Réponses verrouillées</span>
   </div>
 }
 

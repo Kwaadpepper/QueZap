@@ -1,0 +1,86 @@
+<div class="flex w-full flex-1 flex-col items-center justify-between gap-3 px-2 py-1 sm:px-4">
+  <!-- QUESTION TITLE & ALERT -->
+  <header class="flex w-full flex-col items-center gap-2">
+    <div class="question-background w-full rounded px-4 py-2.5 shadow-md md:w-fit">
+      <h1 class="question-phrase">
+        {{ phrase() }}
+      </h1>
+    </div>
+
+    @let secondsLeft = timeLeft();
+    @if (secondsLeft !== undefined && !isRevealing()) {
+      <quizz-question-alert [timeLeft]="secondsLeft" [isRevealing]="isRevealing()" />
+    }
+  </header>
+
+  <!-- CONTENT FRAME -->
+  <div class="relative flex w-full grow flex-col gap-4 rounded-2xl border-0 p-2 sm:p-4 max-w-2xl mx-auto justify-center">
+    <!-- QUESTION ELEMENTS -->
+    @let pictureUrl = picture();
+    @if (pictureUrl !== undefined) {
+      <div class="flex w-full flex-col items-center justify-center px-5">
+        <div class="question-background flex w-fit flex-col rounded-xl p-2 shadow-md">
+          <quizz-picture aria-labelledby="question-image-desc" [pictureUrl]="pictureUrl" />
+          <span id="question-image-desc" class="ms-4 text-xl select-none">
+            Image de la question
+          </span>
+        </div>
+      </div>
+    }
+
+    <!-- CASH FREE-FORM INPUT FORM -->
+    <form
+      class="flex flex-col gap-4 w-full"
+      (ngSubmit)="submitAnswer()"
+    >
+      <div class="flex flex-col gap-2">
+        <label for="cash-input" class="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
+          <span>✍️</span>
+          <span>Votre réponse</span>
+        </label>
+        <div class="relative flex items-center">
+          <input
+            id="cash-input"
+            name="cashInput"
+            type="text"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            class="w-full text-lg sm:text-xl font-bold rounded-2xl border-2 px-4 py-3.5 sm:py-4 bg-slate-900/90 text-white placeholder-slate-500 shadow-xl transition-all outline-none"
+            placeholder="Tape ta réponse ici..."
+            [class]="cannotAnswerAnymore() ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-amber-500/80 focus:border-amber-400 focus:ring-4 focus:ring-amber-500/20'"
+            [disabled]="cannotAnswerAnymore()"
+            [ngModel]="textInput()"
+            (ngModelChange)="textInput.set($event)"
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full flex items-center justify-center gap-2 py-3.5 sm:py-4 px-6 rounded-2xl font-black text-base sm:text-lg uppercase tracking-wider text-slate-950 transition-all shadow-xl active:scale-[0.98]"
+        [class]="cannotAnswerAnymore() || !textInput().trim() ? 'bg-slate-700 text-slate-400 opacity-60 cursor-not-allowed' : 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 cursor-pointer shadow-amber-500/25 hover:shadow-amber-500/40'"
+        [disabled]="cannotAnswerAnymore() || !textInput().trim()"
+      >
+        <span>{{ hasSubmitted() ? 'Mettre à jour la réponse' : 'Valider ma réponse' }}</span>
+        <i class="pi pi-send"></i>
+      </button>
+    </form>
+
+    <!-- SUBMISSION STATUS -->
+    @if (hasSubmitted()) {
+      <div
+        role="status"
+        aria-live="polite"
+        class="flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/60 bg-emerald-950/80 px-4 py-3 text-emerald-200 shadow-lg animate-fade-in"
+      >
+        <div class="flex items-center gap-2 font-bold text-sm min-w-0">
+          <span class="text-lg shrink-0" aria-hidden="true">✓</span>
+          <span class="truncate">Réponse envoyée : « {{ lastSubmittedText() }} »</span>
+        </div>
+        <span class="text-xs text-emerald-300/80 shrink-0 font-medium">Modifiable</span>
+      </div>
+    }
+  </div>
+</div>

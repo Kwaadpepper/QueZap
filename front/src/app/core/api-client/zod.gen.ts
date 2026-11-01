@@ -111,7 +111,8 @@ export const zNextQuestionResponseDto = z.object({
 
 export const zSubmitAnswerRequest = z.object({
     slideIndex: z.int().gte(1).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
-    answerIndex: z.int().gte(0).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    answerIndex: z.int().gte(0).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    textAnswer: z.string().optional()
 });
 
 export const zAnswerSubmittedDto = z.object({
@@ -614,6 +615,19 @@ export const zNextQuestionPath = z.object({
  * OK
  */
 export const zNextQuestionResponse = zNextQuestionResponseDto;
+
+export const zLeaveSessionHeaders = z.object({
+    'X-Participant-Token': z.string().optional()
+});
+
+export const zLeaveSessionPath = z.object({
+    id: z.uuid()
+});
+
+/**
+ * No Content
+ */
+export const zLeaveSessionResponse = z.void();
 
 export const zSubmitAnswerBody = zSubmitAnswerRequest;
 

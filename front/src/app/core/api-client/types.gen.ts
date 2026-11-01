@@ -113,7 +113,8 @@ export type NextQuestionResponseDto = {
 
 export type SubmitAnswerRequest = {
     slideIndex?: number;
-    answerIndex: number;
+    answerIndex?: number;
+    textAnswer?: string;
 };
 
 export type AnswerSubmittedDto = {
@@ -755,6 +756,27 @@ export type NextQuestionResponses = {
 };
 
 export type NextQuestionResponse = NextQuestionResponses[keyof NextQuestionResponses];
+
+export type LeaveSessionData = {
+    body?: never;
+    headers?: {
+        'X-Participant-Token'?: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/apiv1/sessions/{id}/leave';
+};
+
+export type LeaveSessionResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type LeaveSessionResponse = LeaveSessionResponses[keyof LeaveSessionResponses];
 
 export type SubmitAnswerData = {
     body: SubmitAnswerRequest;

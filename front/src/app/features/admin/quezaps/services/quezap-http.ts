@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core'
+import { inject, Injectable } from '@angular/core'
 
 import { catchError, from, map, of } from 'rxjs'
 
@@ -16,16 +16,20 @@ import { client } from '@quezap/core/api-client/client.gen'
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import {
-  QuestionId, QuestionType, QuestionWithAnswersAndResponses, Quezap, QuezapId,
-  QuezapWithQuestionsAndAnswers, QuezapWithTheme, Theme, ThemeId,
+  PictureUrl, QuestionId, QuestionType, QuestionWithAnswersAndResponses, Quezap, QuezapId,
+  QuezapWithQuestionsAndAnswers, QuezapWithTheme, Theme, ThemeId, UserId,
 } from '@quezap/domain/models'
+import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 import { QuezapService } from './quezap'
 
 @Injectable({ providedIn: 'root' })
 export class QuezapHttpService implements QuezapService {
+  private readonly authStore = inject(AuthenticatedUserStore)
+
   getQuezapPage(page: Pagination): ServiceOutput<PageOf<QuezapWithTheme>> {
     const p = toPageBasedPagination(page)
+    const authorId = this.authStore.currentUser()?.id
 
     return from(
       client.get<{ 200: PageOfDtoQuezapSummaryDto }>({
@@ -33,6 +37,7 @@ export class QuezapHttpService implements QuezapService {
         query: {
           page: p.page,
           pageSize: p.pageSize,
+          ...(authorId ? { authorId } : {}),
         },
       }),
     ).pipe(
@@ -51,6 +56,7 @@ export class QuezapHttpService implements QuezapService {
               id: (q.id ?? '') as QuezapId,
               title: q.title ?? '',
               description: q.description || '',
+              authorId: q.authorId ? (q.authorId as UserId) : undefined,
               totalQuestions: q.totalQuestions ?? 0,
               theme: {
                 id: '018e3a2b-8888-7def-8123-abcdef888888' as ThemeId,
@@ -97,18 +103,42 @@ export class QuezapHttpService implements QuezapService {
             id: (data.id ?? quezapId) as QuezapId,
             title: data.title ?? '',
             description: data.description || '',
-            questionWithAnswersAndResponses: slides.map(s => ({
-              id: (s.question?.id ?? '') as QuestionId,
-              value: s.question?.label ?? '',
-              type: (s.question?.type as QuestionType) || QuestionType.Quizz,
-              limit: { seconds: s.timer || 30 },
-              answers: (s.question?.answers || []).map((a, idx) => ({
-                index: idx,
-                points: s.points || 1000,
-                value: a.label ?? '',
-                isCorrect: a.isCorrect ?? false,
-              })),
-            })),
+            questionWithAnswersAndResponses: slides.map((s) => {
+              const type = (s.question?.type as QuestionType) || QuestionType.Quizz
+              const rawAnswers = s.question?.answers || []
+              const points = s.points || 1000
+              const answers = type === QuestionType.Boolean && rawAnswers.length === 1
+                ? [
+                    {
+                      index: 0,
+                      points,
+                      value: 'Vrai',
+                      isCorrect: Boolean(rawAnswers[0].isCorrect),
+                    },
+                    {
+                      index: 1,
+                      points,
+                      value: 'Faux',
+                      isCorrect: !rawAnswers[0].isCorrect,
+                    },
+                  ]
+                : rawAnswers.map((a, idx) => ({
+                    index: idx,
+                    points,
+                    value: a.label ?? '',
+                    isCorrect: a.isCorrect ?? false,
+                    ...(a.pictureUrl ? { picture: a.pictureUrl as PictureUrl } : {}),
+                  }))
+
+              return {
+                id: (s.question?.id ?? '') as QuestionId,
+                value: s.question?.label ?? '',
+                type,
+                ...(s.question?.pictureUrl ? { picture: s.question.pictureUrl as PictureUrl } : {}),
+                limit: { seconds: s.timer || 30 },
+                answers,
+              }
+            }),
           },
         }
       }),
@@ -211,6 +241,7 @@ export class QuezapHttpService implements QuezapService {
       const answers: InlineAnswerRequest[] = q.answers.map((a, aIdx) => ({
         label: a.value || `Option ${aIdx + 1}`,
         isCorrect: a.isCorrect,
+        ...(a.picture ? { pictureFilename: a.picture } : {}),
         answerOrder: aIdx + 1,
       }))
 
@@ -218,6 +249,7 @@ export class QuezapHttpService implements QuezapService {
         id: q.id && String(q.id).length > 0 ? q.id : undefined,
         label: q.value,
         type: q.type || 'QUIZZ',
+        ...(q.picture ? { pictureFilename: q.picture } : {}),
         answers,
       }
 
@@ -257,6 +289,35 @@ export class QuezapHttpService implements QuezapService {
           error: new ValidationError(
             {},
             error instanceof Error ? error.message : 'Erreur lors de la duplication du Quezap',
+          ),
+        }),
+      ),
+    )
+  }
+
+  deleteQuezap(quezapId: QuezapId): ServiceOutput<void> {
+    return from(
+      client.delete<void>({ url: `/apiv1/quezaps/${quezapId}` }),
+    ).pipe(
+      map(({ error }) => {
+        if (error) {
+          return {
+            kind: 'failure' as const,
+            error: new ValidationError({}, 'Erreur lors de la suppression du Quezap'),
+          }
+        }
+
+        return {
+          kind: 'success' as const,
+          result: undefined,
+        }
+      }),
+      catchError((error: unknown) =>
+        of({
+          kind: 'failure' as const,
+          error: new ValidationError(
+            {},
+            error instanceof Error ? error.message : 'Erreur lors de la suppression du Quezap',
           ),
         }),
       ),

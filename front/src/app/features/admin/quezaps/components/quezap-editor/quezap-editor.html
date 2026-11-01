@@ -1,5 +1,5 @@
-<div class="flex h-dvh flex-col">
-  <nav class="bg-surface-200 dark:bg-surface-800 flex p-2 drop-shadow-md">
+<div class="flex h-dvh flex-col overflow-hidden">
+  <nav class="bg-surface-200 dark:bg-surface-800 flex flex-wrap items-center gap-2 p-2 drop-shadow-md">
     <quizz-title-editor class="mx-4" />
 
     <!-- Editorial buttons -->
@@ -17,7 +17,7 @@
         }
       </p-button>
 
-      @if (quezap()?.id) {
+      @if (savedQuezapId()) {
         <p-button
           label="Lancer en direct"
           raised
@@ -45,11 +45,11 @@
     </p-confirmdialog>
   </nav>
 
-  <div class="flex grow flex-row">
+  <div class="flex min-h-0 grow flex-col md:flex-row overflow-hidden">
     <!-- Sidebar with questions list -->
-    <quizz-question-list-view class="h-full max-h-[calc(100dvh-4rem)] basis-1/6" />
+    <quizz-question-list-view class="h-56 w-full shrink-0 md:h-full md:max-h-none md:w-72 md:min-w-64 lg:basis-1/5" />
 
     <!-- Question editor -->
-    <quizz-question-editor class="w-full" />
+    <quizz-question-editor class="min-h-0 min-w-0 w-full grow overflow-y-auto" />
   </div>
 </div>

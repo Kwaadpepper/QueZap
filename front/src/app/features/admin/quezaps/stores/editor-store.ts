@@ -18,7 +18,7 @@ import {
 import { ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
 import {
-  emptyRawQuezap, QuestionType, QuestionTypeFrom,
+  emptyRawQuezap, QuestionId, QuestionType, QuestionTypeFrom,
   QuezapId,
   QuezapWithQuestionsAndAnswers,
 } from '@quezap/domain/models'
@@ -29,6 +29,15 @@ type QuezapEditorStateModel = Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?:
 type QuestionWithAnswers = QuezapWithQuestionsAndAnswers['questionWithAnswersAndResponses'][0]
 
 const DEFAULT_QUESTION_TYPE = QuestionType.Quizz
+
+function isQuestionAnswersValid(q: QuestionWithAnswers): boolean {
+  if (q.type === QuestionType.Cash) {
+    return q.answers.length >= 1
+      && q.answers.some(a => a.isCorrect && Boolean(a.value?.trim()))
+      && q.answers.every(a => Boolean(a.value?.trim()))
+  }
+  return q.answers.some(a => a.isCorrect)
+}
 
 function createEmptyQuezapState(type: QuestionType = DEFAULT_QUESTION_TYPE): QuezapEditorStateModel {
   const newQuestion = QuestionTypeFrom(type).getNewWithAnswers()
@@ -66,7 +75,7 @@ export const QuezapEditorStore = signalStore(
     ),
     hasInvalidAnswers: computed(() =>
       quezap().questionWithAnswersAndResponses.some(
-        q => !q.answers.some(a => a.isCorrect),
+        q => !isQuestionAnswersValid(q),
       ),
     ),
   })),
@@ -78,6 +87,17 @@ export const QuezapEditorStore = signalStore(
         quezap: newQuezap,
         isDirty: false,
       })
+    },
+
+    updateTitle(title: string) {
+      const trimmedTitle = title.trim()
+      if (store.quezap().title === trimmedTitle) {
+        return
+      }
+      patchState(store, state => ({
+        quezap: { ...state.quezap, title: trimmedTitle },
+        isDirty: true,
+      }))
     },
 
     setSelectionQuestionIdx(idx: number) {
@@ -115,6 +135,7 @@ export const QuezapEditorStore = signalStore(
         const questionToDuplicate = currentQuestions[idx]
         const duplicatedQuestion: QuestionWithAnswers = {
           ...questionToDuplicate,
+          id: '' as QuestionId,
           answers: questionToDuplicate.answers.map(a => ({ ...a })),
           ...(questionToDuplicate.limit ? { limit: { ...questionToDuplicate.limit } } : {}),
         }
@@ -201,14 +222,30 @@ export const QuezapEditorStore = signalStore(
     },
 
     async persist(): Promise<QuezapWithQuestionsAndAnswers> {
+      const currentQuezap = store.quezap()
+      if (!currentQuezap.title.trim()) {
+        throw new ValidationError(
+          {},
+          'Le titre du questionnaire ne peut pas être vide',
+        )
+      }
+
       const questions = store.questions()
+      const hasEmptyQuestion = questions.some(q => !q.value.trim())
+      if (hasEmptyQuestion) {
+        throw new ValidationError(
+          {},
+          'Chaque question doit comporter un énoncé non vide',
+        )
+      }
+
       const hasUncheckedQuestion = questions.some(
-        q => !q.answers.some(a => a.isCorrect),
+        q => !isQuestionAnswersValid(q),
       )
       if (hasUncheckedQuestion) {
         throw new ValidationError(
           {},
-          'Chaque question doit comporter au moins une bonne réponse cochée',
+          'Chaque question doit comporter au moins une bonne réponse valide',
         )
       }
 
@@ -221,18 +258,39 @@ export const QuezapEditorStore = signalStore(
               return throwError(() => output.error)
             }
 
-            const savedQuezap: QuezapWithQuestionsAndAnswers = {
+            const fallbackQuezap: QuezapWithQuestionsAndAnswers = {
               ...store.quezap(),
               id: output.result.id,
             }
 
-            patchState(store, {
-              quezap: savedQuezap,
-              isDirty: false,
-              persisting: false,
-            })
+            if (typeof service.find !== 'function') {
+              patchState(store, {
+                quezap: fallbackQuezap,
+                isDirty: false,
+                persisting: false,
+              })
+              return of(fallbackQuezap)
+            }
 
-            return of(savedQuezap)
+            return service.find(output.result.id).pipe(
+              switchMap((findOutput) => {
+                const savedQuezap = isFailure(findOutput) ? fallbackQuezap : findOutput.result
+                patchState(store, {
+                  quezap: savedQuezap,
+                  isDirty: false,
+                  persisting: false,
+                })
+                return of(savedQuezap)
+              }),
+              catchError(() => {
+                patchState(store, {
+                  quezap: fallbackQuezap,
+                  isDirty: false,
+                  persisting: false,
+                })
+                return of(fallbackQuezap)
+              }),
+            )
           }),
           catchError((err) => {
             patchState(store, { persisting: false })

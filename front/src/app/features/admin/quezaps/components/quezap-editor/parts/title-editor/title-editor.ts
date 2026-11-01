@@ -40,10 +40,6 @@ export class TitleEditor {
 
   // * closeCallback est appelé par PrimeNG lors de la désactivation
   protected closeCallback() {
-    const updatedQuezap = {
-      ...this.editorStore.quezap(),
-      title: this.editedTitle().trim(),
-    }
-    this.editorStore.setQuezap(updatedQuezap)
+    this.editorStore.updateTitle(this.editedTitle())
   }
 }

@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute } from '@angular/router'
 
 import { QRCodeComponent } from 'angularx-qrcode'
+import { Image } from 'primeng/image'
 
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
@@ -33,6 +34,7 @@ interface QuestionPresenterModel {
   type?: string
   pictureUrl?: string
   explanation?: string
+  acceptedAnswers?: string[]
   answers: {
     id: string
     label: string
@@ -57,6 +59,7 @@ interface SseAnswer {
   index?: number
   label?: string
   value?: string
+  pictureUrl?: string
   pictureFilename?: string
 }
 
@@ -64,12 +67,14 @@ interface SseQuestion {
   id?: string
   type?: string
   label?: string
+  pictureUrl?: string
   pictureFilename?: string
   answers?: SseAnswer[]
 }
 
 interface SsePayload {
   id?: string
+  pictureUrl?: string
   pictureFilename?: string
   participants?: SseParticipant[]
   timerSeconds?: number
@@ -85,6 +90,7 @@ interface SsePayload {
   question?: SseQuestion
   correctAnswerIds?: string[]
   correctAnswerIndices?: number[]
+  acceptedAnswers?: string[]
   answeredCount?: number
   totalCount?: number
   leaderboard?: IntermediateLeaderboardEntry[]
@@ -99,7 +105,7 @@ interface SseEnvelope {
   selector: 'quizz-session-presenter',
   templateUrl: './session-presenter.html',
   styleUrls: ['./session-presenter.css'],
-  imports: [QRCodeComponent, QuestionIcon],
+  imports: [QRCodeComponent, QuestionIcon, Image],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SessionPresenter implements OnInit, OnDestroy {
@@ -140,7 +146,11 @@ export class SessionPresenter implements OnInit, OnDestroy {
       explanationDurationSeconds: this.explanationDurationSeconds(),
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
 
-    if (mode === 'AUTOMATIC' && this.stage() === 'REVEAL' && !this.explanationTimerInterval) {
+    if (
+      mode === 'AUTOMATIC'
+      && (this.stage() === 'REVEAL' || this.stage() === 'LEADERBOARD')
+      && !this.explanationTimerInterval
+    ) {
       this.startExplanationCountdown()
     }
     else if (mode === 'MANUAL') {
@@ -463,7 +473,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       if (current <= 1) {
         this.explanationTimer.set(0)
         this.stopExplanationCountdown()
-        if (this.stage() === 'REVEAL') {
+        if (this.stage() === 'REVEAL' || this.stage() === 'LEADERBOARD') {
           this.nextStep()
         }
       }
@@ -590,16 +600,22 @@ export class SessionPresenter implements OnInit, OnDestroy {
           const q = payload.question || payload
           const qType = (q as { type?: string }).type || (payload as { type?: string }).type || ''
           const rawAnswers = q.answers || payload.answers || []
-          const picture = q.pictureFilename || payload.pictureFilename || (q as { picture?: string }).picture
+          const picture
+            = q.pictureUrl
+              || q.pictureFilename
+              || payload.pictureUrl
+              || payload.pictureFilename
+              || (q as { picture?: string }).picture
           let mappedAnswers = rawAnswers.map((a: SseAnswer, idx: number) => ({
             id: a.id || String(a.index ?? idx),
             label: a.label || a.value || '',
+            pictureFilename: a.pictureUrl || a.pictureFilename || (a as { picture?: string }).picture,
             isCorrect: false,
           }))
           if (qType === 'BOOLEAN' && mappedAnswers.length <= 1) {
             mappedAnswers = [
-              { id: '0', label: 'Vrai', isCorrect: false },
-              { id: '1', label: 'Faux', isCorrect: false },
+              { id: '0', label: 'Vrai', pictureFilename: undefined, isCorrect: false },
+              { id: '1', label: 'Faux', pictureFilename: undefined, isCorrect: false },
             ]
           }
           this.currentQuestion.set({
@@ -624,20 +640,37 @@ export class SessionPresenter implements OnInit, OnDestroy {
             payload as { answersStats?: { answerIndex: number, count: number, percentage: number }[] }
           ).answersStats || []
           const explanation = (payload as { explanation?: string }).explanation
+          const acceptedAnswers: string[] = payload.acceptedAnswers || []
 
-          this.currentQuestion.update(q => ({
-            ...q,
-            explanation: explanation || q.explanation,
-            answers: q.answers.map((a, idx) => {
-              const stat = stats.find(s => s.answerIndex === idx)
-              return {
-                ...a,
-                isCorrect: correctIds.includes(a.id) || correctIndices.includes(idx),
-                count: stat?.count ?? 0,
-                percentage: stat ? Math.round(stat.percentage) : 0,
-              }
-            }),
-          }))
+          this.currentQuestion.update((q) => {
+            const updatedAnswers = (q.type === 'CASH' && acceptedAnswers.length > 0)
+              ? acceptedAnswers.map((label, idx) => {
+                  const stat = stats.find(s => s.answerIndex === idx)
+                  return {
+                    id: String(idx),
+                    label,
+                    isCorrect: true,
+                    count: stat?.count ?? 0,
+                    percentage: stat ? Math.round(stat.percentage) : 0,
+                  }
+                })
+              : q.answers.map((a, idx) => {
+                  const stat = stats.find(s => s.answerIndex === idx)
+                  return {
+                    ...a,
+                    isCorrect: correctIds.includes(a.id) || correctIndices.includes(idx),
+                    count: stat?.count ?? 0,
+                    percentage: stat ? Math.round(stat.percentage) : 0,
+                  }
+                })
+
+            return {
+              ...q,
+              explanation: explanation || q.explanation,
+              acceptedAnswers: acceptedAnswers.length > 0 ? acceptedAnswers : q.acceptedAnswers,
+              answers: updatedAnswers,
+            }
+          })
         }
         break
       }
@@ -694,11 +727,21 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.sessionService.getScores(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
       if (output.kind === 'success') {
         const leaderboard = output.result.leaderboard || []
-        this.leaderboard.set(leaderboard.map(s => ({ name: s.participantName || '', score: s.score || 0 })))
-        if (!this.classMetrics() && leaderboard.length > 0) {
-          const avg = Math.round(leaderboard.reduce((acc, cur) => acc + (cur.score || 0), 0) / leaderboard.length)
+        const seen = new Set<string>()
+        const cleanLeaderboard: LeaderboardItem[] = []
+        for (const item of leaderboard) {
+          const key = (item.participantName || '').trim().toLowerCase()
+          if (key && !seen.has(key)) {
+            seen.add(key)
+            cleanLeaderboard.push({ name: item.participantName || '', score: item.score || 0 })
+          }
+        }
+        this.leaderboard.set(cleanLeaderboard)
+        if (!this.classMetrics() && cleanLeaderboard.length > 0) {
+          const totalScore = cleanLeaderboard.reduce((acc, cur) => acc + (cur.score || 0), 0)
+          const avg = Math.round(totalScore / cleanLeaderboard.length)
           this.classMetrics.set({
-            totalParticipants: leaderboard.length,
+            totalParticipants: cleanLeaderboard.length,
             averageScore: avg,
             globalSuccessRate: 0,
           })

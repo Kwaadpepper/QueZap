@@ -19,6 +19,8 @@ export class AnswerEditor {
   private readonly booleanToggle = signal(0)
 
   protected readonly selectedQuestion = computed(() => this.editorStore.selectedQuestion())
+  protected readonly isCash = computed(() => this.selectedQuestion().type === QuestionType.Cash)
+
   // * This is used for displaying answers in the editor
   protected readonly answers = computed(() => {
     switch (this.selectedQuestion().type) {
@@ -37,6 +39,8 @@ export class AnswerEditor {
         ]
       case QuestionType.Binary:
         return this.selectedQuestion().answers.slice(0, 2)
+      case QuestionType.Cash:
+        return this.selectedQuestion().answers
       case QuestionType.Quizz:
       default:
         return this.selectedQuestion().answers
@@ -45,14 +49,129 @@ export class AnswerEditor {
 
   protected readonly answersAreReadonly = computed(() => this.selectedQuestion().type === QuestionType.Boolean)
 
+  protected readonly canAddAnswer = computed(() => {
+    const type = this.selectedQuestion().type
+    if (type === QuestionType.Quizz || type === QuestionType.Cash) {
+      return this.selectedQuestion().answers.length < 4
+    }
+    return false
+  })
+
+  protected readonly canRemoveAnswer = computed(() => {
+    const type = this.selectedQuestion().type
+    if (type === QuestionType.Quizz) {
+      return this.selectedQuestion().answers.length > 2
+    }
+    if (type === QuestionType.Cash) {
+      return this.selectedQuestion().answers.length > 1
+    }
+    return false
+  })
+
+  protected addAnswer() {
+    if (!this.canAddAnswer()) {
+      return
+    }
+    const currentQuestion = this.selectedQuestion()
+    const nextIndex = currentQuestion.answers.length
+    const isCash = currentQuestion.type === QuestionType.Cash
+    const updatedAnswers = [
+      ...currentQuestion.answers,
+      {
+        ...getNewAnswerWithResponse(nextIndex),
+        isCorrect: isCash ? true : false,
+        picture: undefined,
+      },
+    ]
+    this.editorStore.updateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
+      {
+        ...currentQuestion,
+        answers: updatedAnswers,
+      },
+    )
+  }
+
+  protected removeAnswer(indexToRemove: number) {
+    if (!this.canRemoveAnswer()) {
+      return
+    }
+    const currentQuestion = this.selectedQuestion()
+    const isCash = currentQuestion.type === QuestionType.Cash
+    const filteredAnswers = currentQuestion.answers.filter((_, idx) => idx !== indexToRemove)
+    // Re-index remaining answers
+    const reindexedAnswers = filteredAnswers.map((answer, idx) => ({
+      ...answer,
+      index: idx,
+      isCorrect: isCash ? true : answer.isCorrect,
+      picture: isCash ? undefined : answer.picture,
+    }))
+    this.editorStore.updateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
+      {
+        ...currentQuestion,
+        answers: reindexedAnswers,
+      },
+    )
+  }
+
+  protected onCashAnswerTextChange(index: number, event: Event) {
+    const target = event.target as HTMLInputElement
+    const newText = target.value
+    const currentQuestion = this.selectedQuestion()
+    const updatedAnswers = currentQuestion.answers.map((answer, idx) => {
+      if (idx === index) {
+        return {
+          ...answer,
+          value: newText,
+          isCorrect: true,
+          picture: undefined,
+        }
+      }
+      return {
+        ...answer,
+        isCorrect: true,
+        picture: undefined,
+      }
+    })
+    this.editorStore.updateQuestionAtIdx(
+      this.editorStore.selectionQuestionIdx(),
+      {
+        ...currentQuestion,
+        answers: updatedAnswers,
+      },
+    )
+  }
+
   protected onAnswerChanged(updatedAnswer: AnswerInput) {
-    const answers = this.selectedQuestion().answers
+    if (this.selectedQuestion().type === QuestionType.Cash) {
+      const updatedAnswers = this.selectedQuestion().answers.map(answer =>
+        answer.index === updatedAnswer.index
+          ? { ...updatedAnswer, isCorrect: true, picture: undefined }
+          : { ...answer, isCorrect: true, picture: undefined },
+      )
+      this.editorStore.updateQuestionAtIdx(
+        this.editorStore.selectionQuestionIdx(),
+        {
+          ...this.selectedQuestion(),
+          answers: updatedAnswers,
+        },
+      )
+      return
+    }
+
+    const answers = this.selectedQuestion().type === QuestionType.Boolean
+      ? this.answers()
+      : this.selectedQuestion().answers
+    const previousAnswer = answers.find(answer => answer.index === updatedAnswer.index)
+    const correctnessChanged = previousAnswer?.isCorrect !== updatedAnswer.isCorrect
+
     let updatedAnswers = answers.map(answer =>
       answer.index === updatedAnswer.index ? updatedAnswer : answer,
     )
 
-    // * Handle boolean behavior for correctness
-    if (this.selectedQuestion().type !== QuestionType.Quizz) {
+    // * Handle boolean behavior for correctness only when correctness is toggled
+    if (this.selectedQuestion().type !== QuestionType.Quizz && correctnessChanged) {
       this.booleanToggle.update(() => {
         if (updatedAnswer.index === 0) {
           return updatedAnswer.isCorrect ? 0 : 1
@@ -65,10 +184,13 @@ export class AnswerEditor {
     const updatedQuestion = this.selectedQuestion().type === QuestionType.Boolean
       ? {
           ...this.selectedQuestion(),
-          // * Change only correctness
+          // * Change only correctness and picture
           answers: updatedAnswers.map((a, idx) => ({
-            ...this.selectedQuestion().answers[idx],
+            ...(this.selectedQuestion().answers[idx] ?? answers[idx]),
+            index: idx,
+            value: idx === 0 ? 'Vrai' : 'Faux',
             isCorrect: a.isCorrect,
+            picture: a.picture,
           })),
         }
       : {

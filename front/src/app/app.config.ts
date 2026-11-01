@@ -11,7 +11,7 @@ import { MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'
 
 import { environment } from '@quezap/env/environment'
-import Quezap from '@quezap/themes/Quezap'
+import Quezap from '@quezap/themes/quezap'
 
 import { AppInitializer } from './app.initializer'
 import { routes } from './app.routes'

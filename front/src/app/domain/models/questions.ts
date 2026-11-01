@@ -17,11 +17,25 @@ export enum QuestionType {
   Boolean = 'BOOLEAN',
   Binary = 'BINARY',
   Quizz = 'QUIZZ',
+  Cash = 'CASH',
 }
 
 export const QuestionTypeFrom = (enumObj: QuestionType) => ({
   getNewWithAnswers: (): QuestionWithAnswersAndResponses => {
     switch (enumObj) {
+      case QuestionType.Cash:
+        return {
+          id: '' as QuestionId,
+          value: '',
+          type: QuestionType.Cash,
+          answers: [
+            {
+              ...getNewAnswerWithResponse(0),
+              isCorrect: true,
+              value: '',
+            },
+          ],
+        }
       case QuestionType.Boolean:
         return {
           id: '' as QuestionId,
@@ -60,6 +74,8 @@ export const QuestionTypeFrom = (enumObj: QuestionType) => ({
   },
   toString: () => {
     switch (enumObj) {
+      case QuestionType.Cash:
+        return 'Cash (Saisie libre)'
       case QuestionType.Boolean:
         return 'Vrai / Faux'
       case QuestionType.Binary:
@@ -106,7 +122,11 @@ export interface QuizzQuestion extends Question {
   readonly type: QuestionType.Quizz
 }
 
-export type MixedQuestion = BooleanQuestion | BinaryQuestion | QuizzQuestion
+export interface CashQuestion extends Question {
+  readonly type: QuestionType.Cash
+}
+
+export type MixedQuestion = BooleanQuestion | BinaryQuestion | QuizzQuestion | CashQuestion
 
 export interface Answer {
   readonly index: number
@@ -173,4 +193,10 @@ export function isBinaryQuestion(
   question: Question,
 ): question is BinaryQuestion {
   return question.type === QuestionType.Binary
+}
+
+export function isCashQuestion(
+  question: Question,
+): question is CashQuestion {
+  return question.type === QuestionType.Cash
 }

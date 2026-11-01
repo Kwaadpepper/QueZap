@@ -1,38 +1,38 @@
 <button
-  class="question-frame relative flex w-56 flex-col p-3 rounded-xl border transition-all text-left"
+  class="question-frame relative flex w-full min-w-0 flex-1 flex-col overflow-hidden p-3 rounded-xl border transition-all text-left"
   pButton
   text
   [aria-label]="`Sélectionner la question ${index() + 1} de type ${type()}`"
   [class.selected]="_selected()"
   (click)="onSelectQuestion()"
 >
-  <div class="mb-2 flex h-full w-full items-center justify-between">
-    <div class="flex items-center gap-1.5">
-      <span class="font-mono font-bold text-sm bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-md">{{ index() + 1 }}</span>
-      <span class="text-xs font-semibold text-slate-500">{{ type() }}</span>
+  <div class="mb-2 flex h-full w-full min-w-0 items-center justify-between gap-1">
+    <div class="flex min-w-0 items-center gap-1.5">
+      <span class="shrink-0 font-mono font-bold text-sm bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-md">{{ index() + 1 }}</span>
+      <span class="truncate text-xs font-semibold text-slate-500">{{ type() }}</span>
     </div>
 
     @if (hasCorrectAnswer()) {
-      <span class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400" title="Bonne réponse configurée">
+      <span class="shrink-0 flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400" title="Bonne réponse configurée">
         <i class="pi pi-check-circle"></i>
       </span>
     } @else {
-      <span class="flex items-center gap-1 text-[11px] font-bold text-amber-500 animate-pulse" title="Aucune bonne réponse cochée !">
+      <span class="shrink-0 flex items-center gap-1 text-[11px] font-bold text-amber-500 animate-pulse" title="Aucune bonne réponse cochée !">
         <i class="pi pi-exclamation-triangle"></i>
       </span>
     }
   </div>
 
-  <p class="mb-6 line-clamp-2 min-h-10 text-sm font-medium text-slate-800 dark:text-slate-200">
+  <p class="mb-2 line-clamp-2 min-h-8 break-words text-sm font-medium text-slate-800 dark:text-slate-200">
     {{ question().value || '(Question sans titre)' }}
   </p>
 
-  <div class="mx-auto grid grid-cols-2 gap-1 w-full my-1">
+  <div class="mx-auto grid grid-cols-2 gap-1 w-full min-w-0 my-1">
     @for (answer of answers(); track answer.index) {
       <span
-        class="relative h-4 rounded-full text-xs flex items-center px-1.5 border"
+        class="relative h-4 min-w-0 overflow-hidden rounded-full text-xs flex items-center px-1.5 border"
         [class]="answer.isCorrect ? 'bg-emerald-100 dark:bg-emerald-950/60 border-emerald-400 text-emerald-700' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-400'">
-        <span class="text-[9px] font-bold truncate">{{ answer.value || ('Option ' + (answer.index + 1)) }}</span>
+        <span class="min-w-0 text-[9px] font-bold truncate">{{ answer.value || ('Option ' + (answer.index + 1)) }}</span>
       </span>
     }
   </div>

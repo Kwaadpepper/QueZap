@@ -135,7 +135,8 @@ export const AuthenticatedUserStore = signalStore(
     },
 
     logout: () => {
-      return authService.logout().pipe(
+      const refreshToken = store.currentTokens()?.refreshToken ?? tokenPersistance.getTokens()?.refreshToken
+      return authService.logout(refreshToken).pipe(
         concatMap((maybeVoid) => {
           if (isFailure(maybeVoid)) {
             return throwError(() => maybeVoid.error)

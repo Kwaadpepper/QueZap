@@ -9,7 +9,8 @@ export interface SessionApiService {
 
   chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError>
 
-  submitAnswer(answerIndex: number): ServiceOutput<void>
+  submitAnswer(answerIndex?: number, textAnswer?: string): ServiceOutput<void>
+  leaveSession?(): ServiceOutput<void>
 }
 
 export const SESSION_API_SERVICE = new InjectionToken<SessionApiService>('SessionApiService')

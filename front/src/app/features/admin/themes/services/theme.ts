@@ -13,6 +13,8 @@ export interface ThemeService {
   create(newTheme: NewThemeDTO): ServiceOutput<ThemeId>
 
   update(theme: Theme): ServiceOutput<void>
+
+  delete(themeId: ThemeId): ServiceOutput<void>
 }
 
 export const THEME_SERVICE = new InjectionToken<ThemeService>('ThemeService')

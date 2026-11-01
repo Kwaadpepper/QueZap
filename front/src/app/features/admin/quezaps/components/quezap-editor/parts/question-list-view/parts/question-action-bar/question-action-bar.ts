@@ -2,7 +2,6 @@ import { Component, computed, inject, input } from '@angular/core'
 
 import { ConfirmationService } from 'primeng/api'
 import { ButtonModule } from 'primeng/button'
-import { ConfirmPopupModule } from 'primeng/confirmpopup'
 
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 
@@ -12,7 +11,6 @@ import { QuezapEditorStore } from '../../../../../../stores'
   selector: 'quizz-question-action-bar',
   imports: [
     IconFacade,
-    ConfirmPopupModule,
     ButtonModule,
   ],
   templateUrl: './question-action-bar.html',

@@ -27,6 +27,7 @@ import {
   IntermediateLeaderboardData,
   NoMoreQuestions, QuestionRevealData, SESSION_API_SERVICE,
   SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionKicked, sessionPauseStatus, sessionStarted,
+  sessionSwitchedQuestion,
   sessionWaitingStart,
   WaitingQuestion,
 } from '../services'
@@ -69,7 +70,7 @@ export const ActiveSessionStore = signalStore(
     nickname: computed(() => store._nickname?.()),
     restorationComplete: computed(() => store._sessionIsLoaded()),
     participants: computed(() => store._participants()),
-    sessionHasStarted: computed(() => store._sessionIsRunning()),
+    sessionHasStarted: computed(() => store._sessionIsRunning() || store.question() !== undefined),
     isSessionPaused: computed(() => store.isSessionPaused()),
     mySubmittedChoice: computed(() => store.mySubmittedChoice()),
     myRanking: computed(() => {
@@ -85,6 +86,7 @@ export const ActiveSessionStore = signalStore(
   withMethods((
     store,
     sessionApi = inject(SESSION_API_SERVICE),
+    sessionObserver = inject(SESSION_OBSERVER_SERVICE),
     activeSessionPersistence = inject(ActiveSessionPersistence),
   ) => ({
 
@@ -94,6 +96,16 @@ export const ActiveSessionStore = signalStore(
 
     clearMyChoice: (): void => {
       patchState(store, { mySubmittedChoice: undefined })
+    },
+
+    leaveSession: (): void => {
+      sessionApi.leaveSession?.()?.subscribe()
+      sessionObserver.disconnect?.()
+      activeSessionPersistence.clear()
+      patchState(store, {
+        ...initialState,
+        _sessionIsLoaded: true,
+      })
     },
 
     joinSession: (code: SessionCode): Observable<void | NotFoundError | ExpiredError> => {
@@ -124,7 +136,28 @@ export const ActiveSessionStore = signalStore(
             console.debug('Session is already running.')
           }
 
-          patchState(store, { _session: session })
+          const previousSessionId = store._session?.()?.id ?? activeSessionPersistence.getSessionId()
+          const isSwitchingSession = Boolean(previousSessionId && previousSessionId !== (session.id as string))
+          if (isSwitchingSession) {
+            sessionObserver.disconnect?.()
+            activeSessionPersistence.clearParticipationAuth()
+          }
+
+          patchState(store, state => ({
+            _session: session,
+            _sessionIsRunning: sessionHasStarted(session),
+            ...(isSwitchingSession
+              ? {
+                  _nickname: undefined,
+                  _participants: [],
+                  question: undefined,
+                  lastReveal: undefined,
+                  lastLeaderboard: undefined,
+                  mySubmittedChoice: undefined,
+                  isSessionPaused: false,
+                }
+              : { question: state.question?.type === 'NoMoreQuestions' ? undefined : state.question }),
+          }))
           activeSessionPersistence.patch({ code, sessionId: session.id as string })
           return of(void 0)
         }),
@@ -142,6 +175,8 @@ export const ActiveSessionStore = signalStore(
       return sessionApi.chooseNickname(nickname).pipe(
         concatMap((response) => {
           if (isFailure(response)) {
+            patchState(store, { _nickname: undefined })
+
             if (response.error instanceof ValidationError) {
               return of(response.error)
             }
@@ -150,8 +185,6 @@ export const ActiveSessionStore = signalStore(
             }
 
             activeSessionPersistence.persistNickname(remember ? nickname : undefined)
-
-            patchState(store, { _nickname: undefined })
 
             return throwError(() => response.error)
           }
@@ -231,7 +264,12 @@ export const ActiveSessionStore = signalStore(
         effect(() => {
           const question = sessionObserver.question()
           console.debug('Updating current question from session observer', question)
-          patchState(store, { question, lastReveal: undefined, mySubmittedChoice: undefined })
+          patchState(store, {
+            question,
+            lastReveal: undefined,
+            mySubmittedChoice: undefined,
+            ...(question ? { _sessionIsRunning: true } : {}),
+          })
         })
 
         // * React to reveal updates
@@ -270,10 +308,10 @@ export const ActiveSessionStore = signalStore(
             }
 
             if (sessionWaitingStart(event)) {
-              patchState(store, {
+              patchState(store, state => ({
                 _session: { ...session },
-                _sessionIsRunning: false,
-              })
+                _sessionIsRunning: state._sessionIsRunning || sessionHasStarted(session),
+              }))
             }
 
             if (sessionStarted(event)) {
@@ -281,6 +319,16 @@ export const ActiveSessionStore = signalStore(
                 _session: {
                   ...session,
                   startedAt: event.session.startedAt,
+                },
+                _sessionIsRunning: true,
+              })
+            }
+
+            if (sessionSwitchedQuestion(event)) {
+              patchState(store, {
+                _session: {
+                  ...session,
+                  startedAt: session.startedAt ?? new Date(),
                 },
                 _sessionIsRunning: true,
               })
@@ -330,18 +378,31 @@ export const ActiveSessionStore = signalStore(
         console.debug('Restoring active session from persistence:', data)
       }
 
-      patchState(store, {
-        ...initialState,
-        _nickname: signalState({
-          value: data.nickname?.trim(),
-          remembered: data.nickname !== undefined && data.nickname.trim() !== '',
-        }),
-      })
+      const rememberedNickname = data.nickname?.trim()
+      const activeNickname = rememberedNickname || activeSessionPersistence.getParticipantName()?.trim()
+
+      patchState(store, { ...initialState })
 
       if (data.code) {
         store.joinSession(data.code).subscribe({
-          next: () => {
-            patchState(store, { _sessionIsLoaded: true })
+          next: (joinResult) => {
+            if (joinResult instanceof NotFoundError || joinResult instanceof ExpiredError) {
+              patchState(store, { _sessionIsLoaded: true })
+              return
+            }
+            if (activeNickname) {
+              store.chooseNickname(activeNickname, Boolean(rememberedNickname)).subscribe({
+                next: () => {
+                  patchState(store, { _sessionIsLoaded: true })
+                },
+                error: () => {
+                  patchState(store, { _sessionIsLoaded: true })
+                },
+              })
+            }
+            else {
+              patchState(store, { _sessionIsLoaded: true })
+            }
           },
           error: () => {
             patchState(store, { _sessionIsLoaded: true })

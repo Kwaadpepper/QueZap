@@ -46,12 +46,14 @@ export class Lobby {
   protected readonly readyTonJoinQuizz = computed(() => this.hasNickname())
 
   constructor() {
-    if (this.sessionStore.sessionHasStarted()) {
+    const hasStarted = this.sessionStore.sessionHasStarted() || this.sessionStore.question() !== undefined
+    if (hasStarted && this.readyTonJoinQuizz()) {
       this.navigateToQuizz()
     }
 
     effect(() => {
-      if (this.sessionStore.sessionHasStarted()) {
+      const isRunning = this.sessionStore.sessionHasStarted() || this.sessionStore.question() !== undefined
+      if (isRunning && this.readyTonJoinQuizz()) {
         this.navigateToQuizz()
       }
     })

@@ -1,13 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, computed, inject, input, signal,
+} from '@angular/core'
 import { Router } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
+import { ConfirmationService, MessageService } from 'primeng/api'
 import { ButtonModule } from 'primeng/button'
 import { CardModule } from 'primeng/card'
 import { ChipModule } from 'primeng/chip'
+import { ConfirmPopupModule } from 'primeng/confirmpopup'
 
 import { QuezapWithTheme } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
+import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 import { SESSION_SERVICE } from '../../../sessions/services/session'
 import { QUEZAP_SERVICE } from '../../services/quezap'
@@ -18,9 +22,11 @@ import { QuezapPageStore } from '../../stores'
   imports: [
     CardModule,
     ChipModule,
+    ConfirmPopupModule,
     IconFacade,
     ButtonModule,
   ],
+  providers: [ConfirmationService],
   templateUrl: './quezap-card.html',
   styleUrl: './quezap-card.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,10 +36,24 @@ export class QuezapCard {
   private readonly quezapService = inject(QUEZAP_SERVICE)
   private readonly sessionService = inject(SESSION_SERVICE)
   private readonly messageService = inject(MessageService)
+  private readonly confirmationService = inject(ConfirmationService)
   private readonly quezapPage = inject(QuezapPageStore)
+  private readonly authStore = inject(AuthenticatedUserStore)
 
   readonly quezap = input.required<QuezapWithTheme>()
   readonly editable = input<boolean>(false)
+  protected readonly canEdit = computed(() => {
+    if (!this.editable()) {
+      return false
+    }
+    const authorId = this.quezap().authorId
+    const currentUserId = this.authStore.currentUser()?.id
+    if (!authorId || !currentUserId) {
+      return true
+    }
+    return authorId === currentUserId
+  })
+
   protected readonly launchingSession = signal(false)
 
   protected onQuezapLaunch(): void {
@@ -78,7 +98,12 @@ export class QuezapCard {
           summary: 'Succès',
           detail: 'Quezap dupliqué avec succès',
         })
-        this.quezapPage.setPagination({ page: 1 })
+        if (this.quezapPage.pageInfo().page === 1) {
+          this.quezapPage.reload()
+        }
+        else {
+          this.quezapPage.setPagination({ page: 1 })
+        }
       }
       else {
         this.messageService.add({
@@ -87,6 +112,32 @@ export class QuezapCard {
           detail: 'Échec de la duplication du Quezap',
         })
       }
+    })
+  }
+
+  protected onQuezapDelete($event: Event): void {
+    this.confirmationService.confirm({
+      target: $event.currentTarget ?? undefined,
+      message: `Voulez-vous vraiment supprimer le quiz "${this.quezap().title}" ?`,
+      accept: () => {
+        this.quezapService.deleteQuezap(this.quezap().id).subscribe((res) => {
+          if (res.kind === 'success') {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Succès',
+              detail: 'Quiz supprimé avec succès',
+            })
+            this.quezapPage.reload()
+          }
+          else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: 'Échec de la suppression du quiz',
+            })
+          }
+        })
+      },
     })
   }
 }

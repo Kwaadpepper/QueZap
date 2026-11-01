@@ -62,36 +62,4 @@
   >
     <quizz-icon name="trash" pButtonIcon />
   </button>
-  <p-confirmpopup
-    #confirmDeleteQuestionFromViewList
-    [pt]="{
-      root: { 'aria-label': 'Confirmez vouloir supprimer la question', tabindex: 0 },
-    }"
-  >
-    <ng-template #headless let-message>
-      <div class="rounded p-4">
-        <span><quizz-icon name="trash" /> Supprimer ?</span>
-        <div class="mt-4 flex items-center gap-2">
-          <p-button
-            size="small"
-            severity="danger"
-            title="Confirmer la suppression"
-            ariaLabel="Confirmer la suppression"
-            (onClick)="confirmDeleteQuestionFromViewList.onAccept()"
-          >
-            <quizz-icon name="confirm" pButtonIcon />
-          </p-button>
-          <p-button
-            size="small"
-            severity="primary"
-            title="Annuler la suppression"
-            ariaLabel="Annuler la suppression"
-            (onClick)="confirmDeleteQuestionFromViewList.onReject()"
-          >
-            <quizz-icon name="cancel" pButtonIcon />
-          </p-button>
-        </div>
-      </div>
-    </ng-template>
-  </p-confirmpopup>
 </div>

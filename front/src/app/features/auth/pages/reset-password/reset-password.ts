@@ -1,6 +1,8 @@
-import { Component, computed, ErrorHandler, inject, signal } from '@angular/core'
+import {
+  Component, computed, DestroyRef, ErrorHandler, inject, OnInit, signal,
+} from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { Router } from '@angular/router'
+import { ActivatedRoute } from '@angular/router'
 
 import { MessageModule } from 'primeng/message'
 import { ProgressSpinner } from 'primeng/progressspinner'
@@ -24,8 +26,9 @@ import { AUTHENTICATION_SERVICE } from '../../services'
   ],
   templateUrl: './reset-password.html',
 })
-export class ResetPassword {
-  private readonly router = inject(Router)
+export class ResetPassword implements OnInit {
+  private readonly route = inject(ActivatedRoute)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly authenticationService = inject(AUTHENTICATION_SERVICE)
   private readonly errorHandler = inject(ErrorHandler)
 
@@ -40,12 +43,13 @@ export class ResetPassword {
     !this.anErrorOccured() && !this.tokenIsInvalid(),
   )
 
-  constructor() {
-    const queryResetToken = this.router.currentNavigation()?.extractedUrl?.queryParamMap.get('token') || ''
+  ngOnInit() {
+    const queryResetToken = this.route.snapshot.queryParamMap.get('token') ?? ''
     const resetToken = this.validTokenSchema.safeParse(queryResetToken).success ? queryResetToken : null
 
     if (resetToken === null) {
       this.tokenIsInvalid.set(true)
+      this.verifyingToken.set(false)
       return
     }
 
@@ -56,7 +60,7 @@ export class ResetPassword {
     firstValueFrom(
       this.authenticationService.verifyResetToken(token).pipe(
         retry(1),
-        takeUntilDestroyed(),
+        takeUntilDestroyed(this.destroyRef),
         tap((result) => {
           if (isSuccess(result)) {
             this.resetToken.set(token)

@@ -8,19 +8,59 @@
     </div>
 
     @if (editable()) {
-      <p-button
-        icon="pi pi-pencil"
-        severity="secondary"
-        text
-        rounded
-        title="Changer le nom du thème"
-        size="small"
-        class="shrink-0"
-        [ariaLabel]="'Modifier le thème ' + theme().name"
-        (onClick)="onOpenEditor()"
-      />
+      <div class="flex shrink-0 items-center gap-1">
+        <p-button
+          icon="pi pi-pencil"
+          severity="secondary"
+          text
+          rounded
+          title="Changer le nom du thème"
+          size="small"
+          class="shrink-0"
+          [ariaLabel]="'Modifier le thème ' + theme().name"
+          (onClick)="onOpenEditor()"
+        />
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          text
+          rounded
+          title="Supprimer le thème"
+          size="small"
+          class="shrink-0"
+          [ariaLabel]="'Supprimer le thème ' + theme().name"
+          (onClick)="onDeleteTheme($event)"
+        />
+      </div>
       <quizz-theme-editor [theme]="theme()" [(visible)]="editorIsVisible" />
     }
   </div>
 </p-card>
+
+<p-confirmpopup
+  #confirmDeleteTheme
+  [pt]="{ root: { 'aria-label': 'Confirmez vouloir supprimer le thème', tabindex: 0 } }"
+>
+  <ng-template #headless let-message>
+    <div class="rounded-xl p-4 max-w-xs">
+      <p class="font-bold text-slate-900 dark:text-white text-sm">Supprimer ce thème ?</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ message.message }}</p>
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <p-button
+          label="Annuler"
+          size="small"
+          severity="secondary"
+          text
+          (onClick)="confirmDeleteTheme.onReject()"
+        />
+        <p-button
+          label="Supprimer"
+          size="small"
+          severity="danger"
+          (onClick)="confirmDeleteTheme.onAccept()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-confirmpopup>
 

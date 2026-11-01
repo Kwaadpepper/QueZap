@@ -3,7 +3,7 @@ import { Routes } from '@angular/router'
 import { isAuthenticatedGuard } from '@quezap/core/guards/auth/authenticated-guard'
 import { isUnauthenticatedGuard } from '@quezap/core/guards/auth/unauthenticated-guard'
 
-import { ActiveSessionPersistence, SessionMocks } from './quizz/services'
+import { SessionMocks } from './quizz/services'
 import { ActiveSessionStore, TimerStore } from './quizz/stores'
 
 export const routes: Routes = [
@@ -36,7 +36,6 @@ export const routes: Routes = [
     title: 'Quizz',
     providers: [
       ActiveSessionStore,
-      ActiveSessionPersistence,
       TimerStore,
       SessionMocks,
     ],

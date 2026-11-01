@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core'
 
-import { from, map } from 'rxjs'
+import { from, map, of } from 'rxjs'
 
 import { JoinSessionResponseDto, SessionDetailDto } from '@quezap/core/api-client'
 import { client } from '@quezap/core/api-client/client.gen'
@@ -73,10 +73,14 @@ export class SessionApiHttpService implements SessionApiService {
       participantName: nickname.trim(),
     }
 
+    const existingToken = this.currentParticipationToken || this.sessionPersistence.getParticipationToken()
+    const headers: Record<string, string> = existingToken ? { 'X-Participant-Token': existingToken } : {}
+
     return from(
       client.post<{ 200: JoinSessionResponseDto, 201: JoinSessionResponseDto }, Record<string, unknown>>({
         url: '/apiv1/sessions/join',
         body: payload,
+        headers,
       }),
     ).pipe(
       map(({ data, error, response }) => {
@@ -122,15 +126,23 @@ export class SessionApiHttpService implements SessionApiService {
     )
   }
 
-  submitAnswer(answerIndex: number): ServiceOutput<void> {
+  submitAnswer(answerIndex?: number, textAnswer?: string): ServiceOutput<void> {
     const token = this.currentParticipationToken || this.sessionPersistence.getParticipationToken() || ''
     const sessionId = this.currentSessionId || this.sessionPersistence.getSessionId() || ''
+
+    const body: { answerIndex?: number, textAnswer?: string } = {}
+    if (answerIndex !== undefined) {
+      body.answerIndex = answerIndex
+    }
+    if (textAnswer !== undefined) {
+      body.textAnswer = textAnswer
+    }
 
     return from(
       client.post<{ 200: void, 201: void, 204: void }>({
         url: '/apiv1/sessions/{id}/answers',
         path: { id: sessionId },
-        body: { answerIndex },
+        body,
         headers: { 'X-Participant-Token': token },
       }),
     ).pipe(
@@ -143,6 +155,29 @@ export class SessionApiHttpService implements SessionApiService {
         }
         return { kind: 'success' as const, result: undefined }
       }),
+    )
+  }
+
+  leaveSession(): ServiceOutput<void> {
+    const token = this.currentParticipationToken || this.sessionPersistence.getParticipationToken() || ''
+    const sessionId = this.currentSessionId || this.sessionPersistence.getSessionId() || ''
+
+    this.currentParticipationToken = ''
+    this.currentSessionId = ''
+    this.currentSessionCode = ''
+
+    if (!sessionId || !token) {
+      return of({ kind: 'success' as const, result: undefined })
+    }
+
+    return from(
+      client.post<{ 200: void, 204: void }>({
+        url: '/apiv1/sessions/{id}/leave',
+        path: { id: sessionId },
+        headers: { 'X-Participant-Token': token },
+      }),
+    ).pipe(
+      map(() => ({ kind: 'success' as const, result: undefined })),
     )
   }
 }

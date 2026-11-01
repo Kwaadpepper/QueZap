@@ -11,7 +11,7 @@ import {
 } from 'rxjs'
 
 import { Timer } from '@quezap/domain/models'
-import { TimerStore } from '@quezap/features/quizz/stores'
+import { ActiveSessionStore, TimerStore } from '@quezap/features/quizz/stores'
 
 @Component({
   selector: 'quizz-timer',
@@ -21,8 +21,11 @@ import { TimerStore } from '@quezap/features/quizz/stores'
 })
 export class QuestionTimer {
   private readonly questionStore = inject(TimerStore)
+  private readonly sessionStore = inject(ActiveSessionStore)
 
   readonly exhausted = output<void>()
+
+  protected readonly isPaused = computed<boolean>(() => this.sessionStore.isSessionPaused())
 
   /** The decount start signal */
   readonly started = computed<boolean>(() => this.questionStore.started())
@@ -77,18 +80,11 @@ export class QuestionTimer {
         }
       }),
       switchMap(() => {
-        const deadline = this.timer()?.deadline
-        const targetTime = deadline ? new Date(deadline).getTime() : null
-        return interval(targetTime ? 500 : 1000).pipe(
+        return interval(1000).pipe(
           takeWhile(() => this.remainingSeconds() > 0 && this.questionStore.started()),
+          filter(() => !this.isPaused()),
           tap(() => {
-            if (targetTime) {
-              const remaining = Math.max(0, Math.ceil((targetTime - Date.now()) / 1000))
-              this.remainingSeconds.set(remaining)
-            }
-            else {
-              this.remainingSeconds.update(seconds => Math.max(0, seconds - 1))
-            }
+            this.remainingSeconds.update(seconds => Math.max(0, seconds - 1))
           }),
           tap(() => this.questionStore.setTimeLeft(this.remainingSeconds())),
           tap(() => {

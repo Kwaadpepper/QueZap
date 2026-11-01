@@ -43,19 +43,58 @@
             [ariaLabel]="'Dupliquer le quiz ' + quezap().title"
             (onClick)="onQuezapDuplicate()"
           />
-          <p-button
-            icon="pi pi-pencil"
-            size="small"
-            severity="secondary"
-            text
-            rounded
-            title="Modifier ce quiz"
-            [ariaLabel]="'Modifier le quiz ' + quezap().title"
-            (onClick)="onQuezapEdit()"
-          />
+          @if (canEdit()) {
+            <p-button
+              icon="pi pi-pencil"
+              size="small"
+              severity="secondary"
+              text
+              rounded
+              title="Modifier ce quiz"
+              [ariaLabel]="'Modifier le quiz ' + quezap().title"
+              (onClick)="onQuezapEdit()"
+            />
+            <p-button
+              icon="pi pi-trash"
+              size="small"
+              severity="danger"
+              text
+              rounded
+              title="Supprimer ce quiz"
+              [ariaLabel]="'Supprimer le quiz ' + quezap().title"
+              (onClick)="onQuezapDelete($event)"
+            />
+          }
         }
       </div>
     </div>
   </div>
 </p-card>
+
+<p-confirmpopup
+  #confirmDeleteQuezap
+  [pt]="{ root: { 'aria-label': 'Confirmez vouloir supprimer le quiz', tabindex: 0 } }"
+>
+  <ng-template #headless let-message>
+    <div class="rounded-xl p-4 max-w-xs">
+      <p class="font-bold text-slate-900 dark:text-white text-sm">Supprimer ce quiz ?</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ message.message }}</p>
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <p-button
+          label="Annuler"
+          size="small"
+          severity="secondary"
+          text
+          (onClick)="confirmDeleteQuezap.onReject()"
+        />
+        <p-button
+          label="Supprimer"
+          size="small"
+          severity="danger"
+          (onClick)="confirmDeleteQuezap.onAccept()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-confirmpopup>
 

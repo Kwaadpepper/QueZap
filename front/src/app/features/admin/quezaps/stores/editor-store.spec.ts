@@ -69,15 +69,74 @@ describe('QuezapEditorStore', () => {
     expect(store.hasInvalidAnswers()).toBe(false)
   })
 
-  it('should reject persist if a question has no correct answers', async () => {
+  it('should update title and mark store as dirty', () => {
+    store.setQuezap({
+      title: 'Initial Title',
+      description: '',
+      questionWithAnswersAndResponses: store.questions(),
+    })
+    expect(store.isDirty()).toBe(false)
+
+    store.updateTitle('  Updated Title  ')
+    expect(store.quezap().title).toBe('Updated Title')
+    expect(store.isDirty()).toBe(true)
+  })
+
+  it('should not mark store as dirty if title is unchanged after trim', () => {
+    store.setQuezap({
+      title: 'Same Title',
+      description: '',
+      questionWithAnswersAndResponses: store.questions(),
+    })
+    expect(store.isDirty()).toBe(false)
+
+    store.updateTitle('  Same Title  ')
+    expect(store.isDirty()).toBe(false)
+  })
+
+  it('should reject persist if quiz title is empty', async () => {
+    const question = store.questions()[0]
+    store.updateQuestionAtIdx(0, {
+      ...question,
+      value: 'Une question ?',
+      answers: question.answers.map((a, i) => (i === 0 ? { ...a, isCorrect: true } : a)),
+    })
+
     await expect(store.persist()).rejects.toThrow(ValidationError)
     expect(mockService.persistQuezap).not.toHaveBeenCalled()
   })
 
-  it('should successfully persist when all questions have a correct answer', async () => {
+  it('should reject persist if a question statement is empty', async () => {
+    store.updateTitle('Quiz valide')
+    const question = store.questions()[0]
+    store.updateQuestionAtIdx(0, {
+      ...question,
+      value: '   ',
+      answers: question.answers.map((a, i) => (i === 0 ? { ...a, isCorrect: true } : a)),
+    })
+
+    await expect(store.persist()).rejects.toThrow(ValidationError)
+    expect(mockService.persistQuezap).not.toHaveBeenCalled()
+  })
+
+  it('should reject persist if a question has no correct answers', async () => {
+    store.updateTitle('Quiz valide')
+    const question = store.questions()[0]
+    store.updateQuestionAtIdx(0, {
+      ...question,
+      value: 'Une question ?',
+    })
+
+    await expect(store.persist()).rejects.toThrow(ValidationError)
+    expect(mockService.persistQuezap).not.toHaveBeenCalled()
+  })
+
+  it('should successfully persist when title, question statements and answers are valid', async () => {
+    store.updateTitle('Quiz valide')
     const question = store.questions()[0]
     const updatedQuestion = {
       ...question,
+      value: 'Quelle est la bonne réponse ?',
       answers: question.answers.map((a, i) =>
         i === 0 ? { ...a, isCorrect: true } : a,
       ),
@@ -88,5 +147,45 @@ describe('QuezapEditorStore', () => {
     expect(result.id).toBe('018e3a2b-1111-7def-8123-abcdef111111')
     expect(mockService.persistQuezap).toHaveBeenCalled()
     expect(store.isDirty()).toBe(false)
+  })
+
+  it('should refresh persisted question pictures from service.find when available', async () => {
+    const savedId = '018e3a2b-1111-7def-8123-abcdef111111' as QuezapId
+    store.updateTitle('Quiz avec image')
+    const question = store.questions()[0]
+    store.updateQuestionAtIdx(0, {
+      ...question,
+      value: 'Quel est ce monument ?',
+      picture: 'data:image/png;base64,iVBORw0KGgo=' as never,
+      answers: question.answers.map((a, i) =>
+        i === 0 ? { ...a, value: 'Tour Eiffel', isCorrect: true } : { ...a, value: `Option ${i}` },
+      ),
+    })
+
+    mockService.find = jest.fn().mockReturnValue(
+      of({
+        kind: 'success',
+        result: {
+          id: savedId,
+          title: 'Quiz avec image',
+          description: '',
+          questionWithAnswersAndResponses: [
+            {
+              ...store.questions()[0],
+              picture: '/quezap-public-images/pictures/questions/saved.png' as never,
+            },
+          ],
+        },
+      }),
+    )
+
+    const result = await store.persist()
+    expect(mockService.find).toHaveBeenCalledWith(savedId)
+    expect(result.questionWithAnswersAndResponses[0].picture).toBe(
+      '/quezap-public-images/pictures/questions/saved.png',
+    )
+    expect(store.questions()[0].picture).toBe(
+      '/quezap-public-images/pictures/questions/saved.png',
+    )
   })
 })
