@@ -40,10 +40,16 @@ class TextNormalizerTest {
   }
 
   @Test
-  @DisplayName("Should not match distinct words")
+  @DisplayName("Should not match distinct words or collapse repeated digits in numbers")
   void shouldNotMatchDifferentWords() {
     assertThat(TextNormalizer.matches("rose", "tulipe")).isFalse();
     assertThat(TextNormalizer.matches("tournesol", "tulipe")).isFalse();
     assertThat(TextNormalizer.matches("tuile", "tulipe")).isFalse();
+    assertThat(TextNormalizer.matches("10", "100")).isFalse();
+    assertThat(TextNormalizer.matches("20", "2000")).isFalse();
+    assertThat(TextNormalizer.matches("198", "1998")).isFalse();
+    assertThat(TextNormalizer.matches("2000", "2000")).isTrue();
+    assertThat(TextNormalizer.matches("cœur", "coeur")).isTrue();
+    assertThat(TextNormalizer.matches("Sœur", "soeur")).isTrue();
   }
 }

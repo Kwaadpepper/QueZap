@@ -127,7 +127,7 @@ public class QuezapController {
 
     var order = 1;
     for (final var slideReq : effectiveSlides) {
-      final var question = resolveOrCreateQuestion(slideReq, order);
+      final var question = resolveOrCreateQuestion(slideReq, order, java.util.Set.of());
       final var timer = slideReq.getEffectiveTimer();
       final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
       final var qq =
@@ -276,7 +276,18 @@ public class QuezapController {
     Page<QuezapJpaEntity> page;
 
     if (search != null && !search.isBlank()) {
-      if (currentUserId != null) {
+      if (authorId != null) {
+        final var isAuthor = currentUserId != null && currentUserId.equals(authorId.toString());
+        if (isAuthor) {
+          page =
+              quezapJpaRepository.findByTitleContainingIgnoreCaseAndAuthorId(
+                  search, authorId, pageRequest);
+        } else {
+          page =
+              quezapJpaRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(
+                  search, pageRequest);
+        }
+      } else if (currentUserId != null) {
         try {
           final var userUuid = UUID.fromString(currentUserId);
           page =
@@ -353,10 +364,14 @@ public class QuezapController {
     }
 
     if (request.slides() != null) {
+      final var ownedQuestionIds =
+          quezap.getQuestions().stream()
+              .map(qq -> qq.getQuestion().getId())
+              .collect(java.util.stream.Collectors.toSet());
       quezap.getQuestions().clear();
       var order = 1;
       for (final var slideReq : request.slides()) {
-        final var question = resolveOrCreateQuestion(slideReq, order);
+        final var question = resolveOrCreateQuestion(slideReq, order, ownedQuestionIds);
         final var timer = slideReq.getEffectiveTimer();
         final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
         final var qq =
@@ -395,7 +410,7 @@ public class QuezapController {
     assertQuezapAuthor(quezap);
 
     final var order = quezap.getQuestions().size() + 1;
-    final var question = resolveOrCreateQuestion(request, order);
+    final var question = resolveOrCreateQuestion(request, order, java.util.Set.of());
     final var timer = request.getEffectiveTimer();
     final var points = Objects.requireNonNullElse(request.points(), 1000);
     final var qq =
@@ -406,7 +421,8 @@ public class QuezapController {
     quezapJpaRepository.save(quezap);
   }
 
-  private QuestionJpaEntity resolveOrCreateQuestion(QuezapSlideRequest slideReq, int order) {
+  private QuestionJpaEntity resolveOrCreateQuestion(
+      QuezapSlideRequest slideReq, int order, java.util.Set<UUID> allowedQuestionIds) {
     if (slideReq.question() != null) {
       final var qReq = slideReq.question();
       final var answersReq = qReq.answers();
@@ -417,7 +433,7 @@ public class QuezapController {
 
       final var resolvedQuestionPicture = resolvePictureFilename(qReq.pictureFilename());
 
-      if (qReq.id() != null) {
+      if (qReq.id() != null && allowedQuestionIds.contains(qReq.id())) {
         final var existingOpt = questionJpaRepository.findById(qReq.id());
         if (existingOpt.isPresent()) {
           final var existing = existingOpt.get();
@@ -429,17 +445,39 @@ public class QuezapController {
           if (qReq.themeId() != null || qReq.themeName() != null) {
             existing.setTheme(resolveTheme(qReq.themeId(), qReq.themeName()));
           }
-          existing.getAnswers().clear();
+          final var existingAnswersById = new java.util.HashMap<UUID, AnswerJpaEntity>();
+          for (final var existingAns : existing.getAnswers()) {
+            existingAnswersById.put(existingAns.getId(), existingAns);
+          }
+          final var retainedIds = new java.util.HashSet<UUID>();
+          final var newAnswers = new ArrayList<AnswerJpaEntity>();
           var ansOrder = 1;
           for (final var ansReq : answersReq) {
-            final var ansEntity =
-                new AnswerJpaEntity(
-                    ansReq.id() != null ? ansReq.id() : UuidV7.randomUuid(),
-                    existing,
-                    ansReq.label(),
-                    resolvePictureFilename(ansReq.pictureFilename()),
-                    Objects.requireNonNullElse(ansReq.isCorrect(), Boolean.FALSE),
-                    ansReq.answerOrder() != null ? ansReq.answerOrder() : ansOrder++);
+            final var effectiveOrder =
+                ansReq.answerOrder() != null ? ansReq.answerOrder() : ansOrder++;
+            final var effectiveCorrect =
+                Objects.requireNonNullElse(ansReq.isCorrect(), Boolean.FALSE);
+            final var effectivePic = resolvePictureFilename(ansReq.pictureFilename());
+            if (ansReq.id() != null && existingAnswersById.containsKey(ansReq.id())) {
+              final var matched = existingAnswersById.get(ansReq.id());
+              matched.setLabel(ansReq.label());
+              matched.setPictureFilename(effectivePic);
+              matched.setIsCorrect(effectiveCorrect);
+              matched.setAnswerOrder(effectiveOrder);
+              retainedIds.add(ansReq.id());
+            } else {
+              newAnswers.add(
+                  new AnswerJpaEntity(
+                      UuidV7.randomUuid(),
+                      existing,
+                      ansReq.label(),
+                      effectivePic,
+                      effectiveCorrect,
+                      effectiveOrder));
+            }
+          }
+          existing.getAnswers().removeIf(a -> !retainedIds.contains(a.getId()));
+          for (final var ansEntity : newAnswers) {
             existing.addAnswer(ansEntity);
           }
           existing.setUpdatedAt(Instant.now());
@@ -448,9 +486,13 @@ public class QuezapController {
       }
 
       final var theme = resolveTheme(qReq.themeId(), qReq.themeName());
+      final var newQuestionId =
+          (qReq.id() != null && allowedQuestionIds.contains(qReq.id()))
+              ? qReq.id()
+              : UuidV7.randomUuid();
       final var newQuestion =
           new QuestionJpaEntity(
-              qReq.id() != null ? qReq.id() : UuidV7.randomUuid(),
+              newQuestionId,
               qReq.type() != null ? qReq.type() : "QUIZZ",
               qReq.label(),
               resolvedQuestionPicture,
@@ -462,7 +504,7 @@ public class QuezapController {
       for (final var ansReq : answersReq) {
         final var ansEntity =
             new AnswerJpaEntity(
-                ansReq.id() != null ? ansReq.id() : UuidV7.randomUuid(),
+                UuidV7.randomUuid(),
                 newQuestion,
                 ansReq.label(),
                 resolvePictureFilename(ansReq.pictureFilename()),

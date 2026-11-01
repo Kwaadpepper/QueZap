@@ -334,10 +334,6 @@ public class SessionController {
                     new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Invalid session code: " + request.code()));
 
-    if (sessionJpa.getEndedAt() != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cette session est déjà terminée");
-    }
-
     final var sanitizedName = userNameSanitizer.sanitize(request.participantName());
     if (sanitizedName.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid participant name");
@@ -353,23 +349,33 @@ public class SessionController {
       if (headerToken != null
           && headerToken.equals(existing.getParticipationToken())
           && !existing.getIsKicked()) {
-        final var participantList =
-            sessionJpa.getParticipants().stream()
-                .filter(p -> !p.getIsKicked())
-                .map(p -> new ParticipantDto(p.getName(), p.getJoinedAt()))
-                .toList();
-        final var quezap = sessionJpa.getQuezap();
-        final var totalQuestions = quezap != null ? quezap.getQuestions().size() : 0;
-        final var lobbyPayload =
-            new LobbyStatePayload(
-                sessionJpa.getName(), participantList.size(), participantList, totalQuestions);
-        sessionSseService.broadcast(
-            sessionJpa.getId(), "LOBBY_STATE", sessionJpa.getNumber(), lobbyPayload);
+        if (sessionJpa.getEndedAt() == null) {
+          final var participantList =
+              sessionJpa.getParticipants().stream()
+                  .filter(p -> !p.getIsKicked())
+                  .map(p -> new ParticipantDto(p.getName(), p.getJoinedAt()))
+                  .toList();
+          final var quezap = sessionJpa.getQuezap();
+          final var totalQuestions = quezap != null ? quezap.getQuestions().size() : 0;
+          final var lobbyPayload =
+              new LobbyStatePayload(
+                  sessionJpa.getName(), participantList.size(), participantList, totalQuestions);
+          sessionSseService.broadcast(
+              sessionJpa.getId(), "LOBBY_STATE", sessionJpa.getNumber(), lobbyPayload);
+        }
         return new JoinSessionResponseDto(
             sessionJpa.getId(), existing.getParticipationToken(), existing.getName());
       }
+      if (sessionJpa.getEndedAt() != null) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Cette session est déjà terminée");
+      }
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "Participant name is already taken in this session");
+    }
+
+    if (sessionJpa.getEndedAt() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cette session est déjà terminée");
     }
 
     final var token = "ptk_" + UUID.randomUUID().toString();
@@ -470,7 +476,7 @@ public class SessionController {
               .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
               .toList();
 
-      if ("BOOLEAN".equalsIgnoreCase(question.getType())) {
+      if (isBooleanQuestion(question.getType())) {
         safeAnswers.add(new SafeAnswerDto(0, "Vrai", null));
         safeAnswers.add(new SafeAnswerDto(1, "Faux", null));
       } else if ("CASH".equalsIgnoreCase(question.getType())) {
@@ -488,7 +494,7 @@ public class SessionController {
       final var safeQuestion =
           new SafeQuestionDto(
               question.getId(),
-              question.getType(),
+              normalizeQuestionType(question.getType()),
               question.getLabel(),
               QuezapController.toPublicPictureUrl(question.getPictureFilename()),
               safeAnswers);
@@ -540,11 +546,21 @@ public class SessionController {
             .toList();
     final var nextIndex = sessionJpa.getCurrentSlideIndex() + 1;
     final var totalSlides = questionsList.size();
+    final var wasPaused = Boolean.TRUE.equals(sessionJpa.getIsPaused());
 
     if (nextIndex > totalSlides) {
       final var endedAt = Instant.now();
+      sessionJpa.setIsPaused(false);
       sessionJpa.setEndedAt(endedAt);
       sessionDataPort.saveAndFlushSession(sessionJpa);
+
+      if (wasPaused) {
+        sessionSseService.broadcast(
+            sessionJpa.getId(),
+            "SESSION_PAUSE_STATUS",
+            sessionJpa.getNumber(),
+            new SessionPausePayload(false, endedAt));
+      }
 
       final var endedPayload = buildSessionEndedPayload(sessionJpa, endedAt);
       sessionSseService.broadcast(
@@ -554,14 +570,23 @@ public class SessionController {
       return new NextQuestionResponseDto(sessionJpa.getCurrentSlideIndex(), totalSlides);
     }
 
+    final var now = Instant.now();
     pausedAtBySessionId.remove(id);
     if (sessionJpa.getStartedAt() == null) {
-      sessionJpa.setStartedAt(Instant.now());
+      sessionJpa.setStartedAt(now);
     }
     sessionJpa.setIsPaused(false);
     sessionJpa.setCurrentSlideIndex(nextIndex);
-    sessionJpa.setCurrentSlideStartedAt(Instant.now());
+    sessionJpa.setCurrentSlideStartedAt(now);
     sessionDataPort.saveAndFlushSession(sessionJpa);
+
+    if (wasPaused) {
+      sessionSseService.broadcast(
+          sessionJpa.getId(),
+          "SESSION_PAUSE_STATUS",
+          sessionJpa.getNumber(),
+          new SessionPausePayload(false, now));
+    }
 
     // Get current slide question details for SSE (Safe without isCorrect)
     final var currentQq = questionsList.get(Math.min(nextIndex - 1, totalSlides - 1));
@@ -574,7 +599,7 @@ public class SessionController {
             .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
             .toList();
 
-    if ("BOOLEAN".equalsIgnoreCase(question.getType())) {
+    if (isBooleanQuestion(question.getType())) {
       safeAnswers.add(new SafeAnswerDto(0, "Vrai", null));
       safeAnswers.add(new SafeAnswerDto(1, "Faux", null));
     } else if ("CASH".equalsIgnoreCase(question.getType())) {
@@ -592,7 +617,7 @@ public class SessionController {
     final var safeQuestion =
         new SafeQuestionDto(
             question.getId(),
-            question.getType(),
+            normalizeQuestionType(question.getType()),
             question.getLabel(),
             QuezapController.toPublicPictureUrl(question.getPictureFilename()),
             safeAnswers);
@@ -733,7 +758,7 @@ public class SessionController {
               pointsAwarded = Session.calculateScore(basePoints, timerSeconds, elapsedMillis, true);
             }
           }
-        } else if ("BOOLEAN".equalsIgnoreCase(questionType)) {
+        } else if (isBooleanQuestion(questionType)) {
           final var ansIdx = request.answerIndex() != null ? request.answerIndex() : -1;
           if (ansIdx == 0 || ansIdx == 1) {
             final var answerEntity = answers.isEmpty() ? null : answers.get(0);
@@ -830,7 +855,12 @@ public class SessionController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
     assertSessionHost(sessionJpa);
-    final var currentSlide = Math.max(sessionJpa.getCurrentSlideIndex(), 1);
+    if (sessionJpa.getStartedAt() == null
+        || sessionJpa.getCurrentSlideIndex() <= 0
+        || sessionJpa.getEndedAt() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not currently active");
+    }
+    final var currentSlide = sessionJpa.getCurrentSlideIndex();
     broadcastRevealAndLeaderboard(sessionJpa, currentSlide);
   }
 
@@ -961,8 +991,8 @@ public class SessionController {
     participant.setIsKicked(true);
     sessionDataPort.saveAndFlushSession(sessionJpa);
 
-    // Broadcast PARTICIPANT_KICKED
-    final var kickedPayload = new ParticipantKickedPayload(name, "HOST_KICK");
+    // Broadcast PARTICIPANT_KICKED with canonical participant name
+    final var kickedPayload = new ParticipantKickedPayload(participant.getName(), "HOST_KICK");
     sessionSseService.broadcast(
         sessionJpa.getId(), "PARTICIPANT_KICKED", sessionJpa.getNumber(), kickedPayload);
 
@@ -1125,7 +1155,7 @@ public class SessionController {
         final var question = currentQq.getQuestion();
 
         final var safeAnswers = new ArrayList<SafeAnswerDto>();
-        if ("BOOLEAN".equalsIgnoreCase(question.getType())) {
+        if (isBooleanQuestion(question.getType())) {
           safeAnswers.add(new SafeAnswerDto(0, "Vrai", null));
           safeAnswers.add(new SafeAnswerDto(1, "Faux", null));
         } else if ("CASH".equalsIgnoreCase(question.getType())) {
@@ -1148,7 +1178,7 @@ public class SessionController {
         final var safeQuestion =
             new SafeQuestionDto(
                 question.getId(),
-                question.getType(),
+                normalizeQuestionType(question.getType()),
                 question.getLabel(),
                 QuezapController.toPublicPictureUrl(question.getPictureFilename()),
                 safeAnswers);
@@ -1391,7 +1421,7 @@ public class SessionController {
         final var percentage = slideAnswers.isEmpty() ? 0.0 : ((double) count / totalCount * 100.0);
         stats.add(new AnswerStatDto(i, count, percentage));
       }
-    } else if ("BOOLEAN".equalsIgnoreCase(questionType)) {
+    } else if (isBooleanQuestion(questionType)) {
       final var answerEntity = answers.isEmpty() ? null : answers.get(0);
       final var statementIsTrue =
           answerEntity != null && Boolean.TRUE.equals(answerEntity.getIsCorrect());
@@ -1502,6 +1532,20 @@ public class SessionController {
     final var leaderboardPayload = buildIntermediateLeaderboardPayload(sessionJpa, slideIndex);
     sessionSseService.broadcast(
         sessionJpa.getId(), "INTERMEDIATE_LEADERBOARD", sessionJpa.getNumber(), leaderboardPayload);
+  }
+
+  private static boolean isBooleanQuestion(@Nullable String type) {
+    return "BOOLEAN".equalsIgnoreCase(type) || "AFFIRMATION".equalsIgnoreCase(type);
+  }
+
+  private static String normalizeQuestionType(@Nullable String type) {
+    if (type == null || type.isBlank()) {
+      return "QUIZZ";
+    }
+    if ("AFFIRMATION".equalsIgnoreCase(type)) {
+      return "BOOLEAN";
+    }
+    return type;
   }
 
   private String computeStatus(SessionJpaEntity session) {

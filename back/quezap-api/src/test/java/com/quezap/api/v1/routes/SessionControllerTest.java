@@ -1291,20 +1291,78 @@ class SessionControllerTest {
             Instant.now().minusSeconds(5),
             Instant.now());
 
+    final var existingParticipant =
+        new SessionParticipantJpaEntity(
+            UUID.randomUUID(),
+            sessionEntity,
+            "Alice",
+            500,
+            "ptk_alice_ended",
+            false,
+            Instant.now());
+    sessionEntity.addParticipant(existingParticipant);
+
     when(sessionDataPort.findSessionByNumber(9876L)).thenReturn(Optional.of(sessionEntity));
     when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
     when(sessionSseService.registerEmitter(sessionId)).thenReturn(new SseEmitter());
 
+    // New participant without valid token is rejected
     assertThatThrownBy(
             () -> sessionController.join(new JoinSessionRequest("QZ-9876", "LateStudent")))
         .isInstanceOf(ResponseStatusException.class)
         .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
+
+    // Existing participant reloading with their valid token succeeds on ended session
+    final var rejoined =
+        sessionController.join(new JoinSessionRequest("QZ-9876", "Alice"), "ptk_alice_ended");
+    assertThat(rejoined.sessionId()).isEqualTo(sessionId);
+    assertThat(rejoined.participantName()).isEqualTo("Alice");
+    assertThat(rejoined.participationToken()).isEqualTo("ptk_alice_ended");
 
     sessionController.streamEvents(sessionId, null);
 
     verify(sessionSseService)
         .sendToEmitter(
             any(), eq("SESSION_ENDED"), eq(9876L), eq(sessionId), any(SessionEndedPayload.class));
+  }
+
+  @Test
+  void shouldRejectRevealOnUnstartedOrEndedSessionAndClearPauseOnNextQuestion() {
+    final var sessionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Math", Instant.now());
+    final var q1 =
+        new QuestionJpaEntity(
+            UUID.randomUUID(), "QUIZZ", "1+1=?", null, theme, Instant.now(), Instant.now());
+    q1.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), q1, "2", null, true, 0));
+    q1.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), q1, "3", null, false, 1));
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(), "Quiz", "Desc", author, true, Instant.now(), Instant.now());
+    quezap.addQuestion(new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, q1, 10, 1000, 1));
+
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId, 7777L, "Lobby Session", 0, authorId, quezap, null, null, Instant.now());
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    // Cannot reveal before session starts
+    assertThatThrownBy(() -> sessionController.reveal(sessionId))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
+
+    // Start, pause, then advance -> ends session and broadcasts SESSION_PAUSE_STATUS(false)
+    sessionController.start(sessionId);
+    sessionController.pauseSession(sessionId, new SessionPauseRequestDto(true));
+    assertThat(sessionEntity.getIsPaused()).isTrue();
+
+    sessionController.nextQuestion(sessionId);
+    assertThat(sessionEntity.getIsPaused()).isFalse();
+    assertThat(sessionEntity.getEndedAt()).isNotNull();
+
+    // Cannot reveal after session ends
+    assertThatThrownBy(() -> sessionController.reveal(sessionId))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
   }
 
   @Test

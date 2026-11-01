@@ -13,22 +13,28 @@ public final class TextNormalizer {
   private static final Pattern DIACRITICS_PATTERN =
       Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
   private static final Pattern NON_ALPHANUMERIC_PATTERN = Pattern.compile("[^a-z0-9]+");
-  private static final Pattern CONSECUTIVE_DUPLICATES_PATTERN = Pattern.compile("([a-z0-9])\\1+");
+  private static final Pattern CONSECUTIVE_DUPLICATES_PATTERN = Pattern.compile("([a-z])\\1+");
 
   private TextNormalizer() {}
 
   /**
    * Normalise un texte selon les règles de tolérance canonique : 1. Trim et passage en minuscules.
-   * 2. Décomposition Unicode NFD et suppression des signes diacritiques (accents, cédilles,
-   * trémas). 3. Suppression des emojis, ponctuations et caractères non-alphanumériques. 4.
-   * Réduction des répétitions consécutives de caractères (ex: "tuliipe" -> "tulipe", "tullipe" ->
-   * "tulipe").
+   * 2. Translittération des ligatures (œ -> oe, æ -> ae) et décomposition Unicode NFD avec
+   * suppression des signes diacritiques (accents, cédilles, trémas). 3. Suppression des emojis,
+   * ponctuations et caractères non-alphanumériques. 4. Réduction des répétitions consécutives de
+   * lettres (ex: "tuliipe" -> "tulipe", "tullipe" -> "tulipe") sans altérer les nombres.
    */
   public static String normalize(@Nullable String input) {
     if (input == null) {
       return "";
     }
-    var text = input.trim().toLowerCase(Locale.ROOT);
+    var text =
+        input
+            .trim()
+            .toLowerCase(Locale.ROOT)
+            .replace("œ", "oe")
+            .replace("æ", "ae")
+            .replace("ß", "ss");
     if (text.isEmpty()) {
       return "";
     }
@@ -40,7 +46,7 @@ public final class TextNormalizer {
     // 2. Suppression de toute ponctuation, emoji et caractères non alphanumériques
     final var alphanumericOnly = NON_ALPHANUMERIC_PATTERN.matcher(withoutDiacritics).replaceAll("");
 
-    // 3. Réduction des répétitions consécutives (2 ou plus ramenées à 1 seule lettre)
+    // 3. Réduction des répétitions consécutives de lettres (2 ou plus ramenées à 1 seule lettre)
     return CONSECUTIVE_DUPLICATES_PATTERN.matcher(alphanumericOnly).replaceAll("$1");
   }
 

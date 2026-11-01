@@ -189,7 +189,8 @@ public class SessionReportService {
       final var successRate =
           slideTotalAnswers > 0 ? (double) slideCorrectAnswers / slideTotalAnswers * 100.0 : 0.0;
 
-      final var isBoolean = "BOOLEAN".equalsIgnoreCase(q.getType());
+      final var isBoolean =
+          "BOOLEAN".equalsIgnoreCase(q.getType()) || "AFFIRMATION".equalsIgnoreCase(q.getType());
       final var isCash = "CASH".equalsIgnoreCase(q.getType());
       final var answerStats = new ArrayList<QuestionAnswerStatDto>();
       if (isBoolean) {
@@ -259,7 +260,7 @@ public class SessionReportService {
           new QuestionReportDto(
               slideIndex,
               q.getLabel() != null ? q.getLabel() : "",
-              q.getType() != null ? q.getType() : "QUIZZ",
+              isBoolean ? "BOOLEAN" : (q.getType() != null ? q.getType() : "QUIZZ"),
               slideTotalAnswers,
               slideCorrectAnswers,
               Math.round(successRate * 10.0) / 10.0,

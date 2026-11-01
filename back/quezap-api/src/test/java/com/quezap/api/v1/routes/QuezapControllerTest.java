@@ -319,6 +319,8 @@ class QuezapControllerTest {
             Instant.now());
     final var quezap =
         new QuezapJpaEntity(quezapId, "Quiz", "Desc", author, true, Instant.now(), Instant.now());
+    quezap.addQuestion(
+        new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, existingQuestion, 20, 1000, 1));
 
     when(quezapJpaRepository.findById(quezapId)).thenReturn(Optional.of(quezap));
     when(questionJpaRepository.findById(existingQuestionId))
@@ -345,6 +347,82 @@ class QuezapControllerTest {
         quezapId, new UpdateQuezapRequest("Quiz", "Desc", true, List.of(slide)));
 
     assertThat(existingQuestion.getPictureFilename()).isNull();
+  }
+
+  @Test
+  void shouldNotMutateForeignQuestionIdAndShouldUpdateExistingAnswersInPlace() {
+    final var quezapId = UUID.randomUUID();
+    final var ownQuestionId = UUID.randomUUID();
+    final var foreignQuestionId = UUID.randomUUID();
+    final var existingAnswerId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Science", Instant.now());
+
+    final var ownQuestion =
+        new QuestionJpaEntity(
+            ownQuestionId, "QUIZZ", "Own Question", null, theme, Instant.now(), Instant.now());
+    final var existingAnswer =
+        new AnswerJpaEntity(existingAnswerId, ownQuestion, "Old Label", null, true, 1);
+    ownQuestion.addAnswer(existingAnswer);
+
+    final var foreignQuestion =
+        new QuestionJpaEntity(
+            foreignQuestionId,
+            "QUIZZ",
+            "Foreign Question",
+            null,
+            theme,
+            Instant.now(),
+            Instant.now());
+
+    final var quezap =
+        new QuezapJpaEntity(quezapId, "Quiz", "Desc", author, true, Instant.now(), Instant.now());
+    quezap.addQuestion(
+        new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, ownQuestion, 20, 1000, 1));
+
+    when(quezapJpaRepository.findById(quezapId)).thenReturn(Optional.of(quezap));
+    when(questionJpaRepository.findById(ownQuestionId)).thenReturn(Optional.of(ownQuestion));
+    when(questionJpaRepository.findById(foreignQuestionId))
+        .thenReturn(Optional.of(foreignQuestion));
+    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+
+    final var ownInline =
+        new InlineQuestionRequest(
+            ownQuestionId,
+            "Updated Own Question",
+            "QUIZZ",
+            null,
+            null,
+            "Science",
+            List.of(new InlineAnswerRequest(existingAnswerId, "Updated Label", false, null, 1)));
+    final var foreignInline =
+        new InlineQuestionRequest(
+            foreignQuestionId,
+            "Tampered Foreign Question",
+            "QUIZZ",
+            null,
+            null,
+            "Science",
+            List.of(new InlineAnswerRequest(null, "Tampered Answer", true, null, 1)));
+
+    quezapController.update(
+        quezapId,
+        new UpdateQuezapRequest(
+            "Quiz",
+            "Desc",
+            true,
+            List.of(
+                new QuezapSlideRequest(ownQuestionId, 20, 1000, 1, ownInline),
+                new QuezapSlideRequest(foreignQuestionId, 20, 1000, 2, foreignInline))));
+
+    // Own question and its existing answer entity instance were updated in place
+    assertThat(ownQuestion.getLabel()).isEqualTo("Updated Own Question");
+    assertThat(ownQuestion.getAnswers()).containsExactly(existingAnswer);
+    assertThat(existingAnswer.getLabel()).isEqualTo("Updated Label");
+    assertThat(existingAnswer.getIsCorrect()).isFalse();
+
+    // Foreign question was NOT mutated in place
+    assertThat(foreignQuestion.getLabel()).isEqualTo("Foreign Question");
   }
 
   @Test
