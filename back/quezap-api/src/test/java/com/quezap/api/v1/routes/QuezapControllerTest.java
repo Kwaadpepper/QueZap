@@ -388,4 +388,36 @@ class QuezapControllerTest {
     assertThat(duplicatedQuestion.getLabel()).isEqualTo("Original Question");
     assertThat(duplicatedQuestion.getAnswers()).hasSize(2);
   }
+
+  @Test
+  void shouldRejectDuplicatingOrCloningPrivateQuezapFromAnotherAuthor() {
+    final var otherAuthorId = UUID.randomUUID();
+    final var otherCred =
+        new CredentialJpaEntity(
+            UUID.randomUUID(), "other", "pass", null, Instant.now(), Instant.now());
+    final var otherAuthor =
+        new UserJpaEntity(otherAuthorId, "OtherTeacher", otherCred, Instant.now(), Instant.now());
+    final var privateQuezapId = UUID.randomUUID();
+    final var privateQuezap =
+        new QuezapJpaEntity(
+            privateQuezapId,
+            "Secret Quiz",
+            "Desc",
+            otherAuthor,
+            false,
+            Instant.now(),
+            Instant.now());
+
+    when(quezapJpaRepository.findById(privateQuezapId)).thenReturn(Optional.of(privateQuezap));
+
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+            () -> quezapController.duplicate(privateQuezapId))
+        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", org.springframework.http.HttpStatus.FORBIDDEN);
+
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+            () -> quezapController.clone(privateQuezapId))
+        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", org.springframework.http.HttpStatus.FORBIDDEN);
+  }
 }

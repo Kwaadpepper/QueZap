@@ -205,6 +205,13 @@ public class SessionController {
                     new ResponseStatusException(
                         HttpStatus.BAD_REQUEST, "Quezap introuvable : " + request.quezapId()));
 
+    if (!quezapEntity.getAuthor().getId().equals(author.getId())
+        && !Boolean.TRUE.equals(quezapEntity.getIsPublic())) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN,
+          "Impossible de lancer une session sur un questionnaire privé d'un autre auteur");
+    }
+
     validateQuezapCompleteness(quezapEntity);
 
     final var sessionJpa =
@@ -327,6 +334,10 @@ public class SessionController {
                     new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Invalid session code: " + request.code()));
 
+    if (sessionJpa.getEndedAt() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cette session est déjà terminée");
+    }
+
     final var sanitizedName = userNameSanitizer.sanitize(request.participantName());
     if (sanitizedName.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid participant name");
@@ -385,6 +396,28 @@ public class SessionController {
 
     sessionSseService.broadcast(
         sessionJpa.getId(), "LOBBY_STATE", sessionJpa.getNumber(), lobbyPayload);
+
+    if (sessionJpa.getStartedAt() != null
+        && sessionJpa.getEndedAt() == null
+        && sessionJpa.getCurrentSlideIndex() > 0) {
+      final var currentSlide = sessionJpa.getCurrentSlideIndex();
+      final var activeNames =
+          participantList.stream()
+              .map(ParticipantDto::name)
+              .collect(java.util.stream.Collectors.toSet());
+      final var totalAnswered =
+          (int)
+              sessionJpa.getAnswers().stream()
+                  .filter(
+                      a ->
+                          a.getSlideIndex().equals(currentSlide)
+                              && activeNames.contains(a.getParticipantName()))
+                  .count();
+      final var answerCountPayload =
+          new AnswerCountPayload(currentSlide, totalAnswered, activeNames.size());
+      sessionSseService.broadcast(
+          sessionJpa.getId(), "ANSWER_RECEIVED", sessionJpa.getNumber(), answerCountPayload);
+    }
 
     return new JoinSessionResponseDto(sessionJpa.getId(), token, sanitizedName);
   }
@@ -491,6 +524,10 @@ public class SessionController {
 
     assertSessionHost(sessionJpa);
 
+    if (sessionJpa.getEndedAt() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session has already ended");
+    }
+
     final var quezap = sessionJpa.getQuezap();
     if (quezap == null || quezap.getQuestions().isEmpty()) {
       throw new ResponseStatusException(
@@ -509,66 +546,7 @@ public class SessionController {
       sessionJpa.setEndedAt(endedAt);
       sessionDataPort.saveAndFlushSession(sessionJpa);
 
-      final var sortedParticipants =
-          sessionJpa.getParticipants().stream()
-              .filter(p -> !p.getIsKicked())
-              .sorted(Comparator.comparing(SessionParticipantJpaEntity::getScore).reversed())
-              .toList();
-
-      var rank = 1;
-      final var finalLeaderboard = new ArrayList<FinalLeaderboardEntryDto>();
-      for (final var p : sortedParticipants) {
-        final var correctCount =
-            (int)
-                sessionJpa.getAnswers().stream()
-                    .filter(
-                        a ->
-                            a.getParticipantName().equals(p.getName())
-                                && Boolean.TRUE.equals(a.getIsCorrect()))
-                    .count();
-        finalLeaderboard.add(
-            new FinalLeaderboardEntryDto(rank++, p.getName(), p.getScore(), correctCount));
-      }
-
-      final var podium =
-          new PodiumDto(
-              !sortedParticipants.isEmpty() ? sortedParticipants.get(0).getName() : "",
-              sortedParticipants.size() > 1 ? sortedParticipants.get(1).getName() : null,
-              sortedParticipants.size() > 2 ? sortedParticipants.get(2).getName() : null);
-
-      final var totalParticipants = finalLeaderboard.size();
-      final var averageScore =
-          totalParticipants > 0
-              ? (int)
-                  Math.round(
-                      finalLeaderboard.stream()
-                          .mapToInt(FinalLeaderboardEntryDto::totalScore)
-                          .average()
-                          .orElse(0.0))
-              : 0;
-
-      final var activeParticipantNames =
-          sortedParticipants.stream()
-              .map(SessionParticipantJpaEntity::getName)
-              .collect(java.util.stream.Collectors.toSet());
-      final var activeAnswers =
-          sessionJpa.getAnswers().stream()
-              .filter(a -> activeParticipantNames.contains(a.getParticipantName()))
-              .toList();
-      final var totalAnswers = activeAnswers.size();
-      final var correctAnswers =
-          activeAnswers.stream().filter(a -> Boolean.TRUE.equals(a.getIsCorrect())).count();
-      final var globalSuccessRate =
-          totalAnswers > 0
-              ? Math.round((double) correctAnswers / totalAnswers * 1000.0) / 10.0
-              : 0.0;
-
-      final var groupMetrics =
-          new SessionGroupMetricsDto(totalParticipants, averageScore, globalSuccessRate);
-      final var top5 = finalLeaderboard.subList(0, Math.min(5, finalLeaderboard.size()));
-
-      final var endedPayload =
-          new SessionEndedPayload(endedAt, finalLeaderboard, podium, groupMetrics, top5);
+      final var endedPayload = buildSessionEndedPayload(sessionJpa, endedAt);
       sessionSseService.broadcast(
           sessionJpa.getId(), "SESSION_ENDED", sessionJpa.getNumber(), endedPayload);
 
@@ -577,6 +555,9 @@ public class SessionController {
     }
 
     pausedAtBySessionId.remove(id);
+    if (sessionJpa.getStartedAt() == null) {
+      sessionJpa.setStartedAt(Instant.now());
+    }
     sessionJpa.setIsPaused(false);
     sessionJpa.setCurrentSlideIndex(nextIndex);
     sessionJpa.setCurrentSlideStartedAt(Instant.now());
@@ -651,6 +632,11 @@ public class SessionController {
 
     if (sessionJpa.getStartedAt() == null || sessionJpa.getEndedAt() != null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not currently active");
+    }
+
+    if (request.textAnswer() != null && request.textAnswer().length() > 255) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "La réponse texte ne doit pas dépasser 255 caractères");
     }
 
     if (request.slideIndex() != null
@@ -995,6 +981,28 @@ public class SessionController {
 
     sessionSseService.broadcast(
         sessionJpa.getId(), "LOBBY_STATE", sessionJpa.getNumber(), lobbyPayload);
+
+    if (sessionJpa.getStartedAt() != null
+        && sessionJpa.getEndedAt() == null
+        && sessionJpa.getCurrentSlideIndex() > 0) {
+      final var currentSlide = sessionJpa.getCurrentSlideIndex();
+      final var activeNames =
+          participantList.stream()
+              .map(ParticipantDto::name)
+              .collect(java.util.stream.Collectors.toSet());
+      final var totalAnswered =
+          (int)
+              sessionJpa.getAnswers().stream()
+                  .filter(
+                      a ->
+                          a.getSlideIndex().equals(currentSlide)
+                              && activeNames.contains(a.getParticipantName()))
+                  .count();
+      final var answerCountPayload =
+          new AnswerCountPayload(currentSlide, totalAnswered, activeNames.size());
+      sessionSseService.broadcast(
+          sessionJpa.getId(), "ANSWER_RECEIVED", sessionJpa.getNumber(), answerCountPayload);
+    }
   }
 
   @PostMapping("{id}/leave")
@@ -1069,7 +1077,8 @@ public class SessionController {
       @Nullable QuestionStartPayload startPayload,
       @Nullable QuestionRevealPayload revealPayload,
       @Nullable IntermediateLeaderboardPayload leaderboardPayload,
-      @Nullable SessionPausePayload pausePayload) {}
+      @Nullable SessionPausePayload pausePayload,
+      @Nullable SessionEndedPayload endedPayload) {}
 
   @Transactional(readOnly = true)
   protected InitialEventsData getInitialStreamData(UUID id) {
@@ -1099,10 +1108,11 @@ public class SessionController {
         Boolean.TRUE.equals(sessionJpa.getIsPaused())
             ? new SessionPausePayload(true, Instant.now())
             : null;
+    SessionEndedPayload endedPayload = null;
 
-    if (sessionJpa.getStartedAt() != null
-        && sessionJpa.getEndedAt() == null
-        && sessionJpa.getCurrentSlideIndex() > 0) {
+    if (sessionJpa.getEndedAt() != null) {
+      endedPayload = buildSessionEndedPayload(sessionJpa, sessionJpa.getEndedAt());
+    } else if (sessionJpa.getStartedAt() != null && sessionJpa.getCurrentSlideIndex() > 0) {
       final var nextIndex = sessionJpa.getCurrentSlideIndex();
       final var questionsList =
           quezap != null
@@ -1158,10 +1168,18 @@ public class SessionController {
                 ? slideStartedAt.plusSeconds(timerSeconds)
                 : Instant.now().plusSeconds(remainingSeconds);
 
+        final var kickedNames =
+            sessionJpa.getParticipants().stream()
+                .filter(SessionParticipantJpaEntity::getIsKicked)
+                .map(SessionParticipantJpaEntity::getName)
+                .collect(java.util.stream.Collectors.toSet());
         final var answeredCount =
             (int)
                 sessionJpa.getAnswers().stream()
-                    .filter(a -> a.getSlideIndex().equals(nextIndex))
+                    .filter(
+                        a ->
+                            a.getSlideIndex().equals(nextIndex)
+                                && !kickedNames.contains(a.getParticipantName()))
                     .count();
 
         startPayload =
@@ -1189,7 +1207,8 @@ public class SessionController {
         startPayload,
         revealPayload,
         leaderboardPayload,
-        pausePayload);
+        pausePayload,
+        endedPayload);
   }
 
   @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -1219,6 +1238,12 @@ public class SessionController {
 
     sessionSseService.sendToEmitter(
         emitter, "LOBBY_STATE", initialData.sessionNumber(), id, initialData.lobbyPayload());
+
+    if (initialData.endedPayload() != null) {
+      sessionSseService.sendToEmitter(
+          emitter, "SESSION_ENDED", initialData.sessionNumber(), id, initialData.endedPayload());
+      return emitter;
+    }
 
     if (initialData.startPayload() != null) {
       sessionSseService.sendToEmitter(
@@ -1251,6 +1276,67 @@ public class SessionController {
     return emitter;
   }
 
+  private SessionEndedPayload buildSessionEndedPayload(
+      SessionJpaEntity sessionJpa, Instant endedAt) {
+    final var sortedParticipants =
+        sessionJpa.getParticipants().stream()
+            .filter(p -> !p.getIsKicked())
+            .sorted(Comparator.comparing(SessionParticipantJpaEntity::getScore).reversed())
+            .toList();
+
+    var rank = 1;
+    final var finalLeaderboard = new ArrayList<FinalLeaderboardEntryDto>();
+    for (final var p : sortedParticipants) {
+      final var correctCount =
+          (int)
+              sessionJpa.getAnswers().stream()
+                  .filter(
+                      a ->
+                          a.getParticipantName().equals(p.getName())
+                              && Boolean.TRUE.equals(a.getIsCorrect()))
+                  .count();
+      finalLeaderboard.add(
+          new FinalLeaderboardEntryDto(rank++, p.getName(), p.getScore(), correctCount));
+    }
+
+    final var podium =
+        new PodiumDto(
+            !sortedParticipants.isEmpty() ? sortedParticipants.get(0).getName() : "",
+            sortedParticipants.size() > 1 ? sortedParticipants.get(1).getName() : null,
+            sortedParticipants.size() > 2 ? sortedParticipants.get(2).getName() : null);
+
+    final var totalParticipants = finalLeaderboard.size();
+    final var averageScore =
+        totalParticipants > 0
+            ? (int)
+                Math.round(
+                    finalLeaderboard.stream()
+                        .mapToInt(FinalLeaderboardEntryDto::totalScore)
+                        .average()
+                        .orElse(0.0))
+            : 0;
+
+    final var activeParticipantNames =
+        sortedParticipants.stream()
+            .map(SessionParticipantJpaEntity::getName)
+            .collect(java.util.stream.Collectors.toSet());
+    final var activeAnswers =
+        sessionJpa.getAnswers().stream()
+            .filter(a -> activeParticipantNames.contains(a.getParticipantName()))
+            .toList();
+    final var totalAnswers = activeAnswers.size();
+    final var correctAnswers =
+        activeAnswers.stream().filter(a -> Boolean.TRUE.equals(a.getIsCorrect())).count();
+    final var globalSuccessRate =
+        totalAnswers > 0 ? Math.round((double) correctAnswers / totalAnswers * 1000.0) / 10.0 : 0.0;
+
+    final var groupMetrics =
+        new SessionGroupMetricsDto(totalParticipants, averageScore, globalSuccessRate);
+    final var top5 = finalLeaderboard.subList(0, Math.min(5, finalLeaderboard.size()));
+
+    return new SessionEndedPayload(endedAt, finalLeaderboard, podium, groupMetrics, top5);
+  }
+
   private @Nullable QuestionRevealPayload buildRevealPayload(
       SessionJpaEntity sessionJpa, List<QuezapQuestionJpaEntity> questions, int slideIndex) {
     final var slideIdx = slideIndex - 1;
@@ -1266,8 +1352,19 @@ public class SessionController {
     final var correctIndices = new ArrayList<Integer>();
     final var stats = new ArrayList<AnswerStatDto>();
 
+    final var kickedParticipantNames =
+        sessionJpa.getParticipants().stream()
+            .filter(SessionParticipantJpaEntity::getIsKicked)
+            .map(SessionParticipantJpaEntity::getName)
+            .collect(java.util.stream.Collectors.toSet());
+
     final var slideAnswers =
-        sessionJpa.getAnswers().stream().filter(a -> a.getSlideIndex().equals(slideIndex)).toList();
+        sessionJpa.getAnswers().stream()
+            .filter(
+                a ->
+                    a.getSlideIndex().equals(slideIndex)
+                        && !kickedParticipantNames.contains(a.getParticipantName()))
+            .toList();
 
     final var totalCount = Math.max(slideAnswers.size(), 1);
     final var questionType = qq.getQuestion().getType();
@@ -1307,7 +1404,9 @@ public class SessionController {
         final var answerIndex = i;
         final var count =
             (int)
-                slideAnswers.stream().filter(sa -> sa.getAnswerIndex().equals(answerIndex)).count();
+                slideAnswers.stream()
+                    .filter(sa -> java.util.Objects.equals(sa.getAnswerIndex(), answerIndex))
+                    .count();
         final var percentage = (double) count / totalCount * 100.0;
         stats.add(new AnswerStatDto(i, count, percentage));
       }
@@ -1320,7 +1419,9 @@ public class SessionController {
         final var answerIndex = i;
         final var count =
             (int)
-                slideAnswers.stream().filter(sa -> sa.getAnswerIndex().equals(answerIndex)).count();
+                slideAnswers.stream()
+                    .filter(sa -> java.util.Objects.equals(sa.getAnswerIndex(), answerIndex))
+                    .count();
         final var percentage = (double) count / totalCount * 100.0;
         stats.add(new AnswerStatDto(i, count, percentage));
       }

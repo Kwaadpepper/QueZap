@@ -1245,4 +1245,98 @@ class SessionControllerTest {
     assertThat(sessionEntity.getIsPaused()).isFalse();
     assertThat(sessionEntity.getCurrentSlideStartedAt()).isAfterOrEqualTo(beforeResume);
   }
+
+  @Test
+  void shouldRejectCreatingSessionForAnotherAuthorsPrivateQuezap() {
+    final var otherAuthorId = UUID.randomUUID();
+    final var otherCred =
+        new CredentialJpaEntity(
+            UUID.randomUUID(), "other", "pass", null, Instant.now(), Instant.now());
+    final var otherAuthor =
+        new UserJpaEntity(otherAuthorId, "OtherTeacher", otherCred, Instant.now(), Instant.now());
+    final var privateQuezapId = UUID.randomUUID();
+    final var privateQuezap =
+        new QuezapJpaEntity(
+            privateQuezapId,
+            "Private Quiz",
+            "Secret",
+            otherAuthor,
+            false,
+            Instant.now(),
+            Instant.now());
+
+    when(sessionDataPort.findQuezapById(privateQuezapId)).thenReturn(Optional.of(privateQuezap));
+
+    assertThatThrownBy(
+            () ->
+                sessionController.create(
+                    new com.quezap.api.v1.dto.request.sessions.CreateSessionRequest(
+                        "Stolen Session", privateQuezapId)))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void shouldRejectJoiningEndedSessionAndReplaySessionEndedOnStreamEvents() {
+    final var sessionId = UUID.randomUUID();
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            9876L,
+            "Ended Session",
+            1,
+            authorId,
+            null,
+            Instant.now().minusSeconds(60),
+            Instant.now().minusSeconds(5),
+            Instant.now());
+
+    when(sessionDataPort.findSessionByNumber(9876L)).thenReturn(Optional.of(sessionEntity));
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+    when(sessionSseService.registerEmitter(sessionId)).thenReturn(new SseEmitter());
+
+    assertThatThrownBy(
+            () -> sessionController.join(new JoinSessionRequest("QZ-9876", "LateStudent")))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
+
+    sessionController.streamEvents(sessionId, null);
+
+    verify(sessionSseService)
+        .sendToEmitter(
+            any(), eq("SESSION_ENDED"), eq(9876L), eq(sessionId), any(SessionEndedPayload.class));
+  }
+
+  @Test
+  void shouldRejectTextAnswerExceeding255CharactersAndBroadcastAnswerReceivedOnKick() {
+    final var sessionId = UUID.randomUUID();
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            5555L,
+            "Active Session",
+            1,
+            authorId,
+            null,
+            Instant.now().minusSeconds(10),
+            null,
+            Instant.now());
+    final var p1 =
+        new SessionParticipantJpaEntity(
+            UUID.randomUUID(), sessionEntity, "Alice", 100, "ptk_alice", false, Instant.now());
+    sessionEntity.addParticipant(p1);
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    final var tooLongText = "a".repeat(256);
+    assertThatThrownBy(
+            () ->
+                sessionController.submitAnswer(
+                    sessionId, "ptk_alice", new SubmitAnswerRequest(1, null, tooLongText)))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
+
+    sessionController.kickParticipant(sessionId, "Alice");
+    assertThat(p1.getIsKicked()).isTrue();
+    verify(sessionSseService).broadcast(eq(sessionId), eq("ANSWER_RECEIVED"), eq(5555L), any());
+  }
 }

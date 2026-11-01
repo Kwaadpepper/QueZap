@@ -199,6 +199,9 @@ public class SessionSseService {
           }
           if (!deadEmitters.isEmpty()) {
             sessionEmitters.removeAll(deadEmitters);
+            if (sessionEmitters.isEmpty()) {
+              emitters.remove(sessionId, sessionEmitters);
+            }
           }
         });
   }

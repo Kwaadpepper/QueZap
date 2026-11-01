@@ -45,6 +45,8 @@ public class FindQuestionsController {
       return new ListQuestions.Input.SearchingWithThemes(pagination, search, themes);
     } else if (search != null) {
       return new ListQuestions.Input.Searching(pagination, search);
+    } else if (themes != null && !themes.isEmpty()) {
+      return new ListQuestions.Input.WithThemes(pagination, themes);
     }
 
     return new ListQuestions.Input.PerPage(pagination);

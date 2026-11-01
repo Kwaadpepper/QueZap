@@ -53,17 +53,34 @@ public class QuestionJpaMapper {
   }
 
   public Question toDomain(QuestionJpaEntity entity) {
+    final var rawType =
+        entity.getType() != null ? entity.getType().trim().toUpperCase(Locale.ROOT) : "QUIZZ";
+    final var questionType =
+        "AFFIRMATION".equals(rawType) ? QuestionType.BOOLEAN : QuestionType.valueOf(rawType);
+
+    final var sortedAnswers =
+        entity.getAnswers().stream()
+            .sorted(java.util.Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
+            .toList();
+    final var answersToMap =
+        questionType == QuestionType.BOOLEAN && sortedAnswers.size() > 1
+            ? sortedAnswers.subList(0, 1)
+            : sortedAnswers;
+
     final var domainAnswers = new HashSet<Answer>();
-    for (final var a : entity.getAnswers()) {
+    for (final var a : answersToMap) {
       final var pic = toPicture(a.getPictureFilename());
-      domainAnswers.add(new Answer(a.getLabel(), pic, a.getIsCorrect()));
+      final var rawLabel = a.getLabel();
+      final var normalizedLabel =
+          (rawLabel != null && rawLabel.isBlank() && pic != null) ? null : rawLabel;
+      domainAnswers.add(new Answer(normalizedLabel, pic, a.getIsCorrect()));
     }
 
     final var questionPic = toPicture(entity.getPictureFilename());
 
     return Question.hydrate(
         new QuestionId(entity.getId()),
-        QuestionType.valueOf(entity.getType()),
+        questionType,
         entity.getLabel(),
         questionPic,
         new ThemeId(entity.getTheme().getId()),

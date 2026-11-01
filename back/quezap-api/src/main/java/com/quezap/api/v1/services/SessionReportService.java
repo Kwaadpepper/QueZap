@@ -159,6 +159,12 @@ public class SessionReportService {
     final var averageAccuracyRate =
         totalParticipants > 0 ? totalAccuracySum / totalParticipants : 0.0;
 
+    final var kickedParticipantNames =
+        sessionJpa.getParticipants().stream()
+            .filter(SessionParticipantJpaEntity::getIsKicked)
+            .map(SessionParticipantJpaEntity::getName)
+            .collect(java.util.stream.Collectors.toSet());
+
     final var questionReports = new ArrayList<QuestionReportDto>();
     for (var idx = 0; idx < questionsList.size(); idx++) {
       final var qq = questionsList.get(idx);
@@ -171,7 +177,10 @@ public class SessionReportService {
 
       final var slideAnswers =
           sessionJpa.getAnswers().stream()
-              .filter(a -> a.getSlideIndex().equals(slideIndex))
+              .filter(
+                  a ->
+                      a.getSlideIndex().equals(slideIndex)
+                          && !kickedParticipantNames.contains(a.getParticipantName()))
               .toList();
 
       final var slideTotalAnswers = slideAnswers.size();
@@ -192,7 +201,7 @@ public class SessionReportService {
           final var count =
               (int)
                   slideAnswers.stream()
-                      .filter(sa -> sa.getAnswerIndex().equals(targetIndex))
+                      .filter(sa -> java.util.Objects.equals(sa.getAnswerIndex(), targetIndex))
                       .count();
           final var percentage =
               slideTotalAnswers > 0 ? (double) count / slideTotalAnswers * 100.0 : 0.0;
@@ -232,7 +241,7 @@ public class SessionReportService {
           final var count =
               (int)
                   slideAnswers.stream()
-                      .filter(sa -> sa.getAnswerIndex().equals(targetIndex))
+                      .filter(sa -> java.util.Objects.equals(sa.getAnswerIndex(), targetIndex))
                       .count();
           final var percentage =
               slideTotalAnswers > 0 ? (double) count / slideTotalAnswers * 100.0 : 0.0;

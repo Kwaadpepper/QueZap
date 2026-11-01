@@ -152,6 +152,11 @@ public class QuezapController {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
 
     final var currentUser = getCurrentUser();
+    if (!original.getAuthor().getId().equals(currentUser.getId())
+        && !Boolean.TRUE.equals(original.getIsPublic())) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Impossible de dupliquer un questionnaire privé d'un autre auteur");
+    }
 
     final var copy =
         new QuezapJpaEntity(
@@ -617,6 +622,7 @@ public class QuezapController {
 
   @PostMapping("{id}/clone")
   @ResponseStatus(HttpStatus.CREATED)
+  @Transactional
   public QuezapIdDto clone(@PathVariable UUID id) {
     final var original =
         quezapJpaRepository
@@ -624,6 +630,11 @@ public class QuezapController {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
     final var author = getCurrentUser();
+    if (!original.getAuthor().getId().equals(author.getId())
+        && !Boolean.TRUE.equals(original.getIsPublic())) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Impossible de cloner un questionnaire privé d'un autre auteur");
+    }
 
     final var cloned =
         new QuezapJpaEntity(
