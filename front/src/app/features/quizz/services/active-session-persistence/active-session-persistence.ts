@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core'
+import { Injectable, signal } from '@angular/core'
 
 import { SessionCode } from '@quezap/domain/models'
 
@@ -7,6 +7,12 @@ export interface PersistedSessionData {
   nickname?: string
   sessionId?: string
   participationToken?: string
+}
+
+export interface PersistedSubmittedChoice {
+  questionId: string
+  answerIndex: number
+  label: string
 }
 
 export interface FinalParticipantResults {
@@ -32,9 +38,13 @@ export class ActiveSessionPersistence {
   readonly #sessionIdKey = 'quezap_session_id'
   readonly #participantNameKey = 'quezap_participant_name'
   readonly #finalResultsKey = 'quezap_final_results'
+  readonly #submittedChoiceKey = 'quezap_submitted_choice'
 
   // Resilient memory cache in case browser storage is restricted or throws
   readonly #memoryCache = new Map<string, string>()
+
+  readonly #participantNameSignal = signal<string | null>(null)
+  readonly #finalResultsSignal = signal<FinalParticipantResults | null>(null)
 
   private setSafeItem(storage: Storage | undefined, key: string, value: string): void {
     this.#memoryCache.set(key, value)
@@ -93,6 +103,7 @@ export class ActiveSessionPersistence {
     }
     if (data.nickname) {
       this.setSafeItem(this.sessionStorageRef, this.#participantNameKey, data.nickname)
+      this.#participantNameSignal.set(data.nickname)
     }
   }
 
@@ -141,6 +152,7 @@ export class ActiveSessionPersistence {
     this.setSessionId(sessionId)
     if (nickname) {
       this.setSafeItem(this.sessionStorageRef, this.#participantNameKey, nickname)
+      this.#participantNameSignal.set(nickname)
     }
     const current = this.retrieve() ?? { code: '' as SessionCode }
     this.patch({
@@ -172,8 +184,40 @@ export class ActiveSessionPersistence {
   }
 
   getParticipantName(): string | null {
-    return this.getSafeItem(this.localStorageRef, this.#participantNameKey)
+    const sigVal = this.#participantNameSignal()
+    const stored = this.getSafeItem(this.localStorageRef, this.#participantNameKey)
       ?? this.getSafeItem(this.sessionStorageRef, this.#participantNameKey)
+    return stored ?? sigVal
+  }
+
+  saveSubmittedChoice(questionId: string, choice: { answerIndex: number, label: string }): void {
+    if (!questionId) return
+    const payload: PersistedSubmittedChoice = {
+      questionId,
+      answerIndex: choice.answerIndex,
+      label: choice.label,
+    }
+    this.setSafeItem(this.sessionStorageRef, this.#submittedChoiceKey, JSON.stringify(payload))
+  }
+
+  getSubmittedChoice(questionId: string): { answerIndex: number, label: string } | undefined {
+    if (!questionId) return undefined
+    const raw = this.getSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
+    if (!raw) return undefined
+    try {
+      const parsed = JSON.parse(raw) as PersistedSubmittedChoice
+      if (parsed.questionId === questionId) {
+        return { answerIndex: parsed.answerIndex, label: parsed.label }
+      }
+      return undefined
+    }
+    catch {
+      return undefined
+    }
+  }
+
+  clearSubmittedChoice(): void {
+    this.removeSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
   }
 
   clearParticipationAuth(): void {
@@ -183,6 +227,9 @@ export class ActiveSessionPersistence {
     this.removeSafeItem(this.sessionStorageRef, this.#participantNameKey)
     this.removeSafeItem(this.localStorageRef, this.#finalResultsKey)
     this.removeSafeItem(this.sessionStorageRef, this.#finalResultsKey)
+    this.removeSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
+    this.#participantNameSignal.set(null)
+    this.#finalResultsSignal.set(null)
     const existing = this.retrieve()
     if (existing) {
       delete existing.participationToken
@@ -192,16 +239,18 @@ export class ActiveSessionPersistence {
 
   saveFinalResults(results: FinalParticipantResults): void {
     this.setSafeItem(this.sessionStorageRef, this.#finalResultsKey, JSON.stringify(results))
+    this.#finalResultsSignal.set(results)
   }
 
   getFinalResults(): FinalParticipantResults | null {
+    const sigVal = this.#finalResultsSignal()
     const raw = this.getSafeItem(this.sessionStorageRef, this.#finalResultsKey)
-    if (!raw) return null
+    if (!raw) return sigVal
     try {
       return JSON.parse(raw) as FinalParticipantResults
     }
     catch {
-      return null
+      return sigVal
     }
   }
 
@@ -215,6 +264,9 @@ export class ActiveSessionPersistence {
     this.removeSafeItem(this.sessionStorageRef, this.#sessionIdKey)
     this.removeSafeItem(this.sessionStorageRef, this.#participantNameKey)
     this.removeSafeItem(this.sessionStorageRef, this.#finalResultsKey)
+    this.removeSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
+    this.#participantNameSignal.set(null)
+    this.#finalResultsSignal.set(null)
   }
 
   clearKeepingNickname(): void {

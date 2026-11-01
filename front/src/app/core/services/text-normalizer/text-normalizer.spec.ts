@@ -31,4 +31,14 @@ describe('TextNormalizer', () => {
     expect(matchesTolerant('tournesol', 'tulipe')).toBe(false)
     expect(matchesTolerant('tuile', 'tulipe')).toBe(false)
   })
+
+  it('should preserve repeated digits in numbers and support ligatures', () => {
+    expect(normalizeText('100')).toBe('100')
+    expect(normalizeText('2000')).toBe('2000')
+    expect(matchesTolerant('10', '100')).toBe(false)
+    expect(matchesTolerant('200', '2000')).toBe(false)
+    expect(matchesTolerant('1998', '1998')).toBe(true)
+    expect(matchesTolerant('cœur', 'coeur')).toBe(true)
+    expect(matchesTolerant('ex æquo', 'ex aequo')).toBe(true)
+  })
 })

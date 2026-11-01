@@ -402,6 +402,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   private timerInterval: ReturnType<typeof setInterval> | null = null
+  private zeroRevealTimeout: ReturnType<typeof setTimeout> | null = null
   private explanationTimerInterval: ReturnType<typeof setInterval> | null = null
 
   ngOnDestroy(): void {
@@ -427,7 +428,12 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
     if (seconds <= 0) {
       if (this.autoReveal() && this.stage() === 'QUESTION') {
-        this.revealAnswers()
+        this.zeroRevealTimeout = setTimeout(() => {
+          this.zeroRevealTimeout = null
+          if (this.autoReveal() && this.stage() === 'QUESTION' && !this.isPaused()) {
+            this.revealAnswers()
+          }
+        }, 250)
       }
       return
     }
@@ -451,6 +457,10 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   private stopCountdown(): void {
+    if (this.zeroRevealTimeout) {
+      clearTimeout(this.zeroRevealTimeout)
+      this.zeroRevealTimeout = null
+    }
     if (this.timerInterval) {
       clearInterval(this.timerInterval)
       this.timerInterval = null
@@ -583,6 +593,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
         const payload = envelope.payload
         if (payload) {
           this.stopExplanationCountdown()
+          this.isPaused.set(false)
           this.stage.set('QUESTION')
           if (payload.answeredCount !== undefined) {
             this.answersReceived.set(payload.answeredCount)
@@ -712,12 +723,26 @@ export class SessionPresenter implements OnInit, OnDestroy {
       case 'SESSION_ENDED': {
         this.stopCountdown()
         this.stopExplanationCountdown()
+        this.isPaused.set(false)
         this.stage.set('PODIUM')
         const payload = envelope.payload as {
+          finalLeaderboard?: { participantName: string, score: number }[]
           metrics?: { totalParticipants: number, averageScore: number, globalSuccessRate: number }
         } | undefined
         if (payload?.metrics) {
           this.classMetrics.set(payload.metrics)
+        }
+        if (payload?.finalLeaderboard && payload.finalLeaderboard.length > 0) {
+          const seen = new Set<string>()
+          const cleanLeaderboard: LeaderboardItem[] = []
+          for (const item of payload.finalLeaderboard) {
+            const key = (item.participantName || '').trim().toLowerCase()
+            if (key && !seen.has(key)) {
+              seen.add(key)
+              cleanLeaderboard.push({ name: item.participantName || '', score: item.score || 0 })
+            }
+          }
+          this.leaderboard.set(cleanLeaderboard)
         }
         this.fetchScores()
         this.launchPodiumAnimation()

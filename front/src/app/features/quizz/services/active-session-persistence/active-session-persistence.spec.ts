@@ -113,4 +113,13 @@ describe('ActiveSessionPersistence', () => {
     localStorage.setItem = origSetItem
     localStorage.getItem = origGetItem
   })
+
+  it('should persist and retrieve submitted choice by questionId and clear on new questionId or clear()', () => {
+    service.saveSubmittedChoice('q-1', { answerIndex: 2, label: 'Tulipe' })
+    expect(service.getSubmittedChoice('q-1')).toEqual({ answerIndex: 2, label: 'Tulipe' })
+    expect(service.getSubmittedChoice('q-2')).toBeUndefined()
+
+    service.clear()
+    expect(service.getSubmittedChoice('q-1')).toBeUndefined()
+  })
 })

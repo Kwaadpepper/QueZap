@@ -53,13 +53,28 @@ export class CashQuestionView {
   protected readonly hasSubmitted = signal<boolean>(false)
   protected readonly lastSubmittedText = signal<string>('')
 
+  private lastQuestionId: QuestionId | undefined
+
   constructor() {
     effect(() => {
-      // Reset when question changes
-      this.question()
-      this.textInput.set('')
-      this.lastSubmittedText.set('')
-      this.hasSubmitted.set(false)
+      const currentId = this.question().id
+      if (currentId === this.lastQuestionId) {
+        return
+      }
+      this.lastQuestionId = currentId
+
+      const choice = this.sessionStore.mySubmittedChoice()
+      const restoredChoice = choice?.questionId === currentId ? choice : undefined
+      if (restoredChoice?.label) {
+        this.textInput.set(restoredChoice.label)
+        this.lastSubmittedText.set(restoredChoice.label)
+        this.hasSubmitted.set(true)
+      }
+      else {
+        this.textInput.set('')
+        this.lastSubmittedText.set('')
+        this.hasSubmitted.set(false)
+      }
     })
   }
 
@@ -73,7 +88,7 @@ export class CashQuestionView {
     }
     this.lastSubmittedText.set(trimmed)
     this.hasSubmitted.set(true)
-    this.sessionStore.submitMyChoice(0, trimmed)
+    this.sessionStore.submitMyChoice(0, trimmed, this.question().id)
     this.sessionApi.submitAnswer(0, trimmed).subscribe()
   }
 }

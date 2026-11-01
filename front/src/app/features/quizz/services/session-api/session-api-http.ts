@@ -44,6 +44,17 @@ export class SessionApiHttpService implements SessionApiService {
         }
 
         const id = data.id ?? ''
+        const storedSessionId = this.sessionPersistence.getSessionId()
+        const storedToken = this.sessionPersistence.getParticipationToken()
+        const isExistingParticipant = Boolean(id && storedSessionId === id && storedToken)
+
+        if (data.status === 'ENDED' && !isExistingParticipant) {
+          return {
+            kind: 'failure' as const,
+            error: new ExpiredError('Cette session est déjà terminée'),
+          }
+        }
+
         this.currentSessionId = id
         this.sessionPersistence.setSessionId(id)
         this.sessionPersistence.patch({
@@ -54,8 +65,12 @@ export class SessionApiHttpService implements SessionApiService {
           id: id as SessionId,
           code: (data.code || this.currentSessionCode) as SessionCode,
           name: data.name ?? '',
-          startedAt: data.status === 'STARTED' ? new Date() : null,
-          endedAt: data.status === 'ENDED' ? new Date() : null,
+          startedAt: data.startedAt
+            ? new Date(data.startedAt)
+            : (data.status === 'STARTED' || data.status === 'ENDED' ? new Date() : null),
+          endedAt: data.endedAt
+            ? new Date(data.endedAt)
+            : (data.status === 'ENDED' ? new Date() : null),
         }
         return {
           kind: 'success' as const,

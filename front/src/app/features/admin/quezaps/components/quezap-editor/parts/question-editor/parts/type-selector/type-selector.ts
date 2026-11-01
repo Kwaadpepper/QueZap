@@ -51,6 +51,13 @@ export class TypeSelector {
     const currentQuestion = this.editorStore.selectedQuestion()
     let answers = [...currentQuestion.answers]
 
+    if (currentQuestion.type === QuestionType.Boolean && newType !== QuestionType.Boolean) {
+      answers = answers.map((a, idx) => ({
+        ...a,
+        value: (idx === 0 && a.value === 'Vrai') || (idx === 1 && a.value === 'Faux') ? '' : a.value,
+      }))
+    }
+
     if (newType === QuestionType.Quizz) {
       // Pad to 4 answers if fewer exist
       while (answers.length < 4) {
@@ -63,15 +70,15 @@ export class TypeSelector {
       }
       answers = answers.slice(0, 2)
       let foundCorrect = false
-      answers = answers.map((a) => {
+      answers = answers.map((a, idx) => {
         const isCorrect = Boolean(a.isCorrect) && !foundCorrect
         if (isCorrect) {
           foundCorrect = true
         }
         return {
           ...a,
+          ...(newType === QuestionType.Boolean ? { value: idx === 0 ? 'Vrai' : 'Faux', picture: undefined } : {}),
           isCorrect,
-          ...(newType === QuestionType.Boolean ? { picture: undefined } : {}),
         }
       })
     }

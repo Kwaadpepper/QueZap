@@ -104,7 +104,10 @@ export class QuezapHttpService implements QuezapService {
             title: data.title ?? '',
             description: data.description || '',
             questionWithAnswersAndResponses: slides.map((s) => {
-              const type = (s.question?.type as QuestionType) || QuestionType.Quizz
+              const rawType = s.question?.type
+              const type = rawType?.toUpperCase() === 'AFFIRMATION'
+                ? QuestionType.Boolean
+                : ((rawType as QuestionType) || QuestionType.Quizz)
               const rawAnswers = s.question?.answers || []
               const points = s.points || 1000
               const answers = type === QuestionType.Boolean && rawAnswers.length === 1
@@ -239,7 +242,7 @@ export class QuezapHttpService implements QuezapService {
   private buildSlidesPayload(questions: QuestionWithAnswersAndResponses[]): QuezapSlideRequest[] {
     return questions.map((q) => {
       const answers: InlineAnswerRequest[] = q.answers.map((a, aIdx) => ({
-        label: a.value || `Option ${aIdx + 1}`,
+        label: a.value || (a.picture ? '' : `Option ${aIdx + 1}`),
         isCorrect: a.isCorrect,
         ...(a.picture ? { pictureFilename: a.picture } : {}),
         answerOrder: aIdx + 1,

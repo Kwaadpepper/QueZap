@@ -63,13 +63,25 @@ export class QuizzQuestionView {
     )
   })
 
+  private lastQuestionId: QuestionId | undefined
+
   constructor() {
     effect(() => {
+      const q = this.question()
+      if (q.id === this.lastQuestionId) {
+        return
+      }
+      this.lastQuestionId = q.id
+
+      const choice = this.sessionStore.mySubmittedChoice()
+      const restoredChoice = choice?.questionId === q.id ? choice : undefined
       this.responses.set({
-        ...Object.fromEntries(this.question()
-          .answers.map(answer => [answer.index, false])),
+        ...Object.fromEntries(q.answers.map(answer => [
+          answer.index,
+          restoredChoice !== undefined && answer.index === restoredChoice.answerIndex,
+        ])),
       })
-      this.hasSubmitted.set(false)
+      this.hasSubmitted.set(restoredChoice !== undefined)
     })
   }
 
@@ -80,7 +92,7 @@ export class QuizzQuestionView {
     )
     this.hasSubmitted.set(true)
     const chosenAnswer = this.question().answers.find(a => a.index === index)
-    this.sessionStore.submitMyChoice(index, chosenAnswer?.value || `Choix ${index + 1}`)
+    this.sessionStore.submitMyChoice(index, chosenAnswer?.value || `Choix ${index + 1}`, this.question().id)
     this.sessionApi.submitAnswer(index).subscribe()
   }
 }

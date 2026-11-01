@@ -47,7 +47,7 @@ interface ActiveSessionState {
   lastReveal: QuestionRevealData | undefined
   lastLeaderboard: IntermediateLeaderboardData | undefined
   isSessionPaused: boolean
-  mySubmittedChoice: { answerIndex: number, label: string } | undefined
+  mySubmittedChoice: { answerIndex: number, label: string, questionId?: string } | undefined
 }
 
 const initialState: ActiveSessionState = {
@@ -90,11 +90,18 @@ export const ActiveSessionStore = signalStore(
     activeSessionPersistence = inject(ActiveSessionPersistence),
   ) => ({
 
-    submitMyChoice: (answerIndex: number, label: string): void => {
-      patchState(store, { mySubmittedChoice: { answerIndex, label } })
+    submitMyChoice: (answerIndex: number, label: string, questionId?: string): void => {
+      const currentQuestion = store.question()
+      const currentId = currentQuestion && 'id' in currentQuestion ? (currentQuestion.id as string) : undefined
+      const resolvedQuestionId = questionId ?? currentId
+      if (resolvedQuestionId) {
+        activeSessionPersistence.saveSubmittedChoice(resolvedQuestionId, { answerIndex, label })
+      }
+      patchState(store, { mySubmittedChoice: { answerIndex, label, questionId: resolvedQuestionId } })
     },
 
     clearMyChoice: (): void => {
+      activeSessionPersistence.clearSubmittedChoice()
       patchState(store, { mySubmittedChoice: undefined })
     },
 
@@ -230,6 +237,8 @@ export const ActiveSessionStore = signalStore(
       errorHandler = inject(ErrorHandler),
       router = inject(Router),
     ) {
+      let lastObservedQuestionId: string | undefined
+
       // * Run Listeners in injection context
       runInInjectionContext(injector, () => {
         if (isDevMode()) {
@@ -260,16 +269,35 @@ export const ActiveSessionStore = signalStore(
           patchState(store, { _participants: list })
         })
 
-        // * React to question updates
+        // * React to question updates (preserving mySubmittedChoice on SSE reconnect/reload for same question)
         effect(() => {
           const question = sessionObserver.question()
           console.debug('Updating current question from session observer', question)
-          patchState(store, {
-            question,
-            lastReveal: undefined,
-            mySubmittedChoice: undefined,
-            ...(question ? { _sessionIsRunning: true } : {}),
-          })
+          const currentId = question && 'id' in question ? (question.id as string) : undefined
+          const isSameQuestion = Boolean(currentId && currentId === lastObservedQuestionId)
+          lastObservedQuestionId = currentId
+
+          if (currentId) {
+            const persisted = activeSessionPersistence.getSubmittedChoice(currentId)
+            const inMemory = store.mySubmittedChoice()
+            const restoredChoice = (isSameQuestion && inMemory?.questionId === currentId)
+              ? inMemory
+              : (persisted ? { ...persisted, questionId: currentId } : undefined)
+            patchState(store, state => ({
+              question,
+              lastReveal: isSameQuestion ? state.lastReveal : undefined,
+              mySubmittedChoice: restoredChoice,
+              _sessionIsRunning: true,
+            }))
+          }
+          else {
+            patchState(store, {
+              question,
+              lastReveal: undefined,
+              mySubmittedChoice: undefined,
+              ...(question ? { _sessionIsRunning: true } : {}),
+            })
+          }
         })
 
         // * React to reveal updates
@@ -331,6 +359,7 @@ export const ActiveSessionStore = signalStore(
                   startedAt: session.startedAt ?? new Date(),
                 },
                 _sessionIsRunning: true,
+                isSessionPaused: false,
               })
             }
 
@@ -341,6 +370,7 @@ export const ActiveSessionStore = signalStore(
                   endedAt: event.session.endedAt,
                 },
                 _sessionIsRunning: false,
+                isSessionPaused: false,
               })
             }
 

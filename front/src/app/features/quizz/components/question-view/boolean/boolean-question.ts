@@ -75,17 +75,27 @@ export class BooleanQuestionView {
   })
 
   private readonly lastSelectedKey = signal<'0' | '1' | null>(null)
+  private lastQuestionId: QuestionId | undefined
 
   constructor() {
     effect(() => {
       // * Initialize responses when question changes
-      this.question()
+      const currentId = this.question().id
+      if (currentId === this.lastQuestionId) {
+        return
+      }
+      this.lastQuestionId = currentId
+
+      const choice = this.sessionStore.mySubmittedChoice()
+      const restoredChoice = choice?.questionId === currentId ? choice : undefined
       this.responses.set({
-        0: false,
-        1: false,
+        0: restoredChoice !== undefined && restoredChoice.answerIndex === 0,
+        1: restoredChoice !== undefined && restoredChoice.answerIndex === 1,
       })
-      this.lastSelectedKey.set(null)
-      this.hasSubmitted.set(false)
+      this.lastSelectedKey.set(
+        restoredChoice ? (restoredChoice.answerIndex === 0 ? '0' : '1') : null,
+      )
+      this.hasSubmitted.set(restoredChoice !== undefined)
     })
 
     effect(() => {
@@ -120,7 +130,7 @@ export class BooleanQuestionView {
     this.lastSelectedKey.set(index === 0 ? '0' : '1')
     this.hasSubmitted.set(true)
     const label = index === 0 ? 'Vrai' : 'Faux'
-    this.sessionStore.submitMyChoice(index, label)
+    this.sessionStore.submitMyChoice(index, label, this.question().id)
     this.sessionApi.submitAnswer(index).subscribe()
   }
 }

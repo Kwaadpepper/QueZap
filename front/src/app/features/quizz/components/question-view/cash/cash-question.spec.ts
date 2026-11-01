@@ -74,7 +74,13 @@ describe('CashQuestionView', () => {
 
     expect(component['hasSubmitted']()).toBe(true)
 
-    // Switch question
+    // Re-emitting same question ID (e.g. SSE reconnect) preserves submitted state
+    fixture.componentRef.setInput('question', { ...question1 })
+    fixture.detectChanges()
+    expect(component['hasSubmitted']()).toBe(true)
+    expect(component['lastSubmittedText']()).toBe('Amsterdam')
+
+    // Switch question to new ID resets state
     fixture.componentRef.setInput('question', question2)
     fixture.detectChanges()
 
