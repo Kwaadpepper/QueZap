@@ -44,7 +44,10 @@ public class SessionAnswerJpaEntity {
   private Integer slideIndex;
 
   @Column(name = "answer_index", nullable = false)
-  private Integer answerIndex;
+  private Integer answerIndex = 0;
+
+  @Column(name = "text_answer")
+  private @Nullable String textAnswer;
 
   @Column(name = "points_awarded", nullable = false)
   private Integer pointsAwarded = 0;
@@ -69,14 +72,45 @@ public class SessionAnswerJpaEntity {
       Integer pointsAwarded,
       Boolean isCorrect,
       Instant answeredAt) {
+    this(
+        id,
+        session,
+        participantName,
+        slideIndex,
+        answerIndex,
+        null,
+        pointsAwarded,
+        isCorrect,
+        answeredAt);
+  }
+
+  public SessionAnswerJpaEntity(
+      UUID id,
+      SessionJpaEntity session,
+      String participantName,
+      Integer slideIndex,
+      @Nullable Integer answerIndex,
+      @Nullable String textAnswer,
+      Integer pointsAwarded,
+      Boolean isCorrect,
+      Instant answeredAt) {
     this.id = id;
     this.session = session;
     this.participantName = participantName;
     this.slideIndex = slideIndex;
-    this.answerIndex = answerIndex;
+    this.answerIndex = answerIndex != null ? answerIndex : 0;
+    this.textAnswer = textAnswer;
     this.pointsAwarded = pointsAwarded;
     this.isCorrect = isCorrect;
     this.answeredAt = answeredAt;
+  }
+
+  public @Nullable String getTextAnswer() {
+    return textAnswer;
+  }
+
+  public void setTextAnswer(@Nullable String textAnswer) {
+    this.textAnswer = textAnswer;
   }
 
   public UUID getId() {

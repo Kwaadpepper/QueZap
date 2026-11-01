@@ -181,6 +181,7 @@ public class SessionReportService {
           slideTotalAnswers > 0 ? (double) slideCorrectAnswers / slideTotalAnswers * 100.0 : 0.0;
 
       final var isBoolean = "BOOLEAN".equalsIgnoreCase(q.getType());
+      final var isCash = "CASH".equalsIgnoreCase(q.getType());
       final var answerStats = new ArrayList<QuestionAnswerStatDto>();
       if (isBoolean) {
         final var answerEntity = answersList.isEmpty() ? null : answersList.get(0);
@@ -200,6 +201,29 @@ public class SessionReportService {
           answerStats.add(
               new QuestionAnswerStatDto(
                   answerIndex, label, isOptCorrect, count, Math.round(percentage * 10.0) / 10.0));
+        }
+      } else if (isCash) {
+        for (var answerIndex = 0; answerIndex < answersList.size(); answerIndex++) {
+          final var ans = answersList.get(answerIndex);
+          final var expectedLabel = ans.getLabel() != null ? ans.getLabel() : "";
+          final var count =
+              (int)
+                  slideAnswers.stream()
+                      .filter(
+                          sa ->
+                              sa.getTextAnswer() != null
+                                  && com.quezap.domain.services.TextNormalizer.matches(
+                                      sa.getTextAnswer(), expectedLabel))
+                      .count();
+          final var percentage =
+              slideTotalAnswers > 0 ? (double) count / slideTotalAnswers * 100.0 : 0.0;
+          answerStats.add(
+              new QuestionAnswerStatDto(
+                  answerIndex,
+                  expectedLabel,
+                  Boolean.TRUE.equals(ans.getIsCorrect()),
+                  count,
+                  Math.round(percentage * 10.0) / 10.0));
         }
       } else {
         for (var answerIndex = 0; answerIndex < answersList.size(); answerIndex++) {

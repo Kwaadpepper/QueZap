@@ -49,6 +49,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/apiv1/sessions/*/answers")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/apiv1/sessions/*/leave")
+                    .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*/events")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*/scores")

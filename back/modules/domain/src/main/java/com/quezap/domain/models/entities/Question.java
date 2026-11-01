@@ -59,19 +59,33 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
         },
         "Answers must be of a single type (either all text or all pictures)");
 
-    switch (answers.size()) {
-      case 1 -> {
-        // IGNORE --- No specific check for single answer questions here
+    if (!type.equals(QuestionType.CASH)) {
+      switch (answers.size()) {
+        case 1 -> {
+          // IGNORE --- No specific check for single answer questions here
+        }
+        case 2 ->
+            Domain.checkDomain(
+                () -> answers.stream().filter(Answer::isCorrect).count() == 1,
+                "There must be exactly one correct answer");
+        case 3, 4 ->
+            Domain.checkDomain(
+                () -> answers.stream().filter(Answer::isCorrect).count() >= 1,
+                "There must be at least one correct answer");
+        default -> throw new IllegalStateException("Unexpected value: " + answers.size());
       }
-      case 2 ->
-          Domain.checkDomain(
-              () -> answers.stream().filter(Answer::isCorrect).count() == 1,
-              "There must be exactly one correct answer");
-      case 3, 4 ->
-          Domain.checkDomain(
-              () -> answers.stream().filter(Answer::isCorrect).count() >= 1,
-              "There must be at least one correct answer");
-      default -> throw new IllegalStateException("Unexpected value: " + answers.size());
+    } else {
+      Domain.checkDomain(
+          () -> answers.size() >= 1 && answers.size() <= ANSWERS_MAX_SIZE,
+          "Cash questions must have between 1 and 4 accepted text answers");
+      Domain.checkDomain(
+          () ->
+              answers.stream()
+                  .allMatch(a -> a.value() != null && !a.value().isBlank() && a.picture() == null),
+          "Cash answers must be non-blank text without pictures");
+      Domain.checkDomain(
+          () -> answers.stream().anyMatch(Answer::isCorrect),
+          "At least one accepted answer must be marked correct");
     }
 
     switch (type) {
@@ -85,6 +99,10 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
           Domain.checkDomain(
               () -> answers.size() >= 3 && answers.size() <= 4,
               "Quizz questions must have between 3 and 4 answers");
+      case QuestionType.CASH ->
+          Domain.checkDomain(
+              () -> answers.size() >= 1 && answers.size() <= 4,
+              "Cash questions must have between 1 and 4 answers");
       default -> throw new IllegalStateException("Unexpected value: " + type.name());
     }
   }

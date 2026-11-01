@@ -1038,4 +1038,211 @@ class SessionControllerTest {
     // Success rate: 3 correct out of 6 answers = 50.0%
     assertThat(metrics.globalSuccessRate()).isEqualTo(50.0);
   }
+
+  @Test
+  void shouldAllowModifyingAnswerBeforeTimerExpires() {
+    final var sessionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Math", Instant.now());
+    final var q1 =
+        new QuestionJpaEntity(
+            UUID.randomUUID(), "QUIZZ", "2+2=?", null, theme, Instant.now(), Instant.now());
+    q1.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), q1, "4", null, true, 0));
+    q1.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), q1, "5", null, false, 1));
+
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(), "Math Quiz", "Desc", author, true, Instant.now(), Instant.now());
+    quezap.addQuestion(new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, q1, 30, 1000, 1));
+
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            1042L,
+            "Math Quiz",
+            1,
+            authorId,
+            quezap,
+            Instant.now().minusSeconds(2),
+            null,
+            Instant.now());
+    sessionEntity.setCurrentSlideStartedAt(Instant.now().minusSeconds(2));
+
+    final var participant =
+        new SessionParticipantJpaEntity(
+            UUID.randomUUID(), sessionEntity, "Changer", 0, "ptk_change", false, Instant.now());
+    sessionEntity.addParticipant(participant);
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    // 1st click: wrong answer (index 1)
+    final var firstResp =
+        sessionController.submitAnswer(sessionId, "ptk_change", new SubmitAnswerRequest(1, 1));
+    assertThat(firstResp.accepted()).isTrue();
+    assertThat(participant.getScore()).isZero();
+    assertThat(sessionEntity.getAnswers()).hasSize(1);
+    assertThat(sessionEntity.getAnswers().iterator().next().getAnswerIndex()).isEqualTo(1);
+
+    // 2nd click before timer ends: change to correct answer (index 0)
+    final var secondResp =
+        sessionController.submitAnswer(sessionId, "ptk_change", new SubmitAnswerRequest(1, 0));
+    assertThat(secondResp.accepted()).isTrue();
+    assertThat(participant.getScore()).isGreaterThan(0);
+    assertThat(sessionEntity.getAnswers()).hasSize(1);
+    assertThat(sessionEntity.getAnswers().iterator().next().getAnswerIndex()).isZero();
+    assertThat(sessionEntity.getAnswers().iterator().next().getIsCorrect()).isTrue();
+  }
+
+  @Test
+  void shouldEvaluateCashQuestionWithTextNormalizer() {
+    final var sessionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Botanique", Instant.now());
+    final var qCash =
+        new QuestionJpaEntity(
+            UUID.randomUUID(),
+            "CASH",
+            "Quelle fleur est le symbole de la Hollande ?",
+            null,
+            theme,
+            Instant.now(),
+            Instant.now());
+    qCash.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), qCash, "Tulipe", null, true, 0));
+    qCash.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), qCash, "Tulipa", null, true, 1));
+
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(),
+            "Botanique Quiz",
+            "Desc",
+            author,
+            true,
+            Instant.now(),
+            Instant.now());
+    quezap.addQuestion(new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, qCash, 30, 1000, 1));
+
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            1043L,
+            "Botanique Quiz",
+            1,
+            authorId,
+            quezap,
+            Instant.now().minusSeconds(2),
+            null,
+            Instant.now());
+    sessionEntity.setCurrentSlideStartedAt(Instant.now().minusSeconds(2));
+
+    final var participant =
+        new SessionParticipantJpaEntity(
+            UUID.randomUUID(), sessionEntity, "Botaniste", 0, "ptk_cash", false, Instant.now());
+    sessionEntity.addParticipant(participant);
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    // Test tolerant answer with repeated letters and emoji: "tuliipe 🌷"
+    final var correctResp =
+        sessionController.submitAnswer(
+            sessionId, "ptk_cash", new SubmitAnswerRequest(1, null, "tuliipe 🌷"));
+    assertThat(correctResp.accepted()).isTrue();
+    assertThat(participant.getScore()).isGreaterThan(0);
+    assertThat(sessionEntity.getAnswers()).hasSize(1);
+    final var recordedAnswer = sessionEntity.getAnswers().iterator().next();
+    assertThat(recordedAnswer.getIsCorrect()).isTrue();
+    assertThat(recordedAnswer.getTextAnswer()).isEqualTo("tuliipe 🌷");
+
+    // Change to wrong answer: "rose"
+    final var wrongResp =
+        sessionController.submitAnswer(
+            sessionId, "ptk_cash", new SubmitAnswerRequest(1, null, "rose"));
+    assertThat(wrongResp.accepted()).isTrue();
+    assertThat(participant.getScore()).isZero();
+    assertThat(recordedAnswer.getIsCorrect()).isFalse();
+    assertThat(recordedAnswer.getTextAnswer()).isEqualTo("rose");
+
+    // Change back to 2nd accepted variant: "Tulipa"
+    sessionController.submitAnswer(
+        sessionId, "ptk_cash", new SubmitAnswerRequest(1, null, "Tulipa"));
+    sessionController.reveal(sessionId);
+
+    final var revealCaptor =
+        ArgumentCaptor.forClass(com.quezap.api.v1.dto.events.QuestionRevealPayload.class);
+    verify(sessionSseService)
+        .broadcast(eq(sessionId), eq("QUESTION_REVEAL"), eq(1043L), revealCaptor.capture());
+    final var revealPayload = revealCaptor.getValue();
+    assertThat(revealPayload.acceptedAnswers()).containsExactly("Tulipe", "Tulipa");
+    assertThat(revealPayload.answersStats()).hasSize(2);
+    assertThat(revealPayload.answersStats().get(0).count()).isZero();
+    assertThat(revealPayload.answersStats().get(1).count()).isEqualTo(1);
+  }
+
+  @Test
+  void shouldRemoveParticipantAndAnswersOnVoluntaryLeave() {
+    final var sessionId = UUID.randomUUID();
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            1044L,
+            "Leave Test",
+            1,
+            authorId,
+            null,
+            Instant.now().minusSeconds(5),
+            null,
+            Instant.now());
+
+    final var participant =
+        new SessionParticipantJpaEntity(
+            UUID.randomUUID(), sessionEntity, "Lea", 950, "ptk_lea", false, Instant.now());
+    sessionEntity.addParticipant(participant);
+    sessionEntity.addAnswer(
+        new SessionAnswerJpaEntity(
+            UUID.randomUUID(), sessionEntity, "Lea", 1, 0, 950, true, Instant.now()));
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    sessionController.leaveSession(sessionId, "ptk_lea");
+
+    assertThat(sessionEntity.getParticipants()).isEmpty();
+    assertThat(sessionEntity.getAnswers()).isEmpty();
+    verify(sessionSseService).broadcast(eq(sessionId), eq("LOBBY_STATE"), eq(1044L), any());
+    verify(sessionSseService).broadcast(eq(sessionId), eq("ANSWER_RECEIVED"), eq(1044L), any());
+  }
+
+  @Test
+  void shouldFreezeElapsedTimeWhileSessionIsPaused() {
+    final var sessionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Math", Instant.now());
+    final var q1 =
+        new QuestionJpaEntity(
+            UUID.randomUUID(), "QUIZZ", "1+1=?", null, theme, Instant.now(), Instant.now());
+    q1.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), q1, "2", null, true, 0));
+
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(), "Pause Quiz", "Desc", author, true, Instant.now(), Instant.now());
+    quezap.addQuestion(new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, q1, 10, 1000, 1));
+
+    final var sessionEntity =
+        new SessionJpaEntity(
+            sessionId,
+            1045L,
+            "Pause Quiz",
+            1,
+            authorId,
+            quezap,
+            Instant.now().minusSeconds(5),
+            null,
+            Instant.now());
+    sessionEntity.setCurrentSlideStartedAt(Instant.now().minusSeconds(5));
+
+    when(sessionDataPort.findSessionById(sessionId)).thenReturn(Optional.of(sessionEntity));
+
+    sessionController.pauseSession(sessionId, new SessionPauseRequestDto(true));
+    assertThat(sessionEntity.getIsPaused()).isTrue();
+
+    final var beforeResume = Objects.requireNonNull(sessionEntity.getCurrentSlideStartedAt());
+    sessionController.pauseSession(sessionId, new SessionPauseRequestDto(false));
+    assertThat(sessionEntity.getIsPaused()).isFalse();
+    assertThat(sessionEntity.getCurrentSlideStartedAt()).isAfterOrEqualTo(beforeResume);
+  }
 }

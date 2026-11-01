@@ -83,9 +83,18 @@ public class QuestionJpaMapper {
     if (pictureFilename == null || pictureFilename.isBlank()) {
       return null;
     }
-    final var lastDot = pictureFilename.lastIndexOf('.');
+    var normalized = pictureFilename.trim();
+    if (normalized.startsWith("/quezap-public-images/")) {
+      normalized = normalized.substring("/quezap-public-images/".length());
+    } else if (normalized.startsWith("quezap-public-images/")) {
+      normalized = normalized.substring("quezap-public-images/".length());
+    } else if (normalized.startsWith("/")) {
+      normalized = normalized.substring(1);
+    }
+
+    final var lastDot = normalized.lastIndexOf('.');
     final var extension =
-        lastDot != -1 ? pictureFilename.substring(lastDot + 1).toLowerCase(Locale.ROOT) : "jpg";
+        lastDot != -1 ? normalized.substring(lastDot + 1).toLowerCase(Locale.ROOT) : "jpg";
     final var pictureType =
         switch (extension) {
           case "png" -> PictureType.PNG;
@@ -94,8 +103,7 @@ public class QuestionJpaMapper {
         };
 
     // Construct valid picture key if needed
-    final var validKey =
-        pictureFilename.contains("/") ? pictureFilename : "pictures/questions/" + pictureFilename;
+    final var validKey = normalized.contains("/") ? normalized : "pictures/questions/" + normalized;
 
     try {
       return new Picture(validKey, pictureType, new Sha256Hash(new byte[32]));

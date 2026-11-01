@@ -72,6 +72,25 @@ class UserControllerTest {
   }
 
   @Test
+  void shouldGenerateUniqueSecurePasswordWhenPasswordNotProvided() {
+    final var req1 = new CreateUserRequest("Alice", "alice@example.com", "alice@example.com", null);
+    final var req2 = new CreateUserRequest("Bob", "bob@example.com", "bob@example.com", "");
+
+    final var pass1 = req1.getEffectivePassword();
+    final var pass2 = req2.getEffectivePassword();
+
+    assertThat(pass1).isNotBlank().isNotEqualTo("Password123!").isNotEqualTo(pass2);
+    assertThat(pass1).hasSizeGreaterThanOrEqualTo(16);
+
+    final var userId = new UserId(UuidV7.randomUuid());
+    when(executor.execute(eq(addUserUsecase), any(AddUser.Input.class)))
+        .thenReturn(new AddUser.Output.UserAdded(userId));
+
+    final var response = userController.create(req1);
+    assertThat(response.id()).isEqualTo(userId.value());
+  }
+
+  @Test
   void shouldGetUserById() {
     final var userId = UuidV7.randomUuid();
     final var user = new User("Alice", new CredentialId(UuidV7.randomUuid()));

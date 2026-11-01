@@ -23,9 +23,11 @@ import com.quezap.api.v1.dto.request.quezaps.QuezapSlideRequest;
 import com.quezap.api.v1.dto.request.quezaps.UpdateQuezapRequest;
 import com.quezap.api.v1.mappers.PaginationMapper;
 import com.quezap.api.v1.routes.quezaps.QuezapController;
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.CredentialJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuestionJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapQuestionJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.ThemeJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.UserJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuestionJpaRepository;
@@ -123,11 +125,34 @@ class QuezapControllerTest {
   }
 
   @Test
-  void shouldListQuezaps() {
+  void shouldListQuezapsForAuthenticatedAuthor() {
     final var quezap =
         new QuezapJpaEntity(
             UUID.randomUUID(),
             "History Quiz",
+            "Description",
+            author,
+            false,
+            Instant.now(),
+            Instant.now());
+
+    when(quezapJpaRepository.findByAuthorId(any(UUID.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(quezap)));
+
+    final var response =
+        quezapController.list(null, null, new PaginationDto(1L, 10L, null, null, null, null));
+
+    assertThat(response.data()).hasSize(1);
+    assertThat(response.data().get(0).title()).isEqualTo("History Quiz");
+  }
+
+  @Test
+  void shouldListPublicQuezapsWhenUnauthenticated() {
+    SecurityContextHolder.clearContext();
+    final var quezap =
+        new QuezapJpaEntity(
+            UUID.randomUUID(),
+            "Public Quiz",
             "Description",
             author,
             true,
@@ -141,7 +166,7 @@ class QuezapControllerTest {
         quezapController.list(null, null, new PaginationDto(1L, 10L, null, null, null, null));
 
     assertThat(response.data()).hasSize(1);
-    assertThat(response.data().get(0).title()).isEqualTo("History Quiz");
+    assertThat(response.data().get(0).title()).isEqualTo("Public Quiz");
   }
 
   @Test
@@ -226,5 +251,141 @@ class QuezapControllerTest {
     assertThat(quezap.getQuestions()).hasSize(1);
     verify(questionJpaRepository).save(any(QuestionJpaEntity.class));
     verify(quezapJpaRepository).save(quezap);
+  }
+
+  @Test
+  void shouldUploadDataUrlPictureViaQuestionPictureManagerAndReturnNormalizedPictureUrl() {
+    final var pictureManager =
+        Mockito.mock(com.quezap.domain.ports.services.QuestionPictureManager.class);
+    final var storedKey = "pictures/questions/" + com.quezap.lib.utils.UuidV7.randomUuid() + ".png";
+    final var storedPicture =
+        new com.quezap.domain.models.valueobjects.pictures.Picture(
+            storedKey,
+            com.quezap.domain.models.valueobjects.pictures.PictureType.PNG,
+            new com.quezap.domain.models.valueobjects.Sha256Hash(new byte[32]));
+    when(pictureManager.store(any())).thenReturn(storedPicture);
+
+    final var controllerWithS3 =
+        new QuezapController(
+            quezapJpaRepository,
+            questionJpaRepository,
+            themeJpaRepository,
+            userJpaRepository,
+            paginationMapper,
+            pictureManager);
+
+    when(quezapJpaRepository.save(any(QuezapJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+
+    final var dataUrl =
+        "data:image/png;base64,"
+            + "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    final var inlineAnswers =
+        List.of(
+            new InlineAnswerRequest(null, "Answer A", true, null, 1),
+            new InlineAnswerRequest(null, "Answer B", false, null, 2));
+    final var inlineQuestion =
+        new InlineQuestionRequest(
+            null, "Question with image?", "QUIZZ", dataUrl, null, "Science", inlineAnswers);
+    final var slide = new QuezapSlideRequest(null, 20, 1000, 1, inlineQuestion);
+
+    final var createReq =
+        new CreateQuezapRequest("Visual Quiz", "With image", true, List.of(slide));
+    controllerWithS3.create(createReq);
+
+    verify(pictureManager).store(any());
+
+    final var captor = org.mockito.ArgumentCaptor.forClass(QuestionJpaEntity.class);
+    verify(questionJpaRepository).save(captor.capture());
+    assertThat(captor.getValue().getPictureFilename())
+        .isEqualTo("/quezap-public-images/" + storedKey);
+  }
+
+  @Test
+  void shouldClearPictureWhenUpdatedWithNullPictureFilename() {
+    final var quezapId = UUID.randomUUID();
+    final var existingQuestionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Science", Instant.now());
+    final var existingQuestion =
+        new QuestionJpaEntity(
+            existingQuestionId,
+            "QUIZZ",
+            "Question with picture",
+            "/quezap-public-images/pictures/questions/old.png",
+            theme,
+            Instant.now(),
+            Instant.now());
+    final var quezap =
+        new QuezapJpaEntity(quezapId, "Quiz", "Desc", author, true, Instant.now(), Instant.now());
+
+    when(quezapJpaRepository.findById(quezapId)).thenReturn(Optional.of(quezap));
+    when(questionJpaRepository.findById(existingQuestionId))
+        .thenReturn(Optional.of(existingQuestion));
+    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+
+    final var inlineAnswers =
+        List.of(
+            new InlineAnswerRequest(null, "Answer A", true, null, 1),
+            new InlineAnswerRequest(null, "Answer B", false, null, 2));
+    final var inlineQuestion =
+        new InlineQuestionRequest(
+            existingQuestionId,
+            "Question without picture",
+            "QUIZZ",
+            null,
+            null,
+            "Science",
+            inlineAnswers);
+    final var slide = new QuezapSlideRequest(existingQuestionId, 20, 1000, 1, inlineQuestion);
+
+    quezapController.update(
+        quezapId, new UpdateQuezapRequest("Quiz", "Desc", true, List.of(slide)));
+
+    assertThat(existingQuestion.getPictureFilename()).isNull();
+  }
+
+  @Test
+  void shouldDeepCloneQuestionsWhenDuplicatingQuezap() {
+    final var originalId = UUID.randomUUID();
+    final var originalQuestionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Science", Instant.now());
+    final var originalQuestion =
+        new QuestionJpaEntity(
+            originalQuestionId,
+            "QUIZZ",
+            "Original Question",
+            null,
+            theme,
+            Instant.now(),
+            Instant.now());
+    originalQuestion.addAnswer(
+        new AnswerJpaEntity(UUID.randomUUID(), originalQuestion, "Ans 1", null, true, 1));
+    originalQuestion.addAnswer(
+        new AnswerJpaEntity(UUID.randomUUID(), originalQuestion, "Ans 2", null, false, 2));
+
+    final var original =
+        new QuezapJpaEntity(
+            originalId, "Original Quiz", "Desc", author, true, Instant.now(), Instant.now());
+    original.addQuestion(
+        new QuezapQuestionJpaEntity(UUID.randomUUID(), original, originalQuestion, 20, 1000, 1));
+
+    when(quezapJpaRepository.findById(originalId)).thenReturn(Optional.of(original));
+    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+    final var savedCopyCaptor = org.mockito.ArgumentCaptor.forClass(QuezapJpaEntity.class);
+    when(quezapJpaRepository.save(savedCopyCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+    quezapController.duplicate(originalId);
+
+    final var duplicated = savedCopyCaptor.getValue();
+    assertThat(duplicated.getTitle()).isEqualTo("Original Quiz (Copie)");
+    assertThat(duplicated.getQuestions()).hasSize(1);
+    final var duplicatedQuestion = duplicated.getQuestions().iterator().next().getQuestion();
+    assertThat(duplicatedQuestion.getId()).isNotEqualTo(originalQuestionId);
+    assertThat(duplicatedQuestion.getLabel()).isEqualTo("Original Question");
+    assertThat(duplicatedQuestion.getAnswers()).hasSize(2);
   }
 }

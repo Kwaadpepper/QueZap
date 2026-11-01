@@ -88,6 +88,7 @@ public class AuthController {
       final var payload =
           JwtToken.JwtPayload.builder(userEntity.getId().toString(), exp)
               .claim("name", userEntity.getName())
+              .claim("type", "access")
               .build();
 
       final var accessToken = jwtService.generateToken(payload);
@@ -129,6 +130,10 @@ public class AuthController {
   public RefreshTokenResponseDto refresh(@Valid @RequestBody RefreshTokenRequest request) {
     try {
       final var validated = jwtService.validateAndParse(request.refreshToken());
+      final var tokenType = validated.customClaims().get("type");
+      if (tokenType != null && !"refresh".equals(tokenType)) {
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+      }
       final var userId = UUID.fromString(validated.sub());
       final var userEntity =
           userJpaRepository
@@ -140,6 +145,7 @@ public class AuthController {
       final var accessPayload =
           JwtToken.JwtPayload.builder(userEntity.getId().toString(), exp)
               .claim("name", userEntity.getName())
+              .claim("type", "access")
               .build();
 
       final var accessToken = jwtService.generateToken(accessPayload);
@@ -160,7 +166,11 @@ public class AuthController {
   @PostMapping("logout")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void logout(@Valid @RequestBody LogoutRequest request) {
-    // Stateless logout - client discards tokens
+    try {
+      jwtService.validateAndParse(request.refreshToken());
+    } catch (JwtService.JwtException | IllegalArgumentException e) {
+      // Token is already invalid or expired; logout succeeds idempotently
+    }
   }
 
   @PostMapping("forgotten-password")

@@ -245,4 +245,33 @@ class QuestionTest {
           new Question(questionType, value, picture, themeId, answers);
         });
   }
+
+  @Test
+  void canInstantiateCash() {
+    // GIVEN
+    var questionType = QuestionType.CASH;
+    var value = "Quelle est la capitale de la France ?";
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
+    var answers = Set.of(new Answer("Paris", null, true), new Answer("Lutece", null, true));
+
+    // WHEN
+    new Question(questionType, value, null, themeId, answers);
+
+    // THEN
+    Assertions.assertDoesNotThrow(() -> {});
+  }
+
+  @Test
+  void cannotInstantiateCashWithoutAnswers() {
+    // GIVEN
+    var questionType = QuestionType.CASH;
+    var value = "Quelle est la capitale de la France ?";
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
+    var answers = Set.<Answer>of();
+
+    // WHEN / THEN
+    Assertions.assertThrows(
+        IllegalDomainStateException.class,
+        () -> new Question(questionType, value, null, themeId, answers));
+  }
 }
