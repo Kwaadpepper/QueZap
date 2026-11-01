@@ -4,6 +4,7 @@ import { Router } from '@angular/router'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 
 import { QuezapEditor } from '../../components/quezap-editor/quezap-editor'
+import { QuezapPageStore } from '../../stores'
 
 @Component({
   selector: 'quizz-quezap-create',
@@ -15,6 +16,7 @@ export class QuezapCreate {
   readonly #closeUrl = '/admin/quezaps'
   private readonly router = inject(Router)
   private readonly layout = inject(LayoutSettings)
+  private readonly quezapPage = inject(QuezapPageStore, { optional: true })
 
   constructor() {
     effect((onCleanUp) => {
@@ -28,6 +30,7 @@ export class QuezapCreate {
   }
 
   protected onCloseEditor() {
+    this.quezapPage?.reload()
     this.router.navigateByUrl(this.#closeUrl)
   }
 }

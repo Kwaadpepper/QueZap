@@ -133,7 +133,10 @@ export class QuezapEditor {
           const url = this.router.serializeUrl(
             this.router.createUrlTree(['/projector', output.result.id]),
           )
-          window.open(url, '_blank')
+          const win = window.open(url, '_blank')
+          if (!win) {
+            this.router.navigate(['/projector', output.result.id])
+          }
         }
         else {
           this.message.add({
@@ -146,7 +149,7 @@ export class QuezapEditor {
     }
 
     if (this.isDirty()) {
-      this.editorStore.persist().then(() => launch(id)).catch(() => void 0)
+      this.editorStore.persist().then(saved => launch(saved.id)).catch(() => void 0)
     }
     else {
       launch(id)

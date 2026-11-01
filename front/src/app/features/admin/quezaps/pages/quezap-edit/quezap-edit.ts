@@ -5,6 +5,7 @@ import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 import { QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'
 
 import { QuezapEditor } from '../../components/quezap-editor/quezap-editor'
+import { QuezapPageStore } from '../../stores'
 
 @Component({
   selector: 'quizz-quezap-edit',
@@ -16,6 +17,7 @@ export class QuezapEdit {
   readonly #closeUrl = '/admin/quezaps'
   private readonly router = inject(Router)
   private readonly layout = inject(LayoutSettings)
+  private readonly quezapPage = inject(QuezapPageStore, { optional: true })
 
   readonly quezap = input.required<QuezapWithQuestionsAndAnswers>()
 
@@ -31,6 +33,7 @@ export class QuezapEdit {
   }
 
   protected onCloseEditor() {
+    this.quezapPage?.reload()
     this.router.navigateByUrl(this.#closeUrl)
   }
 }

@@ -319,7 +319,15 @@
                 <span class="text-base md:text-lg font-black text-white/80 mr-1">{{ i + 1 }}</span>
                 <quizz-question-icon class="w-5 h-5 md:w-6 md:h-6" [form]="getChoiceForm(i)" [checked]="true" />
               </span>
-              <span class="flex-1 text-lg md:text-2xl leading-tight font-extrabold truncate">{{ ans.label }}</span>
+              @if (ans.pictureFilename) {
+                <img
+                  class="h-12 w-16 md:h-14 md:w-20 object-contain rounded-lg bg-black/20 p-1 mr-3 shrink-0"
+                  [src]="ans.pictureFilename"
+                  [alt]="ans.label || 'Image réponse'" />
+              }
+              @if (ans.label) {
+                <span class="flex-1 text-lg md:text-2xl leading-tight font-extrabold truncate">{{ ans.label }}</span>
+              }
             </div>
           }
         </div>
@@ -413,7 +421,15 @@
                       <span class="text-sm md:text-base font-black text-white/80 mr-1">{{ i + 1 }}</span>
                       <quizz-question-icon class="w-5 h-5 md:w-6 md:h-6" [form]="getChoiceForm(i)" [checked]="true" />
                     </span>
-                    <span class="text-lg md:text-2xl leading-tight font-extrabold truncate">{{ ans.label }}</span>
+                    @if (ans.pictureFilename) {
+                      <img
+                        class="h-12 w-16 md:h-14 md:w-20 object-contain rounded-lg bg-black/20 p-1 mr-3 shrink-0"
+                        [src]="ans.pictureFilename"
+                        [alt]="ans.label || 'Image réponse'" />
+                    }
+                    @if (ans.label) {
+                      <span class="text-lg md:text-2xl leading-tight font-extrabold truncate">{{ ans.label }}</span>
+                    }
                   </div>
 
                   <div class="flex items-center gap-2 shrink-0">

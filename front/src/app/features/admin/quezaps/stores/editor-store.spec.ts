@@ -188,4 +188,23 @@ describe('QuezapEditorStore', () => {
       '/quezap-public-images/pictures/questions/saved.png',
     )
   })
+
+  it('should validate Cash question requires at least one non-empty expected answer', () => {
+    const question = store.questions()[0]
+    store.updateQuestionAtIdx(0, {
+      ...question,
+      type: 'CASH' as never,
+      value: 'Capitale de l\'Espagne ?',
+      answers: [{ value: '   ', isCorrect: true }],
+    })
+    expect(store.hasInvalidAnswers()).toBe(true)
+
+    store.updateQuestionAtIdx(0, {
+      ...question,
+      type: 'CASH' as never,
+      value: 'Capitale de l\'Espagne ?',
+      answers: [{ value: 'Madrid', isCorrect: true }],
+    })
+    expect(store.hasInvalidAnswers()).toBe(false)
+  })
 })

@@ -38,6 +38,7 @@ interface QuestionPresenterModel {
   answers: {
     id: string
     label: string
+    pictureFilename?: string
     isCorrect: boolean
     count?: number
     percentage?: number
@@ -595,8 +596,6 @@ export class SessionPresenter implements OnInit, OnDestroy {
           if (payload.totalSlides !== undefined) {
             this.totalQuestions.set(payload.totalSlides)
           }
-          const seconds = payload.remainingSeconds ?? payload.timerSeconds ?? 30
-          this.startCountdown(seconds)
           const q = payload.question || payload
           const qType = (q as { type?: string }).type || (payload as { type?: string }).type || ''
           const rawAnswers = q.answers || payload.answers || []
@@ -625,6 +624,10 @@ export class SessionPresenter implements OnInit, OnDestroy {
             pictureUrl: picture,
             answers: mappedAnswers,
           })
+          const seconds = payload.remainingSeconds ?? payload.timerSeconds ?? 30
+          const totalDuration = payload.timerSeconds ?? seconds
+          this.startCountdown(seconds)
+          this.initialQuestionDuration.set(totalDuration)
         }
         break
       }

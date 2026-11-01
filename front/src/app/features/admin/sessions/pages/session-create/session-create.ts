@@ -15,6 +15,7 @@ import { QuezapWithTheme } from '@quezap/domain/models'
 
 import { QUEZAP_SERVICE } from '../../../quezaps/services/quezap'
 import { SESSION_SERVICE } from '../../services/session'
+import { SessionPageStore } from '../../stores'
 
 @Component({
   selector: 'quizz-session-create',
@@ -25,6 +26,7 @@ import { SESSION_SERVICE } from '../../services/session'
 export class SessionCreate {
   private sessionService = inject(SESSION_SERVICE)
   private quezapService = inject(QUEZAP_SERVICE)
+  private sessionPage = inject(SessionPageStore, { optional: true })
   private router = inject(Router)
   private messageService = inject(MessageService)
   private destroyRef = inject(DestroyRef)
@@ -78,6 +80,7 @@ export class SessionCreate {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((res) => {
           if (res.kind === 'success') {
+            this.sessionPage?.reload()
             this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Session créée' })
             this.router.navigate(['/admin/sessions'])
           }
