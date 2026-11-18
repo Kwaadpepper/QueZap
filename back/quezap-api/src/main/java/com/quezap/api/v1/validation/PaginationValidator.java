@@ -8,23 +8,38 @@ import jakarta.validation.ConstraintValidatorContext;
 public class PaginationValidator implements ConstraintValidator<PaginationRange, PaginationDto> {
   @Override
   public boolean isValid(PaginationDto dto, ConstraintValidatorContext context) {
-    final var hasPageRange = dto.page() != null && dto.perPage() != null;
-    final var hasIndexRange = dto.from() != null && dto.to() != null;
+    final var hasAnyPage = dto.page() != null || dto.perPage() != null;
+    final var hasCompletePage = dto.page() != null && dto.perPage() != null;
+
+    final var hasAnyIndex = dto.from() != null || dto.to() != null;
+    final var hasCompleteIndex = dto.from() != null && dto.to() != null;
+
+    final var hasAnyOffset = dto.offset() != null || dto.limit() != null;
+    final var hasCompleteOffset = dto.offset() != null && dto.limit() != null;
 
     context.disableDefaultConstraintViolation();
 
-    if (hasPageRange && hasIndexRange) {
+    if ((hasAnyPage && !hasCompletePage)
+        || (hasAnyIndex && !hasCompleteIndex)
+        || (hasAnyOffset && !hasCompleteOffset)) {
       context
-          .buildConstraintViolationWithTemplate("Provide either page/perPage or from/to, not both")
+          .buildConstraintViolationWithTemplate(
+              "Provide complete pairs: page/perPage, from/to, or offset/limit")
           .addConstraintViolation();
       return false;
     }
 
-    context
-        .buildConstraintViolationWithTemplate(
-            "Provide any of page/perPage or from/to for pagination")
-        .addConstraintViolation();
+    final int modesCount =
+        (hasCompletePage ? 1 : 0) + (hasCompleteIndex ? 1 : 0) + (hasCompleteOffset ? 1 : 0);
 
-    return hasPageRange || hasIndexRange || (!hasPageRange && !hasIndexRange);
+    if (modesCount > 1) {
+      context
+          .buildConstraintViolationWithTemplate(
+              "Provide only one pagination mode: page/perPage, from/to, or offset/limit")
+          .addConstraintViolation();
+      return false;
+    }
+
+    return true;
   }
 }

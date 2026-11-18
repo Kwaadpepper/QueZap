@@ -6,29 +6,35 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
 
-import jakarta.annotation.Nonnull;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.jspecify.annotations.Nullable;
 
 public sealed interface AddQuestionDto {
 
   public record AffirmationDto(
-      String question, boolean isTrue, @Nullable MultipartFile picture, @Nonnull ThemeId themeId)
+      @NotBlank String question,
+      boolean isTrue,
+      @Nullable MultipartFile picture,
+      @NotNull ThemeId themeId)
       implements AddQuestionDto {}
 
   public record BinaryDto(
-      String question,
-      @Nonnull @NotEmpty @Valid List<AnswerDto> answers,
+      @NotBlank String question,
+      @NotNull @NotEmpty @Valid List<AnswerDto> answers,
       @Nullable MultipartFile picture,
-      @Nonnull ThemeId themeId) {}
+      @NotNull ThemeId themeId)
+      implements AddQuestionDto {}
 
   public record QuizzDto(
-      String question,
-      @Nonnull @NotEmpty @Valid List<AnswerDto> answers,
+      @NotBlank String question,
+      @NotNull @NotEmpty @Valid List<AnswerDto> answers,
       @Nullable MultipartFile picture,
-      @Nonnull ThemeId themeId) {}
+      @NotNull ThemeId themeId)
+      implements AddQuestionDto {}
 
-  public record AnswerDto(String answer, @Nullable MultipartFile picture, boolean isTrue)
+  public record AnswerDto(@NotBlank String answer, @Nullable MultipartFile picture, boolean isTrue)
       implements AddQuestionDto {}
 }

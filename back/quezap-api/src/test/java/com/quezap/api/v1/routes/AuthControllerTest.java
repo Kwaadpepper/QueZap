@@ -3,29 +3,38 @@ package com.quezap.api.v1.routes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.quezap.api.v1.dto.request.auth.ActivateRequest;
 import com.quezap.api.v1.dto.request.auth.LoginRequest;
+import com.quezap.api.v1.dto.request.auth.LogoutRequest;
 import com.quezap.api.v1.dto.request.auth.RefreshTokenRequest;
 import com.quezap.api.v1.dto.request.auth.ResetPasswordRequest;
 import com.quezap.api.v1.routes.auth.AuthController;
-import com.quezap.domain.models.entities.Credential;
-import com.quezap.domain.models.valueobjects.auth.HashedIdentifier;
-import com.quezap.domain.models.valueobjects.auth.HashedPassword;
-import com.quezap.domain.ports.repositories.CredentialRepository;
-import com.quezap.domain.ports.services.IdentifierHasher;
-import com.quezap.domain.ports.services.PasswordHasher;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.CredentialJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.UserJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
+import com.quezap.api.v1.security.LoginRateLimiter;
+import com.quezap.api.v1.security.RefreshTokenRevocationStore;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.exceptions.users.AuthenticateUserError;
+import com.quezap.application.ports.users.AuthenticateUser;
+import com.quezap.application.ports.users.AuthenticateUser.AuthenticateUserUsecase;
+import com.quezap.application.ports.users.FindUser;
+import com.quezap.application.ports.users.FindUser.FindUserUsecase;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.infrastructure.adapter.services.jwt.JwtService;
+import com.quezap.infrastructure.adapter.services.jwt.JwtToken;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
+import com.quezap.lib.ddd.valueobjects.TimelinePoint;
+import com.quezap.lib.utils.UuidV7;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,42 +42,37 @@ import org.mockito.Mockito;
 
 class AuthControllerTest {
 
-  private CredentialRepository credentialRepository;
-  private UserJpaRepository userJpaRepository;
-  private IdentifierHasher identifierHasher;
-  private PasswordHasher passwordHasher;
+  private UsecaseExecutor executor;
+  private AuthenticateUserUsecase authenticateUserUsecase;
+  private FindUserUsecase findUserUsecase;
   private JwtService jwtService;
+  private RefreshTokenRevocationStore revocationStore;
+  private LoginRateLimiter rateLimiter;
   private AuthController authController;
 
   @BeforeEach
   void setUp() {
-    credentialRepository = Mockito.mock(CredentialRepository.class);
-    userJpaRepository = Mockito.mock(UserJpaRepository.class);
-    identifierHasher = Mockito.mock(IdentifierHasher.class);
-    passwordHasher = Mockito.mock(PasswordHasher.class);
+    executor = Mockito.mock(UsecaseExecutor.class);
+    authenticateUserUsecase = Mockito.mock(AuthenticateUserUsecase.class);
+    findUserUsecase = Mockito.mock(FindUserUsecase.class);
     jwtService = Mockito.mock(JwtService.class);
+    revocationStore = new RefreshTokenRevocationStore();
+    rateLimiter = new LoginRateLimiter(3, 60L);
     authController =
         new AuthController(
-            credentialRepository, userJpaRepository, identifierHasher, passwordHasher, jwtService);
+            executor,
+            authenticateUserUsecase,
+            findUserUsecase,
+            jwtService,
+            revocationStore,
+            rateLimiter);
   }
 
   @Test
   void shouldLoginSuccessfully() throws Exception {
-    final var userId = UUID.randomUUID();
-    final var credId = UUID.randomUUID();
-    final var validHash = "$argon2id$v=19$m=16384,t=2,p=1$fakehashedpassword";
-    final var credential =
-        new Credential(new HashedPassword(validHash), new HashedIdentifier("hashedId"));
-
-    final var credEntity =
-        new CredentialJpaEntity(credId, "hashedId", validHash, null, Instant.now(), Instant.now());
-    final var userEntity =
-        new UserJpaEntity(userId, "Tournesol", credEntity, Instant.now(), Instant.now());
-
-    when(identifierHasher.hash(any())).thenReturn(new HashedIdentifier("hashedId"));
-    when(credentialRepository.findByIdentifier(any())).thenReturn(Optional.of(credential));
-    when(passwordHasher.verify(any(), any())).thenReturn(true);
-    when(userJpaRepository.findByCredentialId(any())).thenReturn(Optional.of(userEntity));
+    final var userId = UuidV7.randomUuid();
+    when(executor.execute(eq(authenticateUserUsecase), any(AuthenticateUser.Input.class)))
+        .thenReturn(new AuthenticateUser.Output(new UserId(userId), "Tournesol"));
     when(jwtService.generateToken(any())).thenReturn("jwt-token-123");
 
     final var response = authController.login(new LoginRequest("tournesol", "Pass1234!"));
@@ -80,32 +84,108 @@ class AuthControllerTest {
 
   @Test
   void shouldRejectLoginWhenCredentialsInvalid() {
-    when(identifierHasher.hash(any())).thenReturn(new HashedIdentifier("hashedId"));
-    when(credentialRepository.findByIdentifier(any())).thenReturn(Optional.empty());
+    when(executor.execute(eq(authenticateUserUsecase), any(AuthenticateUser.Input.class)))
+        .thenThrow(new ApplicationConstraintException(AuthenticateUserError.INVALID_CREDENTIALS));
 
     assertThatThrownBy(() -> authController.login(new LoginRequest("tournesol", "Wrong123!")))
-        .isInstanceOf(ResponseStatusException.class);
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  void shouldRateLimitLoginAfterRepeatedFailures() {
+    when(executor.execute(eq(authenticateUserUsecase), any(AuthenticateUser.Input.class)))
+        .thenThrow(new ApplicationConstraintException(AuthenticateUserError.INVALID_CREDENTIALS));
+
+    for (int i = 0; i < 3; i++) {
+      assertThatThrownBy(() -> authController.login(new LoginRequest("tournesol", "Wrong123!")))
+          .isInstanceOf(ResponseStatusException.class)
+          .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+          .isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    assertThatThrownBy(() -> authController.login(new LoginRequest("tournesol", "Wrong123!")))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
   }
 
   @Test
   void shouldRefreshToken() throws Exception {
-    final var userId = UUID.randomUUID();
-    final var cred =
-        new CredentialJpaEntity(
-            UUID.randomUUID(), "hid", "hpass", null, Instant.now(), Instant.now());
-    final var userEntity =
-        new UserJpaEntity(userId, "Tournesol", cred, Instant.now(), Instant.now());
+    final var userId = UuidV7.randomUuid();
+    final var now = TimelinePoint.now();
     final var payload =
-        com.quezap.infrastructure.adapter.services.jwt.JwtToken.JwtPayload.builder(
-                userId.toString(), Instant.now().getEpochSecond() + 3600)
+        JwtToken.JwtPayload.builder(userId.toString(), Instant.now().getEpochSecond() + 3600)
+            .claim("type", "refresh")
             .build();
     when(jwtService.validateAndParse("refresh-token-xyz")).thenReturn(payload);
-    when(userJpaRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+    when(executor.execute(eq(findUserUsecase), any(FindUser.Input.class)))
+        .thenReturn(new FindUser.Output(new UserId(userId), "Tournesol", now, now));
     when(jwtService.generateToken(any())).thenReturn("refreshed-jwt-token");
 
     final var response = authController.refresh(new RefreshTokenRequest("refresh-token-xyz"));
 
     assertThat(response.accessToken()).isEqualTo("refreshed-jwt-token");
+  }
+
+  @Test
+  void shouldRejectRefreshTokenWithoutTypeClaim() throws Exception {
+    final var userId = UUID.randomUUID();
+    final var payload =
+        JwtToken.JwtPayload.builder(userId.toString(), Instant.now().getEpochSecond() + 3600)
+            .build();
+    when(jwtService.validateAndParse("token-without-type")).thenReturn(payload);
+
+    assertThatThrownBy(() -> authController.refresh(new RefreshTokenRequest("token-without-type")))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  void shouldRejectRefreshTokenWithAccessTypeClaim() throws Exception {
+    final var userId = UUID.randomUUID();
+    final var payload =
+        JwtToken.JwtPayload.builder(userId.toString(), Instant.now().getEpochSecond() + 3600)
+            .claim("type", "access")
+            .build();
+    when(jwtService.validateAndParse("access-token")).thenReturn(payload);
+
+    assertThatThrownBy(() -> authController.refresh(new RefreshTokenRequest("access-token")))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  void shouldRejectRevokedRefreshTokenAfterLogout() throws Exception {
+    final var userId = UuidV7.randomUuid();
+    final var payload =
+        JwtToken.JwtPayload.builder(userId.toString(), Instant.now().getEpochSecond() + 3600)
+            .claim("type", "refresh")
+            .build();
+    when(jwtService.validateAndParse("refresh-token-to-revoke")).thenReturn(payload);
+
+    authController.logout(new LogoutRequest("refresh-token-to-revoke"));
+
+    assertThatThrownBy(
+            () -> authController.refresh(new RefreshTokenRequest("refresh-token-to-revoke")))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  void shouldReturn401WhenMeHasInvalidUuidSubject() {
+    final var auth =
+        new UsernamePasswordAuthenticationToken(
+            "not-a-uuid", null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+
+    assertThatThrownBy(() -> authController.me(auth))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.UNAUTHORIZED);
   }
 
   @Test
