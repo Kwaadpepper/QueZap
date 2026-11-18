@@ -2,6 +2,6 @@ package com.quezap.api.v1.dto.request.themes;
 
 import com.quezap.domain.models.valueobjects.ThemeName;
 
-import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
 
-public record CreateThemeRequest(@Nonnull ThemeName name) {}
+public record CreateThemeRequest(@NotNull ThemeName name) {}

@@ -1,8 +1,13 @@
 package com.quezap.api.v1.routes.users;
 
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,17 +30,20 @@ import com.quezap.application.ports.users.AddUser;
 import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.DeleteUser;
 import com.quezap.application.ports.users.DeleteUser.DeleteUserUsecase;
+import com.quezap.application.ports.users.FindUser;
+import com.quezap.application.ports.users.FindUser.FindUserUsecase;
 import com.quezap.application.ports.users.ListUsers;
 import com.quezap.application.ports.users.ListUsers.ListUsersUsecase;
 import com.quezap.application.ports.users.UpdateUserPassword;
 import com.quezap.application.ports.users.UpdateUserPassword.UpdateUserPasswordUsecase;
+import com.quezap.domain.models.valueobjects.auth.PasswordCandidate;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
-import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
+import org.jspecify.annotations.Nullable;
 
 @RestController
 @RequestMapping("apiv1/users")
@@ -43,26 +51,27 @@ public class UserController {
 
   private final UsecaseExecutor executor;
   private final AddUserUsecase addUserUsecase;
+  private final FindUserUsecase findUserUsecase;
   private final ListUsersUsecase listUsersUsecase;
   private final UpdateUserPasswordUsecase updatePasswordUsecase;
   private final DeleteUserUsecase deleteUserUsecase;
-  private final UserRepository userRepository;
   private final PaginationMapper paginationMapper;
 
+  @Autowired
   public UserController(
       UsecaseExecutor executor,
       AddUserUsecase addUserUsecase,
+      FindUserUsecase findUserUsecase,
       ListUsersUsecase listUsersUsecase,
       UpdateUserPasswordUsecase updatePasswordUsecase,
       DeleteUserUsecase deleteUserUsecase,
-      UserRepository userRepository,
       PaginationMapper paginationMapper) {
     this.executor = executor;
     this.addUserUsecase = addUserUsecase;
+    this.findUserUsecase = findUserUsecase;
     this.listUsersUsecase = listUsersUsecase;
     this.updatePasswordUsecase = updatePasswordUsecase;
     this.deleteUserUsecase = deleteUserUsecase;
-    this.userRepository = userRepository;
     this.paginationMapper = paginationMapper;
   }
 
@@ -75,6 +84,9 @@ public class UserController {
 
     if (effIdentifier.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email/Identifier is required");
+    }
+    if (effPassword.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is required");
     }
 
     final var input =
@@ -91,43 +103,99 @@ public class UserController {
   }
 
   @GetMapping("{id}")
-  public UserDetailDto getById(@PathVariable UUID id) {
-    final var user =
-        userRepository
-            .find(new UserId(id))
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+  public UserDetailDto getById(@PathVariable UUID id, @Nullable Authentication authentication) {
+    requireSelfOrAdmin(id, authentication);
+
+    final var user = executor.execute(findUserUsecase, new FindUser.Input(new UserId(id)));
 
     return new UserDetailDto(
-        user.getId().value(),
-        user.getName(),
-        user.getCreatedAt().position(),
-        user.getUpdatedAt().position());
+        user.id().value(), user.name(), user.createdAt().position(), user.updatedAt().position());
   }
 
   @GetMapping
-  public PageOfDto<ListUsers.Output.UserDto> list(PaginationDto paginationDto) {
-    final var pagination = paginationMapper.toDomain(paginationDto);
-    final var input = new ListUsers.Input(pagination);
-    final var output = executor.execute(listUsersUsecase, input);
+  public PageOfDto<ListUsers.Output.UserDto> list(
+      PaginationDto paginationDto, @Nullable Authentication authentication) {
+    final var effectiveAuth = resolveAuthentication(authentication);
+    if (isAdmin(effectiveAuth)) {
+      final var pagination = paginationMapper.toDomain(paginationDto);
+      final var input = new ListUsers.Input(pagination);
+      final var output = executor.execute(listUsersUsecase, input);
 
-    return paginationMapper.fromDomain(output.page(), dto -> dto);
+      return paginationMapper.fromDomain(output.page(), dto -> dto);
+    }
+
+    final var currentUserId = extractCurrentUserId(effectiveAuth);
+    final var user =
+        executor.execute(findUserUsecase, new FindUser.Input(new UserId(currentUserId)));
+    final var selfDto =
+        new ListUsers.Output.UserDto(user.id(), user.name(), user.createdAt(), user.updatedAt());
+
+    return new PageOfDto<>(List.of(selfDto), 1L, 1L, 1L, 1L, false, false);
   }
 
   @PutMapping("{id}/password")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updatePassword(
-      @PathVariable UUID id, @Valid @RequestBody UpdatePasswordRequest request) {
+      @PathVariable UUID id,
+      @Valid @RequestBody UpdatePasswordRequest request,
+      @Nullable Authentication authentication) {
+    requireSelfOrAdmin(id, authentication);
+
     final var input =
-        new UpdateUserPassword.Input.Id(new UserId(id), new RawPassword(request.newPassword()));
+        new UpdateUserPassword.Input.Id(
+            new UserId(id),
+            new PasswordCandidate(request.oldPassword()),
+            new RawPassword(request.newPassword()));
 
     executor.execute(updatePasswordUsecase, input);
   }
 
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable UUID id) {
+  public void delete(@PathVariable UUID id, @Nullable Authentication authentication) {
+    requireSelfOrAdmin(id, authentication);
+
     final var input = new DeleteUser.Input.Id(new UserId(id));
 
     executor.execute(deleteUserUsecase, input);
+  }
+
+  private void requireSelfOrAdmin(UUID targetUserId, @Nullable Authentication authentication) {
+    final var effectiveAuth = resolveAuthentication(authentication);
+    if (isAdmin(effectiveAuth)) {
+      return;
+    }
+    final var currentUserId = extractCurrentUserId(effectiveAuth);
+    if (!currentUserId.equals(targetUserId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You are not allowed to access or modify another user's account");
+    }
+  }
+
+  private @Nullable Authentication resolveAuthentication(@Nullable Authentication authentication) {
+    if (authentication != null) {
+      return authentication;
+    }
+    return SecurityContextHolder.getContext().getAuthentication();
+  }
+
+  private boolean isAdmin(@Nullable Authentication authentication) {
+    if (authentication == null) {
+      return false;
+    }
+    return authentication.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .anyMatch("ROLE_ADMIN"::equals);
+  }
+
+  private UUID extractCurrentUserId(@Nullable Authentication authentication) {
+    if (authentication == null || authentication.getName() == null) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+    }
+    try {
+      return UUID.fromString(authentication.getName());
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied", e);
+    }
   }
 }

@@ -3,7 +3,8 @@ package com.quezap.application.exceptions.users;
 import com.quezap.application.exceptions.ApplicationErrorCode;
 
 public enum UpdateUserPasswordError implements ApplicationErrorCode {
-  NO_SUCH_USER(1201, "No such user");
+  NO_SUCH_USER(1201, "No such user"),
+  INVALID_OLD_PASSWORD(1202, "Old password is incorrect");
 
   private final int code;
   private final String message;

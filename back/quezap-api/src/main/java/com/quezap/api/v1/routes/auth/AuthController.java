@@ -3,6 +3,7 @@ package com.quezap.api.v1.routes.auth;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,14 +24,20 @@ import com.quezap.api.v1.dto.response.auth.LoginResponseDto;
 import com.quezap.api.v1.dto.response.auth.MessageResponseDto;
 import com.quezap.api.v1.dto.response.auth.RefreshTokenResponseDto;
 import com.quezap.api.v1.dto.response.users.UserSummaryDto;
+import com.quezap.api.v1.security.LoginRateLimiter;
+import com.quezap.api.v1.security.RefreshTokenRevocationStore;
+import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.application.ports.users.AuthenticateUser;
+import com.quezap.application.ports.users.AuthenticateUser.AuthenticateUserUsecase;
+import com.quezap.application.ports.users.FindUser;
+import com.quezap.application.ports.users.FindUser.FindUserUsecase;
 import com.quezap.domain.models.valueobjects.auth.PasswordCandidate;
 import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
-import com.quezap.domain.ports.repositories.CredentialRepository;
-import com.quezap.domain.ports.services.IdentifierHasher;
-import com.quezap.domain.ports.services.PasswordHasher;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.infrastructure.adapter.services.jwt.JwtService;
 import com.quezap.infrastructure.adapter.services.jwt.JwtToken;
+import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
 
@@ -39,62 +46,81 @@ import jakarta.validation.Valid;
 public class AuthController {
 
   private static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 3600L; // 1 hour
+  private static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 60L * 60L * 24L * 30L; // 30 days
 
-  private final CredentialRepository credentialRepository;
-  private final UserJpaRepository userJpaRepository;
-  private final IdentifierHasher identifierHasher;
-  private final PasswordHasher passwordHasher;
+  private final UsecaseExecutor executor;
+  private final AuthenticateUserUsecase authenticateUserUsecase;
+  private final FindUserUsecase findUserUsecase;
   private final JwtService jwtService;
+  private final RefreshTokenRevocationStore revocationStore;
+  private final LoginRateLimiter loginRateLimiter;
+
+  @Autowired
+  public AuthController(
+      UsecaseExecutor executor,
+      AuthenticateUserUsecase authenticateUserUsecase,
+      FindUserUsecase findUserUsecase,
+      JwtService jwtService,
+      RefreshTokenRevocationStore revocationStore,
+      LoginRateLimiter loginRateLimiter) {
+    this.executor = executor;
+    this.authenticateUserUsecase = authenticateUserUsecase;
+    this.findUserUsecase = findUserUsecase;
+    this.jwtService = jwtService;
+    this.revocationStore = revocationStore;
+    this.loginRateLimiter = loginRateLimiter;
+  }
 
   public AuthController(
-      CredentialRepository credentialRepository,
-      UserJpaRepository userJpaRepository,
-      IdentifierHasher identifierHasher,
-      PasswordHasher passwordHasher,
+      UsecaseExecutor executor,
+      AuthenticateUserUsecase authenticateUserUsecase,
+      FindUserUsecase findUserUsecase,
       JwtService jwtService) {
-    this.credentialRepository = credentialRepository;
-    this.userJpaRepository = userJpaRepository;
-    this.identifierHasher = identifierHasher;
-    this.passwordHasher = passwordHasher;
-    this.jwtService = jwtService;
+    this(
+        executor,
+        authenticateUserUsecase,
+        findUserUsecase,
+        jwtService,
+        new RefreshTokenRevocationStore(),
+        new LoginRateLimiter());
   }
 
   @PostMapping("login")
   public LoginResponseDto login(@Valid @RequestBody LoginRequest request) {
-    final var hashedIdentifier = identifierHasher.hash(new RawIdentifier(request.identifier()));
-    final var credential =
-        credentialRepository
-            .findByIdentifier(hashedIdentifier)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
-
-    final var passwordCandidate = new PasswordCandidate(request.password());
-    final var passwordMatches =
-        passwordHasher.verify(passwordCandidate, credential.getHashedPassword());
-
-    if (!passwordMatches) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+    if (loginRateLimiter.isRateLimited(request.identifier())) {
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS, "Too many failed login attempts. Please try again later.");
     }
 
-    final var userEntity =
-        userJpaRepository
-            .findByCredentialId(credential.getId().value())
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User account not found"));
+    final AuthenticateUser.Output authenticatedUser;
+    try {
+      final var input =
+          new AuthenticateUser.Input(
+              new RawIdentifier(request.identifier()), new PasswordCandidate(request.password()));
+      authenticatedUser = executor.execute(authenticateUserUsecase, input);
+    } catch (ApplicationConstraintException | IllegalDomainStateException e) {
+      loginRateLimiter.recordFailure(request.identifier());
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials", e);
+    }
+
+    loginRateLimiter.reset(request.identifier());
+
+    final var userId = authenticatedUser.id().value();
+    final var userName = authenticatedUser.name();
 
     try {
       final var exp = Instant.now().getEpochSecond() + ACCESS_TOKEN_EXPIRATION_SECONDS;
       final var payload =
-          JwtToken.JwtPayload.builder(userEntity.getId().toString(), exp)
-              .claim("name", userEntity.getName())
+          JwtToken.JwtPayload.builder(userId.toString(), exp)
+              .claim("name", userName)
               .claim("type", "access")
               .build();
 
       final var accessToken = jwtService.generateToken(payload);
-      final var refreshExp = Instant.now().getEpochSecond() + 60 * 60 * 24 * 30; // 30 days
+      final var refreshExp = Instant.now().getEpochSecond() + REFRESH_TOKEN_EXPIRATION_SECONDS;
       final var refreshPayload =
-          JwtToken.JwtPayload.builder(userEntity.getId().toString(), refreshExp)
+          JwtToken.JwtPayload.builder(userId.toString(), refreshExp)
+              .jwtId(UUID.randomUUID().toString())
               .claim("type", "refresh")
               .build();
       final var refreshToken = jwtService.generateToken(refreshPayload);
@@ -104,7 +130,7 @@ public class AuthController {
           refreshToken,
           "Bearer",
           ACCESS_TOKEN_EXPIRATION_SECONDS,
-          new UserSummaryDto(userEntity.getId(), userEntity.getName()));
+          new UserSummaryDto(userId, userName));
     } catch (JwtService.JwtException e) {
       throw new ResponseStatusException(
           HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate token", e);
@@ -117,48 +143,64 @@ public class AuthController {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
     }
 
-    final var userId = UUID.fromString(authentication.getName());
-    final var userEntity =
-        userJpaRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    final UserId userId;
+    try {
+      userId = new UserId(UUID.fromString(authentication.getName()));
+    } catch (IllegalArgumentException | IllegalDomainStateException e) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid authentication token", e);
+    }
 
-    return new UserSummaryDto(userEntity.getId(), userEntity.getName());
+    try {
+      final var user = executor.execute(findUserUsecase, new FindUser.Input(userId));
+      return new UserSummaryDto(user.id().value(), user.name());
+    } catch (ApplicationConstraintException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found", e);
+    }
   }
 
   @PostMapping("refresh")
   public RefreshTokenResponseDto refresh(@Valid @RequestBody RefreshTokenRequest request) {
+    final var rawRefreshToken = request.refreshToken();
+    if (revocationStore.isRevoked(rawRefreshToken)) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token has been revoked");
+    }
+
     try {
-      final var validated = jwtService.validateAndParse(request.refreshToken());
+      final var validated = jwtService.validateAndParse(rawRefreshToken);
       final var tokenType = validated.customClaims().get("type");
-      if (tokenType != null && !"refresh".equals(tokenType)) {
+      if (!"refresh".equals(tokenType)) {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
       }
-      final var userId = UUID.fromString(validated.sub());
-      final var userEntity =
-          userJpaRepository
-              .findById(userId)
-              .orElseThrow(
-                  () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+      final var userId = new UserId(UUID.fromString(validated.sub()));
+      final FindUser.Output user;
+      try {
+        user = executor.execute(findUserUsecase, new FindUser.Input(userId));
+      } catch (ApplicationConstraintException e) {
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found", e);
+      }
+
+      revocationStore.revoke(rawRefreshToken, validated.exp());
 
       final var exp = Instant.now().getEpochSecond() + ACCESS_TOKEN_EXPIRATION_SECONDS;
       final var accessPayload =
-          JwtToken.JwtPayload.builder(userEntity.getId().toString(), exp)
-              .claim("name", userEntity.getName())
+          JwtToken.JwtPayload.builder(user.id().value().toString(), exp)
+              .claim("name", user.name())
               .claim("type", "access")
               .build();
 
       final var accessToken = jwtService.generateToken(accessPayload);
-      final var refreshExp = Instant.now().getEpochSecond() + 60 * 60 * 24 * 30;
+      final var refreshExp = Instant.now().getEpochSecond() + REFRESH_TOKEN_EXPIRATION_SECONDS;
       final var refreshPayload =
-          JwtToken.JwtPayload.builder(userEntity.getId().toString(), refreshExp)
+          JwtToken.JwtPayload.builder(user.id().value().toString(), refreshExp)
+              .jwtId(UUID.randomUUID().toString())
               .claim("type", "refresh")
               .build();
       final var newRefreshToken = jwtService.generateToken(refreshPayload);
 
       return new RefreshTokenResponseDto(
           accessToken, newRefreshToken, "Bearer", ACCESS_TOKEN_EXPIRATION_SECONDS);
-    } catch (JwtService.JwtException | IllegalArgumentException e) {
+    } catch (JwtService.JwtException | IllegalArgumentException | IllegalDomainStateException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token", e);
     }
   }
@@ -167,7 +209,8 @@ public class AuthController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void logout(@Valid @RequestBody LogoutRequest request) {
     try {
-      jwtService.validateAndParse(request.refreshToken());
+      final var validated = jwtService.validateAndParse(request.refreshToken());
+      revocationStore.revoke(request.refreshToken(), validated.exp());
     } catch (JwtService.JwtException | IllegalArgumentException e) {
       // Token is already invalid or expired; logout succeeds idempotently
     }

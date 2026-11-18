@@ -1,7 +1,9 @@
 package com.quezap.api.v1.security;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,9 +24,18 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final List<String> allowedOrigins;
 
-  public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+  public SecurityConfig(
+      JwtAuthenticationFilter jwtAuthenticationFilter,
+      @Value("${APP_CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:8000}")
+          String allowedOriginsConfig) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    this.allowedOrigins =
+        Arrays.stream(allowedOriginsConfig.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .toList();
   }
 
   @Bean
@@ -65,13 +76,12 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/themes/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/apiv1/questions/**")
-                    .permitAll()
                     .requestMatchers(
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
-                        "/actuator/**",
+                        "/actuator/health",
+                        "/actuator/health/**",
                         "/error")
                     .permitAll()
                     .anyRequest()
@@ -83,10 +93,19 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     final var configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(List.of("*"));
+    configuration.setAllowedOrigins(allowedOrigins);
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*"));
-    configuration.setExposedHeaders(List.of("*"));
+    configuration.setAllowedHeaders(
+        List.of(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+            "X-Participation-Token",
+            "Last-Event-ID"));
+    configuration.setExposedHeaders(
+        List.of("Authorization", "Content-Disposition", "X-Participation-Token"));
     configuration.setAllowCredentials(true);
     final var source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
