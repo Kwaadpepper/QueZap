@@ -72,8 +72,27 @@ describe('ResetPasswordForm', () => {
     serviceError.set(false)
   })
 
-  it('should create', () => {
+  it('should create with autocomplete="new-password" on confirmation input', () => {
     expect(component).toBeTruthy()
+    const confirmInput = (fixture.nativeElement as HTMLElement).querySelector(
+      'input#password-confirmation',
+    ) as HTMLInputElement | null
+    expect(confirmInput?.getAttribute('autocomplete')).toBe('new-password')
+  })
+
+  it('should attach field errors when service returns ValidationError', async () => {
+    passwordIsInvalid.set(true)
+    const newPassword = 'NewPassword123!'
+    component['resetValues'].set({
+      password: newPassword,
+      confirmPassword: newPassword,
+    })
+    fixture.detectChanges()
+
+    component['onReset']()
+    await fixture.whenStable()
+
+    expect(component['resetForm'].password().errors()).toHaveLength(1)
   })
 
   it('should submit the new password when form is submitted', async () => {

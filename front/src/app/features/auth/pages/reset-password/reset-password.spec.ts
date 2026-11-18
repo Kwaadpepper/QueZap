@@ -16,6 +16,7 @@ describe('ResetPassword', () => {
 
   const validJwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG'
     + '4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp - QV30'
+  const opaqueResetToken = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 
   const queryTokenValue = signal<string | null>(null)
 
@@ -64,96 +65,52 @@ describe('ResetPassword', () => {
     expect(component).toBeTruthy()
   })
 
-  it('should verify that it has a valid jwt reset token onload', () => {
-    // GIVEN
+  it('should verify a JWT reset token on load', () => {
     queryTokenValue.set(validJwtToken)
 
-    // WHEN
     createComponent()
 
-    // THEN
-    expect(component).toBeTruthy()
     expect(component['tokenIsInvalid']()).toBe(false)
-  })
-
-  it('should verify the token using the service', () => {
-    // GIVEN
-    queryTokenValue.set(validJwtToken)
-
-    // WHEN
-    createComponent()
-
-    // THEN
     expect(auth$.verifyResetToken).toHaveBeenCalledWith(validJwtToken)
   })
 
-  it('should show a message and stop spinner if the token is invalid', () => {
-    // GIVEN
-    queryTokenValue.set('invalid-token')
+  it('should accept and verify an opaque non-JWT reset token', () => {
+    queryTokenValue.set(opaqueResetToken)
 
-    // WHEN
     createComponent()
 
-    // THEN
-    expect(component['tokenIsInvalid']()).toBe(true)
-    expect(component['verifyingToken']()).toBe(false)
+    expect(component['tokenIsInvalid']()).toBe(false)
+    expect(component['displayForm']()).toBe(true)
+    expect(auth$.verifyResetToken).toHaveBeenCalledWith(opaqueResetToken)
   })
 
-  it('should not call the service if the token is invalid', () => {
-    // GIVEN
-    queryTokenValue.set('invalid-token')
+  it('should show a message and stop spinner if the token is missing or blank', () => {
+    queryTokenValue.set('   ')
 
-    // WHEN
     createComponent()
 
-    // THEN
+    expect(component['tokenIsInvalid']()).toBe(true)
+    expect(component['verifyingToken']()).toBe(false)
+    expect(component['displayForm']()).toBe(false)
     expect(auth$.verifyResetToken).not.toHaveBeenCalled()
   })
 
   it('should show an error message if the token verification fails', async () => {
-    // GIVEN
-    queryTokenValue.set(validJwtToken)
+    queryTokenValue.set(opaqueResetToken)
     verifyResetSeviceFails.set(true)
 
-    // WHEN
     createComponent()
     await fixture.whenStable()
 
-    // THEN
     expect(component['tokenIsInvalid']()).toBe(true)
-  })
-
-  it('should not display the form if the token is invalid', () => {
-    // GIVEN
-    queryTokenValue.set('invalid-token')
-
-    // WHEN
-    createComponent()
-
-    // THEN
-    expect(component['displayForm']()).toBe(false)
-  })
-
-  it('should not display the form if an error occurs during token verification', () => {
-    // GIVEN
-    queryTokenValue.set(validJwtToken)
-    verifyResetSeviceFails.set(true)
-
-    // WHEN
-    createComponent()
-
-    // THEN
     expect(component['displayForm']()).toBe(false)
   })
 
   it('should display the form when token is valid', () => {
-    // GIVEN
     queryTokenValue.set(validJwtToken)
 
-    // WHEN
     createComponent()
 
-    // THEN
     expect(component['displayForm']()).toBe(true)
   })
 })

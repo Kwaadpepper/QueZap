@@ -67,6 +67,22 @@ describe('ForgottenPassword', () => {
     expect(mockAuthenticationService.askToResetPassword).not.toHaveBeenCalled()
   })
 
+  it('should bind email input via [formField] and enable submit button on valid email', () => {
+    const el = fixture.nativeElement as HTMLElement
+    const input = el.querySelector('input#email') as HTMLInputElement
+    const submitButton = el.querySelector('button[type="submit"]') as HTMLButtonElement
+
+    expect(submitButton.disabled).toBe(true)
+
+    input.value = 'teacher@example.net'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    fixture.detectChanges()
+
+    expect(component['resetForm'].email().value()).toBe('teacher@example.net')
+    expect(component['resetForm']().valid()).toBe(true)
+    expect(submitButton.disabled).toBe(false)
+  })
+
   it('should validate the form with a correct email', () => {
     // GIVEN
     const validEmail = 'user@example.net'
