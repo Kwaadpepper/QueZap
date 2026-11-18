@@ -16,12 +16,17 @@ import org.springframework.cglib.proxy.Factory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.core.DecoratingProxy;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
+import com.quezap.infrastructure.adapter.persistence.jpa.entities.StagedPictureJpaEntity;
 import com.quezap.infrastructure.adapter.spi.DataSource;
 import com.quezap.lib.ddd.repositories.Repository;
+import com.quezap.lib.ddd.usecases.UsecaseExecutor;
+import com.quezap.lib.ddd.usecases.UsecaseHandler;
 
 import io.jsonwebtoken.impl.security.KeysBridge;
+import jakarta.persistence.Entity;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +34,8 @@ import org.slf4j.LoggerFactory;
 @ImportRuntimeHints(QuezapRuntimeHints.class)
 public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
   private static final String BASE_PACKAGE = "com.quezap";
+  private static final String JPA_ENTITIES_PACKAGE =
+      "com.quezap.infrastructure.adapter.persistence.jpa.entities";
   private final Logger logger = LoggerFactory.getLogger(QuezapRuntimeHints.class);
 
   @Override
@@ -41,7 +48,15 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
 
     logger.info("Starting registration of custom infrastructure AOT hints...");
 
-    findAndRegisterForSpringAopProxy(hints, BASE_PACKAGE, DataSource.class, Repository.class);
+    findAndRegisterForSpringAopProxy(
+        hints,
+        BASE_PACKAGE,
+        DataSource.class,
+        Repository.class,
+        UsecaseExecutor.class,
+        UsecaseHandler.class);
+
+    registerJpaEntities(hints);
 
     // Ensure JJWT internal SPI class loaded via Class.forName is reachable in native image
     hints
@@ -65,7 +80,37 @@ public class QuezapRuntimeHints implements RuntimeHintsRegistrar {
     logger.info("Finished registration of custom AOT hints.");
   }
 
-  // (kept for future generic scanning if needed)
+  private void registerJpaEntities(RuntimeHints hints) {
+    registerEntityReflection(hints, StagedPictureJpaEntity.class);
+
+    final var scanner = new ClassPathScanningCandidateComponentProvider(false);
+    scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
+    scanner
+        .findCandidateComponents(JPA_ENTITIES_PACKAGE)
+        .forEach(
+            beanDef -> {
+              final var className = beanDef.getBeanClassName();
+              if (className == null) {
+                return;
+              }
+              try {
+                registerEntityReflection(hints, Class.forName(className));
+              } catch (ClassNotFoundException e) {
+                throw new AotHintException(e);
+              }
+            });
+  }
+
+  private void registerEntityReflection(RuntimeHints hints, Class<?> entityClass) {
+    logger.info("Hint reflection for JPA entity: {}", entityClass.getName());
+    hints
+        .reflection()
+        .registerType(
+            entityClass,
+            MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+            MemberCategory.INVOKE_DECLARED_METHODS,
+            MemberCategory.DECLARED_FIELDS);
+  }
 
   private void findAndRegisterForSpringAopProxy(
       RuntimeHints hints, String basePackage, Class<?> withInterface, Class<?>... withInterfaces) {
