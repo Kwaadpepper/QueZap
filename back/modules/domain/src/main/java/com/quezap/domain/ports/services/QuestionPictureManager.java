@@ -11,4 +11,6 @@ public interface QuestionPictureManager {
   Picture copy(Picture picture);
 
   void remove(Picture picture);
+
+  void removeByObjectKey(String objectKey);
 }

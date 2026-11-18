@@ -84,7 +84,8 @@ public class QuezapApiRuntimeHints implements RuntimeHintsRegistrar {
             SessionParticipantReportDto.class,
             QuestionReportDto.class,
             QuestionAnswerStatDto.class,
-            SessionSseService.StoredEvent.class);
+            SessionSseService.StoredEvent.class,
+            com.quezap.api.v1.dto.response.pictures.PictureUploadResponseDto.class);
 
     for (final var clazz : classes) {
       hints

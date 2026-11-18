@@ -254,31 +254,7 @@ class QuezapControllerTest {
   }
 
   @Test
-  void shouldUploadDataUrlPictureViaQuestionPictureManagerAndReturnNormalizedPictureUrl() {
-    final var pictureManager =
-        Mockito.mock(com.quezap.domain.ports.services.QuestionPictureManager.class);
-    final var storedKey = "pictures/questions/" + com.quezap.lib.utils.UuidV7.randomUuid() + ".png";
-    final var storedPicture =
-        new com.quezap.domain.models.valueobjects.pictures.Picture(
-            storedKey,
-            com.quezap.domain.models.valueobjects.pictures.PictureType.PNG,
-            new com.quezap.domain.models.valueobjects.Sha256Hash(new byte[32]));
-    when(pictureManager.store(any())).thenReturn(storedPicture);
-
-    final var controllerWithS3 =
-        new QuezapController(
-            quezapJpaRepository,
-            questionJpaRepository,
-            themeJpaRepository,
-            userJpaRepository,
-            paginationMapper,
-            pictureManager);
-
-    when(quezapJpaRepository.save(any(QuezapJpaEntity.class)))
-        .thenAnswer(inv -> inv.getArgument(0));
-    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
-        .thenAnswer(inv -> inv.getArgument(0));
-
+  void shouldRejectDataUrlPictureInCreateQuezap() {
     final var dataUrl =
         "data:image/png;base64,"
             + "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
@@ -293,14 +269,48 @@ class QuezapControllerTest {
 
     final var createReq =
         new CreateQuezapRequest("Visual Quiz", "With image", true, List.of(slide));
-    controllerWithS3.create(createReq);
 
-    verify(pictureManager).store(any());
+    org.assertj.core.api.Assertions.assertThatThrownBy(() -> quezapController.create(createReq))
+        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("status", org.springframework.http.HttpStatus.BAD_REQUEST);
+  }
 
-    final var captor = org.mockito.ArgumentCaptor.forClass(QuestionJpaEntity.class);
-    verify(questionJpaRepository).save(captor.capture());
-    assertThat(captor.getValue().getPictureFilename())
-        .isEqualTo("/quezap-public-images/" + storedKey);
+  @Test
+  void shouldClaimPicturesWhenCreatingQuezapWithPreUploadedPicture() {
+    final var stagedService =
+        Mockito.mock(com.quezap.infrastructure.adapter.services.StagedPictureService.class);
+    final var controllerWithStaged =
+        new QuezapController(
+            quezapJpaRepository,
+            questionJpaRepository,
+            themeJpaRepository,
+            userJpaRepository,
+            paginationMapper,
+            stagedService,
+            null);
+
+    when(quezapJpaRepository.save(any(QuezapJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+
+    final var picUrl = "/quezap-public-images/pictures/questions/stored.png";
+    final var inlineAnswers =
+        List.of(
+            new InlineAnswerRequest(null, "Answer A", true, null, 1),
+            new InlineAnswerRequest(null, "Answer B", false, null, 2));
+    final var inlineQuestion =
+        new InlineQuestionRequest(
+            null, "Question with image?", "QUIZZ", picUrl, null, "Science", inlineAnswers);
+    final var slide = new QuezapSlideRequest(null, 20, 1000, 1, inlineQuestion);
+
+    final var createReq =
+        new CreateQuezapRequest("Visual Quiz", "With image", true, List.of(slide));
+    controllerWithStaged.create(createReq);
+
+    final var captor = org.mockito.ArgumentCaptor.forClass(java.util.Collection.class);
+    verify(stagedService).claimPictures(captor.capture());
+    assertThat(captor.getValue()).contains(picUrl);
   }
 
   @Test
@@ -343,10 +353,23 @@ class QuezapControllerTest {
             inlineAnswers);
     final var slide = new QuezapSlideRequest(existingQuestionId, 20, 1000, 1, inlineQuestion);
 
-    quezapController.update(
+    final var pictureManager =
+        Mockito.mock(com.quezap.domain.ports.services.QuestionPictureManager.class);
+    final var controllerWithManager =
+        new QuezapController(
+            quezapJpaRepository,
+            questionJpaRepository,
+            themeJpaRepository,
+            userJpaRepository,
+            paginationMapper,
+            null,
+            pictureManager);
+
+    controllerWithManager.update(
         quezapId, new UpdateQuezapRequest("Quiz", "Desc", true, List.of(slide)));
 
     assertThat(existingQuestion.getPictureFilename()).isNull();
+    verify(pictureManager).removeByObjectKey("pictures/questions/old.png");
   }
 
   @Test

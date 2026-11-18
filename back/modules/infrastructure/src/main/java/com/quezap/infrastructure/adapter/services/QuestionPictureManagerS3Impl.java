@@ -150,8 +150,12 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
   @Override
   public void remove(Picture picture) {
+    removeByObjectKey(picture.objectKey());
+  }
+
+  @Override
+  public void removeByObjectKey(String objectKey) {
     try {
-      final var objectKey = picture.objectKey();
       s3Client.deleteObject(builder -> builder.bucket(bucketName).key(objectKey).build());
 
       logger.debug("Removed picture with key {} from S3 bucket {}", objectKey, bucketName);
@@ -160,7 +164,7 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
       if (e.statusCode() == 404) {
         logger.debug(
             "Picture with key {} does not exist in S3 bucket {}; nothing to remove",
-            picture.objectKey(),
+            objectKey,
             bucketName);
       } else {
         throw e;

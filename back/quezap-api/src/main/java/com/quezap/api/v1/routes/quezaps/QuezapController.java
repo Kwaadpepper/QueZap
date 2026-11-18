@@ -1,12 +1,12 @@
 package com.quezap.api.v1.routes.quezaps;
 
-import java.io.ByteArrayInputStream;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.Locale;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +42,6 @@ import com.quezap.api.v1.dto.response.quezaps.QuezapSummaryDto;
 import com.quezap.api.v1.dto.response.quezaps.ThemeDetailDto;
 import com.quezap.api.v1.dto.response.users.UserSummaryDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
-import com.quezap.domain.models.valueobjects.pictures.PictureType;
-import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
 import com.quezap.domain.ports.services.QuestionPictureManager;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuestionJpaEntity;
@@ -54,6 +52,7 @@ import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuestionJp
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuezapJpaRepository;
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.ThemeJpaRepository;
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
+import com.quezap.infrastructure.adapter.services.StagedPictureService;
 import com.quezap.lib.utils.UuidV7;
 
 import jakarta.validation.Valid;
@@ -71,6 +70,7 @@ public class QuezapController {
   private final ThemeJpaRepository themeJpaRepository;
   private final UserJpaRepository userJpaRepository;
   private final PaginationMapper paginationMapper;
+  private final @Nullable StagedPictureService stagedPictureService;
   private final @Nullable QuestionPictureManager questionPictureManager;
 
   public QuezapController(
@@ -85,7 +85,25 @@ public class QuezapController {
         themeJpaRepository,
         userJpaRepository,
         paginationMapper,
+        null,
         null);
+  }
+
+  public QuezapController(
+      QuezapJpaRepository quezapJpaRepository,
+      QuestionJpaRepository questionJpaRepository,
+      ThemeJpaRepository themeJpaRepository,
+      UserJpaRepository userJpaRepository,
+      PaginationMapper paginationMapper,
+      @Nullable QuestionPictureManager questionPictureManager) {
+    this(
+        quezapJpaRepository,
+        questionJpaRepository,
+        themeJpaRepository,
+        userJpaRepository,
+        paginationMapper,
+        null,
+        questionPictureManager);
   }
 
   @Autowired
@@ -95,12 +113,14 @@ public class QuezapController {
       ThemeJpaRepository themeJpaRepository,
       UserJpaRepository userJpaRepository,
       PaginationMapper paginationMapper,
+      @Nullable StagedPictureService stagedPictureService,
       @Nullable QuestionPictureManager questionPictureManager) {
     this.quezapJpaRepository = quezapJpaRepository;
     this.questionJpaRepository = questionJpaRepository;
     this.themeJpaRepository = themeJpaRepository;
     this.userJpaRepository = userJpaRepository;
     this.paginationMapper = paginationMapper;
+    this.stagedPictureService = stagedPictureService;
     this.questionPictureManager = questionPictureManager;
   }
 
@@ -137,8 +157,12 @@ public class QuezapController {
     }
 
     final var saved = quezapJpaRepository.save(quezap);
+    final var effectiveSaved = saved != null ? saved : quezap;
+    if (stagedPictureService != null) {
+      stagedPictureService.claimPictures(collectPictureUrls(effectiveSaved));
+    }
 
-    return new QuezapIdDto(saved.getId());
+    return new QuezapIdDto(effectiveSaved.getId());
   }
 
   @PostMapping("{id}/duplicate")
@@ -354,6 +378,7 @@ public class QuezapController {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
 
     assertQuezapAuthor(quezap);
+    final var previousUrls = collectPictureUrls(quezap);
 
     if (request.title() != null) {
       quezap.setTitle(request.title());
@@ -382,7 +407,16 @@ public class QuezapController {
     }
 
     quezap.setUpdatedAt(Instant.now());
-    quezapJpaRepository.save(quezap);
+    final var saved = quezapJpaRepository.save(quezap);
+    final var effectiveSaved = saved != null ? saved : quezap;
+    final var currentUrls = collectPictureUrls(effectiveSaved);
+
+    if (stagedPictureService != null) {
+      stagedPictureService.claimPictures(currentUrls);
+    }
+
+    final var removedUrls = previousUrls.stream().filter(u -> !currentUrls.contains(u)).toList();
+    removePicturesFromStorage(removedUrls);
   }
 
   @DeleteMapping("{id}")
@@ -395,7 +429,9 @@ public class QuezapController {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
 
     assertQuezapAuthor(quezap);
+    final var urlsToDelete = collectPictureUrls(quezap);
     quezapJpaRepository.delete(quezap);
+    removePicturesFromStorage(urlsToDelete);
   }
 
   @PostMapping("{id}/questions")
@@ -418,7 +454,11 @@ public class QuezapController {
 
     quezap.addQuestion(qq);
     quezap.setUpdatedAt(Instant.now());
-    quezapJpaRepository.save(quezap);
+    final var saved = quezapJpaRepository.save(quezap);
+    final var effectiveSaved = saved != null ? saved : quezap;
+    if (stagedPictureService != null) {
+      stagedPictureService.claimPictures(collectPictureUrls(effectiveSaved));
+    }
   }
 
   private QuestionJpaEntity resolveOrCreateQuestion(
@@ -544,53 +584,68 @@ public class QuezapController {
     }
 
     final var trimmed = rawPicture.trim();
-    if (!trimmed.startsWith("data:")) {
-      return toPublicPictureUrl(trimmed);
+    if (trimmed.startsWith("data:")) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Base64 data URLs are not supported. Upload image to /apiv1/pictures/upload first.");
     }
 
-    final var commaIndex = trimmed.indexOf(',');
-    if (commaIndex <= 5) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid image data URL");
-    }
-
-    final var header = trimmed.substring(5, commaIndex);
-    final var base64Payload = trimmed.substring(commaIndex + 1).trim();
-    final var semicolonIndex = header.indexOf(';');
-    final var mimeType =
-        (semicolonIndex >= 0 ? header.substring(0, semicolonIndex) : header)
-            .trim()
-            .toLowerCase(Locale.ROOT);
-    final var pictureType = resolvePictureType(mimeType);
-
-    final byte[] bytes;
-    try {
-      bytes = Base64.getDecoder().decode(base64Payload);
-    } catch (IllegalArgumentException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid base64 image data", e);
-    }
-
-    if (bytes.length == 0) {
-      return null;
-    }
-
-    if (questionPictureManager != null) {
-      final var uploadData =
-          new PictureUploadData(new ByteArrayInputStream(bytes), bytes.length, pictureType);
-      final var storedPicture = questionPictureManager.store(uploadData);
-      return toPublicPictureUrl(storedPicture.objectKey());
-    }
-
-    final var extension = pictureType.extensions().get(0);
-    return PUBLIC_BUCKET_PREFIX + "pictures/questions/" + UuidV7.randomUuid() + "." + extension;
+    return toPublicPictureUrl(trimmed);
   }
 
-  private PictureType resolvePictureType(String mimeType) {
-    return switch (mimeType) {
-      case "image/png" -> PictureType.PNG;
-      case "image/webp" -> PictureType.WEBP;
-      case "image/jpeg", "image/jpg" -> PictureType.JPG;
-      default -> PictureType.PNG;
-    };
+  private Set<String> collectPictureUrls(QuezapJpaEntity quezap) {
+    final var urls = new HashSet<String>();
+    for (final var qq : quezap.getQuestions()) {
+      final var q = qq.getQuestion();
+      if (q.getPictureFilename() != null && !q.getPictureFilename().isBlank()) {
+        urls.add(q.getPictureFilename().trim());
+      }
+      for (final var a : q.getAnswers()) {
+        if (a.getPictureFilename() != null && !a.getPictureFilename().isBlank()) {
+          urls.add(a.getPictureFilename().trim());
+        }
+      }
+    }
+    return urls;
+  }
+
+  public static @Nullable String toObjectKey(@Nullable String pictureUrl) {
+    if (pictureUrl == null || pictureUrl.isBlank()) {
+      return null;
+    }
+    final var trimmed = pictureUrl.trim();
+    if (trimmed.startsWith(PUBLIC_BUCKET_PREFIX)) {
+      return trimmed.substring(PUBLIC_BUCKET_PREFIX.length());
+    }
+    if (trimmed.startsWith("/quezap-public-images/")) {
+      return trimmed.substring("/quezap-public-images/".length());
+    }
+    if (trimmed.startsWith("quezap-public-images/")) {
+      return trimmed.substring("quezap-public-images/".length());
+    }
+    if (trimmed.startsWith("pictures/")) {
+      return trimmed;
+    }
+    if (trimmed.startsWith("/")) {
+      return trimmed.substring(1);
+    }
+    return trimmed;
+  }
+
+  private void removePicturesFromStorage(Collection<String> pictureUrls) {
+    if (questionPictureManager == null || pictureUrls.isEmpty()) {
+      return;
+    }
+    for (final var url : pictureUrls) {
+      final var key = toObjectKey(url);
+      if (key != null && key.startsWith("pictures/")) {
+        try {
+          questionPictureManager.removeByObjectKey(key);
+        } catch (Exception _) {
+          // Best effort cleanup
+        }
+      }
+    }
   }
 
   public static @Nullable String toPublicPictureUrl(@Nullable String pictureFilename) {
@@ -649,9 +704,28 @@ public class QuezapController {
 
     assertQuezapAuthor(quezap);
 
+    final var removedQuestions =
+        quezap.getQuestions().stream()
+            .filter(qq -> qq.getQuestion().getId().equals(questionId))
+            .map(QuezapQuestionJpaEntity::getQuestion)
+            .toList();
+
     quezap.getQuestions().removeIf(qq -> qq.getQuestion().getId().equals(questionId));
     quezap.setUpdatedAt(Instant.now());
     quezapJpaRepository.save(quezap);
+
+    for (final var q : removedQuestions) {
+      final var urls = new HashSet<String>();
+      if (q.getPictureFilename() != null && !q.getPictureFilename().isBlank()) {
+        urls.add(q.getPictureFilename().trim());
+      }
+      for (final var a : q.getAnswers()) {
+        if (a.getPictureFilename() != null && !a.getPictureFilename().isBlank()) {
+          urls.add(a.getPictureFilename().trim());
+        }
+      }
+      removePicturesFromStorage(urls);
+    }
   }
 
   private void assertQuezapAuthor(QuezapJpaEntity quezap) {
