@@ -67,7 +67,7 @@ subprojects {
   }
 
   // --- Error Prone / NullAway ---
-  def enableNullAway = project.hasProperty('nullaway') && project.property('nullaway') == 'true'
+  def enableNullAway = !project.hasProperty('nullaway') || project.property('nullaway') != 'false'
   tasks.withType(JavaCompile).configureEach {
     def isAotTask = name.toLowerCase().contains('aot')
     options.errorprone {

@@ -1,48 +1,18 @@
 package com.quezap.api.v1.aot;
 
-import java.util.List;
-
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 
-import com.quezap.api.v1.dto.events.AnswerCountPayload;
-import com.quezap.api.v1.dto.events.AnswerStatDto;
-import com.quezap.api.v1.dto.events.FinalLeaderboardEntryDto;
-import com.quezap.api.v1.dto.events.IntermediateLeaderboardPayload;
-import com.quezap.api.v1.dto.events.LobbyStatePayload;
-import com.quezap.api.v1.dto.events.ParticipantDto;
-import com.quezap.api.v1.dto.events.ParticipantKickedPayload;
-import com.quezap.api.v1.dto.events.PodiumDto;
-import com.quezap.api.v1.dto.events.QuestionClosedPayload;
-import com.quezap.api.v1.dto.events.QuestionRevealPayload;
-import com.quezap.api.v1.dto.events.QuestionStartPayload;
-import com.quezap.api.v1.dto.events.QuestionTimeWarningPayload;
-import com.quezap.api.v1.dto.events.SafeAnswerDto;
-import com.quezap.api.v1.dto.events.SafeQuestionDto;
-import com.quezap.api.v1.dto.events.SessionEndedPayload;
-import com.quezap.api.v1.dto.events.SessionEventEnvelope;
-import com.quezap.api.v1.dto.events.SessionGroupMetricsDto;
-import com.quezap.api.v1.dto.events.SessionPausePayload;
-import com.quezap.api.v1.dto.events.SessionStartedPayload;
-import com.quezap.api.v1.dto.response.sessions.JoinSessionResponseDto;
-import com.quezap.api.v1.dto.response.sessions.LeaderboardEntryDto;
-import com.quezap.api.v1.dto.response.sessions.LeaderboardResponseDto;
-import com.quezap.api.v1.dto.response.sessions.QuestionAnswerStatDto;
-import com.quezap.api.v1.dto.response.sessions.QuestionReportDto;
-import com.quezap.api.v1.dto.response.sessions.SessionCreatedDto;
-import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
-import com.quezap.api.v1.dto.response.sessions.SessionParticipantReportDto;
-import com.quezap.api.v1.dto.response.sessions.SessionReportDto;
-import com.quezap.api.v1.dto.sessions.SessionPauseRequestDto;
-import com.quezap.api.v1.dto.sessions.SessionPauseResponseDto;
-import com.quezap.api.v1.dto.sessions.SessionSettingsRequestDto;
-import com.quezap.api.v1.dto.sessions.SessionSettingsResponseDto;
 import com.quezap.api.v1.services.SessionSseService;
 
 import org.jspecify.annotations.Nullable;
 
 public class QuezapApiRuntimeHints implements RuntimeHintsRegistrar {
+  private static final String DTO_PACKAGE = "com.quezap.api.v1.dto";
+  private static final String ERRORS_PACKAGE = "com.quezap.api.errors";
 
   @Override
   public void registerHints(@Nullable RuntimeHints hints, @Nullable ClassLoader classLoader) {
@@ -50,51 +20,46 @@ public class QuezapApiRuntimeHints implements RuntimeHintsRegistrar {
       return;
     }
 
-    final var classes =
-        List.of(
-            SessionEventEnvelope.class,
-            LobbyStatePayload.class,
-            SessionStartedPayload.class,
-            QuestionStartPayload.class,
-            QuestionTimeWarningPayload.class,
-            QuestionClosedPayload.class,
-            QuestionRevealPayload.class,
-            IntermediateLeaderboardPayload.class,
-            SessionEndedPayload.class,
-            SessionGroupMetricsDto.class,
-            SessionPausePayload.class,
-            SessionPauseRequestDto.class,
-            SessionPauseResponseDto.class,
-            SessionSettingsRequestDto.class,
-            SessionSettingsResponseDto.class,
-            ParticipantKickedPayload.class,
-            AnswerCountPayload.class,
-            ParticipantDto.class,
-            SafeQuestionDto.class,
-            SafeAnswerDto.class,
-            AnswerStatDto.class,
-            FinalLeaderboardEntryDto.class,
-            PodiumDto.class,
-            SessionDetailDto.class,
-            SessionCreatedDto.class,
-            JoinSessionResponseDto.class,
-            LeaderboardResponseDto.class,
-            LeaderboardEntryDto.class,
-            SessionReportDto.class,
-            SessionParticipantReportDto.class,
-            QuestionReportDto.class,
-            QuestionAnswerStatDto.class,
-            SessionSseService.StoredEvent.class,
-            com.quezap.api.v1.dto.response.pictures.PictureUploadResponseDto.class);
+    registerPackageTypes(hints, DTO_PACKAGE, classLoader);
+    registerPackageTypes(hints, ERRORS_PACKAGE, classLoader);
+    registerReflection(hints, SessionSseService.StoredEvent.class);
+  }
 
-    for (final var clazz : classes) {
-      hints
-          .reflection()
-          .registerType(
-              clazz,
-              MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-              MemberCategory.INVOKE_DECLARED_METHODS,
-              MemberCategory.DECLARED_FIELDS);
+  private void registerPackageTypes(
+      RuntimeHints hints, String basePackage, @Nullable ClassLoader classLoader) {
+    final var scanner =
+        new ClassPathScanningCandidateComponentProvider(false) {
+          @Override
+          protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+            return beanDefinition.getMetadata().isIndependent();
+          }
+        };
+    scanner.addIncludeFilter((metadataReader, metadataReaderFactory) -> true);
+
+    final var effectiveClassLoader =
+        classLoader != null ? classLoader : QuezapApiRuntimeHints.class.getClassLoader();
+
+    for (final var beanDef : scanner.findCandidateComponents(basePackage)) {
+      final var className = beanDef.getBeanClassName();
+      if (className == null || className.endsWith(".package-info")) {
+        continue;
+      }
+      try {
+        final var clazz = Class.forName(className, false, effectiveClassLoader);
+        registerReflection(hints, clazz);
+      } catch (ClassNotFoundException e) {
+        throw new IllegalStateException("Failed to register AOT hint for " + className, e);
+      }
     }
+  }
+
+  private void registerReflection(RuntimeHints hints, Class<?> clazz) {
+    hints
+        .reflection()
+        .registerType(
+            clazz,
+            MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+            MemberCategory.INVOKE_DECLARED_METHODS,
+            MemberCategory.DECLARED_FIELDS);
   }
 }

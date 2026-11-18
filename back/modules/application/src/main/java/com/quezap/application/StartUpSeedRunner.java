@@ -3,6 +3,7 @@ package com.quezap.application;
 import java.util.Arrays;
 
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import com.quezap.application.seed.UserSeeder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Profile("!prod")
 @Component
 public class StartUpSeedRunner {
   private static Logger logger = LoggerFactory.getLogger(StartUpSeedRunner.class);

@@ -1,5 +1,6 @@
 package com.quezap.application.seed;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.ports.users.AddUser;
@@ -8,6 +9,7 @@ import com.quezap.domain.models.valueobjects.auth.RawIdentifier;
 import com.quezap.domain.models.valueobjects.auth.RawPassword;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
+@Profile("!prod")
 @Component
 public class UserSeeder implements Seeder {
   private static final int NUMBER_OF_USERS = 10;
