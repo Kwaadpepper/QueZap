@@ -8,9 +8,10 @@ import {
   patchState, signalState, SignalState, signalStore, withComputed, withHooks, withMethods, withState,
 } from '@ngrx/signals'
 import {
-  catchError, concatMap,
+  catchError, concatMap, finalize,
   Observable, of,
   retry,
+  switchMap,
   throwError,
 } from 'rxjs'
 
@@ -26,7 +27,7 @@ import {
 import {
   IntermediateLeaderboardData,
   NoMoreQuestions, QuestionRevealData, SESSION_API_SERVICE,
-  SESSION_OBSERVER_SERVICE, SessionObserverSseService, sessionEnded, sessionKicked, sessionPauseStatus, sessionStarted,
+  SESSION_OBSERVER_SERVICE, sessionEnded, sessionKicked, sessionPauseStatus, sessionStarted,
   sessionSwitchedQuestion,
   sessionWaitingStart,
   WaitingQuestion,
@@ -71,8 +72,6 @@ export const ActiveSessionStore = signalStore(
     restorationComplete: computed(() => store._sessionIsLoaded()),
     participants: computed(() => store._participants()),
     sessionHasStarted: computed(() => store._sessionIsRunning() || store.question() !== undefined),
-    isSessionPaused: computed(() => store.isSessionPaused()),
-    mySubmittedChoice: computed(() => store.mySubmittedChoice()),
     myRanking: computed(() => {
       const myName = sessionPersistence.getParticipantName()
       const lb = store.lastLeaderboard()
@@ -88,6 +87,7 @@ export const ActiveSessionStore = signalStore(
     sessionApi = inject(SESSION_API_SERVICE),
     sessionObserver = inject(SESSION_OBSERVER_SERVICE),
     activeSessionPersistence = inject(ActiveSessionPersistence),
+    destroyRef = inject(DestroyRef),
   ) => ({
 
     submitMyChoice: (answerIndex: number, label: string, questionId?: string): void => {
@@ -106,7 +106,9 @@ export const ActiveSessionStore = signalStore(
     },
 
     leaveSession: (): void => {
-      sessionApi.leaveSession?.()?.subscribe()
+      sessionApi.leaveSession?.()?.pipe(
+        takeUntilDestroyed(destroyRef),
+      ).subscribe()
       sessionObserver.disconnect?.()
       activeSessionPersistence.clear()
       patchState(store, {
@@ -245,11 +247,11 @@ export const ActiveSessionStore = signalStore(
           console.debug('Running listeners')
         }
 
-        // * Auto-connect SSE when session is resolved
+        // * Auto-connect observer when active session is resolved
         effect(() => {
           const session = store.session()
-          if (session && session.id && sessionObserver instanceof SessionObserverSseService) {
-            sessionObserver.connect(session.id as string)
+          if (session && session.id && session.endedAt == null && session.status !== 'ENDED') {
+            sessionObserver.connect?.(session.id as string)
           }
         })
 
@@ -367,6 +369,7 @@ export const ActiveSessionStore = signalStore(
               patchState(store, {
                 _session: {
                   ...session,
+                  status: 'ENDED',
                   endedAt: event.session.endedAt,
                 },
                 _sessionIsRunning: false,
@@ -381,6 +384,7 @@ export const ActiveSessionStore = signalStore(
             if (sessionKicked(event)) {
               const myNickname = store.nickname()?.value()
               if (myNickname && myNickname.trim().toLowerCase() === event.participantName.trim().toLowerCase()) {
+                sessionObserver.disconnect?.()
                 activeSessionPersistence.clear()
                 patchState(store, initialState)
                 patchState(store, { _sessionIsLoaded: true })
@@ -409,35 +413,33 @@ export const ActiveSessionStore = signalStore(
       }
 
       const rememberedNickname = data.nickname?.trim()
-      const activeNickname = rememberedNickname || activeSessionPersistence.getParticipantName()?.trim()
+      const activeNickname = rememberedNickname || activeSessionPersistence.getParticipantName(data.sessionId)?.trim()
 
       patchState(store, { ...initialState })
 
       if (data.code) {
-        store.joinSession(data.code).subscribe({
-          next: (joinResult) => {
+        store.joinSession(data.code).pipe(
+          takeUntilDestroyed(destroyRef),
+          switchMap((joinResult) => {
             if (joinResult instanceof NotFoundError || joinResult instanceof ExpiredError) {
-              patchState(store, { _sessionIsLoaded: true })
-              return
+              return of(void 0)
+            }
+            const restoredSession = store.session()
+            if (restoredSession && (restoredSession.endedAt !== null || restoredSession.status === 'ENDED')) {
+              return of(void 0)
             }
             if (activeNickname) {
-              store.chooseNickname(activeNickname, Boolean(rememberedNickname)).subscribe({
-                next: () => {
-                  patchState(store, { _sessionIsLoaded: true })
-                },
-                error: () => {
-                  patchState(store, { _sessionIsLoaded: true })
-                },
-              })
+              return store.chooseNickname(activeNickname, Boolean(rememberedNickname)).pipe(
+                catchError(() => of(void 0)),
+              )
             }
-            else {
-              patchState(store, { _sessionIsLoaded: true })
-            }
-          },
-          error: () => {
+            return of(void 0)
+          }),
+          catchError(() => of(void 0)),
+          finalize(() => {
             patchState(store, { _sessionIsLoaded: true })
-          },
-        })
+          }),
+        ).subscribe()
       }
       else {
         patchState(store, { _sessionIsLoaded: true })

@@ -6,10 +6,16 @@ import { form, validateStandardSchema } from '@angular/forms/signals'
 import * as zod from 'zod/v4'
 
 import { BinaryQuestion, PictureUrl, QuestionId, QuestionWithAnswers } from '@quezap/domain/models'
-import { SESSION_API_SERVICE } from '@quezap/features/quizz/services'
 import { ActiveSessionStore, TimerStore } from '@quezap/features/quizz/stores'
 
-import { Picture, PrintableAnswer, QuestionAlert, QuestionAnswer } from '../parts'
+import {
+  createAnswerSubmissionState,
+  Picture,
+  PrintableAnswer,
+  QuestionAlert,
+  QuestionAnswer,
+  SubmissionFeedback,
+} from '../parts'
 
 type Responses = Record<number, boolean>
 
@@ -19,6 +25,7 @@ type Responses = Record<number, boolean>
     Picture,
     QuestionAnswer,
     QuestionAlert,
+    SubmissionFeedback,
   ],
   templateUrl: './binary-question.html',
   styles: [`
@@ -32,10 +39,14 @@ type Responses = Record<number, boolean>
 export class BinaryQuestionView {
   private readonly timerStore = inject(TimerStore)
   private readonly sessionStore = inject(ActiveSessionStore)
-  private readonly sessionApi = inject(SESSION_API_SERVICE)
-  protected readonly hasSubmitted = signal(false)
+  private readonly submission = createAnswerSubmissionState()
+
+  protected readonly hasSubmitted = this.submission.hasSubmitted
+  protected readonly isSubmitting = this.submission.isSubmitting
+  protected readonly submissionError = this.submission.submissionError
 
   protected readonly isRevealing = computed<boolean>(() => this.sessionStore.lastReveal() !== undefined)
+  protected readonly isSessionPaused = computed<boolean>(() => this.sessionStore.isSessionPaused())
   protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
 
   // Question related signals
@@ -50,7 +61,8 @@ export class BinaryQuestionView {
 
   protected readonly hasAnswered = computed<boolean>(() => this.responseForm().valid())
   protected readonly cannotAnswerAnymore = computed<boolean>(() =>
-    this.timeLeft() === 0 && this.timeLeft() !== undefined)
+    this.isSessionPaused() || (this.timeLeft() === 0 && this.timeLeft() !== undefined),
+  )
 
   protected readonly responseForm = form(this.responses, (path) => {
     validateStandardSchema(path, zod.record(
@@ -85,7 +97,7 @@ export class BinaryQuestionView {
       this.lastSelectedKey.set(
         restoredChoice ? (restoredChoice.answerIndex === 0 ? '0' : '1') : null,
       )
-      this.hasSubmitted.set(restoredChoice !== undefined)
+      this.submission.resetForQuestion(restoredChoice !== undefined)
     })
     effect(() => {
       // * Handle RADIO behavior
@@ -112,13 +124,26 @@ export class BinaryQuestionView {
 
   protected selectAnswer(index: number) {
     if (this.cannotAnswerAnymore()) return
+
+    const previousResponses = this.responses()
+    const previousLastSelectedKey = this.lastSelectedKey()
+    const currentQuestion = this.question()
+    const chosenAnswer = currentQuestion.answers.find(a => a.index === index)
+    const choiceLabel = chosenAnswer?.value || `Choix ${index + 1}`
+
     this.responses.set(
-      Object.fromEntries(this.question().answers.map(a => [a.index, a.index === index])),
+      Object.fromEntries(currentQuestion.answers.map(a => [a.index, a.index === index])),
     )
     this.lastSelectedKey.set(index === 0 ? '0' : '1')
-    this.hasSubmitted.set(true)
-    const chosenAnswer = this.question().answers.find(a => a.index === index)
-    this.sessionStore.submitMyChoice(index, chosenAnswer?.value || `Choix ${index + 1}`, this.question().id)
-    this.sessionApi.submitAnswer(index).subscribe()
+
+    this.submission.submit({
+      questionId: currentQuestion.id,
+      answerIndex: index,
+      choiceLabel,
+      onRollback: () => {
+        this.responses.set(previousResponses)
+        this.lastSelectedKey.set(previousLastSelectedKey)
+      },
+    })
   }
 }

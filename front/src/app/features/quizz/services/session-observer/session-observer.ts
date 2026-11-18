@@ -140,6 +140,8 @@ export interface SessionObserverService {
 
   leaderboard: ServiceState<IntermediateLeaderboardData | undefined>
 
+  connect?(sessionId?: string): void
+
   disconnect?(): void
 }
 

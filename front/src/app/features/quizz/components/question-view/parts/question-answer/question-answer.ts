@@ -33,6 +33,7 @@ export class QuestionAnswer {
   readonly answer = input.required<PrintableAnswer>()
   readonly field = input.required<FieldTree<boolean>>()
   readonly radio = input<boolean>(false)
+  readonly disabled = input<boolean>(false)
 
   protected readonly identifier = computed<number>(() => this.answer()?.index ?? 0)
   protected readonly phrase = computed<string>(() => this.answer()?.value ?? '')

@@ -21,7 +21,12 @@
       Bravo, {{ nickname() }} !
     </h1>
 
-    @if (res !== null) {
+    @if (res === null && isLoadingResults()) {
+      <div class="my-6 flex flex-col items-center gap-3">
+        <quizz-spinner />
+        <span class="text-sm text-slate-500 dark:text-slate-400">Chargement des résultats...</span>
+      </div>
+    } @else if (res !== null) {
       <!-- Summary metrics cards -->
       <div class="grid grid-cols-3 gap-3 w-full my-6">
         <div class="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 shadow-sm">
@@ -38,7 +43,7 @@
 
         <div class="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 shadow-sm">
           <span class="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Réussite</span>
-          <span class="text-2xl sm:text-3xl font-black text-emerald-500 mt-1">{{ res.correctAnswers }}</span>
+          <span class="text-2xl sm:text-3xl font-black text-emerald-500 mt-1">{{ res.correctAnswers ?? '—' }}</span>
           <span class="text-xs text-slate-400">bonnes rép.</span>
         </div>
       </div>
@@ -58,7 +63,10 @@
           </div>
           <div class="p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-indigo-200 dark:border-indigo-800">
             <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold block">Réussite collective</span>
-            <span class="text-xl font-black text-emerald-600 dark:text-emerald-300 font-mono">{{ classSuccessRate() }}%</span>
+            @let successRate = classSuccessRate();
+            <span class="text-xl font-black text-emerald-600 dark:text-emerald-300 font-mono">
+              {{ successRate !== undefined ? successRate + '%' : '—' }}
+            </span>
           </div>
         </div>
         <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 font-medium">

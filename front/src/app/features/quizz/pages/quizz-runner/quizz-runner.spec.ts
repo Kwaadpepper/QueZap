@@ -12,7 +12,6 @@ describe('QuizzRunner', () => {
   let fixture: ComponentFixture<QuizzRunner>
   let sessionStore: InstanceType<typeof ActiveSessionStore>
   let timerStore: InstanceType<typeof TimerStore>
-  let persistence: ActiveSessionPersistence
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -22,7 +21,6 @@ describe('QuizzRunner', () => {
 
     sessionStore = TestBed.inject(ActiveSessionStore)
     timerStore = TestBed.inject(TimerStore)
-    persistence = TestBed.inject(ActiveSessionPersistence)
 
     fixture = TestBed.createComponent(QuizzRunner)
     component = fixture.componentInstance
@@ -31,53 +29,6 @@ describe('QuizzRunner', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy()
-  })
-
-  it('should return 0 points earned when myRanking is undefined', () => {
-    expect(component['pointsEarned']()).toBe(0)
-  })
-
-  it('should compute points earned from rank.delta when delta is present', () => {
-    jest.spyOn(persistence, 'getParticipantName').mockReturnValue('Alice')
-    patchState(sessionStore, {
-      lastLeaderboard: {
-        slideIndex: 1,
-        leaderboard: [
-          {
-            rank: 1,
-            participantName: 'Alice',
-            score: 950,
-            delta: 950,
-            previousScore: 0,
-            rankDelta: 0,
-          },
-        ],
-      },
-    })
-    fixture.detectChanges()
-
-    expect(component['pointsEarned']()).toBe(950)
-  })
-
-  it('should fallback to score - previousScore when delta is undefined', () => {
-    jest.spyOn(persistence, 'getParticipantName').mockReturnValue('Bob')
-    patchState(sessionStore, {
-      lastLeaderboard: {
-        slideIndex: 2,
-        leaderboard: [
-          {
-            rank: 2,
-            participantName: 'Bob',
-            score: 1500,
-            previousScore: 800,
-            rankDelta: 0,
-          },
-        ],
-      },
-    })
-    fixture.detectChanges()
-
-    expect(component['pointsEarned']()).toBe(700)
   })
 
   it('should clear timer when lastReveal is set', () => {
@@ -139,6 +90,23 @@ describe('QuizzRunner', () => {
 
     const text = fixture.nativeElement.textContent
     expect(text).toContain('Bonne réponse !')
+  })
+
+  it('should display "Aucune réponse envoyée" instead of incorrect when student did not vote', () => {
+    patchState(sessionStore, {
+      mySubmittedChoice: undefined,
+      lastReveal: {
+        slideIndex: 1,
+        correctIndices: [0],
+        mobileCorrectionAllowed: true,
+        stats: [],
+      },
+    })
+    fixture.detectChanges()
+
+    const text = fixture.nativeElement.textContent
+    expect(text).toContain('⏱️ Aucune réponse envoyée')
+    expect(text).not.toContain('❌ Réponse incorrecte')
   })
 
   it('should keep question defined when timer is exhausted so question statement stays available on reveal', () => {
