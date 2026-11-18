@@ -1,5 +1,6 @@
 package com.quezap.application.seed;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.ports.themes.AddTheme;
@@ -7,6 +8,7 @@ import com.quezap.application.ports.themes.AddTheme.AddThemeUsecase;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
+@Profile("!prod")
 @Component
 public class ThemeSeeder implements Seeder {
   private static final int NUMBER_OF_THEMES = 10;

@@ -9,12 +9,31 @@ spring:
   devtools:
     restart:
       enabled: false
+  datasource:
+    url: ${APP_DB_URL}
+    username: ${APP_DB_USERNAME}
+    password: ${APP_DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
 
 pictures-s3:
-  host: ${APP_S3_HOST:localhost}
-  port: ${APP_S3_PORT:9190}
-  public-endpoint: ${APP_S3_PUBLIC_ENDPOINT:http://localhost:9190}
+  host: ${APP_S3_HOST}
+  port: ${APP_S3_PORT:9000}
+  public-endpoint: ${APP_S3_PUBLIC_ENDPOINT}
   bucket-name: ${APP_S3_BUCKET_NAME:quezap-public-images}
-  access-key-id: ${APP_S3_ACCESS_KEY_ID:quezap_java_writer}
-  secret-access-key: ${APP_S3_SECRET_ACCESS_KEY:LocalPassword}
+  access-key-id: ${APP_S3_ACCESS_KEY_ID}
+  secret-access-key: ${APP_S3_SECRET_ACCESS_KEY}
 
+jwt:
+  signing-key: ${APP_JWT_SECRET_KEY}
+  issuer: ${APP_JWT_ISSUER:quezap.com}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

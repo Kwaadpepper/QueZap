@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.random.RandomGenerator;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.quezap.application.ports.questions.AddQuestion;
@@ -13,6 +14,7 @@ import com.quezap.domain.ports.directories.views.ThemeView;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 
+@Profile("!prod")
 @Component
 public class QuestionSeeder implements Seeder {
   private static final int NUMBER_OF_QUESTIONS_OF_ANY_TYPE = 10;

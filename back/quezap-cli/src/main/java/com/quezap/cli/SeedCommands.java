@@ -1,9 +1,11 @@
 package com.quezap.cli;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.shell.command.annotation.Command;
 
 import com.quezap.application.seed.UserSeeder;
 
+@Profile("!prod")
 @Command(command = "seed")
 public class SeedCommands {
   private final UserSeeder userSeeder;

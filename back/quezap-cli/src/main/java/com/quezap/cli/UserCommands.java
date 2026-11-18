@@ -1,7 +1,5 @@
 package com.quezap.cli;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,10 @@ import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 import com.quezap.lib.pagination.Pagination;
 
+import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
+import org.jline.reader.UserInterruptException;
+import org.jspecify.annotations.Nullable;
 
 @Command(command = "users", description = "User management commands")
 public class UserCommands {
@@ -46,29 +47,30 @@ public class UserCommands {
     this.deleteUserUsecase = deleteUserUsecase;
   }
 
+  void setLineReader(LineReader lineReader) {
+    this.lineReader = lineReader;
+  }
+
   @Command(command = "list", description = "list users")
   public String listUsers() {
     final var output = new StringBuilder();
-    final var users = new ArrayList<ListUsers.Output.UserDto>();
+    output.append("Users list :\n");
 
     final var perPage = 10L;
     var pageNumber = 1L;
-    List<ListUsers.Output.UserDto> pageUsers;
+    boolean hasNextPage;
     do {
       final var pageRequest = Pagination.ofPage(pageNumber++, perPage);
       final var input = new ListUsers.Input(pageRequest);
       final var result = executor.execute(listUsersUsecase, input);
       final var paginatedUsers = result.page();
 
-      pageUsers = paginatedUsers.items();
-      users.addAll(pageUsers);
-
-    } while (!pageUsers.isEmpty());
-
-    output.append("Users list :\n");
-    for (ListUsers.Output.UserDto user : users) {
-      output.append(formatUser(user)).append("\n");
-    }
+      final var items = paginatedUsers.items();
+      for (ListUsers.Output.UserDto user : items) {
+        output.append(formatUser(user)).append("\n");
+      }
+      hasNextPage = paginatedUsers.hasNextPage() && !items.isEmpty();
+    } while (hasNextPage);
 
     return output.toString();
   }
@@ -85,7 +87,11 @@ public class UserCommands {
       @Option(required = true, arity = CommandRegistration.OptionArity.EXACTLY_ONE) String email) {
     try {
       final var identifier = new RawIdentifier(email);
-      final var password = new RawPassword(readPassword("Mot de passe : "));
+      final var rawPassword = readPassword("Mot de passe : ");
+      if (rawPassword == null) {
+        return "Error : Password input cancelled";
+      }
+      final var password = new RawPassword(rawPassword);
       final var input = new AddUser.Input(name, identifier, password);
 
       executor.execute(addUserUsecase, input);
@@ -124,8 +130,12 @@ public class UserCommands {
     }
   }
 
-  private String readPassword(String prompt) {
-    return lineReader.readLine(prompt, null);
+  private @Nullable String readPassword(String prompt) {
+    try {
+      return lineReader.readLine(prompt, '*');
+    } catch (EndOfFileException | UserInterruptException _) {
+      return null;
+    }
   }
 
   private boolean isUserId(String str) {
