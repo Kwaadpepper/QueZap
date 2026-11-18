@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, Component, computed, effect, ErrorHandler, inject, signal,
 } from '@angular/core'
 import {
-  form, FormField, maxLength, minLength, required, submit,
+  form, FormField, maxLength, minLength, pattern, required, submit,
 } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
@@ -25,7 +25,6 @@ import { ActiveSessionStore } from '../../stores'
     Button, FieldError, FormField, InputText, CheckboxModule,
     IconFacade,
     ButtonIcon,
-    FormField,
   ],
   templateUrl: './nickname-chooser.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +52,7 @@ export class NicknameChooser {
     required(path.nicknameValue, { message: 'Le pseudo est requis' })
     minLength(path.nicknameValue, 2, { message: 'Le pseudo doit faire au moins 2 caractères' })
     maxLength(path.nicknameValue, 50, { message: 'Le pseudo ne peut pas dépasser 50 caractères' })
+    pattern(path.nicknameValue, /^[^<>]*$/, { message: 'Les caractères < et > ne sont pas autorisés dans le pseudo' })
   })
 
   constructor() {

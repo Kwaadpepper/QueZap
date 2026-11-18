@@ -1,16 +1,21 @@
 import {
-  ChangeDetectionStrategy, Component, computed, effect, inject, input, model, signal,
+  ChangeDetectionStrategy, Component, computed, effect, inject, input, model,
 } from '@angular/core'
 import { form, validateStandardSchema } from '@angular/forms/signals'
 
 import * as zod from 'zod/v4'
 
 import { PictureUrl, QuestionId, QuestionWithAnswers, QuizzQuestion } from '@quezap/domain/models'
-import { SESSION_API_SERVICE } from '@quezap/features/quizz/services'
 import { ActiveSessionStore, TimerStore } from '@quezap/features/quizz/stores'
 
-import { Picture, PrintableAnswer, QuestionAnswer } from '../parts'
-import { QuestionAlert } from '../parts/question-alert/question-alert'
+import {
+  createAnswerSubmissionState,
+  Picture,
+  PrintableAnswer,
+  QuestionAlert,
+  QuestionAnswer,
+  SubmissionFeedback,
+} from '../parts'
 
 type Responses = Record<number, boolean>
 
@@ -20,6 +25,7 @@ type Responses = Record<number, boolean>
     Picture,
     QuestionAnswer,
     QuestionAlert,
+    SubmissionFeedback,
   ],
   templateUrl: './quizz-question.html',
   styles: [`
@@ -33,10 +39,14 @@ type Responses = Record<number, boolean>
 export class QuizzQuestionView {
   private readonly timerStore = inject(TimerStore)
   private readonly sessionStore = inject(ActiveSessionStore)
-  private readonly sessionApi = inject(SESSION_API_SERVICE)
-  protected readonly hasSubmitted = signal(false)
+  private readonly submission = createAnswerSubmissionState()
+
+  protected readonly hasSubmitted = this.submission.hasSubmitted
+  protected readonly isSubmitting = this.submission.isSubmitting
+  protected readonly submissionError = this.submission.submissionError
 
   protected readonly isRevealing = computed<boolean>(() => this.sessionStore.lastReveal() !== undefined)
+  protected readonly isSessionPaused = computed<boolean>(() => this.sessionStore.isSessionPaused())
   protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
 
   // Question related signals
@@ -50,14 +60,15 @@ export class QuizzQuestionView {
   protected readonly responses = model<Responses>({})
 
   protected readonly hasAnswered = computed<boolean>(() => this.responseForm().valid())
-  protected readonly cannotAnswerAnymore = computed<boolean>(() => this.timeLeft() === 0
-    && this.timeLeft() !== undefined)
+  protected readonly cannotAnswerAnymore = computed<boolean>(() =>
+    this.isSessionPaused() || (this.timeLeft() === 0 && this.timeLeft() !== undefined),
+  )
 
   protected readonly responseForm = form(this.responses, (path) => {
     validateStandardSchema(path, zod.record(
       zod.string(), zod.boolean())
-      .refine(data => Object.keys(data).length >= 3 && Object.keys(data).length <= 4,
-        'ERREUR: Le nombre de réponses doit être entre 3 et 4.')
+      .refine(data => Object.keys(data).length >= 2 && Object.keys(data).length <= 4,
+        'ERREUR: Le nombre de réponses doit être entre 2 et 4.')
       .refine(data => Object.values(data).some(Boolean),
         'Il faut choisir au moins une réponse correcte.'),
     )
@@ -81,18 +92,29 @@ export class QuizzQuestionView {
           restoredChoice !== undefined && answer.index === restoredChoice.answerIndex,
         ])),
       })
-      this.hasSubmitted.set(restoredChoice !== undefined)
+      this.submission.resetForQuestion(restoredChoice !== undefined)
     })
   }
 
   protected selectAnswer(index: number) {
     if (this.cannotAnswerAnymore()) return
+
+    const previousResponses = this.responses()
+    const currentQuestion = this.question()
+    const chosenAnswer = currentQuestion.answers.find(a => a.index === index)
+    const choiceLabel = chosenAnswer?.value || `Choix ${index + 1}`
+
     this.responses.set(
-      Object.fromEntries(this.question().answers.map(a => [a.index, a.index === index])),
+      Object.fromEntries(currentQuestion.answers.map(a => [a.index, a.index === index])),
     )
-    this.hasSubmitted.set(true)
-    const chosenAnswer = this.question().answers.find(a => a.index === index)
-    this.sessionStore.submitMyChoice(index, chosenAnswer?.value || `Choix ${index + 1}`, this.question().id)
-    this.sessionApi.submitAnswer(index).subscribe()
+
+    this.submission.submit({
+      questionId: currentQuestion.id,
+      answerIndex: index,
+      choiceLabel,
+      onRollback: () => {
+        this.responses.set(previousResponses)
+      },
+    })
   }
 }

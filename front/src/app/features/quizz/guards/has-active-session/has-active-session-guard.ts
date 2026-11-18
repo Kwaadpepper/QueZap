@@ -1,6 +1,6 @@
 import { inject } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
-import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router' // Importez les types Fn
+import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router'
 
 import { filter, map, Observable, take } from 'rxjs'
 
@@ -46,8 +46,12 @@ function isSessionActive(
     return false
   }
 
+  if (session.endedAt != null || session.status === 'ENDED') {
+    return false
+  }
+
   if (options?.withQuizzRunning) {
-    return session.endedAt === null || session.startedAt !== null
+    return session.endedAt === null && session.startedAt !== null
   }
 
   return true

@@ -10,16 +10,18 @@ export interface PersistedSessionData {
 }
 
 export interface PersistedSubmittedChoice {
+  sessionId: string
   questionId: string
   answerIndex: number
   label: string
+  expiresAt: number
 }
 
 export interface FinalParticipantResults {
   rank: number
   totalParticipants: number
   score: number
-  correctAnswers: number
+  correctAnswers?: number
   isPodium: boolean
   classAverageScore?: number
   classSuccessRate?: number
@@ -31,6 +33,21 @@ export interface FinalParticipantResults {
   }[]
 }
 
+interface PersistedFinalResultsEnvelope {
+  sessionId: string
+  results: FinalParticipantResults
+  expiresAt: number
+}
+
+interface PersistedParticipantNameEnvelope {
+  sessionId: string
+  nickname: string
+  expiresAt: number
+}
+
+const DEFAULT_SESSION_SCOPE = 'default'
+const PERSISTENCE_TTL_MS = 24 * 60 * 60 * 1000
+
 @Injectable({ providedIn: 'root' })
 export class ActiveSessionPersistence {
   readonly #storageKey = 'activeSessionCode'
@@ -40,11 +57,15 @@ export class ActiveSessionPersistence {
   readonly #finalResultsKey = 'quezap_final_results'
   readonly #submittedChoiceKey = 'quezap_submitted_choice'
 
+  readonly #participantNameKeyPrefix = 'quezap_participant_name:'
+  readonly #finalResultsKeyPrefix = 'quezap_final_results:'
+  readonly #submittedChoiceKeyPrefix = 'quezap_submitted_choice:'
+
   // Resilient memory cache in case browser storage is restricted or throws
   readonly #memoryCache = new Map<string, string>()
 
   readonly #participantNameSignal = signal<string | null>(null)
-  readonly #finalResultsSignal = signal<FinalParticipantResults | null>(null)
+  readonly #finalResultsSignal = signal<{ sessionId: string, results: FinalParticipantResults } | null>(null)
 
   private setSafeItem(storage: Storage | undefined, key: string, value: string): void {
     this.#memoryCache.set(key, value)
@@ -93,6 +114,81 @@ export class ActiveSessionPersistence {
     return typeof sessionStorage !== 'undefined' ? sessionStorage : undefined
   }
 
+  private resolveSessionScope(sessionId?: string): string {
+    return sessionId?.trim() || this.getSessionId()?.trim() || DEFAULT_SESSION_SCOPE
+  }
+
+  private isExpired(expiresAt: unknown): boolean {
+    return typeof expiresAt === 'number' && Date.now() > expiresAt
+  }
+
+  private removeKeysByPrefix(prefix: string): void {
+    for (const key of [...this.#memoryCache.keys()]) {
+      if (key.startsWith(prefix)) {
+        this.#memoryCache.delete(key)
+      }
+    }
+    const storage = this.localStorageRef
+    if (!storage) {
+      return
+    }
+    try {
+      const keysToRemove: string[] = []
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i)
+        if (key && key.startsWith(prefix)) {
+          keysToRemove.push(key)
+        }
+      }
+      for (const key of keysToRemove) {
+        storage.removeItem(key)
+      }
+    }
+    catch (e) {
+      console.warn(`Could not remove keys with prefix "${prefix}" from storage`, e)
+    }
+  }
+
+  public cleanupExpiredEntries(): void {
+    const storage = this.localStorageRef
+    if (!storage) {
+      return
+    }
+    const scopedPrefixes = [
+      this.#submittedChoiceKeyPrefix,
+      this.#finalResultsKeyPrefix,
+      this.#participantNameKeyPrefix,
+    ]
+    try {
+      const expiredKeys: string[] = []
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i)
+        if (!key || !scopedPrefixes.some(prefix => key.startsWith(prefix))) {
+          continue
+        }
+        const raw = storage.getItem(key)
+        if (!raw) {
+          continue
+        }
+        try {
+          const parsed = JSON.parse(raw) as { expiresAt?: unknown }
+          if (this.isExpired(parsed.expiresAt)) {
+            expiredKeys.push(key)
+          }
+        }
+        catch {
+          expiredKeys.push(key)
+        }
+      }
+      for (const key of expiredKeys) {
+        this.removeSafeItem(storage, key)
+      }
+    }
+    catch (e) {
+      console.warn('Could not clean up expired session storage entries', e)
+    }
+  }
+
   persist(data: PersistedSessionData): void {
     this.setSafeItem(this.localStorageRef, this.#storageKey, JSON.stringify(data))
     if (data.sessionId) {
@@ -102,6 +198,13 @@ export class ActiveSessionPersistence {
       this.setParticipationToken(data.participationToken)
     }
     if (data.nickname) {
+      const scope = this.resolveSessionScope(data.sessionId)
+      const envelope: PersistedParticipantNameEnvelope = {
+        sessionId: scope,
+        nickname: data.nickname,
+        expiresAt: Date.now() + PERSISTENCE_TTL_MS,
+      }
+      this.setSafeItem(this.localStorageRef, `${this.#participantNameKeyPrefix}${scope}`, JSON.stringify(envelope))
       this.setSafeItem(this.sessionStorageRef, this.#participantNameKey, data.nickname)
       this.#participantNameSignal.set(data.nickname)
     }
@@ -124,6 +227,7 @@ export class ActiveSessionPersistence {
   }
 
   retrieve(): PersistedSessionData | null {
+    this.cleanupExpiredEntries()
     try {
       const item = this.getSafeItem(this.localStorageRef, this.#storageKey)
 
@@ -151,6 +255,12 @@ export class ActiveSessionPersistence {
     this.setParticipationToken(participationToken)
     this.setSessionId(sessionId)
     if (nickname) {
+      const envelope: PersistedParticipantNameEnvelope = {
+        sessionId,
+        nickname,
+        expiresAt: Date.now() + PERSISTENCE_TTL_MS,
+      }
+      this.setSafeItem(this.localStorageRef, `${this.#participantNameKeyPrefix}${sessionId}`, JSON.stringify(envelope))
       this.setSafeItem(this.sessionStorageRef, this.#participantNameKey, nickname)
       this.#participantNameSignal.set(nickname)
     }
@@ -179,44 +289,80 @@ export class ActiveSessionPersistence {
   }
 
   setSessionId(sessionId: string): void {
+    const previousSessionId = this.getSessionId()
+    if (previousSessionId && previousSessionId !== sessionId) {
+      this.removeSafeItem(this.localStorageRef, `${this.#submittedChoiceKeyPrefix}${previousSessionId}`)
+      this.removeSafeItem(this.localStorageRef, `${this.#finalResultsKeyPrefix}${previousSessionId}`)
+      this.removeSafeItem(this.localStorageRef, `${this.#participantNameKeyPrefix}${previousSessionId}`)
+    }
     this.setSafeItem(this.localStorageRef, this.#sessionIdKey, sessionId)
     this.setSafeItem(this.sessionStorageRef, this.#sessionIdKey, sessionId)
   }
 
-  getParticipantName(): string | null {
+  getParticipantName(sessionId?: string): string | null {
     const sigVal = this.#participantNameSignal()
+    const scope = this.resolveSessionScope(sessionId)
+    const scopedKey = `${this.#participantNameKeyPrefix}${scope}`
+    const rawScoped = this.getSafeItem(this.localStorageRef, scopedKey)
+    if (rawScoped) {
+      try {
+        const parsed = JSON.parse(rawScoped) as PersistedParticipantNameEnvelope
+        if (!this.isExpired(parsed.expiresAt) && parsed.sessionId === scope && parsed.nickname) {
+          return parsed.nickname
+        }
+        this.removeSafeItem(this.localStorageRef, scopedKey)
+      }
+      catch {
+        this.removeSafeItem(this.localStorageRef, scopedKey)
+      }
+    }
     const stored = this.getSafeItem(this.localStorageRef, this.#participantNameKey)
       ?? this.getSafeItem(this.sessionStorageRef, this.#participantNameKey)
     return stored ?? sigVal
   }
 
-  saveSubmittedChoice(questionId: string, choice: { answerIndex: number, label: string }): void {
+  saveSubmittedChoice(questionId: string, choice: { answerIndex: number, label: string }, sessionId?: string): void {
     if (!questionId) return
+    const scope = this.resolveSessionScope(sessionId)
     const payload: PersistedSubmittedChoice = {
+      sessionId: scope,
       questionId,
       answerIndex: choice.answerIndex,
       label: choice.label,
+      expiresAt: Date.now() + PERSISTENCE_TTL_MS,
     }
-    this.setSafeItem(this.sessionStorageRef, this.#submittedChoiceKey, JSON.stringify(payload))
+    this.setSafeItem(this.localStorageRef, `${this.#submittedChoiceKeyPrefix}${scope}`, JSON.stringify(payload))
   }
 
-  getSubmittedChoice(questionId: string): { answerIndex: number, label: string } | undefined {
+  getSubmittedChoice(questionId: string, sessionId?: string): { answerIndex: number, label: string } | undefined {
     if (!questionId) return undefined
-    const raw = this.getSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
+    const scope = this.resolveSessionScope(sessionId)
+    const key = `${this.#submittedChoiceKeyPrefix}${scope}`
+    const raw = this.getSafeItem(this.localStorageRef, key)
     if (!raw) return undefined
     try {
       const parsed = JSON.parse(raw) as PersistedSubmittedChoice
-      if (parsed.questionId === questionId) {
+      if (this.isExpired(parsed.expiresAt)) {
+        this.removeSafeItem(this.localStorageRef, key)
+        return undefined
+      }
+      if (parsed.sessionId === scope && parsed.questionId === questionId) {
         return { answerIndex: parsed.answerIndex, label: parsed.label }
       }
       return undefined
     }
     catch {
+      this.removeSafeItem(this.localStorageRef, key)
       return undefined
     }
   }
 
-  clearSubmittedChoice(): void {
+  clearSubmittedChoice(sessionId?: string): void {
+    if (sessionId) {
+      this.removeSafeItem(this.localStorageRef, `${this.#submittedChoiceKeyPrefix}${sessionId}`)
+      return
+    }
+    this.removeKeysByPrefix(this.#submittedChoiceKeyPrefix)
     this.removeSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
   }
 
@@ -228,6 +374,9 @@ export class ActiveSessionPersistence {
     this.removeSafeItem(this.localStorageRef, this.#finalResultsKey)
     this.removeSafeItem(this.sessionStorageRef, this.#finalResultsKey)
     this.removeSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
+    this.removeKeysByPrefix(this.#submittedChoiceKeyPrefix)
+    this.removeKeysByPrefix(this.#finalResultsKeyPrefix)
+    this.removeKeysByPrefix(this.#participantNameKeyPrefix)
     this.#participantNameSignal.set(null)
     this.#finalResultsSignal.set(null)
     const existing = this.retrieve()
@@ -237,21 +386,41 @@ export class ActiveSessionPersistence {
     }
   }
 
-  saveFinalResults(results: FinalParticipantResults): void {
-    this.setSafeItem(this.sessionStorageRef, this.#finalResultsKey, JSON.stringify(results))
-    this.#finalResultsSignal.set(results)
+  saveFinalResults(results: FinalParticipantResults, sessionId?: string): void {
+    const scope = this.resolveSessionScope(sessionId)
+    const envelope: PersistedFinalResultsEnvelope = {
+      sessionId: scope,
+      results,
+      expiresAt: Date.now() + PERSISTENCE_TTL_MS,
+    }
+    this.setSafeItem(this.localStorageRef, `${this.#finalResultsKeyPrefix}${scope}`, JSON.stringify(envelope))
+    this.#finalResultsSignal.set({ sessionId: scope, results })
   }
 
-  getFinalResults(): FinalParticipantResults | null {
+  getFinalResults(sessionId?: string): FinalParticipantResults | null {
     const sigVal = this.#finalResultsSignal()
-    const raw = this.getSafeItem(this.sessionStorageRef, this.#finalResultsKey)
-    if (!raw) return sigVal
-    try {
-      return JSON.parse(raw) as FinalParticipantResults
+    const scope = this.resolveSessionScope(sessionId)
+    const key = `${this.#finalResultsKeyPrefix}${scope}`
+    const raw = this.getSafeItem(this.localStorageRef, key)
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as PersistedFinalResultsEnvelope
+        if (this.isExpired(parsed.expiresAt)) {
+          this.removeSafeItem(this.localStorageRef, key)
+          if (sigVal?.sessionId === scope) {
+            this.#finalResultsSignal.set(null)
+          }
+          return null
+        }
+        if (parsed.sessionId === scope && parsed.results) {
+          return parsed.results
+        }
+      }
+      catch {
+        this.removeSafeItem(this.localStorageRef, key)
+      }
     }
-    catch {
-      return sigVal
-    }
+    return sigVal?.sessionId === scope ? sigVal.results : null
   }
 
   clear(): void {
@@ -265,6 +434,9 @@ export class ActiveSessionPersistence {
     this.removeSafeItem(this.sessionStorageRef, this.#participantNameKey)
     this.removeSafeItem(this.sessionStorageRef, this.#finalResultsKey)
     this.removeSafeItem(this.sessionStorageRef, this.#submittedChoiceKey)
+    this.removeKeysByPrefix(this.#submittedChoiceKeyPrefix)
+    this.removeKeysByPrefix(this.#finalResultsKeyPrefix)
+    this.removeKeysByPrefix(this.#participantNameKeyPrefix)
     this.#participantNameSignal.set(null)
     this.#finalResultsSignal.set(null)
   }

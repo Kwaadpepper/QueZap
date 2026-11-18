@@ -1,0 +1,32 @@
+@if (error()) {
+  <div
+    role="alert"
+    aria-live="assertive"
+    class="mt-2 flex items-center gap-2.5 rounded-2xl border border-rose-500/70 bg-rose-950/90 px-4 py-2.5 text-rose-200 shadow-lg"
+  >
+    <span class="text-lg shrink-0" aria-hidden="true">⚠️</span>
+    <span class="text-sm font-bold">{{ error() }}</span>
+  </div>
+}
+@if (isSubmitting()) {
+  <div
+    role="status"
+    aria-live="polite"
+    class="mt-2 flex items-center gap-2 rounded-2xl border border-amber-400/50 bg-slate-900/80 px-4 py-2.5 text-amber-200 shadow-lg"
+  >
+    <i class="pi pi-spin pi-spinner text-sm" aria-hidden="true"></i>
+    <span class="text-sm font-semibold">Envoi de la réponse en cours...</span>
+  </div>
+} @else if (hasSubmitted()) {
+  <div
+    role="status"
+    aria-live="polite"
+    class="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/60 bg-emerald-950/80 px-4 py-2.5 text-emerald-200 shadow-lg"
+  >
+    <div class="flex items-center gap-2 font-bold text-sm min-w-0">
+      <span class="text-lg shrink-0" aria-hidden="true">✓</span>
+      <span class="truncate">{{ submittedMessage() }}</span>
+    </div>
+    <span class="text-xs text-emerald-300/80 shrink-0">{{ hintMessage() }}</span>
+  </div>
+}

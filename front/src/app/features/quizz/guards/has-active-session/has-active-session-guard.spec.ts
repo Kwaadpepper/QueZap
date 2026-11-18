@@ -6,6 +6,8 @@ import {
 
 import { firstValueFrom, Observable } from 'rxjs'
 
+import { Session, SessionCode, SessionId } from '@quezap/domain/models'
+
 import { ActiveSessionStore } from '../../stores'
 
 import { hasActiveSessionChildGuard, hasActiveSessionGuard } from './has-active-session-guard'
@@ -58,6 +60,64 @@ describe('Has active session Function Guards', () => {
       const test = firstValueFrom(observable)
 
       await expect(test).resolves.toEqual(true)
+    })
+  })
+
+  describe('If session has ended or is not running', () => {
+    const baseSession: Session = {
+      id: '018e3a2b-8888-7def-8123-000000000001' as SessionId,
+      code: '20082' as SessionCode,
+      name: 'Quiz test',
+      startedAt: new Date(),
+      endedAt: null,
+    }
+
+    beforeEach(() => {
+      mockActiveSessionStore.restorationComplete.set(true)
+    })
+
+    it('should allow active running session when withQuizzRunning is true', async () => {
+      mockActiveSessionStore.session.mockReturnValue(baseSession)
+
+      const result = await firstValueFrom(runGuardInContext(hasActiveSessionGuard({ withQuizzRunning: true })))
+      expect(result).toBe(true)
+    })
+
+    it('should redirect to /quizz/expired when session.endedAt is non-null (even if startedAt is set)', async () => {
+      mockActiveSessionStore.session.mockReturnValue({
+        ...baseSession,
+        endedAt: new Date(),
+      })
+
+      const res1 = await firstValueFrom(runGuardInContext(hasActiveSessionGuard()))
+      const res2 = await firstValueFrom(runGuardInContext(hasActiveSessionGuard({ withQuizzRunning: true })))
+
+      expect(res1).toBe('/quizz/expired')
+      expect(res2).toBe('/quizz/expired')
+    })
+
+    it('should redirect to /quizz/expired when session.status is ENDED', async () => {
+      mockActiveSessionStore.session.mockReturnValue({
+        ...baseSession,
+        status: 'ENDED',
+      })
+
+      const res = await firstValueFrom(runGuardInContext(hasActiveSessionGuard({ withQuizzRunning: true })))
+      expect(res).toBe('/quizz/expired')
+    })
+
+    it('should allow lobby session when withQuizzRunning is omitted, and reject when true', async () => {
+      mockActiveSessionStore.session.mockReturnValue({
+        ...baseSession,
+        startedAt: null,
+        endedAt: null,
+      })
+
+      const lobbyRes = await firstValueFrom(runGuardInContext(hasActiveSessionGuard()))
+      const runnerRes = await firstValueFrom(runGuardInContext(hasActiveSessionGuard({ withQuizzRunning: true })))
+
+      expect(lobbyRes).toBe(true)
+      expect(runnerRes).toBe('/quizz/expired')
     })
   })
 

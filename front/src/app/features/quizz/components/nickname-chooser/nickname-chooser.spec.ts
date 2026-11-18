@@ -43,6 +43,20 @@ describe('NicknameChooser', () => {
     expect(component['nicknameForm']().valid()).toBe(false)
   })
 
+  it('should reject nicknames containing < or > characters', () => {
+    component['nicknameForm'].nicknameValue().value.set('<script>')
+    fixture.detectChanges()
+    expect(component['nicknameForm']().valid()).toBe(false)
+
+    component['nicknameForm'].nicknameValue().value.set('Alice>')
+    fixture.detectChanges()
+    expect(component['nicknameForm']().valid()).toBe(false)
+
+    component['nicknameForm'].nicknameValue().value.set('Léa_01')
+    fixture.detectChanges()
+    expect(component['nicknameForm']().valid()).toBe(true)
+  })
+
   it('should display conflict error message when conflictError signal is set', () => {
     component['conflictError'].set(
       'Ce pseudo est déjà utilisé dans ce salon. Choisis un autre prénom ou ajoute une initiale.',

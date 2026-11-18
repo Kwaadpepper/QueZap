@@ -1,7 +1,9 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core'
+import { HttpClient } from '@angular/common/http'
+import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core'
 
 import { Observable, Subject } from 'rxjs'
 
+import { getById2 } from '@quezap/core/api-client/sdk.gen'
 import { ServiceError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { ServiceObservable, ServiceState, Tried } from '@quezap/core/types'
@@ -82,10 +84,16 @@ interface SseEnvelope {
   payload?: SsePayload
 }
 
+const MAX_RECONNECT_ATTEMPTS = 10
+const BASE_RECONNECT_DELAY_MS = 1000
+const MAX_RECONNECT_DELAY_MS = 30000
+
 @Injectable({ providedIn: 'root' })
 export class SessionObserverSseService implements SessionObserverService {
   private readonly config = inject(Config)
   private readonly sessionPersistence = inject(ActiveSessionPersistence)
+  private readonly httpClient = inject(HttpClient, { optional: true })
+  private readonly destroyRef = inject(DestroyRef)
 
   private eventSource: EventSource | null = null
   private readonly eventsSubject = new Subject<SessionEvent>()
@@ -100,11 +108,19 @@ export class SessionObserverSseService implements SessionObserverService {
   public readonly reveal: ServiceState<QuestionRevealData | undefined> = this._reveal.asReadonly()
   public readonly leaderboard: ServiceState<IntermediateLeaderboardData | undefined> = this._leaderboard.asReadonly()
 
+  private currentConnectedSessionId: string | null = null
+  private lastEventId: string | null = null
+  private reconnectAttempts = 0
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
+  private isSessionTerminated = false
+
+  constructor() {
+    this.destroyRef.onDestroy(() => this.disconnect())
+  }
+
   private get apiUrl(): string {
     return this.config.appConfig.value().apiUrl
   }
-
-  private currentConnectedSessionId: string | null = null
 
   sessionEvents(): ServiceObservable<SessionEvent> {
     this.connect()
@@ -124,21 +140,54 @@ export class SessionObserverSseService implements SessionObserverService {
       return
     }
 
-    if (this.eventSource) {
-      if (this.currentConnectedSessionId === sessionId) {
+    if (this.currentConnectedSessionId === sessionId) {
+      if (this.isSessionTerminated) {
         return
       }
+      if (this.eventSource && this.eventSource.readyState !== EventSource.CLOSED) {
+        return
+      }
+      if (this.reconnectTimeout !== null) {
+        return
+      }
+    }
+    else if (this.currentConnectedSessionId !== null) {
       this.disconnect()
     }
 
     this.currentConnectedSessionId = sessionId
+    this.isSessionTerminated = false
+    this.openEventSource(sessionId)
+  }
+
+  private openEventSource(sessionId: string): void {
+    if (typeof EventSource === 'undefined') {
+      return
+    }
+
+    this.clearReconnectTimer()
+
+    if (this.eventSource) {
+      this.eventSource.close()
+      this.eventSource = null
+    }
 
     try {
-      this.eventSource = new EventSource(`${this.apiUrl}/sessions/${sessionId}/events?ngsw-bypass=true`)
+      const params = new URLSearchParams({ 'ngsw-bypass': 'true' })
+      if (this.lastEventId) {
+        params.set('lastEventId', this.lastEventId)
+      }
+      const url = `${this.apiUrl}/sessions/${sessionId}/events?${params.toString()}`
+      const source = new EventSource(url)
+      this.eventSource = source
 
-      const parseAndHandle = (data: string) => {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.lastEventId) {
+          this.lastEventId = event.lastEventId
+        }
+        this.reconnectAttempts = 0
         try {
-          const envelope: SseEnvelope = JSON.parse(data)
+          const envelope: SseEnvelope = JSON.parse(event.data)
           this.handleEvent(envelope)
         }
         catch (e) {
@@ -146,8 +195,12 @@ export class SessionObserverSseService implements SessionObserverService {
         }
       }
 
-      this.eventSource.onmessage = (event: MessageEvent) => {
-        parseAndHandle(event.data)
+      source.onopen = () => {
+        this.reconnectAttempts = 0
+      }
+
+      source.onmessage = (event: MessageEvent) => {
+        handleMessage(event)
       }
 
       const eventNames = [
@@ -163,17 +216,104 @@ export class SessionObserverSseService implements SessionObserverService {
       ]
 
       for (const name of eventNames) {
-        this.eventSource.addEventListener(name, (e: MessageEvent) => {
-          parseAndHandle(e.data)
+        source.addEventListener(name, (e: MessageEvent) => {
+          handleMessage(e)
         })
       }
 
-      this.eventSource.onerror = (error) => {
-        console.debug('SSE connection error, auto-retrying...', error)
+      source.onerror = (error) => {
+        if (this.isSessionTerminated || this.currentConnectedSessionId !== sessionId) {
+          return
+        }
+        if (source.readyState === EventSource.CLOSED) {
+          console.debug('SSE connection closed, scheduling reconnect with backoff...', error)
+          source.close()
+          if (this.eventSource === source) {
+            this.eventSource = null
+          }
+          this.scheduleReconnect(sessionId)
+          return
+        }
+        console.debug('SSE connection error, browser retrying...', error)
       }
     }
     catch (e) {
       console.debug('Could not create EventSource', e)
+      this.scheduleReconnect(sessionId)
+    }
+  }
+
+  private scheduleReconnect(sessionId: string): void {
+    this.clearReconnectTimer()
+
+    if (
+      this.isSessionTerminated
+      || this.currentConnectedSessionId !== sessionId
+      || this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS
+    ) {
+      return
+    }
+
+    const delayMs = Math.min(
+      BASE_RECONNECT_DELAY_MS * Math.pow(2, this.reconnectAttempts),
+      MAX_RECONNECT_DELAY_MS,
+    )
+    this.reconnectAttempts++
+
+    this.reconnectTimeout = setTimeout(() => {
+      this.reconnectTimeout = null
+      void this.attemptReconnect(sessionId)
+    }, delayMs)
+  }
+
+  private async attemptReconnect(sessionId: string): Promise<void> {
+    if (this.isSessionTerminated || this.currentConnectedSessionId !== sessionId) {
+      return
+    }
+
+    if (this.httpClient) {
+      try {
+        const { data, error, response } = await getById2({
+          path: { id: sessionId },
+          httpClient: this.httpClient,
+        })
+
+        if (this.isSessionTerminated || this.currentConnectedSessionId !== sessionId) {
+          return
+        }
+
+        const status = response?.status
+        if (status === 404 || status === 403 || status === 401 || status === 410) {
+          this.isSessionTerminated = true
+          return
+        }
+
+        if (data && (data.status === 'ENDED' || Boolean(data.endedAt))) {
+          this.isSessionTerminated = true
+          return
+        }
+
+        if (error || !data) {
+          this.scheduleReconnect(sessionId)
+          return
+        }
+      }
+      catch {
+        if (this.isSessionTerminated || this.currentConnectedSessionId !== sessionId) {
+          return
+        }
+        this.scheduleReconnect(sessionId)
+        return
+      }
+    }
+
+    this.openEventSource(sessionId)
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimeout !== null) {
+      clearTimeout(this.reconnectTimeout)
+      this.reconnectTimeout = null
     }
   }
 
@@ -184,7 +324,7 @@ export class SessionObserverSseService implements SessionObserverService {
           const participantsList: Participant[] = envelope.payload.participants.map((p, idx) => ({
             id: `018e3a2b-8888-7def-8123-00000000000${idx}` as ParticipantId,
             nickname: p.name,
-            score: (p.score || 0) as Score,
+            score: (p.score ?? 0) as Score,
           }))
           this._participants.set(participantsList)
         }
@@ -205,7 +345,7 @@ export class SessionObserverSseService implements SessionObserverService {
         const rawAnswers = q.answers || payload.answers || []
         const seconds = payload.remainingSeconds ?? (payload.deadline
           ? Math.max(1, Math.round((new Date(payload.deadline).getTime() - Date.now()) / 1000))
-          : (payload.timerSeconds || q.timerSeconds || 30))
+          : (payload.timerSeconds ?? q.timerSeconds ?? 30))
         const questionObj: MixedQuestion & QuestionWithAnswers = {
           type: (q.type as QuestionType) || (payload.type as QuestionType) || QuestionType.Quizz,
           id: questionId,
@@ -218,7 +358,7 @@ export class SessionObserverSseService implements SessionObserverService {
           limit: { seconds, deadline: payload.deadline },
           answers: rawAnswers.map((a, idx) => ({
             index: typeof a.index === 'number' ? a.index : idx,
-            points: payload.points || 1000,
+            points: payload.points ?? 1000,
             value: a.label || a.value || '',
             picture: (a.pictureUrl || a.pictureFilename || a.picture) as PictureUrl | undefined,
           })),
@@ -292,6 +432,13 @@ export class SessionObserverSseService implements SessionObserverService {
         break
       }
       case 'SESSION_ENDED': {
+        this.isSessionTerminated = true
+        this.clearReconnectTimer()
+        if (this.eventSource) {
+          this.eventSource.close()
+          this.eventSource = null
+        }
+
         this._question.set({ type: 'NoMoreQuestions' })
         const payload = envelope.payload as {
           leaderboard?: {
@@ -319,7 +466,8 @@ export class SessionObserverSseService implements SessionObserverService {
         } | undefined
         const leaderboardList = payload?.finalLeaderboard || payload?.leaderboard
         if (leaderboardList) {
-          const myNickname = this.sessionPersistence.getParticipantName() || ''
+          const resolvedSessionId = envelope.sessionId || this.currentConnectedSessionId || undefined
+          const myNickname = this.sessionPersistence.getParticipantName(resolvedSessionId) || ''
           const myEntry = leaderboardList.find(
             e => e.participantName.trim().toLowerCase() === myNickname.trim().toLowerCase(),
           )
@@ -333,21 +481,24 @@ export class SessionObserverSseService implements SessionObserverService {
                 )
               : 0)
 
-          this.sessionPersistence.saveFinalResults({
-            rank: myEntry ? myEntry.rank : leaderboardList.length + 1,
-            totalParticipants: payload?.metrics?.totalParticipants ?? leaderboardList.length,
-            score: finalScore,
-            correctAnswers: correctCount,
-            isPodium: myEntry ? myEntry.rank <= 3 : false,
-            classAverageScore: classAvg,
-            classSuccessRate: payload?.metrics?.globalSuccessRate ?? 0,
-            fullLeaderboard: leaderboardList.map(l => ({
-              rank: l.rank,
-              participantName: l.participantName,
-              score: l.totalScore ?? l.score ?? 0,
-              correctCount: l.correctCount ?? l.correctAnswers,
-            })),
-          })
+          this.sessionPersistence.saveFinalResults(
+            {
+              rank: myEntry ? myEntry.rank : leaderboardList.length + 1,
+              totalParticipants: payload?.metrics?.totalParticipants ?? leaderboardList.length,
+              score: finalScore,
+              correctAnswers: correctCount,
+              isPodium: myEntry ? myEntry.rank <= 3 : false,
+              classAverageScore: classAvg,
+              classSuccessRate: payload?.metrics?.globalSuccessRate ?? 0,
+              fullLeaderboard: leaderboardList.map(l => ({
+                rank: l.rank,
+                participantName: l.participantName,
+                score: l.totalScore ?? l.score ?? 0,
+                correctCount: l.correctCount ?? l.correctAnswers,
+              })),
+            },
+            resolvedSessionId,
+          )
         }
         this.eventsSubject.next({
           type: 'SessionEnded',
@@ -379,11 +530,15 @@ export class SessionObserverSseService implements SessionObserverService {
   }
 
   public disconnect(): void {
+    this.clearReconnectTimer()
     if (this.eventSource) {
       this.eventSource.close()
       this.eventSource = null
     }
     this.currentConnectedSessionId = null
+    this.lastEventId = null
+    this.reconnectAttempts = 0
+    this.isSessionTerminated = false
     this._participants.set([])
     this._question.set({ type: 'WaitingQuestion' })
     this._reveal.set(undefined)

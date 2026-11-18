@@ -1,8 +1,9 @@
-import { computed, linkedSignal } from '@angular/core'
+import { computed, DestroyRef, inject, linkedSignal } from '@angular/core'
 
 import {
   patchState, signalStore,
   withComputed,
+  withHooks,
   withLinkedState, withMethods, withState,
 } from '@ngrx/signals'
 
@@ -33,22 +34,44 @@ export const TimerStore = signalStore(
     }),
   })),
 
-  withMethods(store => ({
-    setTimer: (timer?: Timer) => {
-      patchState(store, { timer: undefined })
-      // This is needed to ensure that the computed signals depending on timer are updated correctly
-      setTimeout(() => {
-        patchState(store, {
-          timer,
-          timeLeft: timer?.seconds,
-        })
-      }, 0)
+  withMethods((store) => {
+    let pendingTimeout: ReturnType<typeof setTimeout> | null = null
+
+    const cancelPendingTimeout = () => {
+      if (pendingTimeout !== null) {
+        clearTimeout(pendingTimeout)
+        pendingTimeout = null
+      }
+    }
+
+    return {
+      setTimer: (timer?: Timer) => {
+        cancelPendingTimeout()
+        patchState(store, { timer: undefined })
+        // This is needed to ensure that the computed signals depending on timer are updated correctly
+        pendingTimeout = setTimeout(() => {
+          pendingTimeout = null
+          patchState(store, {
+            timer,
+            timeLeft: timer?.seconds,
+          })
+        }, 0)
+      },
+      setTimeLeft: (timeLeft: number | undefined) => {
+        patchState(store, { timeLeft })
+      },
+      clearTimer: () => {
+        cancelPendingTimeout()
+        patchState(store, { timer: undefined, timeLeft: undefined })
+      },
+    }
+  }),
+
+  withHooks({
+    onInit(store, destroyRef = inject(DestroyRef)) {
+      destroyRef.onDestroy(() => {
+        store.clearTimer()
+      })
     },
-    setTimeLeft: (timeLeft: number | undefined) => {
-      patchState(store, { timeLeft })
-    },
-    clearTimer: () => {
-      patchState(store, { timer: undefined, timeLeft: undefined })
-    },
-  })),
+  }),
 )

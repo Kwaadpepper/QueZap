@@ -67,8 +67,7 @@
                 </div>
               } @else {
                 <div
-                  class="p-3.5 rounded-2xl text-white font-extrabold text-base flex items-center justify-between shadow-lg"
-                  [class]="getChoiceColorClass(choice.answerIndex)"
+                  class="p-3.5 rounded-2xl text-white font-extrabold text-base flex items-center justify-between shadow-lg {{ getChoiceColorClass(choice.answerIndex) }}"
                 >
                   <div class="flex items-center gap-3 min-w-0">
                     <span class="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center shrink-0 shadow-inner gap-1">
@@ -99,17 +98,24 @@
 
           <!-- Optional Teacher-enabled Mobile Correction -->
           @if (reveal.mobileCorrectionAllowed) {
-            @let isCorrect = choice !== null && choice !== undefined && isChoiceCorrect(choice, reveal);
-            <div
-              class="p-3 rounded-2xl text-center font-black uppercase text-sm border shadow-sm transition-all"
-              [class.bg-emerald-950/90]="isCorrect"
-              [class.border-emerald-500/80]="isCorrect"
-              [class.text-emerald-300]="isCorrect"
-              [class.bg-rose-950/90]="!isCorrect"
-              [class.border-rose-500/80]="!isCorrect"
-              [class.text-rose-300]="!isCorrect">
-              <span>{{ isCorrect ? '✅ Bonne réponse !' : '❌ Réponse incorrecte' }}</span>
-            </div>
+            @if (!choice) {
+              <div class="p-3 rounded-2xl text-center font-black uppercase text-sm border shadow-sm transition-all bg-slate-800/90 border-slate-500/80 text-slate-200">
+                <span>⏱️ Aucune réponse envoyée</span>
+              </div>
+            } @else {
+              @let isCorrect = isChoiceCorrect(choice, reveal);
+              <div
+                class="p-3 rounded-2xl text-center font-black uppercase text-sm border shadow-sm transition-all"
+                [class.bg-emerald-950/90]="isCorrect"
+                [class.border-emerald-500/80]="isCorrect"
+                [class.text-emerald-300]="isCorrect"
+                [class.bg-rose-950/90]="!isCorrect"
+                [class.border-rose-500/80]="!isCorrect"
+                [class.text-rose-300]="!isCorrect"
+              >
+                <span>{{ isCorrect ? '✅ Bonne réponse !' : '❌ Réponse incorrecte' }}</span>
+              </div>
+            }
           }
 
           <!-- Teacher Explanation (if provided) -->

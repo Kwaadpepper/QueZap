@@ -1,7 +1,7 @@
-<div class="flex w-full flex-1 flex-col items-center justify-between gap-3 px-2 py-1 sm:px-4">
+<div class="flex w-full flex-1 flex-col items-center justify-between gap-2 px-2 py-1 sm:gap-3 sm:px-4">
   <!-- QUESTION TITLE & ALERT -->
-  <header class="flex w-full flex-col items-center gap-2">
-    <div class="question-background w-full rounded px-4 py-2.5 shadow-md md:w-fit">
+  <header class="flex w-full flex-col items-center gap-1.5 sm:gap-2">
+    <div class="question-background w-full rounded px-4 py-2 shadow-md md:w-fit sm:py-2.5">
       <h1 class="question-phrase">
         {{ phrase() }}
       </h1>
@@ -14,14 +14,14 @@
   </header>
 
   <!-- CONTENT FRAME -->
-  <div class="relative flex w-full grow flex-col gap-4 rounded-2xl border-0 p-2 sm:p-4">
+  <div class="relative flex w-full grow flex-col gap-2.5 rounded-2xl border-0 p-1.5 sm:gap-4 sm:p-4">
     <!-- QUESTION ELEMENTS -->
     @let pictureUrl = picture();
     @if (pictureUrl !== undefined) {
-      <div class="flex w-full flex-col items-center justify-center px-5">
-        <div class="question-background flex w-fit flex-col rounded-xl p-2 shadow-md">
+      <div class="flex w-full flex-col items-center justify-center px-2 sm:px-5">
+        <div class="question-background flex w-fit flex-col rounded-xl p-1.5 shadow-md sm:p-2">
           <quizz-picture aria-labelledby="question-image-desc" [pictureUrl]="pictureUrl" />
-          <span id="question-image-desc" class="ms-4 text-xl select-none">
+          <span id="question-image-desc" class="sr-only">
             Image de la question
           </span>
         </div>
@@ -32,18 +32,21 @@
     <form
       role="radiogroup"
       aria-label="Options de réponse"
-      class="flex w-full grow flex-col items-center justify-center gap-4 transition-opacity duration-300"
+      class="flex w-full grow flex-col items-center justify-center gap-3 transition-opacity duration-300 sm:gap-4"
+      [class.opacity-60]="cannotAnswerAnymore()"
+      [class.pointer-events-none]="cannotAnswerAnymore()"
       [inert]="cannotAnswerAnymore()"
     >
       @for (answer of answers(); track answer.index) {
         @let response = responseForm[answer.index];
         @if (response !== undefined) {
           <quizz-question-answer
-            class="h-auto min-h-20 w-full max-w-3xl cursor-pointer"
+            class="h-auto min-h-16 w-full max-w-3xl cursor-pointer sm:min-h-20"
             [questionId]="questionId()"
             [answer]="answer"
             [field]="response"
             [radio]="true"
+            [disabled]="cannotAnswerAnymore()"
             (click)="selectAnswer(answer.index)"
           />
         } @else {
@@ -51,18 +54,11 @@
         }
       }
     </form>
-    @if (hasSubmitted()) {
-      <div
-        role="status"
-        aria-live="polite"
-        class="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/60 bg-emerald-950/80 px-4 py-2.5 text-emerald-200 shadow-lg"
-      >
-        <div class="flex items-center gap-2 font-bold text-sm">
-          <span class="text-lg" aria-hidden="true">✓</span>
-          <span>Choix enregistré !</span>
-        </div>
-        <span class="text-xs text-emerald-300/80">Modifiable tant que le chrono tourne</span>
-      </div>
-    }
+
+    <quizz-submission-feedback
+      [error]="submissionError()"
+      [isSubmitting]="isSubmitting()"
+      [hasSubmitted]="hasSubmitted()"
+    />
   </div>
 </div>

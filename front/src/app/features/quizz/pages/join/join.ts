@@ -10,7 +10,7 @@ import {
 } from 'rxjs'
 
 import { ExpiredError, NotFoundError } from '@quezap/core/errors'
-import { isValidSessionCode, SessionCode } from '@quezap/domain/models'
+import { isValidSessionCode, SessionCode, sessionHasStarted } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
@@ -30,6 +30,7 @@ import { ActiveSessionStore } from '../../stores'
 })
 export class Join {
   readonly #lobbyUrl = '/quizz/lobby'
+  readonly #quizzUrl = '/quizz'
   readonly #expiredUrl = '/quizz/expired'
   private readonly router = inject(Router)
   private readonly sessionStore = inject(ActiveSessionStore)
@@ -55,6 +56,23 @@ export class Join {
             return []
           }),
         ).subscribe()
+        return
+      }
+
+      if (this.sessionStore.restorationComplete()) {
+        const restoredSession = this.sessionStore.session()
+        const restoredNickname = this.sessionStore.nickname()?.value()
+        if (
+          restoredSession
+          && restoredSession.endedAt == null
+          && restoredSession.status !== 'ENDED'
+          && restoredNickname
+        ) {
+          const targetUrl = (sessionHasStarted(restoredSession) || this.sessionStore.sessionHasStarted())
+            ? this.#quizzUrl
+            : this.#lobbyUrl
+          this.router.navigate([targetUrl], { skipLocationChange: true })
+        }
       }
     })
   }

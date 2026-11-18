@@ -69,12 +69,6 @@ export class QuizzRunner {
   protected readonly lastReveal = computed(() => this.sessionStore.lastReveal())
   protected readonly isSessionPaused = computed(() => this.sessionStore.isSessionPaused())
   protected readonly mySubmittedChoice = computed(() => this.sessionStore.mySubmittedChoice())
-  protected readonly myRanking = computed(() => this.sessionStore.myRanking())
-  protected readonly pointsEarned = computed(() => {
-    const rank = this.myRanking()
-    if (!rank) return 0
-    return rank.delta !== undefined ? rank.delta : Math.max(0, rank.score - rank.previousScore)
-  })
 
   protected getChoiceColorClass(index: number): string {
     const q = this.question()

@@ -7,21 +7,21 @@ import {
   input,
   signal,
 } from '@angular/core'
-import { FormsModule } from '@angular/forms'
 
 import { CashQuestion, PictureUrl, QuestionId, QuestionWithAnswers } from '@quezap/domain/models'
-import { SESSION_API_SERVICE } from '@quezap/features/quizz/services'
 import { ActiveSessionStore, TimerStore } from '@quezap/features/quizz/stores'
 
 import { Picture } from '../parts/picture/picture'
 import { QuestionAlert } from '../parts/question-alert/question-alert'
+import { createAnswerSubmissionState } from '../parts/question-submission'
+import { SubmissionFeedback } from '../parts/submission-feedback/submission-feedback'
 
 @Component({
   selector: 'quizz-question-cash',
   imports: [
     Picture,
     QuestionAlert,
-    FormsModule,
+    SubmissionFeedback,
   ],
   templateUrl: './cash-question.html',
   styles: [`
@@ -35,7 +35,7 @@ import { QuestionAlert } from '../parts/question-alert/question-alert'
 export class CashQuestionView {
   private readonly timerStore = inject(TimerStore)
   private readonly sessionStore = inject(ActiveSessionStore)
-  private readonly sessionApi = inject(SESSION_API_SERVICE)
+  private readonly submission = createAnswerSubmissionState()
 
   readonly question = input.required<CashQuestion & QuestionWithAnswers>()
 
@@ -44,14 +44,18 @@ export class CashQuestionView {
   protected readonly picture = computed<PictureUrl | undefined>(() => this.question().picture)
 
   protected readonly isRevealing = computed<boolean>(() => this.sessionStore.lastReveal() !== undefined)
+  protected readonly isSessionPaused = computed<boolean>(() => this.sessionStore.isSessionPaused())
   protected readonly timeLeft = computed<number | undefined>(() => this.timerStore.timeLeft())
   protected readonly cannotAnswerAnymore = computed<boolean>(
-    () => this.timeLeft() === 0 && this.timeLeft() !== undefined,
+    () => this.isSessionPaused() || (this.timeLeft() === 0 && this.timeLeft() !== undefined),
   )
 
   protected readonly textInput = signal<string>('')
-  protected readonly hasSubmitted = signal<boolean>(false)
+  protected readonly hasSubmitted = this.submission.hasSubmitted
+  protected readonly isSubmitting = this.submission.isSubmitting
+  protected readonly submissionError = this.submission.submissionError
   protected readonly lastSubmittedText = signal<string>('')
+  protected readonly submittedLabel = computed<string>(() => `Réponse envoyée : « ${this.lastSubmittedText()} »`)
 
   private lastQuestionId: QuestionId | undefined
 
@@ -68,14 +72,20 @@ export class CashQuestionView {
       if (restoredChoice?.label) {
         this.textInput.set(restoredChoice.label)
         this.lastSubmittedText.set(restoredChoice.label)
-        this.hasSubmitted.set(true)
+        this.submission.resetForQuestion(true)
       }
       else {
         this.textInput.set('')
         this.lastSubmittedText.set('')
-        this.hasSubmitted.set(false)
+        this.submission.resetForQuestion(false)
       }
     })
+  }
+
+  protected onTextInput(event: Event): void {
+    if (event.target instanceof HTMLInputElement) {
+      this.textInput.set(event.target.value)
+    }
   }
 
   protected submitAnswer(): void {
@@ -86,9 +96,21 @@ export class CashQuestionView {
     if (!trimmed) {
       return
     }
-    this.lastSubmittedText.set(trimmed)
-    this.hasSubmitted.set(true)
-    this.sessionStore.submitMyChoice(0, trimmed, this.question().id)
-    this.sessionApi.submitAnswer(0, trimmed).subscribe()
+
+    const previousSubmittedText = this.lastSubmittedText()
+    const currentId = this.question().id
+
+    this.submission.submit({
+      questionId: currentId,
+      answerIndex: 0,
+      textAnswer: trimmed,
+      choiceLabel: trimmed,
+      onSuccess: () => {
+        this.lastSubmittedText.set(trimmed)
+      },
+      onRollback: () => {
+        this.lastSubmittedText.set(previousSubmittedText)
+      },
+    })
   }
 }

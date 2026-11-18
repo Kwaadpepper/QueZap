@@ -1,6 +1,8 @@
 <label
-  class="answer-option relative flex h-full min-h-20 w-full items-center p-3.5 sm:p-4 rounded-2xl border-3 cursor-pointer shadow-md select-none overflow-hidden"
-  [class]="`answer-option-${currentFormIndex()}`"
+  class="answer-option relative flex h-full min-h-16 sm:min-h-20 w-full items-center p-3 sm:p-4 rounded-2xl border-3 shadow-md select-none overflow-hidden answer-option-{{ currentFormIndex() }}"
+  [class.cursor-pointer]="!disabled()"
+  [class.cursor-not-allowed]="disabled()"
+  [class.opacity-60]="disabled()"
 >
   <input
     class="checkbox"
@@ -8,10 +10,12 @@
     [attr.name]="'question-' + questionId()"
     [attr.aria-label]="accessibleLabel()"
     [checked]="field()().value()"
+    [disabled]="disabled()"
+    (click)="$event.preventDefault()"
   />
   <div class="relative z-10 flex w-full items-center gap-3 sm:gap-4">
     <!-- Geometric icon container with high-contrast badge & number (Triple-coding: Number + Shape + Color) -->
-    <div class="flex h-12 min-w-16 sm:h-14 sm:min-w-20 shrink-0 items-center justify-center gap-1.5 px-2 rounded-xl bg-black/25 backdrop-blur-sm shadow-inner transition-transform duration-200">
+    <div class="flex h-11 min-w-14 sm:h-14 sm:min-w-20 shrink-0 items-center justify-center gap-1.5 px-2 rounded-xl bg-black/25 backdrop-blur-sm shadow-inner transition-transform duration-200">
       <span class="text-base sm:text-lg font-black text-white/90 font-mono" aria-hidden="true">{{ identifier() + 1 }}</span>
       <quizz-question-icon
         class="w-6 h-6 sm:w-7 sm:h-7"
@@ -23,7 +27,7 @@
 
     <!-- Answer text & picture -->
     <div class="flex flex-1 flex-col justify-center min-w-0">
-      <span class="answer-phrase font-bold text-lg sm:text-xl md:text-2xl leading-tight wrap-break-word">
+      <span class="answer-phrase font-bold text-base sm:text-xl md:text-2xl leading-tight wrap-break-word">
         {{ phrase() }}
       </span>
 
@@ -49,4 +53,3 @@
     }
   </div>
 </label>
-
