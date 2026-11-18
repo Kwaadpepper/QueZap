@@ -181,6 +181,12 @@ export type AffirmationDto = {
     themeId?: ThemeId;
 };
 
+export type PictureUploadResponseDto = {
+    pictureUrl?: string;
+    objectKey?: string;
+    expiresAt?: string;
+};
+
 export type ResetPasswordRequest = {
     token: string;
     newPassword: string;
@@ -956,6 +962,24 @@ export type AddAffirmationResponses = {
 };
 
 export type AddAffirmationResponse = AddAffirmationResponses[keyof AddAffirmationResponses];
+
+export type UploadData = {
+    body?: {
+        file: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/apiv1/pictures/upload';
+};
+
+export type UploadResponses = {
+    /**
+     * Created
+     */
+    201: PictureUploadResponseDto;
+};
+
+export type UploadResponse = UploadResponses[keyof UploadResponses];
 
 export type ResetPasswordData = {
     body: ResetPasswordRequest;

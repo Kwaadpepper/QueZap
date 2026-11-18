@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 
+import { of } from 'rxjs'
+
+import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
 import { PictureUrl } from '@quezap/domain/models'
 
 import { QuezapEditorStore } from '../../../../stores'
@@ -46,5 +49,27 @@ describe('QuestionEditor', () => {
 
     expect(store.selectedQuestion().picture).toBeUndefined()
     expect(fixture.nativeElement.querySelector('img[alt="Question Image"]')).toBeNull()
+  })
+
+  it('should upload picture via PictureUploadService and update store', () => {
+    const uploadService = TestBed.inject(PictureUploadService)
+    const mockFile = new File(['image-bytes'], 'quiz.png', { type: 'image/png' })
+    const uploadedUrl = '/quezap-public-images/pictures/questions/uploaded.png' as PictureUrl
+
+    jest.spyOn(uploadService, 'upload').mockReturnValue(
+      of({
+        kind: 'success' as const,
+        result: {
+          pictureUrl: uploadedUrl,
+          objectKey: 'pictures/questions/uploaded.png',
+          expiresAt: '2026-11-02T12:00:00Z',
+        },
+      }),
+    )
+
+    component['onUpload']({ files: [mockFile], originalEvent: new Event('change') })
+    fixture.detectChanges()
+
+    expect(store.selectedQuestion().picture).toBe(uploadedUrl)
   })
 })

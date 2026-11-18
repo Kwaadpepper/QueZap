@@ -1,13 +1,16 @@
 import {
   ChangeDetectionStrategy, Component, computed,
+  inject,
   input,
   output,
+  signal,
 } from '@angular/core'
 
 import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload'
 
+import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
+import { isSuccess } from '@quezap/core/types'
 import { AnswerWithResponse } from '@quezap/domain/models'
-import { PictureUrl } from '@quezap/domain/models'
 import { QuestionIcon, QuestionIconType } from '@quezap/features/quizz/components/question-view/parts'
 
 import { AnswerCorrectnessComponent } from '../answer-correctness/answer-correctness'
@@ -27,12 +30,15 @@ export type AnswerInput = AnswerWithResponse
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnswerComponent {
+  private readonly pictureUploadService = inject(PictureUploadService)
+
   readonly answer = input.required<AnswerInput>()
   readonly readonly = input.required<boolean>()
   readonly canDelete = input<boolean>(false)
   readonly answerChanged = output<AnswerInput>()
   readonly deleteAnswer = output<number>()
 
+  protected readonly isUploading = signal(false)
   protected readonly index = computed(() => this.answer().index)
   protected readonly phrase = computed(() => this.answer().value ?? '')
   protected readonly isCorrect = computed(() => this.answer().isCorrect)
@@ -81,15 +87,21 @@ export class AnswerComponent {
   protected onUpload(event: FileSelectEvent) {
     const file = event.files[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const pictureUrl = (e.target?.result as string) as PictureUrl
-        this.answerChanged.emit({
-          ...this.answer(),
-          picture: pictureUrl,
-        })
-      }
-      reader.readAsDataURL(file)
+      this.isUploading.set(true)
+      this.pictureUploadService.upload(file).subscribe({
+        next: (output) => {
+          this.isUploading.set(false)
+          if (isSuccess(output)) {
+            this.answerChanged.emit({
+              ...this.answer(),
+              picture: output.result.pictureUrl,
+            })
+          }
+        },
+        error: () => {
+          this.isUploading.set(false)
+        },
+      })
     }
   }
 

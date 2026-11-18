@@ -179,6 +179,12 @@ export const zAffirmationDto = z.object({
     themeId: zThemeId.optional()
 });
 
+export const zPictureUploadResponseDto = z.object({
+    pictureUrl: z.string().optional(),
+    objectKey: z.string().optional(),
+    expiresAt: z.iso.datetime().optional()
+});
+
 export const zResetPasswordRequest = z.object({
     token: z.string(),
     newPassword: z.string()
@@ -719,6 +725,15 @@ export const zAddAffirmationQuery = z.object({
  * OK
  */
 export const zAddAffirmationResponse = zQuestionIdDto;
+
+export const zUploadBody = z.object({
+    file: z.string()
+});
+
+/**
+ * Created
+ */
+export const zUploadResponse = zPictureUploadResponseDto;
 
 export const zResetPasswordBody = zResetPasswordRequest;
 

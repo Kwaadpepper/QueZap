@@ -3,7 +3,9 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DividerModule } from 'primeng/divider'
 import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload'
 
-import { PictureUrl, QuestionWithAnswers } from '@quezap/domain/models'
+import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
+import { isSuccess } from '@quezap/core/types'
+import { QuestionWithAnswers } from '@quezap/domain/models'
 
 import { QuezapEditorStore } from '../../../../stores'
 
@@ -34,8 +36,10 @@ export type QuestionEditorInput = Omit<QuestionWithAnswers, 'id'>
 })
 export class QuestionEditor {
   private readonly editorStore = inject(QuezapEditorStore)
+  private readonly pictureUploadService = inject(PictureUploadService)
 
   protected readonly question = computed(() => this.editorStore.selectedQuestion())
+  protected readonly isUploading = signal(false)
 
   protected readonly mediaFormat = signal<'STANDARD' | 'LARGE' | 'FULLSCREEN'>('LARGE')
   protected readonly backgroundTheme = signal<'CLASSIC' | 'DARK' | 'CLEAN'>('CLASSIC')
@@ -75,16 +79,22 @@ export class QuestionEditor {
   protected onUpload(event: FileSelectEvent) {
     const file = event.files[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const pictureUrl = (e.target?.result as string) as PictureUrl
-        const q = this.question()
-        this.editorStore.updateQuestionAtIdx(this.editorStore.selectionQuestionIdx(), {
-          ...q,
-          picture: pictureUrl,
-        })
-      }
-      reader.readAsDataURL(file)
+      this.isUploading.set(true)
+      this.pictureUploadService.upload(file).subscribe({
+        next: (output) => {
+          this.isUploading.set(false)
+          if (isSuccess(output)) {
+            const q = this.question()
+            this.editorStore.updateQuestionAtIdx(this.editorStore.selectionQuestionIdx(), {
+              ...q,
+              picture: output.result.pictureUrl,
+            })
+          }
+        },
+        error: () => {
+          this.isUploading.set(false)
+        },
+      })
     }
   }
 

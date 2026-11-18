@@ -156,7 +156,7 @@ describe('QuezapEditorStore', () => {
     store.updateQuestionAtIdx(0, {
       ...question,
       value: 'Quel est ce monument ?',
-      picture: 'data:image/png;base64,iVBORw0KGgo=' as never,
+      picture: '/quezap-public-images/pictures/questions/staged.png' as never,
       answers: question.answers.map((a, i) =>
         i === 0 ? { ...a, value: 'Tour Eiffel', isCorrect: true } : { ...a, value: `Option ${i}` },
       ),
