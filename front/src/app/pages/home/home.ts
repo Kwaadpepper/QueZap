@@ -11,6 +11,7 @@ import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 import { RegisterModal } from '@quezap/features/admin/account/components/register-modal/register-modal'
 import { JoinForm } from '@quezap/features/quizz/components/join-form/join-form'
+import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({
   selector: 'quizz-home',
@@ -29,8 +30,10 @@ import { JoinForm } from '@quezap/features/quizz/components/join-form/join-form'
 export class Home implements OnInit, OnDestroy {
   private readonly config = inject(Config)
   private readonly layout = inject(LayoutSettings)
+  private readonly authStore = inject(AuthenticatedUserStore)
 
   protected readonly appName = computed(() => this.config.appConfig.value().appName)
+  protected readonly isLoggedIn = computed(() => this.authStore.isLoggedIn())
 
   protected readonly registerModalVisible = signal(false)
 

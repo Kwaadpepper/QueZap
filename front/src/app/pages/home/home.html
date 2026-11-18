@@ -9,7 +9,7 @@
     alt="QueZap"
     priority
   />
-  <h1 class="hidden my-2">{{ appName() }}</h1>
+  <h1 class="sr-only">{{ appName() }}</h1>
   <h2 class="my-2 text-2xl md:text-3xl font-semibold text-green-outlined">
     L'application de quiz en live
   </h2>
@@ -43,14 +43,25 @@
       </p>
     </div>
     <div class="flex gap-2 items-center">
-      <button
-        pButton
-        severity="primary"
-        aria-label="Créer une partie"
-        (click)="registerModalVisible.set(true)"
-      >
-        <span pButtonLabel>Créer une partie</span>
-      </button>
+      @if (isLoggedIn()) {
+        <a
+          pButton
+          routerLink="/admin/sessions/create"
+          severity="primary"
+          aria-label="Créer une partie"
+        >
+          <span pButtonLabel>Créer une partie</span>
+        </a>
+      } @else {
+        <button
+          pButton
+          severity="primary"
+          aria-label="Créer une partie"
+          (click)="registerModalVisible.set(true)"
+        >
+          <span pButtonLabel>Créer une partie</span>
+        </button>
+      }
       <a
         pButton
         routerLink="/about"
@@ -59,7 +70,9 @@
         aria-label="En savoir plus"
       ></a>
     </div>
-    <quizz-register-modal [(visible)]="registerModalVisible" />
+    @if (!isLoggedIn()) {
+      <quizz-register-modal [(visible)]="registerModalVisible" />
+    }
   </div>
 </section>
 
@@ -70,7 +83,7 @@
   <h2 id="how-title" class="text-xl font-semibold mb-4">Comment ça marche</h2>
   <ol class="list-decimal pl-6 space-y-2 text-surface-700 dark:text-surface-200">
     <li>Créez une session avec différents types de questions.</li>
-    <li>Le public participant scanne le QR code ou saisis le code pour rejoindre.</li>
+    <li>Le public participant scanne le QR code ou saisit le code pour rejoindre.</li>
     <li>Lancez le quiz et suivez le classement en temps réel.</li>
   </ol>
 </section>
