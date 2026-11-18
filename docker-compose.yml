@@ -29,6 +29,9 @@ services:
     environment:
       MINIO_ROOT_USER: quezap_java_writer
       MINIO_ROOT_PASSWORD: LocalPassword
+    ports:
+      - "9190:9000"
+      - "9191:9001"
     expose:
       - "9000"
       - "9001"

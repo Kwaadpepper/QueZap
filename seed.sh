@@ -130,9 +130,12 @@ SESSION_RESP=$(curl -s -X POST "$BASE_URL/sessions" \
 SESSION_ID=$(echo "$SESSION_RESP" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 SESSION_CODE=$(echo "$SESSION_RESP" | grep -o '"code":"[^"]*' | cut -d'"' -f4)
 
-FRONT_PORT="4200"
-if curl -s -m 1 "http://localhost:8000" > /dev/null 2>&1; then
-  FRONT_PORT="8000"
+FRONT_PORT="${FRONT_PORT:-}"
+if [ -z "$FRONT_PORT" ]; then
+  FRONT_PORT="4200"
+  if curl -s -m 1 "http://localhost:8000" > /dev/null 2>&1; then
+    FRONT_PORT="8000"
+  fi
 fi
 
 echo "=========================================="
