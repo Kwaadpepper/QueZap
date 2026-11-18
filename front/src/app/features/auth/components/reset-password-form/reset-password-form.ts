@@ -1,6 +1,7 @@
 import {
-  Component, computed, ErrorHandler, inject, input, signal,
+  Component, computed, DestroyRef, ErrorHandler, inject, input, signal,
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
@@ -8,7 +9,7 @@ import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
 import { InputText } from 'primeng/inputtext'
 import { Message } from 'primeng/message'
-import { catchError, firstValueFrom, of, tap } from 'rxjs'
+import { catchError, firstValueFrom, of, switchMap } from 'rxjs'
 import * as zod from 'zod/v4'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
@@ -38,6 +39,7 @@ export class ResetPasswordForm {
   private readonly router = inject(Router)
   private readonly config = inject(Config)
   private readonly errorHandler = inject(ErrorHandler)
+  private readonly destroyRef = inject(DestroyRef)
 
   readonly #mockedValues = {
     password: 'NewPassword123!',
@@ -76,19 +78,19 @@ export class ResetPasswordForm {
           this.resetToken(),
           form.password().value(),
         ).pipe(
-          tap((result) => {
-            this.resetFormInput()
-            this.resetForm().reset()
-
+          takeUntilDestroyed(this.destroyRef),
+          switchMap((result) => {
             if (isFailure(result)) {
               if (result.error instanceof ValidationError) {
                 return of(result.error.getErrorsForForm(this.resetForm))
               }
 
+              this.resetFormInput()
               this.anErrorOccured.set(true)
               return of(void 0)
             }
 
+            this.resetFormInput()
             this.message$.add({
               severity: 'success',
               summary: 'Succès',
@@ -100,7 +102,6 @@ export class ResetPasswordForm {
             return of(void 0)
           }),
           catchError((err) => {
-            this.resetForm().reset()
             this.resetFormInput()
 
             this.message$.add({
@@ -116,6 +117,7 @@ export class ResetPasswordForm {
             return of(void 0)
           }),
         ),
+        { defaultValue: undefined },
       ),
     )
   }

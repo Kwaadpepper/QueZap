@@ -1,10 +1,16 @@
+import { HttpClient, HttpContext } from '@angular/common/http'
 import { inject, Injectable } from '@angular/core'
 
-import { catchError, from, map, of } from 'rxjs'
+import {
+  catchError, defer, finalize, from, map, of, shareReplay,
+} from 'rxjs'
 
-import { LoginResponseDto, UserSummaryDto } from '@quezap/core/api-client'
-import { client } from '@quezap/core/api-client/client.gen'
+import { type Options, RefreshData } from '@quezap/core/api-client'
+import {
+  forgottenPassword, login, logout, me, refresh, resetPassword, verifyResetToken,
+} from '@quezap/core/api-client/sdk.gen'
 import { ForbidenError, UnauthorizedError, ValidationError } from '@quezap/core/errors'
+import { IS_REFRESHING_ACCESS_TOKEN } from '@quezap/core/tokens'
 import { ServiceOutput } from '@quezap/core/types'
 import { AuthenticatedUser, UserId } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
@@ -17,12 +23,17 @@ import { AuthenticationService } from './authentication'
 @Injectable({ providedIn: 'root' })
 export class AuthenticationHttpService implements AuthenticationService {
   private readonly tokenPersitance = inject(TokenPersitance)
+  private readonly httpClient = inject(HttpClient, { optional: true })
+  private refreshInFlight$: ServiceOutput<AuthTokens> | null = null
+
   login(identifier: string, password: string): ServiceOutput<AuthTokens, UnauthorizedError> {
-    return from(
-      client.post<{ 200: LoginResponseDto }>({
-        url: '/apiv1/auth/login',
-        body: { identifier, password },
-      }),
+    return defer(() =>
+      from(
+        login({
+          body: { identifier, password },
+          ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+        }),
+      ),
     ).pipe(
       map(({ data, error }) => {
         if (error || !data?.accessToken || !data?.refreshToken) {
@@ -52,12 +63,17 @@ export class AuthenticationHttpService implements AuthenticationService {
   }
 
   refresh(tokens: AuthTokens): ServiceOutput<AuthTokens> {
-    return from(
-      client.post<{ 200: LoginResponseDto }>({
-        url: '/apiv1/auth/refresh',
-        body: { refreshToken: tokens.refreshToken },
-      }),
-    ).pipe(
+    if (this.refreshInFlight$) {
+      return this.refreshInFlight$
+    }
+
+    const refreshOptions: Options<RefreshData, false> & { context: HttpContext } = {
+      body: { refreshToken: tokens.refreshToken },
+      context: new HttpContext().set(IS_REFRESHING_ACCESS_TOKEN, true),
+      ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+    }
+
+    this.refreshInFlight$ = defer(() => from(refresh(refreshOptions))).pipe(
       map(({ data, error }) => {
         if (error || !data?.accessToken || !data?.refreshToken) {
           return {
@@ -82,7 +98,13 @@ export class AuthenticationHttpService implements AuthenticationService {
           ),
         }),
       ),
+      finalize(() => {
+        this.refreshInFlight$ = null
+      }),
+      shareReplay({ bufferSize: 1, refCount: true }),
     )
+
+    return this.refreshInFlight$
   }
 
   logout(refreshToken?: JWT): ServiceOutput<void> {
@@ -91,11 +113,13 @@ export class AuthenticationHttpService implements AuthenticationService {
       return of({ kind: 'success' as const, result: undefined })
     }
 
-    return from(
-      client.post<void>({
-        url: '/apiv1/auth/logout',
-        body: { refreshToken: token },
-      }),
+    return defer(() =>
+      from(
+        logout({
+          body: { refreshToken: token },
+          ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+        }),
+      ),
     ).pipe(
       map(() => ({ kind: 'success' as const, result: undefined })),
       catchError(() => of({ kind: 'success' as const, result: undefined })),
@@ -103,8 +127,8 @@ export class AuthenticationHttpService implements AuthenticationService {
   }
 
   me(): ServiceOutput<AuthenticatedUser, ForbidenError> {
-    return from(
-      client.get<{ 200: UserSummaryDto }>({ url: '/apiv1/auth/me' }),
+    return defer(() =>
+      from(me(this.httpClient ? { httpClient: this.httpClient } : undefined)),
     ).pipe(
       map(({ data, error }) => {
         if (error || !data?.id) {
@@ -134,11 +158,13 @@ export class AuthenticationHttpService implements AuthenticationService {
   }
 
   askToResetPassword(email: string): ServiceOutput<void> {
-    return from(
-      client.post<void>({
-        url: '/apiv1/auth/forgotten-password',
-        body: { email },
-      }),
+    return defer(() =>
+      from(
+        forgottenPassword({
+          body: { identifier: email },
+          ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+        }),
+      ),
     ).pipe(
       map(({ error }) => {
         if (error) {
@@ -163,11 +189,13 @@ export class AuthenticationHttpService implements AuthenticationService {
   }
 
   verifyResetToken(token: string): ServiceOutput<void, ForbidenError> {
-    return from(
-      client.get<void>({
-        url: '/apiv1/auth/verify-reset-token',
-        query: { token },
-      }),
+    return defer(() =>
+      from(
+        verifyResetToken({
+          query: { token },
+          ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+        }),
+      ),
     ).pipe(
       map(({ error }) => {
         if (error) {
@@ -193,11 +221,13 @@ export class AuthenticationHttpService implements AuthenticationService {
   }
 
   resetPassword(token: string, newPassword: string): ServiceOutput<void> {
-    return from(
-      client.post<void>({
-        url: '/apiv1/auth/reset-password',
-        body: { token, newPassword },
-      }),
+    return defer(() =>
+      from(
+        resetPassword({
+          body: { token, newPassword },
+          ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+        }),
+      ),
     ).pipe(
       map(({ error }) => {
         if (error) {

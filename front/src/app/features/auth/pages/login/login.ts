@@ -12,9 +12,10 @@ import { Message } from 'primeng/message'
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 import * as zod from 'zod/v4'
 
-import { HandledFrontError, ValidationError } from '@quezap/core/errors'
+import { HandledFrontError, UnauthorizedError, ValidationError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
+import { FieldError } from '@quezap/shared/directives/field-error'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 @Component({
@@ -27,6 +28,7 @@ import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user
     ButtonIcon,
     IconFacade,
     FormField,
+    FieldError,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -96,6 +98,11 @@ export class Login {
               return of(err.getErrorsForForm(form))
             }
 
+            if (err instanceof UnauthorizedError) {
+              this.invalidCredentials.set(true)
+              return of(void 0)
+            }
+
             this.resetPassword()
             this.loginError.set(true)
 
@@ -106,6 +113,7 @@ export class Login {
             return of(void 0)
           }),
         ),
+        { defaultValue: undefined },
       ),
     )
   }

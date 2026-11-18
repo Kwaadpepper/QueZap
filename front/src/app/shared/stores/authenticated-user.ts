@@ -63,15 +63,15 @@ export const AuthenticatedUserStore = signalStore(
         concatMap((maybeUser) => {
           if (isFailure(maybeUser)) {
             tokenPersistance.removeTokens()
-            patchState(store, initialState)
-            patchState(store, { sessionExpired: true })
-            return throwError(() => maybeUser.error)
+            patchState(store, { ...initialState, sessionExpired: true })
+            return of(void 0)
           }
 
           const user = maybeUser.result
+          const latestTokens = store.currentTokens() ?? tokenPersistance.getTokens() ?? tokens
 
           patchState(store, {
-            _authenticated: { user, tokens },
+            _authenticated: { user, tokens: latestTokens },
             _temporaryTokens: undefined,
             authenticating: false,
             sessionExpired: false,
@@ -79,11 +79,10 @@ export const AuthenticatedUserStore = signalStore(
 
           return of(void 0)
         }),
-        catchError((err) => {
+        catchError(() => {
           tokenPersistance.removeTokens()
-          patchState(store, initialState)
-          patchState(store, { sessionExpired: true })
-          return throwError(() => err)
+          patchState(store, { ...initialState, sessionExpired: true })
+          return of(void 0)
         }),
       )
     },
@@ -158,15 +157,17 @@ export const AuthenticatedUserStore = signalStore(
 
     refresh: () => {
       const currentAuth = store._authenticated?.()
+      const temporaryTokens = store._temporaryTokens?.()
+      const tokensToRefresh = currentAuth?.tokens ?? temporaryTokens
 
-      if (!currentAuth) {
+      if (!tokensToRefresh) {
         return throwError(() =>
           new Error('No authenticated user to refresh tokens for.'),
         )
       }
 
       return authService
-        .refresh(currentAuth.tokens)
+        .refresh(tokensToRefresh)
         .pipe(
           concatMap((maybeTokens) => {
             if (isFailure(maybeTokens)) {
@@ -175,21 +176,29 @@ export const AuthenticatedUserStore = signalStore(
 
             const newTokens: AuthTokens = maybeTokens.result
             tokenPersistance.saveTokens(newTokens)
-            patchState(store, {
-              _authenticated: {
-                ...currentAuth,
-                tokens: newTokens,
-              },
-              sessionExpired: false,
-            })
+
+            if (currentAuth) {
+              patchState(store, {
+                _authenticated: {
+                  ...currentAuth,
+                  tokens: newTokens,
+                },
+                sessionExpired: false,
+              })
+            }
+            else {
+              patchState(store, {
+                _temporaryTokens: newTokens,
+                sessionExpired: false,
+              })
+            }
 
             return of(undefined)
           }),
           catchError((err) => {
             console.error('Token refresh failed:', err)
             tokenPersistance.removeTokens()
-            patchState(store, initialState)
-            patchState(store, { sessionExpired: true })
+            patchState(store, { ...initialState, sessionExpired: true })
             return throwError(() => err)
           }),
         )

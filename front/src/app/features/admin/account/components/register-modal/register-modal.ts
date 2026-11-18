@@ -1,6 +1,8 @@
-import { Component, ErrorHandler, inject, model, signal } from '@angular/core'
-import { ReactiveFormsModule } from '@angular/forms'
-import { form, submit, validateStandardSchema } from '@angular/forms/signals'
+import {
+  Component, DestroyRef, ErrorHandler, inject, model, signal,
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
 import { Button, ButtonIcon } from 'primeng/button'
@@ -22,7 +24,7 @@ import { REGISTER_SERVICE } from '../../services'
     Dialog,
     InputText,
     Button,
-    ReactiveFormsModule,
+    FormField,
     FieldError,
     IconFacade,
     ButtonIcon,
@@ -34,6 +36,7 @@ export class RegisterModal {
   private readonly message = inject(MessageService)
   private readonly registerService = inject(REGISTER_SERVICE)
   private readonly errorHandler = inject(ErrorHandler)
+  private readonly destroyRef = inject(DestroyRef)
 
   private readonly userInfo = signal({ email: '' })
 
@@ -55,45 +58,48 @@ export class RegisterModal {
     }
 
     submit(this.registerForm, form =>
-      firstValueFrom(this.registerService.register(
-        form.email().value(),
-      ).pipe(
-        exhaustMap((result) => {
-          if (isFailure(result)) {
-            const err = result.error
-            if (err instanceof ValidationError) {
-              return of(err.getErrorsForForm(this.registerForm))
+      firstValueFrom(
+        this.registerService.register(
+          form.email().value(),
+        ).pipe(
+          takeUntilDestroyed(this.destroyRef),
+          exhaustMap((result) => {
+            if (isFailure(result)) {
+              const err = result.error
+              if (err instanceof ValidationError) {
+                return of(err.getErrorsForForm(this.registerForm))
+              }
+
+              // Unexpected error
+              return throwError(() => err)
             }
 
-            // Unexpected error
-            return throwError(() => err)
-          }
+            this.message.add({
+              severity: 'success',
+              summary: 'Inscription réussie',
+              detail: 'Vous allez recevoir un email contenant votre lien d\'activation',
+              sticky: true,
+            })
+            this.visible.set(false)
 
-          this.message.add({
-            severity: 'success',
-            summary: 'Inscription réussie',
-            detail: 'Vous allez recevoir un email contenant votre lien d\'activation',
-            sticky: true,
-          })
-          this.visible.set(false)
+            return of(void 0)
+          }),
+          catchError((err) => {
+            this.message.add({
+              severity: 'error',
+              summary: 'Erreur lors de l\'inscription',
+              detail: 'Une erreur est survenue lors de l\'envoi du formulaire',
+              life: 5000,
+            })
 
-          return of(void 0)
-        }),
-        catchError((err) => {
-          this.message.add({
-            severity: 'error',
-            summary: 'Erreur lors de l\'inscription',
-            detail: 'Un erreur est survenu lors de l\'envoi du formulaire',
-            life: 5000,
-          })
+            this.errorHandler.handleError(
+              HandledFrontError.from(err),
+            )
 
-          this.errorHandler.handleError(
-            HandledFrontError.from(err),
-          )
-
-          return of(void 0)
-        }),
-      ),
+            return of(void 0)
+          }),
+        ),
+        { defaultValue: undefined },
       ),
     )
   }

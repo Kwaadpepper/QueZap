@@ -32,7 +32,7 @@ export class ResetPassword implements OnInit {
   private readonly authenticationService = inject(AUTHENTICATION_SERVICE)
   private readonly errorHandler = inject(ErrorHandler)
 
-  private readonly validTokenSchema = zod.jwt()
+  private readonly validTokenSchema = zod.string().trim().min(1)
   protected readonly resetToken = signal('')
 
   protected readonly verifyingToken = signal(true)
@@ -44,7 +44,7 @@ export class ResetPassword implements OnInit {
   )
 
   ngOnInit() {
-    const queryResetToken = this.route.snapshot.queryParamMap.get('token') ?? ''
+    const queryResetToken = this.route.snapshot.queryParamMap.get('token')?.trim() ?? ''
     const resetToken = this.validTokenSchema.safeParse(queryResetToken).success ? queryResetToken : null
 
     if (resetToken === null) {

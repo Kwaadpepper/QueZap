@@ -1,4 +1,5 @@
-import { Component, ErrorHandler, inject, signal } from '@angular/core'
+import { Component, DestroyRef, ErrorHandler, inject, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
@@ -22,6 +23,7 @@ export class LogoutButton {
   private readonly messageService = inject(MessageService)
   private readonly authenticatedUser = inject(AuthenticatedUserStore)
   private readonly errorHandler = inject(ErrorHandler)
+  private readonly destroyRef = inject(DestroyRef)
 
   protected readonly running = signal(false)
 
@@ -30,6 +32,7 @@ export class LogoutButton {
     firstValueFrom(
       this.authenticatedUser.logout()
         .pipe(
+          takeUntilDestroyed(this.destroyRef),
           catchError((err) => {
             this.errorHandler.handleError(
               HandledFrontError.from(err),
@@ -41,12 +44,13 @@ export class LogoutButton {
             this.router.navigate(['/auth/login'])
             this.messageService.add({
               severity: 'info',
-              summary: 'Deconnexion',
+              summary: 'Déconnexion',
               detail: 'Vous avez été déconnecté.',
             })
             this.running.set(false)
           }),
         ),
+      { defaultValue: undefined },
     )
   }
 }

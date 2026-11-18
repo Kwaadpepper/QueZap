@@ -2,7 +2,7 @@ import { DOCUMENT, inject } from '@angular/core'
 
 import {
   catchError, firstValueFrom, forkJoin,
-  tap, throwError,
+  of, tap,
 } from 'rxjs'
 
 import { client } from './core/api-client/client.gen'
@@ -27,7 +27,14 @@ export async function AppInitializer() {
   // Init tasks
   const initializationTasks = [
     initZod(),
-    authStore.loadInitialState(),
+    authStore.loadInitialState().pipe(
+      catchError((err) => {
+        if (config.debug()) {
+          console.warn('AppInitializer: Auth initialization failed, continuing as guest.', err)
+        }
+        return of(void 0)
+      }),
+    ),
   ]
 
   const initialization$ = forkJoin(initializationTasks).pipe(
@@ -35,14 +42,7 @@ export async function AppInitializer() {
       if (config.debug()) {
         console.warn('AppInitializer: Failed to load initial state (one or more tasks failed).', err)
       }
-
-      if (confirm(
-        'Une erreur est survenue lors du démarrage de l\'application. Veuillez essayer de rafraîchir la page.',
-      )) {
-        globalThis.location.reload()
-      }
-
-      return throwError(() => err)
+      return of(void 0)
     }),
     tap(() => HideSplashScreen(document)),
   )

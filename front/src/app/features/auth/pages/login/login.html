@@ -29,7 +29,9 @@
         class="w-full flex-auto"
         autocomplete="email"
         type="email"
+        quizzFieldError
         [formField]="loginForm.email"
+        [fieldState]="loginForm.email"
       />
     </div>
     <div class="mx-auto mb-8 flex flex-col gap-4 md:items-center">
@@ -40,7 +42,9 @@
         class="w-full flex-auto"
         autocomplete="current-password"
         type="password"
+        quizzFieldError
         [formField]="loginForm.password"
+        [fieldState]="loginForm.password"
       />
     </div>
     <div class="relative mb-5 flex justify-center gap-2">
@@ -60,7 +64,7 @@
       <p-button
         label="Se connecter"
         type="submit"
-        [disabled]="this.loginForm().submitting() || !this.loginForm().dirty()"
+        [disabled]="this.loginForm().submitting()"
       >
         @if (this.loginForm().submitting()) {
           <quizz-icon name="cog" animation="spin" pButtonIcon />
@@ -72,7 +76,7 @@
       <p class="sm:w-80">
         Mince ! <br />
         J'ai oublié et je veux
-        <a routerLink="/auth/reset"> rénitialiser mon mot de passe</a>
+        <a routerLink="/auth/reset"> réinitialiser mon mot de passe</a>
       </p>
     </div>
   </form>

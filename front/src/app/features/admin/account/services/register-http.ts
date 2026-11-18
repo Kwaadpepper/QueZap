@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core'
+import { HttpClient } from '@angular/common/http'
+import { inject, Injectable } from '@angular/core'
 
-import { catchError, from, map, of } from 'rxjs'
+import { catchError, defer, from, map, of } from 'rxjs'
 
 import { CreateUserRequest } from '@quezap/core/api-client'
-import { client } from '@quezap/core/api-client/client.gen'
+import { create } from '@quezap/core/api-client/sdk.gen'
 import { ValidationError } from '@quezap/core/errors'
 import { ServiceOutput } from '@quezap/core/types'
 
@@ -11,6 +12,8 @@ import { RegisterService } from './register'
 
 @Injectable({ providedIn: 'root' })
 export class RegisterHttpService implements RegisterService {
+  private readonly httpClient = inject(HttpClient, { optional: true })
+
   register(email: string): ServiceOutput<void> {
     const payload: CreateUserRequest = {
       name: email.split('@')[0],
@@ -18,11 +21,13 @@ export class RegisterHttpService implements RegisterService {
       email,
     }
 
-    return from(
-      client.post<void>({
-        url: '/apiv1/users',
-        body: payload,
-      }),
+    return defer(() =>
+      from(
+        create({
+          body: payload,
+          ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+        }),
+      ),
     ).pipe(
       map(({ error }) => {
         if (error) {
