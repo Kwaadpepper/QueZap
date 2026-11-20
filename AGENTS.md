@@ -193,3 +193,12 @@ Les commits sont contrôlés par Husky et Commitlint (`commitlint.config.cjs`) :
   - `front` : pour les modifications du frontend Angular.
   - `back` : pour les modifications du backend Spring Boot.
   - `modelisation` : pour les modifications conceptuelles ou transverses.
+
+---
+
+## 🧪 Pièges E2E réels (suite Playwright live)
+
+- **`<label><input>`** : ne jamais écouter `(click)` sur le composant parent (2 clics par action utilisateur → double soumission) ; utiliser l'`output()` du composant déclenché depuis l'`<input>`, et garder une garde anti-double-envoi dans `question-submission.ts`.
+- **Pagination** : `perPage <= 50` côté frontend, sinon `400`.
+- **`GlobalExceptionHandler`** : ignorer `AsyncRequestNotUsableException`/SSE `Broken pipe` ; mapper `BadPaginationException` et `InvalidFileException` en `400`.
+- **Nginx** : `docker-compose restart frontend` après recréation de `backend` (cache DNS Nginx).
