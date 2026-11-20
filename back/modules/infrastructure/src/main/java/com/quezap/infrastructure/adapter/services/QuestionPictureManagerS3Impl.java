@@ -1,14 +1,9 @@
 package com.quezap.infrastructure.adapter.services;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.quezap.domain.models.valueobjects.Sha256Hash;
@@ -35,50 +30,37 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
 
   private final String bucketName;
   private final S3Client s3Client;
-  private final ExecutorService executorService;
 
-  public QuestionPictureManagerS3Impl(
-      PicturesS3Config config,
-      @Qualifier("pictureHashingExecutor") ExecutorService executorService) {
+  public QuestionPictureManagerS3Impl(PicturesS3Config config) {
     this.bucketName = config.getBucketName();
     this.s3Client = config.getS3Client();
-    this.executorService = executorService;
   }
 
   @Override
   public Picture store(PictureUploadData uploadData) {
-    try (final var pipedOutputStream = new PipedOutputStream();
-        final var pipedInputStream = new PipedInputStream(pipedOutputStream);
-        final var originalStream = new BufferedInputStream(uploadData.inputStream())) {
+    try {
+      final var digest = MessageDigest.getInstance("SHA-256");
 
-      // Launch a separate thread to hash the content while piping it to S3
-      final var hashFuture =
-          executorService.submit(hashStreamWhilePiping(originalStream, pipedOutputStream));
+      try (final var digestStream = new DigestInputStream(uploadData.inputStream(), digest);
+          final var bufferedStream = new BufferedInputStream(digestStream)) {
+        final long contentLength = uploadData.contentLength();
+        final var pictureType = uploadData.type();
+        final var objectKey = generateUniqueKey(pictureType);
 
-      final long contentLength = uploadData.contentLength();
-      final var pictureType = uploadData.type();
-      final var objectKey = generateUniqueKey(pictureType);
+        final var putObjectRequest =
+            PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .contentLength(contentLength)
+                .contentType(pictureType.mimeType())
+                .build();
 
-      final var putObjectRequest =
-          PutObjectRequest.builder()
-              .bucket(bucketName)
-              .key(objectKey)
-              .contentLength(contentLength)
-              .contentType(pictureType.mimeType())
-              .build();
+        final var requestBody = RequestBody.fromInputStream(bufferedStream, contentLength);
+        s3Client.putObject(putObjectRequest, requestBody);
 
-      // S3 reads from the piped input stream
-      final var requestBody = RequestBody.fromInputStream(pipedInputStream, contentLength);
-      s3Client.putObject(putObjectRequest, requestBody);
-
-      // Waiting for the hashing thread to complete and get the hash
-      final var hash = hashFuture.get();
-
-      return new Picture(objectKey, pictureType, hash);
-    } catch (InterruptedException e) {
-      // Restore the interrupted status of main thread
-      Thread.currentThread().interrupt();
-      throw new QuestionPictureManagerException("Thread interrupted while hashing picture.", e);
+        final var hash = new Sha256Hash(digest.digest());
+        return new Picture(objectKey, pictureType, hash);
+      }
     } catch (Exception e) {
       logStoreException(e);
       throw new QuestionPictureManagerException("Failed to store picture to S3.", e);
@@ -170,38 +152,6 @@ public class QuestionPictureManagerS3Impl implements QuestionPictureManager {
         throw e;
       }
     }
-  }
-
-  private Callable<Sha256Hash> hashStreamWhilePiping(
-      BufferedInputStream originalStream, PipedOutputStream pipedOutputStream) {
-
-    return () -> {
-      try (BufferedInputStream inputStream = originalStream;
-          PipedOutputStream outputStream = pipedOutputStream) {
-
-        final var digest = MessageDigest.getInstance("SHA-256");
-
-        var buffer = new byte[8192];
-        int bytesRead;
-
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-          digest.update(buffer, 0, bytesRead);
-          outputStream.write(buffer, 0, bytesRead);
-        }
-
-        return new Sha256Hash(digest.digest());
-      } catch (Exception e) {
-        logger.error("Error in hashing/piping thread for picture upload", e);
-
-        try {
-          pipedOutputStream.close();
-        } catch (IOException _) {
-          logger.error("Failed to close PipedOutputStream after hashing thread failure");
-        }
-
-        throw e;
-      }
-    };
   }
 
   private String generateUniqueKey(PictureType pictureType) {
