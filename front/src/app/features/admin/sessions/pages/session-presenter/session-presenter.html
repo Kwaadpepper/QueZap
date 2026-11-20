@@ -11,14 +11,14 @@
       </span>
     </div>
 
-    <div class="flex items-center gap-4 sm:gap-6">
-      <div class="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700 px-4 py-2 rounded-2xl shadow-md">
+    <div class="flex items-center flex-wrap justify-end gap-2 md:gap-3">
+      <div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-2xl shadow-md">
         <span class="relative flex h-3 w-3">
           <span class="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
         </span>
-        <span class="text-2xl font-black text-white">{{ participants().length }}</span>
-        <span class="text-slate-400 text-sm font-semibold">joueurs</span>
+        <span class="text-xl font-black text-white">{{ participants().length }}</span>
+        <span class="text-slate-400 text-xs font-semibold">joueurs</span>
       </div>
 
       <!-- In-game controls (active during quiz stages, hidden in lobby / podium) -->
@@ -26,7 +26,7 @@
         <!-- Mode Manuel / Automatique -->
         <button
           type="button"
-          class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
           title="Basculer entre transition manuelle et automatique après explication"
           [class.bg-indigo-950/80]="progressionMode() === 'AUTOMATIC'"
           [class.border-indigo-500/60]="progressionMode() === 'AUTOMATIC'"
@@ -39,10 +39,41 @@
           <span>{{ progressionMode() === 'AUTOMATIC' ? 'Mode Auto (' + explanationDurationSeconds() + 's)' : 'Mode Manuel' }}</span>
         </button>
 
+        <!-- Durée d'explication -->
+        <label class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl border border-slate-700 bg-slate-800/90 text-xs font-bold text-slate-300 shadow-md">
+          <i class="pi pi-clock text-indigo-400"></i>
+          <span class="sr-only">Durée d’explication</span>
+          <select
+            aria-label="Durée d’explication"
+            class="bg-transparent text-slate-200 font-bold focus:outline-none cursor-pointer"
+            [value]="explanationDurationSeconds()"
+            (change)="onExplanationDurationChange($event)">
+            @for (sec of explanationDurationOptions; track sec) {
+              <option class="bg-slate-900 text-white" [value]="sec" [selected]="explanationDurationSeconds() === sec">{{ sec }}s</option>
+            }
+          </select>
+        </label>
+
+        <!-- Correction mobile -->
+        <button
+          type="button"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
+          title="Autoriser l'affichage de la correction sur les smartphones des élèves"
+          [class.bg-cyan-950/80]="mobileCorrectionEnabled()"
+          [class.border-cyan-500/60]="mobileCorrectionEnabled()"
+          [class.text-cyan-300]="mobileCorrectionEnabled()"
+          [class.bg-slate-800/90]="!mobileCorrectionEnabled()"
+          [class.border-slate-700]="!mobileCorrectionEnabled()"
+          [class.text-slate-400]="!mobileCorrectionEnabled()"
+          (click)="toggleMobileCorrection()">
+          <i class="pi pi-mobile"></i>
+          <span>{{ mobileCorrectionEnabled() ? 'Correction mobile ON' : 'Correction mobile OFF' }}</span>
+        </button>
+
         <!-- Bouton Pause / Reprendre -->
         <button
           type="button"
-          class="flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-extrabold transition shadow-md cursor-pointer active:scale-95"
+          class="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border text-xs font-extrabold transition shadow-md cursor-pointer active:scale-95"
           [class.bg-amber-500]="isPaused()"
           [class.text-slate-950]="isPaused()"
           [class.border-amber-400]="isPaused()"
@@ -58,7 +89,7 @@
         <!-- Auto-révélation -->
         <button
           type="button"
-          class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
           title="Révéler automatiquement la bonne réponse quand le compte à rebours atteint 0s"
           [class.bg-emerald-950/80]="autoReveal()"
           [class.border-emerald-500/60]="autoReveal()"
@@ -73,9 +104,9 @@
       }
 
       <button
-        class="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-2xl font-bold transition shadow-md active:scale-95 cursor-pointer"
+        class="px-3.5 py-2 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-2xl text-xs md:text-sm font-bold transition shadow-md active:scale-95 cursor-pointer"
         (click)="toggleFullscreen()">
-        <i class="pi pi-expand mr-2"></i>Plein écran
+        <i class="pi pi-expand mr-1.5"></i>Plein écran
       </button>
     </div>
   </header>
@@ -161,13 +192,13 @@
         <div class="flex flex-wrap justify-center gap-2.5 p-4 bg-slate-900/60 rounded-3xl flex-1 min-h-0 overflow-y-auto border border-slate-800/80 shadow-inner">
           @for (p of participants(); track p.name) {
             <div class="player-card-anim flex items-center gap-2.5 bg-slate-800/90 px-3.5 py-2 rounded-2xl border border-slate-700/80 text-lg font-bold shadow-md transition-all hover:scale-105 group">
-              <span class="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black shadow-inner" [class]="getParticipantColor(p.name)">
+              <span class="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black shadow-inner" [ngClass]="getParticipantColor(p.name)">
                 {{ getInitials(p.name) }}
               </span>
               <span class="text-white">{{ p.name }}</span>
               <button
                 type="button"
-                class="ml-1 text-slate-400 hover:text-red-400 focus:text-red-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition cursor-pointer p-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+                class="ml-1 text-slate-400 hover:text-red-400 focus:text-red-400 opacity-70 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition cursor-pointer p-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
                 [attr.aria-label]="'Exclure le joueur ' + p.name"
                 [title]="'Exclure le joueur ' + p.name"
                 (click)="requestKick(p.name)">
@@ -248,6 +279,17 @@
     </main>
   }
 
+  <!-- SYNCING SCREEN (on reload when session is already STARTED) -->
+  @if (stage() === 'SYNCING') {
+    <main class="flex-1 min-h-0 flex flex-col items-center justify-center text-center py-6 relative z-20">
+      <div class="flex flex-col items-center gap-4 p-8 bg-slate-900/80 border border-indigo-500/40 rounded-3xl shadow-2xl backdrop-blur-md">
+        <i class="pi pi-spin pi-spinner text-4xl text-indigo-400"></i>
+        <h2 class="text-2xl md:text-3xl font-black text-white">Synchronisation de la session en cours…</h2>
+        <p class="text-slate-400 text-base">Récupération de la question active depuis le serveur</p>
+      </div>
+    </main>
+  }
+
   <!-- QUESTION RUNNER SCREEN -->
   @if (stage() === 'QUESTION') {
     <main class="flex-1 min-h-0 flex flex-col justify-between py-2 max-w-7xl mx-auto w-full relative z-20 overflow-hidden">
@@ -276,9 +318,9 @@
       </div>
 
       <!-- Scène centrale dynamique flex-1 min-h-0 -->
-      <div class="flex-1 min-h-0 flex flex-col items-center justify-center overflow-hidden my-auto w-full relative p-1">
+      <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-3 overflow-hidden my-auto w-full relative p-1">
         @if (currentQuestion().pictureUrl) {
-          <div class="h-full w-full flex items-center justify-center min-h-0 overflow-hidden">
+          <div class="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
             <p-image
               alt="Illustration de la question"
               [src]="currentQuestion().pictureUrl!"
@@ -298,11 +340,11 @@
           </div>
         }
         @if (currentQuestion().type === 'CASH') {
-          <div class="flex flex-col items-center justify-center gap-3 p-6 bg-slate-900/80 border-2 border-amber-500/50 rounded-3xl backdrop-blur-md shadow-2xl max-w-xl text-center animate-fade-in my-auto">
-            <div class="text-5xl animate-bounce">✍️</div>
+          <div class="shrink-0 flex flex-col items-center justify-center gap-2 p-4 md:p-5 bg-slate-900/80 border-2 border-amber-500/50 rounded-3xl backdrop-blur-md shadow-2xl max-w-xl text-center animate-fade-in">
+            <div class="text-4xl animate-bounce">✍️</div>
             <h3 class="text-2xl md:text-3xl font-black text-amber-400">Mode Cash — Saisie Libre</h3>
             <p class="text-slate-200 text-base md:text-lg font-medium">Saisissez votre réponse sur votre smartphone !</p>
-            <div class="flex items-center gap-2 mt-2 px-4 py-2 bg-slate-800/90 rounded-xl border border-slate-700">
+            <div class="flex items-center gap-2 mt-1 px-4 py-1.5 bg-slate-800/90 rounded-xl border border-slate-700">
               <i class="pi pi-users text-emerald-400 text-lg"></i>
               <span class="text-white font-bold">{{ answersReceived() }} / {{ participants().length }} réponses reçues</span>
             </div>
@@ -314,7 +356,7 @@
       @if (currentQuestion().type !== 'CASH') {
         <div class="choice-grid max-w-6xl mx-auto w-full shrink-0 my-2">
           @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
-            <div class="choice-card text-white shadow-xl" [class]="getChoiceColorClass(i)">
+            <div class="choice-card text-white shadow-xl" [ngClass]="getChoiceColorClass(i)">
               <span class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-black/25 flex items-center justify-center mr-3 shrink-0 shadow-inner gap-1">
                 <span class="text-base md:text-lg font-black text-white/80 mr-1">{{ i + 1 }}</span>
                 <quizz-question-icon class="w-5 h-5 md:w-6 md:h-6" [form]="getChoiceForm(i)" [checked]="true" />
@@ -378,7 +420,27 @@
       </div>
 
       <!-- Scène centrale Reveal -->
-      <div class="flex-1 min-h-0 flex flex-col items-center justify-center overflow-hidden my-auto w-full relative p-1">
+      <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 overflow-hidden my-auto w-full relative p-1">
+        @if (currentQuestion().pictureUrl) {
+          <div class="max-h-36 md:max-h-44 w-full flex items-center justify-center shrink-0 overflow-hidden">
+            <p-image
+              alt="Illustration de la question"
+              [src]="currentQuestion().pictureUrl!"
+              [preview]="true"
+              [pt]="{
+                image: {
+                  style: 'object-fit: contain; max-height: 160px; max-width: 100%; height: auto; width: auto; border-radius: 1rem; border: 2px solid rgba(99, 102, 241, 0.5); box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.5); cursor: zoom-in;',
+                },
+                previewMask: {
+                  style: 'border-radius: 1rem;',
+                },
+                original: {
+                  style: 'object-fit: contain; max-width: 92vw; max-height: 88vh; border-radius: 1.25rem;',
+                },
+              }"
+            />
+          </div>
+        }
         @if (currentQuestion().type === 'CASH') {
           <div class="flex flex-col items-center justify-center gap-4 p-6 bg-slate-900/90 border-2 border-emerald-500/60 rounded-3xl backdrop-blur-xl shadow-2xl max-w-3xl w-full mx-auto my-auto animate-scale-in">
             <span class="text-xs font-black uppercase tracking-widest text-emerald-400">Bonne réponse attendue</span>
@@ -402,10 +464,10 @@
             @for (ans of currentQuestion().answers; track ans.id; let i = $index) {
               <div
                 class="choice-card text-white shadow-xl flex-col !items-stretch overflow-hidden relative"
+                [ngClass]="getChoiceColorClass(i)"
                 [class.choice-revealed-correct]="ans.isCorrect"
                 [class.opacity-40]="!ans.isCorrect"
-                [class.scale-98]="!ans.isCorrect"
-                [class]="getChoiceColorClass(i)">
+                [class.scale-98]="!ans.isCorrect">
 
                 <!-- Vote stat background progress fill -->
                 @if (ans.percentage !== undefined && ans.percentage > 0) {
@@ -608,18 +670,18 @@
       }
     }
 
-    <main class="flex-1 min-h-0 flex flex-col items-center justify-center py-2 text-center max-w-6xl mx-auto w-full relative z-20 overflow-hidden">
-      <div class="mb-2">
-        <span class="text-xl">🎉 🎊 🏆</span>
+    <main class="flex-1 min-h-0 flex flex-col items-center justify-evenly py-1 text-center max-w-6xl mx-auto w-full relative z-20 overflow-hidden">
+      <div class="shrink-0">
+        <span class="text-lg">🎉 🎊 🏆</span>
+        <h2 class="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 drop-shadow-2xl tracking-tight">
+          PODIUM DE LA CLASSE
+        </h2>
       </div>
-      <h2 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 mb-4 drop-shadow-2xl tracking-tight">
-        PODIUM DE LA CLASSE
-      </h2>
 
       @if (podiumStep() < 3) {
-        <div class="mb-4">
+        <div class="my-1 shrink-0">
           <button
-            class="px-6 py-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 shadow-md transition cursor-pointer text-sm"
+            class="px-5 py-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 shadow-md transition cursor-pointer text-sm"
             (click)="skipPodiumAnimation()">
             <span>Passer l'animation ⏩</span>
           </button>
@@ -627,7 +689,7 @@
       }
 
       <!-- 3D Podium Steps (Always 3 steps for geometric balance) -->
-      <div class="podium-box w-full max-w-4xl my-6">
+      <div class="podium-box w-full max-w-4xl my-2 shrink-0">
         <!-- 2nd place (Silver / Argent) -->
         <div
           class="podium-step step-second shadow-2xl transition-all duration-700"
@@ -700,17 +762,17 @@
 
       <!-- Top 4 & 5 Runners-up (Compact, no scroll) -->
       @if (podiumStep() >= 3 && top5Entries().length >= 4) {
-        <div class="flex items-center justify-center gap-4 my-2 max-w-2xl mx-auto w-full">
+        <div class="flex items-center justify-center gap-3 my-1 max-w-2xl mx-auto w-full shrink-0">
           @if (top5Entries().length >= 4) {
-            <div class="flex-1 flex items-center justify-between bg-slate-900/80 px-5 py-2.5 rounded-2xl border border-slate-700/70 shadow-md">
-              <span class="text-base font-bold text-slate-300">#4 {{ top5Entries()[3].name }}</span>
-              <span class="text-base font-black text-indigo-400 font-mono">{{ top5Entries()[3].score }} pts</span>
+            <div class="flex-1 flex items-center justify-between bg-slate-900/80 px-4 py-1.5 rounded-2xl border border-slate-700/70 shadow-md">
+              <span class="text-sm md:text-base font-bold text-slate-300">#4 {{ top5Entries()[3].name }}</span>
+              <span class="text-sm md:text-base font-black text-indigo-400 font-mono">{{ top5Entries()[3].score }} pts</span>
             </div>
           }
           @if (top5Entries().length >= 5) {
-            <div class="flex-1 flex items-center justify-between bg-slate-900/80 px-5 py-2.5 rounded-2xl border border-slate-700/70 shadow-md">
-              <span class="text-base font-bold text-slate-300">#5 {{ top5Entries()[4].name }}</span>
-              <span class="text-base font-black text-indigo-400 font-mono">{{ top5Entries()[4].score }} pts</span>
+            <div class="flex-1 flex items-center justify-between bg-slate-900/80 px-4 py-1.5 rounded-2xl border border-slate-700/70 shadow-md">
+              <span class="text-sm md:text-base font-bold text-slate-300">#5 {{ top5Entries()[4].name }}</span>
+              <span class="text-sm md:text-base font-black text-indigo-400 font-mono">{{ top5Entries()[4].score }} pts</span>
             </div>
           }
         </div>
@@ -718,30 +780,42 @@
 
       <!-- Collective Group Metrics (Class Average & Cohesion) -->
       @if (podiumStep() >= 3) {
-        <div class="w-full max-w-3xl my-3 bg-slate-900/90 rounded-2xl p-5 border border-slate-800 shadow-2xl backdrop-blur-xl">
-          <div class="grid grid-cols-3 gap-4 text-center">
-            <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700/60">
-              <p class="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Participants</p>
-              <p class="text-2xl font-black text-white mt-1">{{ classMetrics()?.totalParticipants ?? participants().length }}</p>
+        <div class="w-full max-w-3xl my-1 bg-slate-900/90 rounded-2xl p-3 md:p-4 border border-slate-800 shadow-2xl backdrop-blur-xl shrink-0">
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="p-2 md:p-2.5 bg-slate-800/80 rounded-xl border border-slate-700/60">
+              <p class="text-[11px] uppercase font-extrabold text-slate-400 tracking-wider">Participants</p>
+              <p class="text-xl md:text-2xl font-black text-white mt-0.5">{{ classMetrics()?.totalParticipants ?? participants().length }}</p>
             </div>
-            <div class="p-3 bg-indigo-950/70 rounded-xl border border-indigo-500/40">
-              <p class="text-xs uppercase font-extrabold text-indigo-300 tracking-wider">Moyenne Classe</p>
-              <p class="text-2xl font-black text-indigo-200 mt-1">{{ classMetrics()?.averageScore ?? 0 }} pts</p>
+            <div class="p-2 md:p-2.5 bg-indigo-950/70 rounded-xl border border-indigo-500/40">
+              <p class="text-[11px] uppercase font-extrabold text-indigo-300 tracking-wider">Moyenne Classe</p>
+              <p class="text-xl md:text-2xl font-black text-indigo-200 mt-0.5">{{ classMetrics()?.averageScore ?? 0 }} pts</p>
             </div>
-            <div class="p-3 bg-emerald-950/70 rounded-xl border border-emerald-500/40">
-              <p class="text-xs uppercase font-extrabold text-emerald-300 tracking-wider">Réussite Globale</p>
-              <p class="text-2xl font-black text-emerald-200 mt-1">{{ classMetrics()?.globalSuccessRate ?? 0 }}%</p>
+            <div class="p-2 md:p-2.5 bg-emerald-950/70 rounded-xl border border-emerald-500/40">
+              <p class="text-[11px] uppercase font-extrabold text-emerald-300 tracking-wider">Réussite Globale</p>
+              <p class="text-xl md:text-2xl font-black text-emerald-200 mt-0.5">{{ classMetrics()?.globalSuccessRate ?? 0 }}%</p>
             </div>
           </div>
 
-          <div class="mt-4 flex justify-center">
+          <div class="mt-3 flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
-              class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 cursor-pointer flex items-center gap-2 text-sm"
+              class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 cursor-pointer flex items-center gap-2 text-sm"
               (click)="downloadCsv()">
               <i class="pi pi-download"></i>
               <span>Télécharger les notes complètes (CSV)</span>
             </button>
+            <a
+              class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 flex items-center gap-2 text-sm no-underline"
+              [routerLink]="['/admin/sessions', sessionId(), 'report']">
+              <i class="pi pi-chart-bar"></i>
+              <span>Voir le bilan détaillé</span>
+            </a>
+            <a
+              routerLink="/admin/sessions"
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-xl shadow-md transition active:scale-95 flex items-center gap-2 text-sm no-underline">
+              <i class="pi pi-arrow-left"></i>
+              <span>Retour aux sessions</span>
+            </a>
           </div>
         </div>
       }

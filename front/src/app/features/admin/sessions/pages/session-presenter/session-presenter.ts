@@ -1,16 +1,19 @@
-import { HttpClient } from '@angular/common/http'
+import { NgClass } from '@angular/common'
 import {
   ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef,
   inject, OnDestroy, OnInit, signal, viewChild, WritableSignal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { ActivatedRoute } from '@angular/router'
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 
 import { QRCodeComponent } from 'angularx-qrcode'
+import { MessageService } from 'primeng/api'
 import { Image } from 'primeng/image'
 
+import { ServiceError, UnauthorizedError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
+import { isFailure, isSuccess } from '@quezap/core/types'
 
 import {
   QuestionIcon,
@@ -18,7 +21,7 @@ import {
 } from '../../../../quizz/components/question-view/parts/question-icon/question-icon'
 import { SESSION_SERVICE } from '../../services/session'
 
-export type PresenterStage = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'LEADERBOARD' | 'PODIUM'
+export type PresenterStage = 'LOBBY' | 'SYNCING' | 'QUESTION' | 'REVEAL' | 'LEADERBOARD' | 'PODIUM'
 
 export interface IntermediateLeaderboardEntry {
   rank: number
@@ -106,14 +109,15 @@ interface SseEnvelope {
   selector: 'quizz-session-presenter',
   templateUrl: './session-presenter.html',
   styleUrls: ['./session-presenter.css'],
-  imports: [QRCodeComponent, QuestionIcon, Image],
+  imports: [NgClass, RouterLink, QRCodeComponent, QuestionIcon, Image],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SessionPresenter implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
   private readonly sessionService = inject(SESSION_SERVICE)
   private readonly config = inject(Config)
-  private readonly http = inject(HttpClient)
+  private readonly messageService = inject(MessageService, { optional: true })
   private readonly layout = inject(LayoutSettings)
 
   protected readonly autoReveal = signal<boolean>(true)
@@ -121,6 +125,8 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   protected readonly progressionMode = signal<'MANUAL' | 'AUTOMATIC'>('MANUAL')
   protected readonly explanationDurationSeconds = signal<number>(15)
+  protected readonly explanationDurationOptions = [5, 10, 15, 20, 30]
+  protected readonly mobileCorrectionEnabled = signal<boolean>(false)
   protected readonly isPaused = signal<boolean>(false)
   protected readonly explanationTimer = signal<number>(15)
   protected readonly classMetrics = signal<{
@@ -141,11 +147,21 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   protected setProgressionMode(mode: 'MANUAL' | 'AUTOMATIC'): void {
+    const previousMode = this.progressionMode()
     this.progressionMode.set(mode)
     this.sessionService.updateSettings(this.sessionId(), {
       progressionMode: mode,
       explanationDurationSeconds: this.explanationDurationSeconds(),
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+      mobileCorrectionEnabled: this.mobileCorrectionEnabled(),
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
+      if (isFailure(output)) {
+        this.progressionMode.set(previousMode)
+        if (previousMode === 'MANUAL') {
+          this.stopExplanationCountdown()
+        }
+        this.handleCommandFailure(output.error, 'Impossible de modifier le mode de progression')
+      }
+    })
 
     if (
       mode === 'AUTOMATIC'
@@ -159,20 +175,63 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }
   }
 
+  protected onExplanationDurationChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null
+    const value = Number(target?.value)
+    if (!Number.isNaN(value) && value > 0) {
+      this.setExplanationDuration(value)
+    }
+  }
+
   protected setExplanationDuration(seconds: number): void {
+    const previousDuration = this.explanationDurationSeconds()
     this.explanationDurationSeconds.set(seconds)
     this.sessionService.updateSettings(this.sessionId(), {
       progressionMode: this.progressionMode(),
       explanationDurationSeconds: seconds,
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+      mobileCorrectionEnabled: this.mobileCorrectionEnabled(),
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
+      if (isFailure(output)) {
+        this.explanationDurationSeconds.set(previousDuration)
+        this.handleCommandFailure(output.error, 'Impossible de modifier la durée d’explication')
+      }
+    })
+  }
+
+  protected toggleMobileCorrection(): void {
+    const previous = this.mobileCorrectionEnabled()
+    const next = !previous
+    this.mobileCorrectionEnabled.set(next)
+    this.sessionService.updateSettings(this.sessionId(), {
+      progressionMode: this.progressionMode(),
+      explanationDurationSeconds: this.explanationDurationSeconds(),
+      mobileCorrectionEnabled: next,
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
+      if (isFailure(output)) {
+        this.mobileCorrectionEnabled.set(previous)
+        this.handleCommandFailure(output.error, 'Impossible de modifier la correction mobile')
+      }
+    })
   }
 
   protected togglePause(): void {
-    const nextPaused = !this.isPaused()
+    const previousPaused = this.isPaused()
+    const nextPaused = !previousPaused
     this.isPaused.set(nextPaused)
+    this.syncPauseTiming(nextPaused)
     this.sessionService.pauseSession(this.sessionId(), nextPaused)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe()
+      .subscribe((output) => {
+        if (isFailure(output)) {
+          this.isPaused.set(previousPaused)
+          this.syncPauseTiming(previousPaused)
+          this.handleCommandFailure(output.error, 'Impossible de modifier l’état de pause')
+        }
+        else if (isSuccess(output) && output.result.isPaused !== undefined) {
+          this.isPaused.set(output.result.isPaused)
+          this.syncPauseTiming(output.result.isPaused)
+        }
+      })
   }
 
   protected showIntermediateLeaderboard(): void {
@@ -228,6 +287,8 @@ export class SessionPresenter implements OnInit, OnDestroy {
     switch (this.stage()) {
       case 'LOBBY':
         return `Salon d'attente. ${this.participants().length} participants connectés.`
+      case 'SYNCING':
+        return 'Synchronisation de la session en cours.'
       case 'QUESTION':
         return (
           `Question ${this.currentQuestionIndex() + 1} sur ${this.totalQuestions()} : `
@@ -248,11 +309,38 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private eventSource: EventSource | null = null
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
   private reconnectAttempts = 0
+  private hasReceivedInitialQuestionEvent = false
 
   protected readonly qrZoomed = signal(false)
 
   protected toggleQrZoom(): void {
     this.qrZoomed.update(v => !v)
+  }
+
+  private handleCommandFailure(error: ServiceError, fallbackDetail: string): void {
+    const detail = error.message || fallbackDetail
+    this.messageService?.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail,
+    })
+    if (error instanceof UnauthorizedError) {
+      this.router.navigate(['/auth/login'])
+    }
+  }
+
+  private syncPauseTiming(paused: boolean): void {
+    if (paused) {
+      if (this.pausedAtMs === null) {
+        this.pausedAtMs = Date.now()
+      }
+    }
+    else if (this.pausedAtMs !== null) {
+      if (this.questionDeadlineMs !== null) {
+        this.questionDeadlineMs += Date.now() - this.pausedAtMs
+      }
+      this.pausedAtMs = null
+    }
   }
 
   ngOnInit(): void {
@@ -265,37 +353,45 @@ export class SessionPresenter implements OnInit, OnDestroy {
     const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id)
 
     this.sessionService.getSession(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
-      if (output.kind === 'success') {
-        const session = output.result
-        this.sessionId.set(session.id || '')
-        this.sessionCode.set(session.code || '')
-        this.sessionName.set(session.name || '')
-        if (session.participants && session.participants.length > 0) {
-          this.participants.set(session.participants.map(p => ({ name: p.name || '' })))
+      if (isFailure(output)) {
+        this.handleCommandFailure(output.error, 'Impossible de charger la session')
+        return
+      }
+      const session = output.result
+      this.sessionId.set(session.id || '')
+      this.sessionCode.set(session.code || '')
+      this.sessionName.set(session.name || '')
+      if (session.participants && session.participants.length > 0) {
+        this.participants.set(session.participants.map(p => ({ name: p.name || '' })))
+      }
+      if (!isUuid && session.id) {
+        if (this.eventSource) {
+          this.eventSource.close()
         }
-        if (!isUuid && session.id) {
-          if (this.eventSource) {
-            this.eventSource.close()
-          }
-          this.connectSse(session.id)
-        }
-        if (session.progressionMode === 'AUTOMATIC' || session.progressionMode === 'MANUAL') {
-          this.progressionMode.set(session.progressionMode)
-        }
-        if (session.explanationDurationSeconds) {
-          this.explanationDurationSeconds.set(session.explanationDurationSeconds)
-        }
-        if (session.isPaused !== undefined) {
-          this.isPaused.set(session.isPaused)
-        }
-        if (session.status === 'STARTED') {
-          this.stage.set('QUESTION')
-        }
-        else if (session.status === 'ENDED') {
-          this.stage.set('PODIUM')
-          this.fetchScores()
-          this.launchPodiumAnimation()
-        }
+        this.connectSse(session.id)
+      }
+      if (session.progressionMode === 'AUTOMATIC' || session.progressionMode === 'MANUAL') {
+        this.progressionMode.set(session.progressionMode)
+      }
+      if (session.explanationDurationSeconds) {
+        this.explanationDurationSeconds.set(session.explanationDurationSeconds)
+      }
+      if (session.mobileCorrectionEnabled !== undefined) {
+        this.mobileCorrectionEnabled.set(session.mobileCorrectionEnabled)
+      }
+      if (session.isPaused !== undefined) {
+        this.isPaused.set(session.isPaused)
+        this.syncPauseTiming(session.isPaused)
+      }
+      const isStartedAndNotEnded = session.status === 'STARTED'
+        || (session.startedAt != null && session.endedAt == null)
+      if (session.status === 'ENDED' || session.endedAt != null) {
+        this.stage.set('PODIUM')
+        this.fetchScores()
+        this.launchPodiumAnimation()
+      }
+      else if (isStartedAndNotEnded && !this.hasReceivedInitialQuestionEvent) {
+        this.stage.set('SYNCING')
       }
     })
     if (isUuid) {
@@ -404,6 +500,8 @@ export class SessionPresenter implements OnInit, OnDestroy {
   private timerInterval: ReturnType<typeof setInterval> | null = null
   private zeroRevealTimeout: ReturnType<typeof setTimeout> | null = null
   private explanationTimerInterval: ReturnType<typeof setInterval> | null = null
+  private questionDeadlineMs: number | null = null
+  private pausedAtMs: number | null = null
 
   ngOnDestroy(): void {
     this.layout.asWebsite.set(true)
@@ -421,12 +519,23 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }
   }
 
-  private startCountdown(seconds: number): void {
+  private startCountdown(seconds: number, deadline?: string): void {
     this.stopCountdown()
-    this.initialQuestionDuration.set(seconds)
-    this.timer.set(seconds)
 
-    if (seconds <= 0) {
+    const parsedDeadline = deadline ? Date.parse(deadline) : Number.NaN
+    const effectiveSeconds = !Number.isNaN(parsedDeadline)
+      ? Math.max(0, Math.ceil((parsedDeadline - Date.now()) / 1000))
+      : Math.max(0, seconds)
+
+    this.questionDeadlineMs = !Number.isNaN(parsedDeadline)
+      ? parsedDeadline
+      : Date.now() + effectiveSeconds * 1000
+    this.pausedAtMs = this.isPaused() ? Date.now() : null
+
+    this.initialQuestionDuration.set(effectiveSeconds)
+    this.timer.set(effectiveSeconds)
+
+    if (effectiveSeconds <= 0) {
       if (this.autoReveal() && this.stage() === 'QUESTION') {
         this.zeroRevealTimeout = setTimeout(() => {
           this.zeroRevealTimeout = null
@@ -439,24 +548,23 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }
 
     this.timerInterval = setInterval(() => {
-      if (this.isPaused()) {
+      if (this.isPaused() || this.questionDeadlineMs === null) {
         return
       }
-      const current = this.timer()
-      if (current <= 1) {
-        this.timer.set(0)
+      const remaining = Math.max(0, Math.ceil((this.questionDeadlineMs - Date.now()) / 1000))
+      this.timer.set(remaining)
+      if (remaining <= 0) {
         this.stopCountdown()
         if (this.autoReveal() && this.stage() === 'QUESTION') {
           this.revealAnswers()
         }
       }
-      else {
-        this.timer.set(current - 1)
-      }
-    }, 1000)
+    }, 250)
   }
 
   private stopCountdown(): void {
+    this.questionDeadlineMs = null
+    this.pausedAtMs = null
     if (this.zeroRevealTimeout) {
       clearTimeout(this.zeroRevealTimeout)
       this.zeroRevealTimeout = null
@@ -590,6 +698,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
         this.stage.set('QUESTION')
         break
       case 'QUESTION_START': {
+        this.hasReceivedInitialQuestionEvent = true
         const payload = envelope.payload
         if (payload) {
           this.stopExplanationCountdown()
@@ -637,12 +746,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
           })
           const seconds = payload.remainingSeconds ?? payload.timerSeconds ?? 30
           const totalDuration = payload.timerSeconds ?? seconds
-          this.startCountdown(seconds)
+          this.startCountdown(seconds, payload.deadline)
           this.initialQuestionDuration.set(totalDuration)
         }
         break
       }
       case 'QUESTION_REVEAL': {
+        this.hasReceivedInitialQuestionEvent = true
         this.stopCountdown()
         this.stage.set('REVEAL')
         this.startExplanationCountdown()
@@ -717,10 +827,12 @@ export class SessionPresenter implements OnInit, OnDestroy {
         const payload = envelope.payload as { isPaused?: boolean } | undefined
         if (payload?.isPaused !== undefined) {
           this.isPaused.set(payload.isPaused)
+          this.syncPauseTiming(payload.isPaused)
         }
         break
       }
       case 'SESSION_ENDED': {
+        this.hasReceivedInitialQuestionEvent = true
         this.stopCountdown()
         this.stopExplanationCountdown()
         this.isPaused.set(false)
@@ -753,47 +865,68 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   private fetchScores(): void {
     this.sessionService.getScores(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((output) => {
-      if (output.kind === 'success') {
-        const leaderboard = output.result.leaderboard || []
-        const seen = new Set<string>()
-        const cleanLeaderboard: LeaderboardItem[] = []
-        for (const item of leaderboard) {
-          const key = (item.participantName || '').trim().toLowerCase()
-          if (key && !seen.has(key)) {
-            seen.add(key)
-            cleanLeaderboard.push({ name: item.participantName || '', score: item.score || 0 })
-          }
+      if (isFailure(output)) {
+        this.handleCommandFailure(output.error, 'Impossible de récupérer les scores')
+        return
+      }
+      const leaderboard = output.result.leaderboard || []
+      const seen = new Set<string>()
+      const cleanLeaderboard: LeaderboardItem[] = []
+      for (const item of leaderboard) {
+        const key = (item.participantName || '').trim().toLowerCase()
+        if (key && !seen.has(key)) {
+          seen.add(key)
+          cleanLeaderboard.push({ name: item.participantName || '', score: item.score || 0 })
         }
-        this.leaderboard.set(cleanLeaderboard)
-        if (!this.classMetrics() && cleanLeaderboard.length > 0) {
-          const totalScore = cleanLeaderboard.reduce((acc, cur) => acc + (cur.score || 0), 0)
-          const avg = Math.round(totalScore / cleanLeaderboard.length)
-          this.classMetrics.set({
-            totalParticipants: cleanLeaderboard.length,
-            averageScore: avg,
-            globalSuccessRate: 0,
-          })
-        }
+      }
+      this.leaderboard.set(cleanLeaderboard)
+      if (!this.classMetrics() && cleanLeaderboard.length > 0) {
+        const totalScore = cleanLeaderboard.reduce((acc, cur) => acc + (cur.score || 0), 0)
+        const avg = Math.round(totalScore / cleanLeaderboard.length)
+        this.classMetrics.set({
+          totalParticipants: cleanLeaderboard.length,
+          averageScore: avg,
+          globalSuccessRate: 0,
+        })
       }
     })
   }
 
   protected startQuiz(): void {
+    const previousStage = this.stage()
     this.stage.set('QUESTION')
-    this.sessionService.startSession(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+    this.sessionService.startSession(this.sessionId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((output) => {
+        if (isFailure(output)) {
+          this.stage.set(previousStage)
+          this.handleCommandFailure(output.error, 'Impossible de démarrer la session')
+        }
+      })
   }
 
   protected revealAnswers(): void {
-    this.sessionService.revealAnswers(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+    const previousStage = this.stage()
     this.stage.set('REVEAL')
+    this.sessionService.revealAnswers(this.sessionId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((output) => {
+        if (isFailure(output)) {
+          this.stage.set(previousStage)
+          this.handleCommandFailure(output.error, 'Impossible de révéler les réponses')
+        }
+      })
   }
 
   protected downloadCsv(): void {
-    const apiUrl = this.config.appConfig.value().apiUrl
-    this.http.get(`${apiUrl}/sessions/${this.sessionId()}/export/csv`, { responseType: 'blob' })
+    this.sessionService.exportCsv(this.sessionId())
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((blob) => {
-        const url = window.URL.createObjectURL(blob)
+      .subscribe((output) => {
+        if (isFailure(output)) {
+          this.handleCommandFailure(output.error, 'Échec du téléchargement du fichier CSV')
+          return
+        }
+        const url = window.URL.createObjectURL(output.result)
         const a = document.createElement('a')
         a.href = url
         a.download = `session-${this.sessionId()}-resultats.csv`
@@ -804,7 +937,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   protected nextStep(): void {
     this.stopExplanationCountdown()
-    this.sessionService.nextQuestion(this.sessionId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+    this.sessionService.nextQuestion(this.sessionId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((output) => {
+        if (isFailure(output)) {
+          this.handleCommandFailure(output.error, 'Impossible de passer à la question suivante')
+        }
+      })
   }
 
   protected isLastQuestion(): boolean {
@@ -830,7 +969,13 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   protected kick(name: string): void {
-    this.sessionService.kickParticipant(this.sessionId(), name).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+    this.sessionService.kickParticipant(this.sessionId(), name)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((output) => {
+        if (isFailure(output)) {
+          this.handleCommandFailure(output.error, 'Impossible d’exclure le participant')
+        }
+      })
   }
 
   protected toggleFullscreen(): void {

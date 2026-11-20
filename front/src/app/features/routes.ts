@@ -44,12 +44,18 @@ export const routes: Routes = [
   {
     path: 'projector/:id',
     title: 'Écran de Projection',
+    canActivate: [
+      isAuthenticatedGuard,
+    ],
     loadComponent: () =>
       import('./admin/sessions/pages/session-presenter/session-presenter').then(m => m.SessionPresenter),
   },
   {
     path: 'present/:id',
     title: 'Écran de Projection',
+    canActivate: [
+      isAuthenticatedGuard,
+    ],
     loadComponent: () =>
       import('./admin/sessions/pages/session-presenter/session-presenter').then(m => m.SessionPresenter),
   },

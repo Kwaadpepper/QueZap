@@ -1,10 +1,13 @@
-import { provideHttpClient } from '@angular/common/http'
-import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing'
-import { provideRouter } from '@angular/router'
+import { provideRouter, Router } from '@angular/router'
 
+import { MessageService } from 'primeng/api'
 import { of } from 'rxjs'
 
+import { NotFoundError, UnauthorizedError } from '@quezap/core/errors'
+import { isAuthenticatedGuard } from '@quezap/core/guards/auth/authenticated-guard'
+
+import { routes as featureRoutes } from '../../../../routes'
 import { SESSION_SERVICE } from '../../services/session'
 
 import { SessionPresenter } from './session-presenter'
@@ -12,6 +15,9 @@ import { SessionPresenter } from './session-presenter'
 describe('SessionPresenter', () => {
   let component: SessionPresenter
   let fixture: ComponentFixture<SessionPresenter>
+  let router: Router
+
+  const mockMessageService = { add: jest.fn() }
 
   const mockSessionService = {
     getSession: jest.fn().mockReturnValue(
@@ -24,22 +30,42 @@ describe('SessionPresenter', () => {
     startSession: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
     nextQuestion: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
     revealAnswers: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
+    exportCsv: jest.fn().mockReturnValue(of({ kind: 'success', result: new Blob(['name,score\nAlice,100']) })),
     kickParticipant: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
-    pauseSession: jest.fn().mockReturnValue(of({ kind: 'success', result: { isPaused: true } })),
+    pauseSession: jest.fn().mockImplementation((_id: string, paused: boolean) =>
+      of({ kind: 'success', result: { isPaused: paused } }),
+    ),
     updateSettings: jest.fn().mockReturnValue(of({ kind: 'success', result: {} })),
   }
 
   beforeEach(async () => {
+    jest.clearAllMocks()
+    mockSessionService.getSession.mockReturnValue(
+      of({
+        kind: 'success',
+        result: { id: 'test-session-id', code: 'ABCDEF', name: 'Test Session', status: 'WAITING' },
+      }),
+    )
+    mockSessionService.startSession.mockReturnValue(of({ kind: 'success', result: undefined }))
+    mockSessionService.nextQuestion.mockReturnValue(of({ kind: 'success', result: undefined }))
+    mockSessionService.revealAnswers.mockReturnValue(of({ kind: 'success', result: undefined }))
+    mockSessionService.exportCsv.mockReturnValue(of({ kind: 'success', result: new Blob(['name,score\nAlice,100']) }))
+    mockSessionService.kickParticipant.mockReturnValue(of({ kind: 'success', result: undefined }))
+    mockSessionService.pauseSession.mockImplementation((_id: string, paused: boolean) =>
+      of({ kind: 'success', result: { isPaused: paused } }),
+    )
+    mockSessionService.updateSettings.mockReturnValue(of({ kind: 'success', result: {} }))
+
     await TestBed.configureTestingModule({
       imports: [SessionPresenter],
       providers: [
         provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
         { provide: SESSION_SERVICE, useValue: mockSessionService },
+        { provide: MessageService, useValue: mockMessageService },
       ],
     }).compileComponents()
 
+    router = TestBed.inject(Router)
     fixture = TestBed.createComponent(SessionPresenter)
     component = fixture.componentInstance
     fixture.detectChanges()
@@ -256,6 +282,7 @@ describe('SessionPresenter', () => {
     expect(mockSessionService.updateSettings).toHaveBeenCalledWith('test-session-id', {
       progressionMode: 'AUTOMATIC',
       explanationDurationSeconds: 15,
+      mobileCorrectionEnabled: false,
     })
 
     component['toggleProgressionMode']()
@@ -372,7 +399,7 @@ describe('SessionPresenter', () => {
           averageScore: 7500,
           globalSuccessRate: 85.0,
         },
-      } as unknown as SsePayload,
+      } as unknown as Parameters<SessionPresenter['handleEvent']>[0]['payload'],
     })
 
     expect(component['classMetrics']()).toEqual({
@@ -380,5 +407,155 @@ describe('SessionPresenter', () => {
       averageScore: 7500,
       globalSuccessRate: 85.0,
     })
+  })
+
+  it('should protect /projector/:id and /present/:id routes with isAuthenticatedGuard', () => {
+    const projectorRoute = featureRoutes.find(r => r.path === 'projector/:id')
+    const presentRoute = featureRoutes.find(r => r.path === 'present/:id')
+    expect(projectorRoute?.canActivate).toContain(isAuthenticatedGuard)
+    expect(presentRoute?.canActivate).toContain(isAuthenticatedGuard)
+  })
+
+  it('should toggle mobileCorrectionEnabled and send full settings payload', () => {
+    expect(component['mobileCorrectionEnabled']()).toBe(false)
+    component['toggleMobileCorrection']()
+    expect(component['mobileCorrectionEnabled']()).toBe(true)
+    expect(mockSessionService.updateSettings).toHaveBeenCalledWith('test-session-id', {
+      progressionMode: 'MANUAL',
+      explanationDurationSeconds: 15,
+      mobileCorrectionEnabled: true,
+    })
+  })
+
+  it('should rollback and display error toast on presenter command failures', () => {
+    mockSessionService.startSession.mockReturnValueOnce(
+      of({ kind: 'failure', error: new NotFoundError('Session introuvable') }),
+    )
+    component['startQuiz']()
+    expect(component['stage']()).toBe('LOBBY')
+    expect(mockMessageService.add).toHaveBeenCalledWith({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Session introuvable',
+    })
+
+    mockSessionService.pauseSession.mockReturnValueOnce(
+      of({ kind: 'failure', error: new NotFoundError('Pause refusée') }),
+    )
+    component['togglePause']()
+    expect(component['isPaused']()).toBe(false)
+    expect(mockMessageService.add).toHaveBeenCalledWith({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Pause refusée',
+    })
+
+    mockSessionService.updateSettings.mockReturnValueOnce(
+      of({ kind: 'failure', error: new NotFoundError('Réglages refusés') }),
+    )
+    component['toggleMobileCorrection']()
+    expect(component['mobileCorrectionEnabled']()).toBe(false)
+    expect(mockMessageService.add).toHaveBeenCalledWith({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Réglages refusés',
+    })
+  })
+
+  it('should redirect to /auth/login when a presenter command returns UnauthorizedError (401)', () => {
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true)
+    mockSessionService.nextQuestion.mockReturnValueOnce(
+      of({ kind: 'failure', error: new UnauthorizedError('Session expirée') }),
+    )
+
+    component['nextStep']()
+
+    expect(mockMessageService.add).toHaveBeenCalledWith({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Session expirée',
+    })
+    expect(navigateSpy).toHaveBeenCalledWith(['/auth/login'])
+  })
+
+  it('should export CSV via SessionService.exportCsv and toast on failure', () => {
+    const createObjectUrlSpy = jest.fn().mockReturnValue('blob:mock-url')
+    const revokeObjectUrlSpy = jest.fn()
+    Object.defineProperty(window.URL, 'createObjectURL', { value: createObjectUrlSpy, writable: true })
+    Object.defineProperty(window.URL, 'revokeObjectURL', { value: revokeObjectUrlSpy, writable: true })
+
+    component['downloadCsv']()
+    expect(mockSessionService.exportCsv).toHaveBeenCalledWith('test-session-id')
+    expect(createObjectUrlSpy).toHaveBeenCalled()
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:mock-url')
+
+    mockSessionService.exportCsv.mockReturnValueOnce(
+      of({ kind: 'failure', error: new NotFoundError('CSV indisponible') }),
+    )
+    component['downloadCsv']()
+    expect(mockMessageService.add).toHaveBeenCalledWith({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'CSV indisponible',
+    })
+  })
+
+  it('should synchronize timer with payload.deadline in QUESTION_START', fakeAsync(() => {
+    const futureDeadline = new Date(Date.now() + 12000).toISOString()
+    component['handleEvent']({
+      type: 'QUESTION_START',
+      payload: {
+        slideIndex: 1,
+        totalSlides: 2,
+        timerSeconds: 20,
+        deadline: futureDeadline,
+        question: {
+          id: 'q1',
+          type: 'QUIZZ',
+          label: 'Deadline Test',
+          answers: [{ id: 'a1', label: 'A' }, { id: 'a2', label: 'B' }],
+        },
+      },
+    })
+
+    expect(component['timer']()).toBe(12)
+    tick(3000)
+    expect(component['timer']()).toBe(9)
+  }))
+
+  it('should enter SYNCING stage on reload when session is STARTED until QUESTION_START arrives', () => {
+    mockSessionService.getSession.mockReturnValueOnce(
+      of({
+        kind: 'success',
+        result: {
+          id: 'started-id',
+          code: 'XYZ123',
+          name: 'Started Session',
+          status: 'STARTED',
+          startedAt: '2026-11-20T18:00:00Z',
+          endedAt: undefined,
+        },
+      }),
+    )
+
+    const reloadFixture = TestBed.createComponent(SessionPresenter)
+    const reloadComponent = reloadFixture.componentInstance
+    reloadFixture.detectChanges()
+
+    expect(reloadComponent['stage']()).toBe('SYNCING')
+
+    reloadComponent['handleEvent']({
+      type: 'QUESTION_START',
+      payload: {
+        slideIndex: 2,
+        totalSlides: 5,
+        timerSeconds: 20,
+        question: { id: 'q2', type: 'QUIZZ', label: 'Question 2', answers: [] },
+      },
+    })
+
+    expect(reloadComponent['stage']()).toBe('QUESTION')
+    expect(reloadComponent['currentQuestionIndex']()).toBe(1)
+    expect(reloadComponent['totalQuestions']()).toBe(5)
   })
 })
