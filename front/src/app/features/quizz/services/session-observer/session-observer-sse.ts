@@ -332,9 +332,11 @@ export class SessionObserverSseService implements SessionObserverService {
         break
       }
       case 'SESSION_STARTED': {
+        const parsedStartedAt = envelope.timestamp ? new Date(envelope.timestamp) : new Date()
+        const startedAt = Number.isNaN(parsedStartedAt.getTime()) ? new Date() : parsedStartedAt
         this.eventsSubject.next({
           type: 'SessionStarted',
-          session: { startedAt: new Date(envelope.timestamp) },
+          session: { startedAt },
         })
         break
       }
@@ -500,9 +502,11 @@ export class SessionObserverSseService implements SessionObserverService {
             resolvedSessionId,
           )
         }
+        const parsedEndedAt = envelope.timestamp ? new Date(envelope.timestamp) : new Date()
+        const endedAt = Number.isNaN(parsedEndedAt.getTime()) ? new Date() : parsedEndedAt
         this.eventsSubject.next({
           type: 'SessionEnded',
-          session: { endedAt: new Date(envelope.timestamp) },
+          session: { endedAt },
         })
         break
       }

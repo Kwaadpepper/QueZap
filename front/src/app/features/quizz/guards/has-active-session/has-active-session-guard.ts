@@ -51,7 +51,7 @@ function isSessionActive(
   }
 
   if (options?.withQuizzRunning) {
-    return session.endedAt === null && session.startedAt !== null
+    return session.endedAt == null && (session.startedAt != null || session.status === 'STARTED')
   }
 
   return true

@@ -36,13 +36,14 @@ import { SessionService } from './session'
 export class SessionHttpService implements SessionService {
   getSessionPage(page: Pagination): ServiceOutput<PageOf<Session>> {
     const p = toPageBasedPagination(page)
+    const perPage = Math.min(Math.max(p.pageSize, 1), 50)
 
     return from(
       list1({
         query: {
           paginationDto: {
             page: p.page,
-            perPage: p.pageSize,
+            perPage,
           },
         },
         querySerializer: {
@@ -75,7 +76,7 @@ export class SessionHttpService implements SessionService {
             totalElements: data.totalElements ?? 0,
             totalPages: data.totalPages ?? 0,
             page: data.page ?? p.page,
-            pageSize: data.pageSize ?? p.pageSize,
+            pageSize: data.pageSize ?? perPage,
             hasNext: data.hasNext ?? false,
             hasPrevious: data.hasPrevious ?? false,
           },

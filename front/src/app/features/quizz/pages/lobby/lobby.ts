@@ -46,18 +46,13 @@ export class Lobby {
   protected readonly readyTonJoinQuizz = computed(() => this.hasNickname())
 
   constructor() {
-    const hasStarted = this.sessionStore.sessionHasStarted()
-      || this.sessionStore.question() !== undefined
-      || Boolean(this.sessionStore.session()?.endedAt)
-    if (hasStarted && this.readyTonJoinQuizz()) {
-      this.navigateToQuizz()
-    }
-
     effect(() => {
-      const isRunning = this.sessionStore.sessionHasStarted()
-        || this.sessionStore.question() !== undefined
-        || Boolean(this.sessionStore.session()?.endedAt)
-      if (isRunning && this.readyTonJoinQuizz()) {
+      const session = this.sessionStore.session()
+      if (session && (session.endedAt != null || session.status === 'ENDED')) {
+        this.router.navigateByUrl('/quizz/ended', { skipLocationChange: true })
+        return
+      }
+      if (this.sessionStore.sessionHasStarted() && this.readyTonJoinQuizz()) {
         this.navigateToQuizz()
       }
     })

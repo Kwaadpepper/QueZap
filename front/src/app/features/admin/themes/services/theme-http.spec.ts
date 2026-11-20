@@ -76,4 +76,25 @@ describe('ThemeHttpService', () => {
     expect(isSuccess(deleted)).toBe(true)
     expect(deleteSpy).toHaveBeenCalledWith({ path: { id: 'theme-new' } })
   })
+
+  it('should cap perPage at 50 when pageSize exceeds 50', async () => {
+    const findSpy = jest.spyOn(sdk, 'find').mockResolvedValueOnce({
+      data: {
+        data: [],
+        totalElements: 0,
+        totalPages: 0,
+        page: 1,
+        pageSize: 50,
+        hasNext: false,
+        hasPrevious: false,
+      },
+      error: undefined,
+    } as never)
+
+    await firstValueFrom(service.getThemePage({ page: 1, pageSize: 100 }))
+
+    expect(findSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ query: { paginationDto: { page: 1, perPage: 50 }, queryDto: {} } }),
+    )
+  })
 })

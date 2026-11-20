@@ -1,10 +1,12 @@
-import { signal } from '@angular/core'
+import { signal, WritableSignal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router'
 
-import { of, Subject } from 'rxjs'
+import { firstValueFrom, Observable, of, Subject } from 'rxjs'
 
-import { Session, SessionCode, SessionId } from '@quezap/domain/models'
+import { QuestionId, QuestionType, Session, SessionCode, SessionId } from '@quezap/domain/models'
 
+import { hasActiveSessionGuard } from '../guards'
 import {
   ActiveSessionPersistence,
   CurrentQuestion,
@@ -111,5 +113,99 @@ describe('ActiveSessionStore', () => {
     expect(store.session()?.code).toBe('20082')
     expect(store.nickname()?.value()).toBe('Léa')
     expect(persistence.getSubmittedChoice('q-1')).toEqual({ answerIndex: 2, label: 'Option C' })
+  })
+
+  it('should stay in lobby on WaitingQuestion and allow /quizz after SESSION_STARTED and QUESTION_START', async () => {
+    (mockApi.joinSessionWith as jest.Mock).mockReturnValueOnce(of({
+      kind: 'success' as const,
+      result: {
+        id: '018e3a2b-8888-7def-8123-000000000001' as SessionId,
+        code: '20082' as SessionCode,
+        name: 'Quiz test',
+        status: 'LOBBY',
+        startedAt: null,
+        endedAt: null,
+      } satisfies Session,
+    }))
+
+    const store = TestBed.inject(ActiveSessionStore)
+    store.joinSession('20082' as SessionCode).subscribe()
+    store.chooseNickname('Léa', false).subscribe()
+    TestBed.flushEffects()
+
+    expect(store.sessionHasStarted()).toBe(false)
+
+    const lobbyGuardRes = await firstValueFrom(
+      TestBed.runInInjectionContext(() =>
+        hasActiveSessionGuard()(null as unknown as ActivatedRouteSnapshot, null as unknown as RouterStateSnapshot),
+      ) as Observable<unknown>,
+    )
+    expect(lobbyGuardRes).toBe(true)
+
+    events$.next({
+      kind: 'success',
+      result: {
+        type: 'SessionStarted',
+        session: { startedAt: new Date('2026-11-20T20:00:00Z') },
+      },
+    })
+    ;(mockObserver.question as WritableSignal<CurrentQuestion>).set({
+      type: QuestionType.Boolean,
+      id: 'q-1' as QuestionId,
+      value: 'Vrai ou faux ?',
+      limit: { seconds: 20 },
+      answers: [
+        { index: 0, points: 1000, value: 'Vrai' },
+        { index: 1, points: 1000, value: 'Faux' },
+      ],
+    })
+    events$.next({
+      kind: 'success',
+      result: {
+        type: 'SessionSwitchedQuestion',
+        questionId: 'q-1' as QuestionId,
+      },
+    })
+    TestBed.flushEffects()
+
+    expect(store.sessionHasStarted()).toBe(true)
+    expect(store.session()?.startedAt).not.toBeNull()
+    expect(store.session()?.status).toBe('STARTED')
+
+    const quizzGuardRes = await firstValueFrom(
+      TestBed.runInInjectionContext(() =>
+        hasActiveSessionGuard({ withQuizzRunning: true })(
+          null as unknown as ActivatedRouteSnapshot,
+          null as unknown as RouterStateSnapshot,
+        ),
+      ) as Observable<unknown>,
+    )
+    expect(quizzGuardRes).toBe(true)
+  })
+
+  it('should redirect kicked participant to /quizz/ended with clear exclusion message', () => {
+    const router = TestBed.inject(Router)
+    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true)
+
+    const store = TestBed.inject(ActiveSessionStore)
+    store.joinSession('20082' as SessionCode).subscribe()
+    store.chooseNickname('Léa', false).subscribe()
+    TestBed.flushEffects()
+
+    events$.next({
+      kind: 'success',
+      result: {
+        type: 'SessionKicked',
+        participantName: 'Léa',
+      },
+    })
+
+    expect(mockObserver.disconnect).toHaveBeenCalled()
+    expect(navSpy).toHaveBeenCalledWith(['/quizz/ended'], {
+      state: {
+        kicked: true,
+        message: 'Vous avez été exclu de la session',
+      },
+    })
   })
 })

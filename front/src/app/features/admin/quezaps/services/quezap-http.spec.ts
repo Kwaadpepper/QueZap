@@ -126,4 +126,27 @@ describe('QuezapHttpService', () => {
       done()
     })
   })
+
+  it('should cap perPage at 50 when pageSize exceeds 50', (done) => {
+    const listSpy = jest.spyOn(sdk, 'list2').mockReturnValue(
+      of({
+        data: {
+          data: [],
+          totalElements: 0,
+          totalPages: 0,
+          page: 1,
+          pageSize: 50,
+          hasNext: false,
+          hasPrevious: false,
+        },
+        error: undefined,
+      }) as never,
+    )
+
+    service.getQuezapPage({ page: 1, pageSize: 100 }).subscribe(() => {
+      const callArg = listSpy.mock.calls[0][0]
+      expect(callArg.query.paginationDto).toEqual({ page: 1, perPage: 50 })
+      done()
+    })
+  })
 })
