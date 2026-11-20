@@ -42,6 +42,7 @@ describe('RegisterHttpService', () => {
       name: 'teacher',
       identifier: 'teacher@quezap.com',
       email: 'teacher@quezap.com',
+      password: expect.any(String),
     })
     req.flush({ id: 'user-uuid' }, { status: 201, statusText: 'Created' })
 
