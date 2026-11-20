@@ -176,8 +176,12 @@
                   [class.dark:text-emerald-300]="(q.successRate ?? 0) >= 70"
                   [class.bg-amber-100]="(q.successRate ?? 0) >= 40 && (q.successRate ?? 0) < 70"
                   [class.text-amber-800]="(q.successRate ?? 0) >= 40 && (q.successRate ?? 0) < 70"
+                  [class.dark:bg-amber-950/80]="(q.successRate ?? 0) >= 40 && (q.successRate ?? 0) < 70"
+                  [class.dark:text-amber-300]="(q.successRate ?? 0) >= 40 && (q.successRate ?? 0) < 70"
                   [class.bg-rose-100]="(q.successRate ?? 0) < 40"
                   [class.text-rose-800]="(q.successRate ?? 0) < 40"
+                  [class.dark:bg-rose-950/80]="(q.successRate ?? 0) < 40"
+                  [class.dark:text-rose-300]="(q.successRate ?? 0) < 40"
                 >
                   {{ q.successRate }}% réussite
                 </span>

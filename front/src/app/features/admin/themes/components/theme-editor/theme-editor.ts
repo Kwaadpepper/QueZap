@@ -1,6 +1,7 @@
 import {
-  ChangeDetectionStrategy, Component, computed, ErrorHandler, inject, input, model, signal,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, ErrorHandler, inject, input, model, signal,
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 
 import { MessageService } from 'primeng/api'
@@ -40,6 +41,7 @@ export interface ThemeInputModel {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeEditor {
+  private readonly destroyRef = inject(DestroyRef)
   private readonly errorHandler = inject(ErrorHandler)
   private readonly themesEventBus = inject(ThemesEventsBus)
   private readonly themeService = inject(THEME_SERVICE)
@@ -91,78 +93,84 @@ export class ThemeEditor {
 
   private createTheme(theme: NewThemeDTO) {
     submit(this.themeForm, () =>
-      firstValueFrom(this.themeService.create(theme).pipe(
-        concatMap((result) => {
-          if (isFailure(result)) {
-            const err = result.error
-            if (err instanceof ValidationError) {
-              return of(err.getErrorsForForm(this.themeForm))
+      firstValueFrom(
+        this.themeService.create(theme).pipe(
+          concatMap((result) => {
+            if (isFailure(result)) {
+              const err = result.error
+              if (err instanceof ValidationError) {
+                return of(err.getErrorsForForm(this.themeForm))
+              }
+
+              // Unexpected error
+              return throwError(() => err)
             }
 
-            // Unexpected error
-            return throwError(() => err)
-          }
+            this.message.add({
+              severity: 'success',
+              summary: 'Thème crée',
+              detail: 'Le thème a bien été créé',
+              life: 5000,
+            })
+            this.visible.set(false)
+            this.themesEventBus.dispatchChanged(result.result)
 
-          this.message.add({
-            severity: 'success',
-            summary: 'Thème crée',
-            detail: 'Le thème a bien été créé',
-            life: 5000,
-          })
-          this.visible.set(false)
-          this.themesEventBus.dispatchChanged(result.result)
+            return of(void 0)
+          }),
+          catchError((err) => {
+            this.errorOccurred.set(true)
 
-          return of(void 0)
-        }),
-        catchError((err) => {
-          this.errorOccurred.set(true)
+            this.errorHandler.handleError(
+              HandledFrontError.from(err),
+            )
 
-          this.errorHandler.handleError(
-            HandledFrontError.from(err),
-          )
-
-          return of(void 0)
-        }),
-      ),
+            return of(void 0)
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        ),
+        { defaultValue: void 0 },
       ),
     )
   }
 
   private updateTheme(theme: Theme) {
     submit(this.themeForm, () =>
-      firstValueFrom(this.themeService.update(theme).pipe(
-        concatMap((result) => {
-          if (isFailure(result)) {
-            const err = result.error
-            if (err instanceof ValidationError) {
-              return of(err.getErrorsForForm(this.themeForm))
+      firstValueFrom(
+        this.themeService.update(theme).pipe(
+          concatMap((result) => {
+            if (isFailure(result)) {
+              const err = result.error
+              if (err instanceof ValidationError) {
+                return of(err.getErrorsForForm(this.themeForm))
+              }
+
+              // Unexpected error
+              return throwError(() => err)
             }
 
-            // Unexpected error
-            return throwError(() => err)
-          }
+            this.message.add({
+              severity: 'success',
+              summary: 'Thème mis à jour',
+              detail: 'Le thème a bien été mis à jour',
+              life: 5000,
+            })
+            this.visible.set(false)
+            this.themesEventBus.dispatchChanged(theme.id)
 
-          this.message.add({
-            severity: 'success',
-            summary: 'Thème mis à jour',
-            detail: 'Le thème a bien été mis à jour',
-            life: 5000,
-          })
-          this.visible.set(false)
-          this.themesEventBus.dispatchChanged(theme.id)
+            return of(void 0)
+          }),
+          catchError((err) => {
+            this.errorOccurred.set(true)
 
-          return of(void 0)
-        }),
-        catchError((err) => {
-          this.errorOccurred.set(true)
+            this.errorHandler.handleError(
+              HandledFrontError.from(err),
+            )
 
-          this.errorHandler.handleError(
-            HandledFrontError.from(err),
-          )
-
-          return of(void 0)
-        }),
-      ),
+            return of(void 0)
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        ),
+        { defaultValue: void 0 },
       ),
     )
   }

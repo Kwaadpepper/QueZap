@@ -31,8 +31,10 @@ describe('SessionCard', () => {
     fixture.detectChanges()
   })
 
-  it('should create', () => {
+  it('should create and not render dead-end edit button', () => {
     expect(component).toBeTruthy()
+    const compiled = fixture.nativeElement as HTMLElement
+    expect(compiled.querySelector('[title="Modifier la session"]')).toBeNull()
   })
 
   it('should open projector route in new tab when onSessionPresent is called', () => {

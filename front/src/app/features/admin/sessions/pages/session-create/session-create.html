@@ -3,20 +3,56 @@
 </div>
 
 <div class="flex justify-center">
-  <form class="flex flex-col gap-6 w-full max-w-lg bg-surface-100 dark:bg-surface-900 p-8 rounded-xl border border-surface-300 dark:border-surface-700 shadow" (submit)="onSave(); $event.preventDefault()">
+  <form
+    class="flex flex-col gap-6 w-full max-w-lg bg-surface-100 dark:bg-surface-900 p-8 rounded-xl border border-surface-300 dark:border-surface-700 shadow"
+    (submit)="onSave(false); $event.preventDefault()"
+  >
     <div class="flex flex-col gap-2">
       <label for="name" class="font-semibold">Nom de la session</label>
-      <input pInputText id="name" name="name" type="text" [ngModel]="model().name" (ngModelChange)="updateName($event)" />
+      <input
+        pInputText
+        id="name"
+        type="text"
+        quizzFieldError
+        [formField]="sessionForm.name"
+        [fieldState]="sessionForm.name"
+      />
     </div>
 
     <div class="flex flex-col gap-2">
       <label for="quezapId" class="font-semibold">Quezap associé</label>
-      <p-select inputId="quezapId" optionLabel="title" optionValue="id" optionDisabled="disabled" name="quezapId" placeholder="Sélectionnez un Quezap" [options]="quezapOptions()" [ngModel]="model().quezapId" (ngModelChange)="updateQuezapId($event)" />
+      <p-select
+        inputId="quezapId"
+        optionLabel="title"
+        optionValue="id"
+        optionDisabled="disabled"
+        name="quezapId"
+        placeholder="Sélectionnez un Quezap"
+        quizzFieldError
+        [fieldState]="sessionForm.quezapId"
+        [options]="quezapOptions()"
+        [ngModel]="model().quezapId"
+        (ngModelChange)="updateQuezapId($event)"
+      />
     </div>
 
-    <div class="flex justify-end gap-3 mt-4">
+    <div class="flex flex-wrap justify-end gap-3 mt-4">
       <p-button label="Annuler" type="button" severity="secondary" routerLink="/admin/sessions"></p-button>
-      <p-button label="Créer la session" type="submit" severity="primary" [disabled]="sessionForm().invalid() || sessionForm().submitting()"></p-button>
+      <p-button
+        label="Créer la session"
+        type="submit"
+        severity="secondary"
+        [disabled]="sessionForm().invalid() || sessionForm().submitting()"
+      ></p-button>
+      <p-button
+        label="Créer et projeter"
+        icon="pi pi-external-link"
+        type="button"
+        severity="primary"
+        [disabled]="sessionForm().invalid() || sessionForm().submitting()"
+        [loading]="sessionForm().submitting()"
+        (onClick)="onSave(true)"
+      ></p-button>
     </div>
   </form>
 </div>

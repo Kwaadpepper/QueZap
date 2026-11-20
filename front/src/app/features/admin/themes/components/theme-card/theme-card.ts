@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, input, model } from '@angular/core'
+import {
+  ChangeDetectionStrategy, Component, DestroyRef, inject, input, model,
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
 import { ConfirmationService, MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
@@ -25,6 +28,7 @@ import { ThemeEditor } from '../theme-editor/theme-editor'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeCard {
+  private readonly destroyRef = inject(DestroyRef)
   private readonly themeService = inject(THEME_SERVICE)
   private readonly themesEventBus = inject(ThemesEventsBus)
   private readonly confirmationService = inject(ConfirmationService)
@@ -44,24 +48,26 @@ export class ThemeCard {
       target: $event.currentTarget ?? undefined,
       message: `Voulez-vous vraiment supprimer le thème "${this.theme().name}" ?`,
       accept: () => {
-        this.themeService.delete(this.theme().id).subscribe((res) => {
-          if (res.kind === 'success') {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Thème supprimé',
-              detail: 'Le thème a bien été supprimé',
-              life: 5000,
-            })
-            this.themesEventBus.dispatchChanged(this.theme().id)
-          }
-          else {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Échec de la suppression du thème',
-            })
-          }
-        })
+        this.themeService.delete(this.theme().id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((res) => {
+            if (res.kind === 'success') {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Thème supprimé',
+                detail: 'Le thème a bien été supprimé',
+                life: 5000,
+              })
+              this.themesEventBus.dispatchChanged(this.theme().id)
+            }
+            else {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: 'Échec de la suppression du thème',
+              })
+            }
+          })
       },
     })
   }

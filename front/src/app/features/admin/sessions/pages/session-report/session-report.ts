@@ -1,17 +1,16 @@
 import { DatePipe } from '@angular/common'
-import { HttpClient } from '@angular/common/http'
 import {
   ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute, RouterLink } from '@angular/router'
 
+import { MessageService } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Message } from 'primeng/message'
 import { TableModule } from 'primeng/table'
 
 import { SessionReportDto } from '@quezap/core/api-client'
-import { Config } from '@quezap/core/services/config/config'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'
 
 import { SESSION_SERVICE } from '../../services/session'
@@ -32,8 +31,7 @@ import { SESSION_SERVICE } from '../../services/session'
 export class SessionReport implements OnInit {
   private readonly route = inject(ActivatedRoute)
   private readonly sessionService = inject(SESSION_SERVICE)
-  private readonly config = inject(Config)
-  private readonly http = inject(HttpClient)
+  private readonly messageService = inject(MessageService, { optional: true })
   private readonly destroyRef = inject(DestroyRef)
 
   protected readonly sessionId = signal<string>('')
@@ -71,20 +69,36 @@ export class SessionReport implements OnInit {
   }
 
   protected downloadCsv(): void {
-    const apiUrl = this.config.appConfig.value().apiUrl
-    this.http.get(`${apiUrl}/sessions/${this.sessionId()}/export/csv`, { responseType: 'blob' })
+    this.sessionService.exportCsv(this.sessionId())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (blob) => {
-          const url = window.URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = `session-${this.report()?.sessionNumber || this.sessionId()}-resultats.csv`
-          a.click()
-          window.URL.revokeObjectURL(url)
+        next: (output) => {
+          if (output.kind === 'success') {
+            const url = window.URL.createObjectURL(output.result)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `session-${this.report()?.sessionNumber || this.sessionId()}-resultats.csv`
+            a.click()
+            window.URL.revokeObjectURL(url)
+          }
+          else {
+            const detail = output.error.message || 'Échec du téléchargement du fichier CSV'
+            this.error.set(detail)
+            this.messageService?.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail,
+            })
+          }
         },
         error: () => {
-          this.error.set('Échec du téléchargement du fichier CSV')
+          const detail = 'Échec du téléchargement du fichier CSV'
+          this.error.set(detail)
+          this.messageService?.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail,
+          })
         },
       })
   }

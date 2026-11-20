@@ -4,6 +4,7 @@ import { delay, map, of, tap } from 'rxjs'
 
 import {
   LeaderboardResponseDto,
+  SessionCreatedDto,
   SessionDetailDto,
   SessionPauseResponseDto,
   SessionReportDto,
@@ -80,15 +81,13 @@ export class SessionMockService implements SessionService {
     })
   }
 
-  createSession(_quezapId: string, _name: string): ServiceOutput<SessionDetailDto> {
+  createSession(_quezapId: string, _name: string): ServiceOutput<SessionCreatedDto> {
     return of({
       kind: 'success' as const,
       result: {
         id: 'mock-id',
         number: 1,
-        name: _name,
-        status: 'LOBBY',
-        currentSlideIndex: 0,
+        code: 'QZ-8888',
       },
     })
   }
@@ -133,6 +132,13 @@ export class SessionMockService implements SessionService {
         participants: [],
         questions: [],
       },
+    })
+  }
+
+  exportCsv(_id: string): ServiceOutput<Blob> {
+    return of({
+      kind: 'success' as const,
+      result: new Blob(['rank,participantName,totalScore\n'], { type: 'text/csv;charset=utf-8;' }),
     })
   }
 

@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core'
 
-import { from, map } from 'rxjs'
+import { catchError, from, map, of } from 'rxjs'
 
-import { PageOfDtoThemeDto, ThemeIdDto } from '@quezap/core/api-client'
-import { client } from '@quezap/core/api-client/client.gen'
+import { add, delete1, find, rename1, ThemeName } from '@quezap/core/api-client'
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Theme, ThemeId } from '@quezap/domain/models'
@@ -16,11 +15,19 @@ export class ThemeHttpService implements ThemeService {
     const p = toPageBasedPagination(page)
 
     return from(
-      client.get<{ 200: PageOfDtoThemeDto }>({
-        url: '/apiv1/themes',
+      find({
         query: {
-          page: p.page,
-          pageSize: p.pageSize,
+          paginationDto: {
+            page: p.page,
+            perPage: p.pageSize,
+          },
+          queryDto: {},
+        },
+        querySerializer: {
+          object: {
+            style: 'form',
+            explode: true,
+          },
         },
       }),
     ).pipe(
@@ -48,15 +55,18 @@ export class ThemeHttpService implements ThemeService {
           },
         }
       }),
+      catchError(() =>
+        of({
+          kind: 'failure' as const,
+          error: new NotFoundError('Erreur lors du chargement des thèmes'),
+        }),
+      ),
     )
   }
 
   create(newTheme: NewThemeDTO): ServiceOutput<ThemeId> {
     return from(
-      client.post<{ 200: ThemeIdDto, 201: ThemeIdDto }>({
-        url: '/apiv1/themes',
-        body: { name: newTheme.name },
-      }),
+      add({ body: { name: newTheme.name as unknown as ThemeName } }),
     ).pipe(
       map(({ data, error }) => {
         const id = data?.id || data?.uuid
@@ -73,14 +83,20 @@ export class ThemeHttpService implements ThemeService {
           result: id as ThemeId,
         }
       }),
+      catchError(() =>
+        of({
+          kind: 'failure' as const,
+          error: new ValidationError({ name: ['Erreur de création'] }, 'Erreur de création'),
+        }),
+      ),
     )
   }
 
   update(theme: Theme): ServiceOutput<void> {
     return from(
-      client.patch<void>({
-        url: `/apiv1/themes/${theme.id}`,
-        body: { name: theme.name },
+      rename1({
+        path: { id: theme.id },
+        body: { name: theme.name as unknown as ThemeName },
       }),
     ).pipe(
       map(({ error }) => {
@@ -96,12 +112,18 @@ export class ThemeHttpService implements ThemeService {
           result: undefined,
         }
       }),
+      catchError(() =>
+        of({
+          kind: 'failure' as const,
+          error: new ValidationError({ name: ['Erreur de modification'] }, 'Erreur de modification'),
+        }),
+      ),
     )
   }
 
   delete(themeId: ThemeId): ServiceOutput<void> {
     return from(
-      client.delete<void>({ url: `/apiv1/themes/${themeId}` }),
+      delete1({ path: { id: themeId } }),
     ).pipe(
       map(({ error }) => {
         if (error) {
@@ -116,6 +138,12 @@ export class ThemeHttpService implements ThemeService {
           result: undefined,
         }
       }),
+      catchError(() =>
+        of({
+          kind: 'failure' as const,
+          error: new ValidationError({ name: ['Erreur de suppression'] }, 'Erreur de suppression'),
+        }),
+      ),
     )
   }
 }

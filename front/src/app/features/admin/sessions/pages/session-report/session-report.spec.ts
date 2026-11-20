@@ -1,8 +1,7 @@
-import { provideHttpClient } from '@angular/common/http'
-import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { ActivatedRoute, provideRouter } from '@angular/router'
 
+import { MessageService } from 'primeng/api'
 import { of } from 'rxjs'
 
 import { SessionReportDto } from '@quezap/core/api-client'
@@ -76,19 +75,25 @@ describe('SessionReport', () => {
   }
 
   const successResult = of({ kind: 'success' as const, result: mockReport })
-  const mockSessionService = { getSessionReport: jest.fn().mockReturnValue(successResult) }
+  const mockSessionService = {
+    getSessionReport: jest.fn().mockReturnValue(successResult),
+    exportCsv: jest.fn().mockReturnValue(
+      of({ kind: 'success' as const, result: new Blob(['rank,name\n1,Alice\n'], { type: 'text/csv' }) }),
+    ),
+  }
 
+  const mockMessageService = { add: jest.fn() }
   const mockRoute = { snapshot: { paramMap: { get: jest.fn().mockReturnValue(sessionId) } } }
 
   beforeEach(async () => {
+    jest.clearAllMocks()
     await TestBed.configureTestingModule({
       imports: [SessionReport],
       providers: [
         provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
         { provide: ActivatedRoute, useValue: mockRoute },
         { provide: SESSION_SERVICE, useValue: mockSessionService },
+        { provide: MessageService, useValue: mockMessageService },
       ],
     }).compileComponents()
 
@@ -111,6 +116,37 @@ describe('SessionReport', () => {
     component['fetchReport'](sessionId)
     expect(component['error']()).toBe('Session introuvable')
     expect(component['loading']()).toBe(false)
+  })
+
+  it('should export CSV via SessionService without raw HttpClient', () => {
+    const createObjectURL = jest.fn().mockReturnValue('blob:mock-url')
+    const revokeObjectURL = jest.fn()
+    Object.defineProperty(window.URL, 'createObjectURL', { value: createObjectURL, writable: true })
+    Object.defineProperty(window.URL, 'revokeObjectURL', { value: revokeObjectURL, writable: true })
+    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => void 0)
+
+    component['downloadCsv']()
+
+    expect(mockSessionService.exportCsv).toHaveBeenCalledWith(sessionId)
+    expect(createObjectURL).toHaveBeenCalled()
+    expect(clickSpy).toHaveBeenCalled()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+    clickSpy.mockRestore()
+  })
+
+  it('should show error toast when CSV export fails', () => {
+    mockSessionService.exportCsv.mockReturnValueOnce(
+      of({ kind: 'failure', error: new NotFoundError('Erreur export CSV') }),
+    )
+
+    component['downloadCsv']()
+
+    expect(component['error']()).toBe('Erreur export CSV')
+    expect(mockMessageService.add).toHaveBeenCalledWith({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Erreur export CSV',
+    })
   })
 
   it('should determine success badge severity based on rate', () => {

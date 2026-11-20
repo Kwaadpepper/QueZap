@@ -83,10 +83,13 @@ describe('Home', () => {
     expect(component).toBeTruthy()
   })
 
-  it('should render pedagogical metrics instead of technical jargon', () => {
+  it('should render real backend metrics without synthetic hardcoded KPIs', () => {
     const compiled = fixture.nativeElement as HTMLElement
-    expect(compiled.textContent).toContain('Participants Accueillis')
-    expect(compiled.textContent).toContain('Taux de Réussite Moyen')
+    expect(compiled.textContent).toContain('Total Quiz')
+    expect(compiled.textContent).toContain('Sessions Créées')
+    expect(compiled.textContent).not.toContain('Participants Accueillis')
+    expect(compiled.textContent).not.toContain('Taux de Réussite Moyen')
+    expect(compiled.textContent).not.toContain('78%')
     expect(compiled.textContent).not.toContain('SSE Direct')
     expect(compiled.textContent).not.toContain('16:9 HD')
   })

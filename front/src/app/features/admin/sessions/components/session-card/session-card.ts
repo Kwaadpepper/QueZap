@@ -28,10 +28,6 @@ export class SessionCard {
 
   protected readonly isWaiting = computed(() => !this.isLive() && !this.isEnded())
 
-  protected onSessionEdit(): void {
-    this.router.navigate(['/admin/sessions', this.session().id, 'edit'])
-  }
-
   protected onSessionPresent(): void {
     const url = this.router.serializeUrl(
       this.router.createUrlTree(['/projector', this.session().id]),

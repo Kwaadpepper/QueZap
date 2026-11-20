@@ -4,6 +4,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router, RouterLink } from '@angular/router'
 
+import { MessageService } from 'primeng/api'
 import { ButtonModule } from 'primeng/button'
 import { CardModule } from 'primeng/card'
 import { ChipModule } from 'primeng/chip'
@@ -30,14 +31,13 @@ export class Home implements OnInit {
   private readonly router = inject(Router)
   private readonly destroyRef = inject(DestroyRef)
   private readonly authStore = inject(AuthenticatedUserStore)
+  private readonly messageService = inject(MessageService, { optional: true })
   private readonly quezapService = inject(QUEZAP_SERVICE, { optional: true })
   private readonly sessionService = inject(SESSION_SERVICE, { optional: true })
 
   protected readonly currentUser = this.authStore.currentUser
   protected readonly totalQuezaps = signal<number>(0)
   protected readonly totalSessions = signal<number>(0)
-  protected readonly totalParticipants = signal<number>(0)
-  protected readonly averageSuccessRate = signal<number>(0)
   protected readonly recentQuezaps = signal<QuezapWithTheme[]>([])
   protected readonly recentSessions = signal<Session[]>([])
   protected readonly launchingId = signal<string | null>(null)
@@ -59,11 +59,8 @@ export class Home implements OnInit {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((res) => {
           if (res.kind === 'success') {
-            const count = res.result.totalElements
-            this.totalSessions.set(count)
+            this.totalSessions.set(res.result.totalElements)
             this.recentSessions.set(res.result.data)
-            this.totalParticipants.set(count > 0 ? count * 24 : 0)
-            this.averageSuccessRate.set(count > 0 ? 78 : 0)
           }
         })
     }
@@ -88,8 +85,22 @@ export class Home implements OnInit {
               this.router.navigate(['/admin/sessions', res.result.id, 'present'])
             }
           }
+          else {
+            this.messageService?.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: res.error.message || 'Impossible de lancer la session',
+            })
+          }
         },
-        error: () => this.launchingId.set(null),
+        error: () => {
+          this.launchingId.set(null)
+          this.messageService?.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail: 'Impossible de lancer la session',
+          })
+        },
       })
   }
 }

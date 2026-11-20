@@ -87,7 +87,7 @@
   </div>
 
   <!-- Stat Counters -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center shadow-sm">
       <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Quiz</p>
       <p class="text-3xl font-black text-indigo-600 dark:text-indigo-400">{{ totalQuezaps() }}</p>
@@ -95,14 +95,6 @@
     <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center shadow-sm">
       <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Sessions Créées</p>
       <p class="text-3xl font-black text-emerald-600 dark:text-emerald-400">{{ totalSessions() }}</p>
-    </div>
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center shadow-sm">
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Participants Accueillis</p>
-      <p class="text-3xl font-black text-purple-600 dark:text-purple-400">{{ totalParticipants() }}</p>
-    </div>
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center shadow-sm">
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Taux de Réussite Moyen</p>
-      <p class="text-3xl font-black text-amber-500">{{ averageSuccessRate() }}%</p>
     </div>
   </div>
 
@@ -131,7 +123,7 @@
                   title="Lancer directement la session"
                   [disabled]="launchingId() === q.id"
                   (click)="launchQuiz(q)">
-                  <i class="pi" class="text-xs" [class.pi-play]="launchingId() !== q.id" [class.pi-spin]="launchingId() === q.id" [class.pi-spinner]="launchingId() === q.id"></i>
+                  <i class="pi text-xs" [class.pi-play]="launchingId() !== q.id" [class.pi-spin]="launchingId() === q.id" [class.pi-spinner]="launchingId() === q.id"></i>
                   <span>Lancer</span>
                 </button>
                 <a class="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition" title="Modifier ce quiz" [routerLink]="['/admin/quezaps', q.id, 'edit']">
