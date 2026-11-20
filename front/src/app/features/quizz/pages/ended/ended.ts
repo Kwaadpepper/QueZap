@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { Router } from '@angular/router'
 
 import { finalize } from 'rxjs'
 
@@ -25,9 +26,20 @@ import { SESSION_API_SERVICE } from '../../services/session-api/session-api'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Ended {
+  private readonly router = inject(Router)
   private readonly persistence = inject(ActiveSessionPersistence)
   private readonly sessionApi = inject(SESSION_API_SERVICE, { optional: true })
   private readonly destroyRef = inject(DestroyRef)
+
+  private readonly navigationState = this.router.currentNavigation()?.extras.state
+    ?? (typeof history !== 'undefined' ? (history.state as Record<string, unknown> | undefined) : undefined)
+
+  protected readonly isKicked = signal(Boolean(this.navigationState?.['kicked']))
+  protected readonly kickedMessage = signal(
+    typeof this.navigationState?.['message'] === 'string'
+      ? this.navigationState['message']
+      : 'Vous avez été exclu de la session',
+  )
 
   private readonly fallbackResults = signal<FinalParticipantResults | null>(null)
   protected readonly isLoadingResults = signal(false)
@@ -59,7 +71,9 @@ export class Ended {
   })
 
   constructor() {
-    this.loadFallbackScoresIfNeeded()
+    if (!this.isKicked()) {
+      this.loadFallbackScoresIfNeeded()
+    }
   }
 
   private loadFallbackScoresIfNeeded(): void {

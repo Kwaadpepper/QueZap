@@ -61,7 +61,7 @@ export class QuestionEditor implements OnInit {
     if (!this.themeService) {
       return
     }
-    this.themeService.getThemePage({ page: 1, pageSize: 100 }).pipe(
+    this.themeService.getThemePage({ page: 1, pageSize: 50 }).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe((output) => {
       if (isSuccess(output)) {

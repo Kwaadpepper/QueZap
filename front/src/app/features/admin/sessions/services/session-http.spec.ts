@@ -96,4 +96,25 @@ describe('SessionHttpService', () => {
 
     expect(isFailure(result)).toBe(true)
   })
+
+  it('should cap perPage at 50 when pageSize exceeds 50', async () => {
+    const listSpy = jest.spyOn(sdk, 'list1').mockResolvedValueOnce({
+      data: {
+        data: [],
+        totalElements: 0,
+        totalPages: 0,
+        page: 1,
+        pageSize: 50,
+        hasNext: false,
+        hasPrevious: false,
+      },
+      error: undefined,
+    } as never)
+
+    await firstValueFrom(service.getSessionPage({ page: 1, pageSize: 100 }))
+
+    expect(listSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ query: { paginationDto: { page: 1, perPage: 50 } } }),
+    )
+  })
 })

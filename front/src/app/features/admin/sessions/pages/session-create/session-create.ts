@@ -54,7 +54,7 @@ export class SessionCreate {
 
   constructor() {
     this.quezapService
-      .getQuezapPage({ page: 1, pageSize: 100 } as Pagination)
+      .getQuezapPage({ page: 1, pageSize: 50 } as Pagination)
       .pipe(takeUntilDestroyed())
       .subscribe((res) => {
         if (res.kind === 'success') {

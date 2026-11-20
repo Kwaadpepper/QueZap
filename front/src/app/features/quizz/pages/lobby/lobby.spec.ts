@@ -44,4 +44,16 @@ describe('Lobby', () => {
 
     expect(navSpy).toHaveBeenCalledWith('/quizz', { skipLocationChange: true })
   })
+
+  it('should NOT navigate to /quizz on WaitingQuestion when session has not started yet', () => {
+    const navSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true)
+
+    patchState(sessionStore, {
+      question: { type: 'WaitingQuestion' },
+      _nickname: signalState({ value: 'Alice', remembered: false }),
+    })
+    fixture.detectChanges()
+
+    expect(navSpy).not.toHaveBeenCalled()
+  })
 })

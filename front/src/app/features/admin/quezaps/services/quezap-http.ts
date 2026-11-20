@@ -34,6 +34,7 @@ export class QuezapHttpService implements QuezapService {
 
   getQuezapPage(page: Pagination): ServiceOutput<PageOf<QuezapWithTheme>> {
     const p = toPageBasedPagination(page)
+    const perPage = Math.min(Math.max(p.pageSize, 1), 50)
     const authorId = this.authStore.currentUser()?.id
 
     return from(
@@ -41,7 +42,7 @@ export class QuezapHttpService implements QuezapService {
         query: {
           paginationDto: {
             page: p.page,
-            perPage: p.pageSize,
+            perPage,
           },
           ...(authorId ? { authorId } : {}),
         },
@@ -89,7 +90,7 @@ export class QuezapHttpService implements QuezapService {
             totalElements: data.totalElements ?? 0,
             totalPages: data.totalPages ?? 0,
             page: data.page ?? 0,
-            pageSize: data.pageSize ?? p.pageSize,
+            pageSize: data.pageSize ?? perPage,
             hasNext: data.hasNext ?? false,
             hasPrevious: data.hasPrevious ?? false,
           },

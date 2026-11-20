@@ -71,7 +71,11 @@ export const ActiveSessionStore = signalStore(
     nickname: computed(() => store._nickname?.()),
     restorationComplete: computed(() => store._sessionIsLoaded()),
     participants: computed(() => store._participants()),
-    sessionHasStarted: computed(() => store._sessionIsRunning() || store.question() !== undefined),
+    sessionHasStarted: computed(() => {
+      const q = store.question()
+      return store._sessionIsRunning()
+        || (q !== undefined && q.type !== 'WaitingQuestion' && q.type !== 'NoMoreQuestions')
+    }),
     myRanking: computed(() => {
       const myName = sessionPersistence.getParticipantName()
       const lb = store.lastLeaderboard()
@@ -290,6 +294,9 @@ export const ActiveSessionStore = signalStore(
               lastReveal: isSameQuestion ? state.lastReveal : undefined,
               mySubmittedChoice: restoredChoice,
               _sessionIsRunning: true,
+              ...(state._session && !state._session.startedAt
+                ? { _session: { ...state._session, status: 'STARTED' as const, startedAt: new Date() } }
+                : {}),
             }))
           }
           else {
@@ -297,7 +304,6 @@ export const ActiveSessionStore = signalStore(
               question,
               lastReveal: undefined,
               mySubmittedChoice: undefined,
-              ...(question ? { _sessionIsRunning: true } : {}),
             })
           }
         })
@@ -348,7 +354,8 @@ export const ActiveSessionStore = signalStore(
               patchState(store, {
                 _session: {
                   ...session,
-                  startedAt: event.session.startedAt,
+                  status: 'STARTED',
+                  startedAt: event.session.startedAt ?? session.startedAt ?? new Date(),
                 },
                 _sessionIsRunning: true,
               })
@@ -358,6 +365,7 @@ export const ActiveSessionStore = signalStore(
               patchState(store, {
                 _session: {
                   ...session,
+                  status: 'STARTED',
                   startedAt: session.startedAt ?? new Date(),
                 },
                 _sessionIsRunning: true,
@@ -382,13 +390,20 @@ export const ActiveSessionStore = signalStore(
             }
 
             if (sessionKicked(event)) {
-              const myNickname = store.nickname()?.value()
+              const myNickname = store.nickname()?.value() ?? activeSessionPersistence.getParticipantName(session.id)
               if (myNickname && myNickname.trim().toLowerCase() === event.participantName.trim().toLowerCase()) {
                 sessionObserver.disconnect?.()
                 activeSessionPersistence.clear()
-                patchState(store, initialState)
-                patchState(store, { _sessionIsLoaded: true })
-                router.navigate(['/quizz/expired'])
+                patchState(store, {
+                  ...initialState,
+                  _sessionIsLoaded: true,
+                })
+                router.navigate(['/quizz/ended'], {
+                  state: {
+                    kicked: true,
+                    message: 'Vous avez été exclu de la session',
+                  },
+                })
               }
             }
 

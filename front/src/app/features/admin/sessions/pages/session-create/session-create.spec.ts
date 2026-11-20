@@ -28,7 +28,7 @@ describe('SessionCreate', () => {
           totalElements: 1,
           totalPages: 1,
           page: 1,
-          pageSize: 100,
+          pageSize: 50,
           hasNext: false,
           hasPrevious: false,
         },
