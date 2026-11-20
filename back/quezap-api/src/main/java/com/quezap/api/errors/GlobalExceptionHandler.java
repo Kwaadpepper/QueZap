@@ -1,26 +1,34 @@
 package com.quezap.api.errors;
 
+import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Locale;
 import java.util.Set;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.quezap.api.v1.exceptions.BadPaginationException;
 import com.quezap.application.exceptions.ApplicationConstraintException;
 import com.quezap.domain.models.valueobjects.sessions.SessionDomainException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,6 +141,7 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler({
+    BadPaginationException.class,
     IllegalDomainStateException.class,
     IllegalArgumentException.class,
     HttpMessageNotReadableException.class,
@@ -147,6 +156,29 @@ public class GlobalExceptionHandler {
     final var errorResponse =
         new ErrorResonseDto(HttpStatus.BAD_REQUEST.value(), message, ZonedDateTime.now(clock));
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(AsyncRequestNotUsableException.class)
+  public @Nullable ResponseEntity<Void> handleAsyncRequestNotUsableException(
+      AsyncRequestNotUsableException ex, HttpServletResponse response) {
+    logger.debug("Client disconnected during async request: {}", ex.getMessage());
+    return handleDisconnectedResponse(response);
+  }
+
+  @ExceptionHandler(IOException.class)
+  public @Nullable ResponseEntity<?> handleIoException(
+      IOException ex, HttpServletRequest request, HttpServletResponse response) {
+    if (isSseRequest(request, response) || response.isCommitted() || isClientDisconnect(ex)) {
+      logger.debug("Client disconnected or SSE stream aborted: {}", ex.getMessage());
+      return handleDisconnectedResponse(response);
+    }
+    logger.error("Unhandled I/O error", ex);
+    final var errorResponse =
+        new ErrorResonseDto(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "An unexpected internal error occurred",
+            ZonedDateTime.now(clock));
+    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)
@@ -170,7 +202,12 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResonseDto> handleUnexpectedException(Exception ex) {
+  public @Nullable ResponseEntity<?> handleUnexpectedException(
+      Exception ex, HttpServletRequest request, HttpServletResponse response) {
+    if (response.isCommitted() || isSseRequest(request, response) || isClientDisconnect(ex)) {
+      logger.debug("Ignoring exception on SSE or already-committed response: {}", ex.getMessage());
+      return handleDisconnectedResponse(response);
+    }
     logger.error("Unhandled internal server error", ex);
     final var errorResponse =
         new ErrorResonseDto(
@@ -178,5 +215,46 @@ public class GlobalExceptionHandler {
             "An unexpected internal error occurred",
             ZonedDateTime.now(clock));
     return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  private static @Nullable ResponseEntity<Void> handleDisconnectedResponse(
+      HttpServletResponse response) {
+    if (response.isCommitted()) {
+      return null;
+    }
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  private static boolean isSseRequest(HttpServletRequest request, HttpServletResponse response) {
+    final var contentType = response.getContentType();
+    if (contentType != null
+        && contentType.toLowerCase(Locale.ROOT).contains(MediaType.TEXT_EVENT_STREAM_VALUE)) {
+      return true;
+    }
+    final var accept = request.getHeader(HttpHeaders.ACCEPT);
+    return accept != null
+        && accept.toLowerCase(Locale.ROOT).contains(MediaType.TEXT_EVENT_STREAM_VALUE);
+  }
+
+  private static boolean isClientDisconnect(Throwable ex) {
+    Throwable current = ex;
+    int depth = 0;
+    while (current != null && depth < 10) {
+      if ("ClientAbortException".equals(current.getClass().getSimpleName())) {
+        return true;
+      }
+      final var msg = current.getMessage();
+      if (msg != null) {
+        final var lower = msg.toLowerCase(Locale.ROOT);
+        if (lower.contains("broken pipe")
+            || lower.contains("connection reset")
+            || lower.contains("stream closed")) {
+          return true;
+        }
+      }
+      current = current.getCause();
+      depth++;
+    }
+    return false;
   }
 }
