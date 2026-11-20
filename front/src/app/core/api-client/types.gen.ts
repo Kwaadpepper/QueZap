@@ -59,7 +59,7 @@ export type CreateUserRequest = {
     name?: string;
     identifier?: string;
     email?: string;
-    password?: string;
+    password: string;
     effectiveName?: string;
     effectiveIdentifier?: string;
     effectivePassword?: string;
@@ -70,7 +70,7 @@ export type UserIdDto = {
 };
 
 export type CreateThemeRequest = {
-    name?: ThemeName;
+    name: ThemeName;
 };
 
 export type ThemeName = {
@@ -147,16 +147,16 @@ export type QuezapIdDto = {
 };
 
 export type AnswerDto = {
-    answer?: string;
+    answer: string;
     picture?: Blob | File;
     isTrue?: boolean;
 };
 
 export type QuizzDto = {
-    question?: string;
+    question: string;
     answers: Array<AnswerDto>;
     picture?: Blob | File;
-    themeId?: ThemeId;
+    themeId: ThemeId;
 };
 
 export type ThemeId = {
@@ -168,17 +168,17 @@ export type QuestionIdDto = {
 };
 
 export type BinaryDto = {
-    question?: string;
+    question: string;
     answers: Array<AnswerDto>;
     picture?: Blob | File;
-    themeId?: ThemeId;
+    themeId: ThemeId;
 };
 
 export type AffirmationDto = {
-    question?: string;
+    question: string;
     isTrue?: boolean;
     picture?: Blob | File;
-    themeId?: ThemeId;
+    themeId: ThemeId;
 };
 
 export type PictureUploadResponseDto = {

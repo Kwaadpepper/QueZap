@@ -57,7 +57,7 @@ export const zCreateUserRequest = z.object({
     name: z.string().optional(),
     identifier: z.string().optional(),
     email: z.string().optional(),
-    password: z.string().optional(),
+    password: z.string(),
     effectiveName: z.string().optional(),
     effectiveIdentifier: z.string().optional(),
     effectivePassword: z.string().optional()
@@ -72,7 +72,7 @@ export const zThemeName = z.object({
 });
 
 export const zCreateThemeRequest = z.object({
-    name: zThemeName.optional()
+    name: zThemeName
 });
 
 export const zThemeIdDto = z.object({
@@ -145,7 +145,7 @@ export const zQuezapIdDto = z.object({
 });
 
 export const zAnswerDto = z.object({
-    answer: z.string().optional(),
+    answer: z.string(),
     picture: z.string().optional(),
     isTrue: z.boolean().optional()
 });
@@ -155,10 +155,10 @@ export const zThemeId = z.object({
 });
 
 export const zQuizzDto = z.object({
-    question: z.string().optional(),
+    question: z.string(),
     answers: z.array(zAnswerDto),
     picture: z.string().optional(),
-    themeId: zThemeId.optional()
+    themeId: zThemeId
 });
 
 export const zQuestionIdDto = z.object({
@@ -166,17 +166,17 @@ export const zQuestionIdDto = z.object({
 });
 
 export const zBinaryDto = z.object({
-    question: z.string().optional(),
+    question: z.string(),
     answers: z.array(zAnswerDto),
     picture: z.string().optional(),
-    themeId: zThemeId.optional()
+    themeId: zThemeId
 });
 
 export const zAffirmationDto = z.object({
-    question: z.string().optional(),
+    question: z.string(),
     isTrue: z.boolean().optional(),
     picture: z.string().optional(),
-    themeId: zThemeId.optional()
+    themeId: zThemeId
 });
 
 export const zPictureUploadResponseDto = z.object({
