@@ -7,5 +7,8 @@ import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
 
 public record CreateSessionRequest(
-    @NotBlank(message = "Session name is required") @Size(max = 100, message = "Session name cannot exceed 100 characters") String name,
-    @Nullable UUID quezapId) {}
+    @NotBlank(message = MSG_REQUIRED) @Size(max = 100, message = MSG_MAX_LENGTH) String name,
+    @Nullable UUID quezapId) {
+  private static final String MSG_REQUIRED = "Session name is required";
+  private static final String MSG_MAX_LENGTH = "Session name cannot exceed 100 characters";
+}

@@ -16,6 +16,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.jspecify.annotations.Nullable;
 
 @Entity
@@ -44,8 +47,12 @@ public class SessionJpaEntity {
   private UUID authorId;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "quezap_id")
+  @JoinColumn(name = "quezap_id", nullable = true)
+  @OnDelete(action = OnDeleteAction.SET_NULL)
   private @Nullable QuezapJpaEntity quezap;
+
+  @Column(name = "quezap_title", length = 100)
+  private @Nullable String quezapTitle;
 
   @OneToMany(
       mappedBy = "session",
@@ -66,6 +73,9 @@ public class SessionJpaEntity {
 
   @Column(name = "current_slide_started_at")
   private @Nullable Instant currentSlideStartedAt;
+
+  @Column(name = "paused_at")
+  private @Nullable Instant pausedAt;
 
   @Column(name = "ended_at")
   private @Nullable Instant endedAt;
@@ -88,6 +98,10 @@ public class SessionJpaEntity {
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
+  @Version
+  @Column(name = "version", nullable = false, columnDefinition = "bigint default 0")
+  private long version = 0L;
+
   @SuppressWarnings("NullAway.Init")
   protected SessionJpaEntity() {
     // For JPA
@@ -109,6 +123,7 @@ public class SessionJpaEntity {
     this.currentSlideIndex = currentSlideIndex;
     this.authorId = authorId;
     this.quezap = quezap;
+    this.quezapTitle = quezap != null ? quezap.getTitle() : null;
     this.startedAt = startedAt;
     this.endedAt = endedAt;
     this.createdAt = createdAt;
@@ -160,6 +175,17 @@ public class SessionJpaEntity {
 
   public void setQuezap(@Nullable QuezapJpaEntity quezap) {
     this.quezap = quezap;
+    if (quezap != null) {
+      this.quezapTitle = quezap.getTitle();
+    }
+  }
+
+  public @Nullable String getQuezapTitle() {
+    return quezapTitle;
+  }
+
+  public void setQuezapTitle(@Nullable String quezapTitle) {
+    this.quezapTitle = quezapTitle;
   }
 
   public Set<SessionParticipantJpaEntity> getParticipants() {
@@ -202,6 +228,14 @@ public class SessionJpaEntity {
 
   public void setCurrentSlideStartedAt(@Nullable Instant currentSlideStartedAt) {
     this.currentSlideStartedAt = currentSlideStartedAt;
+  }
+
+  public @Nullable Instant getPausedAt() {
+    return pausedAt;
+  }
+
+  public void setPausedAt(@Nullable Instant pausedAt) {
+    this.pausedAt = pausedAt;
   }
 
   public @Nullable Instant getEndedAt() {
@@ -258,6 +292,14 @@ public class SessionJpaEntity {
 
   public void setCreatedAt(Instant createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public long getVersion() {
+    return version;
+  }
+
+  public void setVersion(long version) {
+    this.version = version;
   }
 
   @Override
