@@ -1,6 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed,
-  input,
+  input, output,
 } from '@angular/core'
 import { FieldTree } from '@angular/forms/signals'
 
@@ -34,6 +34,16 @@ export class QuestionAnswer {
   readonly field = input.required<FieldTree<boolean>>()
   readonly radio = input<boolean>(false)
   readonly disabled = input<boolean>(false)
+  readonly selected = output<void>()
+
+  /** Single source of selection: label clicks re-dispatch exactly one click on the input. */
+  protected onInputClick(event: Event): void {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!this.disabled()) {
+      this.selected.emit()
+    }
+  }
 
   protected readonly identifier = computed<number>(() => this.answer()?.index ?? 0)
   protected readonly phrase = computed<string>(() => this.answer()?.value ?? '')

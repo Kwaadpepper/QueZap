@@ -41,6 +41,9 @@ export function createAnswerSubmissionState() {
   }
 
   const submit = (request: AnswerSubmissionRequest): void => {
+    if (isSubmitting()) {
+      return
+    }
     const previousChoice = sessionStore.mySubmittedChoice()
     const previousHasSubmitted = hasSubmitted() && previousChoice?.questionId === request.questionId
 

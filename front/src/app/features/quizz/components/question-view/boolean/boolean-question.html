@@ -47,7 +47,7 @@
             [field]="response"
             [radio]="true"
             [disabled]="cannotAnswerAnymore()"
-            (click)="selectAnswer(answer.index)"
+            (selected)="selectAnswer(answer.index)"
           />
         } @else {
           pas de reponse
