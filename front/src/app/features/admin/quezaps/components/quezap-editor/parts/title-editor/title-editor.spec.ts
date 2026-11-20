@@ -40,4 +40,16 @@ describe('TitleEditor', () => {
     expect(store.quezap().title).toBe('Nouveau titre')
     expect(store.isDirty()).toBe(true)
   })
+
+  it('should display existing title immediately when store quezap is set', () => {
+    const store = TestBed.inject(QuezapEditorStore)
+    store.setQuezap({
+      title: 'Mon Quiz Existant',
+      description: '',
+      questionWithAnswersAndResponses: store.questions(),
+    })
+    fixture.detectChanges()
+
+    expect(component['editedTitle']()).toBe('Mon Quiz Existant')
+  })
 })

@@ -1,11 +1,14 @@
 import {
   ChangeDetectionStrategy, Component, computed,
+  DestroyRef,
   inject,
   input,
   output,
   signal,
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
+import { MessageService } from 'primeng/api'
 import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload'
 
 import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
@@ -31,6 +34,8 @@ export type AnswerInput = AnswerWithResponse
 })
 export class AnswerComponent {
   private readonly pictureUploadService = inject(PictureUploadService)
+  private readonly messageService = inject(MessageService, { optional: true })
+  private readonly destroyRef = inject(DestroyRef)
 
   readonly answer = input.required<AnswerInput>()
   readonly readonly = input.required<boolean>()
@@ -86,23 +91,39 @@ export class AnswerComponent {
 
   protected onUpload(event: FileSelectEvent) {
     const file = event.files[0]
-    if (file) {
-      this.isUploading.set(true)
-      this.pictureUploadService.upload(file).subscribe({
-        next: (output) => {
-          this.isUploading.set(false)
-          if (isSuccess(output)) {
-            this.answerChanged.emit({
-              ...this.answer(),
-              picture: output.result.pictureUrl,
-            })
-          }
-        },
-        error: () => {
-          this.isUploading.set(false)
-        },
-      })
+    if (!file) {
+      return
     }
+
+    this.isUploading.set(true)
+    this.pictureUploadService.upload(file).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: (output) => {
+        this.isUploading.set(false)
+        if (isSuccess(output)) {
+          this.answerChanged.emit({
+            ...this.answer(),
+            picture: output.result.pictureUrl,
+          })
+        }
+        else {
+          this.messageService?.add({
+            severity: 'error',
+            summary: 'Erreur d’upload',
+            detail: output.error.message || 'Impossible de téléverser l’image',
+          })
+        }
+      },
+      error: () => {
+        this.isUploading.set(false)
+        this.messageService?.add({
+          severity: 'error',
+          summary: 'Erreur d’upload',
+          detail: 'Une erreur inattendue est survenue lors du téléversement',
+        })
+      },
+    })
   }
 
   protected removePicture() {

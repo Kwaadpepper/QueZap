@@ -27,7 +27,8 @@ interface QuestionLimitOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LimitSelector {
-  readonly #secondOptions = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120, 150, 180, 240, 300]
+  readonly #secondOptions = [5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120, 150, 180, 240, 300]
+  readonly #defaultSeconds = 30
   private readonly editorStore = inject(QuezapEditorStore)
 
   readonly question = computed<LimitSelectorInput>(() =>
@@ -35,15 +36,14 @@ export class LimitSelector {
   )
 
   /** Limits in seconds */
-  protected readonly availableLimitSeconds = signal<QuestionLimitOption[]>([
-    { label: 'Pas de limite', value: 0 },
+  protected readonly availableLimitSeconds = signal<QuestionLimitOption[]>(
     this.#secondOptions.map(seconds => ({
       label: MinutesPipe.secondsToLabel(seconds),
       value: seconds,
     })),
-  ].flat())
+  )
 
-  protected selectedLimit = signal<number>(this.availableLimitSeconds()[0].value)
+  protected selectedLimit = signal<number>(this.#defaultSeconds)
 
   protected readonly quickLimits = [10, 20, 30, 60, 90]
 
@@ -56,14 +56,11 @@ export class LimitSelector {
 
   constructor() {
     effect(() => {
-      this.selectedLimit.update(() => {
-        const currentLimit = this.question().limit
-        const normalizedLimit = this.#secondOptions.includes(currentLimit?.seconds ?? 0)
-          ? { seconds: currentLimit?.seconds ?? this.#secondOptions[0] }
-          : { seconds: this.#secondOptions[0] }
-
-        return normalizedLimit ? normalizedLimit.seconds : 0
-      })
+      const currentLimit = this.question().limit?.seconds
+      const normalizedSeconds = currentLimit !== undefined && this.#secondOptions.includes(currentLimit)
+        ? currentLimit
+        : this.#defaultSeconds
+      this.selectedLimit.set(normalizedSeconds)
     })
   }
 

@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 
+import { MessageService } from 'primeng/api'
 import { of } from 'rxjs'
 
+import { ValidationError } from '@quezap/core/errors'
 import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
 import { PictureUrl } from '@quezap/domain/models'
 
@@ -15,8 +17,10 @@ describe('QuestionEditor', () => {
   let store: InstanceType<typeof QuezapEditorStore>
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [QuestionEditor] })
-      .compileComponents()
+    await TestBed.configureTestingModule({
+      imports: [QuestionEditor],
+      providers: [MessageService],
+    }).compileComponents()
 
     store = TestBed.inject(QuezapEditorStore)
     fixture = TestBed.createComponent(QuestionEditor)
@@ -71,5 +75,30 @@ describe('QuestionEditor', () => {
     fixture.detectChanges()
 
     expect(store.selectedQuestion().picture).toBe(uploadedUrl)
+  })
+
+  it('should show error toast and stop spinner when upload fails', () => {
+    const uploadService = TestBed.inject(PictureUploadService)
+    const messageService = TestBed.inject(MessageService)
+    const toastSpy = jest.spyOn(messageService, 'add')
+    const mockFile = new File(['bad'], 'bad.png', { type: 'image/png' })
+
+    jest.spyOn(uploadService, 'upload').mockReturnValue(
+      of({
+        kind: 'failure' as const,
+        error: new ValidationError({}, 'Format non supporté'),
+      }),
+    )
+
+    component['onUpload']({ files: [mockFile], originalEvent: new Event('change') })
+    fixture.detectChanges()
+
+    expect(component['isUploading']()).toBe(false)
+    expect(toastSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: 'error',
+        detail: 'Format non supporté',
+      }),
+    )
   })
 })

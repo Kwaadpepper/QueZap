@@ -2,16 +2,22 @@
   class="container-question-list-view flex h-full min-h-0 w-full flex-col"
   tabindex="0"
   aria-label="Panneau de sélection des questions"
-  role="menu"
+  role="listbox"
   (keydown)="onKeyDown($event)"
 >
   <div #questionContainer class="flex min-h-0 grow flex-col gap-3 overflow-x-hidden overflow-y-auto px-3 py-4">
     @for (question of questions(); track $index) {
-      <div class="flex min-w-0 flex-row transition-all duration-300">
+      <div
+        class="flex min-w-0 flex-row transition-all duration-300"
+        role="option"
+        [attr.aria-selected]="$index === selectedIdx()"
+      >
         <!-- QUESTION ACTION BAR -->
-        <div class="w-13 shrink-0">
-          <quizz-question-action-bar [index]="$index" />
-        </div>
+        @if ($index === selectedIdx()) {
+          <div class="w-11 shrink-0">
+            <quizz-question-action-bar [index]="$index" />
+          </div>
+        }
 
         <!-- QUESTION PREVIEW BUTTON -->
         <quizz-question-preview-button
@@ -28,7 +34,7 @@
     label="Ajouter une question"
     icon="pi pi-plus"
     severity="primary"
-    styleClass="m-4 ms-10 font-semibold"
+    styleClass="m-4 font-semibold"
     (onClick)="onAddQuestion()"
   />
 

@@ -1,6 +1,6 @@
 <div class="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto lg:flex-row lg:overflow-hidden">
   <!-- QUESTION EDITOR -->
-  <main class="relative flex min-h-0 grow flex-col gap-4 overflow-y-auto p-4 transition-colors duration-300" [class]="backgroundClass()">
+  <main class="quezap-theme-background relative flex min-h-0 grow flex-col gap-4 overflow-y-auto p-4 transition-colors duration-300">
     <quizz-phrase-editor class="w-full" />
 
     <div class="grow flex flex-col items-center justify-center">
@@ -11,7 +11,7 @@
         </div>
       } @else if (question().picture) {
         <div class="relative inline-block max-w-full">
-          <img alt="Question Image" class="max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300" [class]="mediaClass()" [src]="question().picture" />
+          <img alt="Question Image" class="max-h-80 max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300" [src]="question().picture" />
           <button type="button" class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg focus:outline-hidden focus:ring-2 focus:ring-red-400 cursor-pointer" title="Supprimer l'image" aria-label="Supprimer l'image de la question" (click)="removePicture()">
             <i class="pi pi-times"></i>
           </button>
@@ -20,8 +20,8 @@
         <p-fileUpload
           mode="basic"
           chooseLabel="Ajouter une image"
-          accept="image/*"
-          maxFileSize="5000000"
+          accept="image/jpeg,image/png,image/webp"
+          [maxFileSize]="5242880"
           [auto]="true"
           [customUpload]="true"
           (onSelect)="onUpload($event)"
@@ -43,96 +43,23 @@
       <quizz-type-selector class="my-4 block" />
       <p-divider />
 
-      <!-- Format d'affichage du média -->
-      <div class="my-4 block">
-        <span class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">🖼️ Format de l'image</span>
-        <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-          <button
-            type="button"
-            class="rounded-lg py-1.5 text-xs font-semibold transition cursor-pointer"
-            [class.bg-white]="mediaFormat() === 'STANDARD'"
-            [class.dark:bg-slate-700]="mediaFormat() === 'STANDARD'"
-            [class.text-indigo-600]="mediaFormat() === 'STANDARD'"
-            [class.shadow-sm]="mediaFormat() === 'STANDARD'"
-            [class.text-slate-600]="mediaFormat() !== 'STANDARD'"
-            [class.dark:text-slate-400]="mediaFormat() !== 'STANDARD'"
-            (click)="setMediaFormat('STANDARD')">
-            Standard
-          </button>
-          <button
-            type="button"
-            class="rounded-lg py-1.5 text-xs font-semibold transition cursor-pointer"
-            [class.bg-white]="mediaFormat() === 'LARGE'"
-            [class.dark:bg-slate-700]="mediaFormat() === 'LARGE'"
-            [class.text-indigo-600]="mediaFormat() === 'LARGE'"
-            [class.shadow-sm]="mediaFormat() === 'LARGE'"
-            [class.text-slate-600]="mediaFormat() !== 'LARGE'"
-            [class.dark:text-slate-400]="mediaFormat() !== 'LARGE'"
-            (click)="setMediaFormat('LARGE')">
-            Grande
-          </button>
-          <button
-            type="button"
-            class="rounded-lg py-1.5 text-xs font-semibold transition cursor-pointer"
-            [class.bg-white]="mediaFormat() === 'FULLSCREEN'"
-            [class.dark:bg-slate-700]="mediaFormat() === 'FULLSCREEN'"
-            [class.text-indigo-600]="mediaFormat() === 'FULLSCREEN'"
-            [class.shadow-sm]="mediaFormat() === 'FULLSCREEN'"
-            [class.text-slate-600]="mediaFormat() !== 'FULLSCREEN'"
-            [class.dark:text-slate-400]="mediaFormat() !== 'FULLSCREEN'"
-            (click)="setMediaFormat('FULLSCREEN')">
-            Plein
-          </button>
+      @if (themes().length > 0) {
+        <div class="my-4 flex flex-col gap-2">
+          <span id="question-theme-label" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Thème</span>
+          <p-select
+            class="w-full"
+            ariaLabelledBy="question-theme-label"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Général (par défaut)"
+            [options]="themes()"
+            [showClear]="true"
+            [ngModel]="question().themeId ?? null"
+            (ngModelChange)="onThemeChange($event)"
+          />
         </div>
-      </div>
-      <p-divider />
-
-      <!-- Personnalisation de l'arrière-plan -->
-      <div class="my-4 block">
-        <span class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">🎨 Arrière-plan du fond</span>
-        <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-          <button
-            type="button"
-            class="rounded-lg py-1.5 text-xs font-semibold transition cursor-pointer"
-            title="Fond végétal classique QueZap"
-            [class.bg-white]="backgroundTheme() === 'CLASSIC'"
-            [class.dark:bg-slate-700]="backgroundTheme() === 'CLASSIC'"
-            [class.text-indigo-600]="backgroundTheme() === 'CLASSIC'"
-            [class.shadow-sm]="backgroundTheme() === 'CLASSIC'"
-            [class.text-slate-600]="backgroundTheme() !== 'CLASSIC'"
-            [class.dark:text-slate-400]="backgroundTheme() !== 'CLASSIC'"
-            (click)="setBackgroundTheme('CLASSIC')">
-            Végétal
-          </button>
-          <button
-            type="button"
-            class="rounded-lg py-1.5 text-xs font-semibold transition cursor-pointer"
-            title="Fond sombre épuré"
-            [class.bg-white]="backgroundTheme() === 'DARK'"
-            [class.dark:bg-slate-700]="backgroundTheme() === 'DARK'"
-            [class.text-indigo-600]="backgroundTheme() === 'DARK'"
-            [class.shadow-sm]="backgroundTheme() === 'DARK'"
-            [class.text-slate-600]="backgroundTheme() !== 'DARK'"
-            [class.dark:text-slate-400]="backgroundTheme() !== 'DARK'"
-            (click)="setBackgroundTheme('DARK')">
-            Sombre
-          </button>
-          <button
-            type="button"
-            class="rounded-lg py-1.5 text-xs font-semibold transition cursor-pointer"
-            title="Sans illustration de fond"
-            [class.bg-white]="backgroundTheme() === 'CLEAN'"
-            [class.dark:bg-slate-700]="backgroundTheme() === 'CLEAN'"
-            [class.text-indigo-600]="backgroundTheme() === 'CLEAN'"
-            [class.shadow-sm]="backgroundTheme() === 'CLEAN'"
-            [class.text-slate-600]="backgroundTheme() !== 'CLEAN'"
-            [class.dark:text-slate-400]="backgroundTheme() !== 'CLEAN'"
-            (click)="setBackgroundTheme('CLEAN')">
-            Neutre
-          </button>
-        </div>
-      </div>
-      <p-divider />
+        <p-divider />
+      }
 
       <quizz-limit-selector class="my-4 block" />
       <p-divider />

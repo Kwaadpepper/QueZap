@@ -51,4 +51,21 @@ describe('QuezapEditor', () => {
     })
     expect(component['savedQuezapId']()).toBe('018e3a2b-1111-7def-8123-abcdef111111')
   })
+
+  it('should show error toast when persist fails on save', async () => {
+    const store = fixture.debugElement.injector.get(QuezapEditorStore)
+    const messageService = TestBed.inject(MessageService)
+    const toastSpy = jest.spyOn(messageService, 'add')
+    jest.spyOn(store, 'persist').mockRejectedValue(new Error('Erreur serveur'))
+
+    component['onSaveQuezap']()
+    await fixture.whenStable()
+
+    expect(toastSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: 'error',
+        detail: 'Erreur serveur',
+      }),
+    )
+  })
 })

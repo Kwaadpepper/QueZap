@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 
+import { MessageService } from 'primeng/api'
 import { of } from 'rxjs'
 
+import { ValidationError } from '@quezap/core/errors'
 import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
 import { AnswerWithResponse, PictureUrl } from '@quezap/domain/models'
 
@@ -22,7 +24,7 @@ describe('AnswerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AnswerComponent],
-      providers: [PictureUploadService],
+      providers: [PictureUploadService, MessageService],
     }).compileComponents()
 
     uploadService = TestBed.inject(PictureUploadService)
@@ -81,5 +83,36 @@ describe('AnswerComponent', () => {
 
     expect(emitted).toBeDefined()
     expect(emitted?.picture).toBe(uploadedUrl)
+  })
+
+  it('should hide upload button when readonly is true (Boolean question)', () => {
+    fixture.componentRef.setInput('readonly', true)
+    fixture.detectChanges()
+
+    expect(fixture.nativeElement.querySelector('p-fileupload')).toBeNull()
+  })
+
+  it('should show error toast and stop spinner when upload fails', () => {
+    const messageService = TestBed.inject(MessageService)
+    const toastSpy = jest.spyOn(messageService, 'add')
+    const mockFile = new File(['bad'], 'bad.png', { type: 'image/png' })
+
+    jest.spyOn(uploadService, 'upload').mockReturnValue(
+      of({
+        kind: 'failure' as const,
+        error: new ValidationError({}, 'Fichier trop volumineux'),
+      }),
+    )
+
+    component['onUpload']({ files: [mockFile], originalEvent: new Event('change') })
+    fixture.detectChanges()
+
+    expect(component['isUploading']()).toBe(false)
+    expect(toastSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: 'error',
+        detail: 'Fichier trop volumineux',
+      }),
+    )
   })
 })

@@ -16,6 +16,10 @@ describe('PictureUploadService', () => {
     service = TestBed.inject(PictureUploadService)
   })
 
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it('should upload picture successfully and return public URL', (done) => {
     const file = new File(['fake-image'], 'photo.png', { type: 'image/png' })
     const mockResponse = {
@@ -41,14 +45,55 @@ describe('PictureUploadService', () => {
     })
   })
 
-  it('should return failure when sdk returns error', (done) => {
+  it('should return failure when sdk returns error with status 413', (done) => {
     const file = new File(['fake-image'], 'photo.png', { type: 'image/png' })
     jest.spyOn(sdk, 'upload').mockReturnValue(
-      of({ data: undefined, error: { message: 'Upload failed' } }) as never,
+      of({ data: undefined, error: {}, response: { status: 413 } }) as never,
     )
 
     service.upload(file).subscribe((output) => {
       expect(isFailure(output)).toBe(true)
+      if (isFailure(output)) {
+        expect(output.error.message).toContain('5 Mo')
+      }
+      done()
+    })
+  })
+
+  it('should reject unsupported MIME type before calling sdk', (done) => {
+    const spy = jest.spyOn(sdk, 'upload')
+    const file = new File(['gif-bytes'], 'anim.gif', { type: 'image/gif' })
+
+    service.upload(file).subscribe((output) => {
+      expect(isFailure(output)).toBe(true)
+      expect(spy).not.toHaveBeenCalled()
+      done()
+    })
+  })
+
+  it('should reject file larger than 5 Mo before calling sdk', (done) => {
+    const spy = jest.spyOn(sdk, 'upload')
+    const oversized = new File(['x'], 'big.png', { type: 'image/png' })
+    Object.defineProperty(oversized, 'size', { value: 5 * 1024 * 1024 + 1 })
+
+    service.upload(oversized).subscribe((output) => {
+      expect(isFailure(output)).toBe(true)
+      expect(spy).not.toHaveBeenCalled()
+      done()
+    })
+  })
+
+  it('should map 401 and 415 HTTP errors to explicit messages', (done) => {
+    const file = new File(['fake-image'], 'photo.webp', { type: 'image/webp' })
+    jest.spyOn(sdk, 'upload').mockReturnValue(
+      of({ data: undefined, error: {}, response: { status: 401 } }) as never,
+    )
+
+    service.upload(file).subscribe((output) => {
+      expect(isFailure(output)).toBe(true)
+      if (isFailure(output)) {
+        expect(output.error.message).toContain('Session expirée')
+      }
       done()
     })
   })

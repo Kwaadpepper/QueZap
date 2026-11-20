@@ -1,6 +1,7 @@
 import {
-  ChangeDetectionStrategy, Component, computed, inject, input, signal,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, signal,
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
 import { ConfirmationService, MessageService } from 'primeng/api'
@@ -39,6 +40,7 @@ export class QuezapCard {
   private readonly confirmationService = inject(ConfirmationService)
   private readonly quezapPage = inject(QuezapPageStore)
   private readonly authStore = inject(AuthenticatedUserStore)
+  private readonly destroyRef = inject(DestroyRef)
 
   readonly quezap = input.required<QuezapWithTheme>()
   readonly editable = input<boolean>(false)
@@ -60,7 +62,9 @@ export class QuezapCard {
     this.launchingSession.set(true)
     const q = this.quezap()
     const name = `${q.title} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-    this.sessionService.createSession(q.id, name).subscribe((res) => {
+    this.sessionService.createSession(q.id, name).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((res) => {
       this.launchingSession.set(false)
       if (res.kind === 'success') {
         this.messageService.add({
@@ -91,7 +95,9 @@ export class QuezapCard {
   }
 
   protected onQuezapDuplicate(): void {
-    this.quezapService.duplicateQuezap(this.quezap().id).subscribe((res) => {
+    this.quezapService.duplicateQuezap(this.quezap().id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((res) => {
       if (res.kind === 'success') {
         this.messageService.add({
           severity: 'success',
@@ -120,7 +126,9 @@ export class QuezapCard {
       target: $event.currentTarget ?? undefined,
       message: `Voulez-vous vraiment supprimer le quiz "${this.quezap().title}" ?`,
       accept: () => {
-        this.quezapService.deleteQuezap(this.quezap().id).subscribe((res) => {
+        this.quezapService.deleteQuezap(this.quezap().id).pipe(
+          takeUntilDestroyed(this.destroyRef),
+        ).subscribe((res) => {
           if (res.kind === 'success') {
             this.messageService.add({
               severity: 'success',
