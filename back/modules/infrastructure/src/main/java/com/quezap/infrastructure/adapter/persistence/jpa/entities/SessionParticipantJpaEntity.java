@@ -12,6 +12,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import org.jspecify.annotations.Nullable;
 
 @Entity
@@ -45,6 +46,25 @@ public class SessionParticipantJpaEntity {
 
   @Column(name = "joined_at", nullable = false)
   private Instant joinedAt;
+
+  @Column(name = "total_response_time_ms", nullable = false, columnDefinition = "bigint default 0")
+  private long totalResponseTimeMs = 0L;
+
+  @Column(
+      name = "last_answered_slide_index",
+      nullable = false,
+      columnDefinition = "integer default 0")
+  private int lastAnsweredSlideIndex = 0;
+
+  @Column(
+      name = "last_slide_response_time_ms",
+      nullable = false,
+      columnDefinition = "bigint default 0")
+  private long lastSlideResponseTimeMs = 0L;
+
+  @Version
+  @Column(name = "version", nullable = false, columnDefinition = "bigint default 0")
+  private long version = 0L;
 
   @SuppressWarnings("NullAway.Init")
   protected SessionParticipantJpaEntity() {
@@ -122,6 +142,38 @@ public class SessionParticipantJpaEntity {
 
   public void setJoinedAt(Instant joinedAt) {
     this.joinedAt = joinedAt;
+  }
+
+  public long getTotalResponseTimeMs() {
+    return totalResponseTimeMs;
+  }
+
+  public void setTotalResponseTimeMs(long totalResponseTimeMs) {
+    this.totalResponseTimeMs = totalResponseTimeMs;
+  }
+
+  public int getLastAnsweredSlideIndex() {
+    return lastAnsweredSlideIndex;
+  }
+
+  public void setLastAnsweredSlideIndex(int lastAnsweredSlideIndex) {
+    this.lastAnsweredSlideIndex = lastAnsweredSlideIndex;
+  }
+
+  public long getLastSlideResponseTimeMs() {
+    return lastSlideResponseTimeMs;
+  }
+
+  public void setLastSlideResponseTimeMs(long lastSlideResponseTimeMs) {
+    this.lastSlideResponseTimeMs = lastSlideResponseTimeMs;
+  }
+
+  public long getVersion() {
+    return version;
+  }
+
+  public void setVersion(long version) {
+    this.version = version;
   }
 
   @Override
