@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed,
+  effect,
   inject,
   signal,
 } from '@angular/core'
@@ -33,6 +34,12 @@ export class TitleEditor {
 
   private readonly quezap = computed<TitleInput>(() => this.editorStore.quezap())
   protected readonly editedTitle = signal<string>('')
+
+  constructor() {
+    effect(() => {
+      this.editedTitle.set(this.quezap().title)
+    })
+  }
 
   protected openCallback() {
     this.editedTitle.set(this.quezap().title)

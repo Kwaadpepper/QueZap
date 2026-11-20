@@ -25,8 +25,13 @@ import {
 
 import { QUEZAP_SERVICE } from '../services'
 
-type QuezapEditorStateModel = Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId }
-type QuestionWithAnswers = QuezapWithQuestionsAndAnswers['questionWithAnswersAndResponses'][0]
+type QuezapEditorStateModel = Omit<QuezapWithQuestionsAndAnswers, 'id'> & {
+  id?: QuezapId
+  isPublic?: boolean
+}
+type QuestionWithAnswers = QuezapWithQuestionsAndAnswers['questionWithAnswersAndResponses'][0] & {
+  themeId?: string
+}
 
 const DEFAULT_QUESTION_TYPE = QuestionType.Quizz
 
@@ -96,6 +101,16 @@ export const QuezapEditorStore = signalStore(
       }
       patchState(store, state => ({
         quezap: { ...state.quezap, title: trimmedTitle },
+        isDirty: true,
+      }))
+    },
+
+    updateVisibility(isPublic: boolean) {
+      if ((store.quezap().isPublic ?? true) === isPublic) {
+        return
+      }
+      patchState(store, state => ({
+        quezap: { ...state.quezap, isPublic },
         isDirty: true,
       }))
     },

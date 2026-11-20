@@ -5,6 +5,17 @@
     <!-- Editorial buttons -->
     <menu class="ms-auto flex items-center gap-2">
       <p-button
+        outlined
+        size="small"
+        [label]="isPublic() ? 'Public' : 'Privé'"
+        [icon]="isPublic() ? 'pi pi-globe' : 'pi pi-lock'"
+        [severity]="isPublic() ? 'info' : 'secondary'"
+        [title]="isPublic() ? 'Quiz public (cliquer pour passer en privé)' : 'Quiz privé (cliquer pour passer en public)'"
+        [ariaLabel]="isPublic() ? 'Visibilité : Public' : 'Visibilité : Privé'"
+        (onClick)="onToggleVisibility()"
+      />
+
+      <p-button
         label="Enregistrer"
         raised
         [severity]="isDirty() ? 'warn' : 'success'"
@@ -47,7 +58,7 @@
 
   <div class="flex min-h-0 grow flex-col md:flex-row overflow-hidden">
     <!-- Sidebar with questions list -->
-    <quizz-question-list-view class="h-56 w-full shrink-0 md:h-full md:max-h-none md:w-72 md:min-w-64 lg:basis-1/5" />
+    <quizz-question-list-view class="max-h-60 w-full shrink-0 md:h-full md:max-h-none md:w-72 md:min-w-64 lg:basis-1/5" />
 
     <!-- Question editor -->
     <quizz-question-editor class="min-h-0 min-w-0 w-full grow overflow-y-auto" />

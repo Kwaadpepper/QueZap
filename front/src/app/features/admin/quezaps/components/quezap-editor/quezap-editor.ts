@@ -1,12 +1,14 @@
 import {
   ChangeDetectionStrategy, Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   input,
   output,
   signal,
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
 import { ConfirmationService, MessageService } from 'primeng/api'
@@ -23,8 +25,10 @@ import { QuezapEditorStore } from '../../stores'
 import { QuestionEditor, QuestionListView, TitleEditor } from './parts'
 
 export type QuezapEditorInput
-  = | QuezapWithQuestionsAndAnswers
-    | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId })
+  = (QuezapWithQuestionsAndAnswers
+    | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId })) & {
+      isPublic?: boolean
+    }
 
 @Component({
   selector: 'quizz-quezap-editor',
@@ -50,11 +54,13 @@ export class QuezapEditor {
   private readonly message = inject(MessageService)
   private readonly router = inject(Router)
   private readonly sessionService = inject(SESSION_SERVICE)
+  private readonly destroyRef = inject(DestroyRef)
 
   readonly quezap = input<QuezapEditorInput>()
   private readonly _quezap = signal<QuezapEditorInput>({
     title: '',
     description: '',
+    isPublic: true,
     questionWithAnswersAndResponses: [
       // * Editor requires minimum 1 question
       this.getInitialQuestion(),
@@ -64,6 +70,7 @@ export class QuezapEditor {
   readonly closeEvent = output<void>()
 
   protected readonly savedQuezapId = computed(() => this.editorStore.quezap().id)
+  protected readonly isPublic = computed(() => this.editorStore.quezap().isPublic ?? true)
   protected readonly persisting = computed(() => this.editorStore.persisting())
   protected readonly isDirty = computed(() => this.editorStore.isDirty())
   protected readonly hasInvalidAnswers = computed(() => this.editorStore.hasInvalidAnswers())
@@ -93,6 +100,10 @@ export class QuezapEditor {
     }, { debugName: 'Internal Quezap changed' })
   }
 
+  protected onToggleVisibility() {
+    this.editorStore.updateVisibility(!this.isPublic())
+  }
+
   protected onSaveQuezap() {
     this.editorStore.persist()
       .then(() => this.message.add({
@@ -109,7 +120,11 @@ export class QuezapEditor {
           return
         }
 
-        throw new Error('Erreur lors de l\'enregistrement du questionnaire', err)
+        this.message.add({
+          summary: 'Erreur',
+          detail: err instanceof Error ? err.message : 'Erreur lors de l\'enregistrement du questionnaire',
+          severity: 'error',
+        })
       })
   }
 
@@ -122,34 +137,63 @@ export class QuezapEditor {
       this.launchingSession.set(true)
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       const name = `${q.title || 'Session'} - ${timeStr}`
-      this.sessionService.createSession(quezapId, name).subscribe((output) => {
-        this.launchingSession.set(false)
-        if (output.kind === 'success') {
-          this.message.add({
-            summary: 'Session lancée !',
-            detail: `Code PIN : ${output.result.code ?? ''}`,
-            severity: 'success',
-          })
-          const url = this.router.serializeUrl(
-            this.router.createUrlTree(['/projector', output.result.id]),
-          )
-          const win = window.open(url, '_blank')
-          if (!win) {
-            this.router.navigate(['/projector', output.result.id])
+      this.sessionService.createSession(quezapId, name).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
+        next: (output) => {
+          this.launchingSession.set(false)
+          if (output.kind === 'success') {
+            this.message.add({
+              summary: 'Session lancée !',
+              detail: `Code PIN : ${output.result.code ?? ''}`,
+              severity: 'success',
+            })
+            const url = this.router.serializeUrl(
+              this.router.createUrlTree(['/admin/sessions', output.result.id, 'present']),
+            )
+            const win = window.open(url, '_blank')
+            if (!win) {
+              this.router.navigate(['/admin/sessions', output.result.id, 'present'])
+            }
           }
-        }
-        else {
+          else {
+            this.message.add({
+              summary: 'Erreur',
+              detail: 'Impossible de créer la session',
+              severity: 'error',
+            })
+          }
+        },
+        error: () => {
+          this.launchingSession.set(false)
           this.message.add({
             summary: 'Erreur',
             detail: 'Impossible de créer la session',
             severity: 'error',
           })
-        }
+        },
       })
     }
 
     if (this.isDirty()) {
-      this.editorStore.persist().then(saved => launch(saved.id)).catch(() => void 0)
+      this.editorStore.persist()
+        .then(saved => launch(saved.id))
+        .catch((err) => {
+          if (err instanceof ValidationError) {
+            this.message.add({
+              summary: 'Validation',
+              detail: err.message || 'Vous devez corriger votre questionnaire avant de lancer la session',
+              severity: 'warn',
+            })
+            return
+          }
+
+          this.message.add({
+            summary: 'Erreur',
+            detail: err instanceof Error ? err.message : 'Erreur lors de l\'enregistrement avant le lancement',
+            severity: 'error',
+          })
+        })
     }
     else {
       launch(id)

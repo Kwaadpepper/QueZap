@@ -6,13 +6,18 @@ import {
   CreateQuezapRequest,
   InlineAnswerRequest,
   InlineQuestionRequest,
-  PageOfDtoQuezapSummaryDto,
-  QuezapDetailDto,
-  QuezapIdDto,
+  List2Data,
   QuezapSlideRequest,
   UpdateQuezapRequest,
 } from '@quezap/core/api-client'
-import { client } from '@quezap/core/api-client/client.gen'
+import {
+  create2,
+  delete_,
+  duplicate,
+  getById,
+  list2,
+  update,
+} from '@quezap/core/api-client/sdk.gen'
 import { NotFoundError, ValidationError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import {
@@ -32,12 +37,30 @@ export class QuezapHttpService implements QuezapService {
     const authorId = this.authStore.currentUser()?.id
 
     return from(
-      client.get<{ 200: PageOfDtoQuezapSummaryDto }>({
-        url: '/apiv1/quezaps',
+      list2({
         query: {
-          page: p.page,
-          pageSize: p.pageSize,
+          paginationDto: {
+            page: p.page,
+            perPage: p.pageSize,
+          },
           ...(authorId ? { authorId } : {}),
+        },
+        querySerializer: (rawQueryParams: Record<string, unknown>) => {
+          const queryParams = rawQueryParams as List2Data['query']
+          const params = new URLSearchParams()
+          if (queryParams.search) {
+            params.set('search', queryParams.search)
+          }
+          if (queryParams.authorId) {
+            params.set('authorId', queryParams.authorId)
+          }
+          if (queryParams.paginationDto?.page !== undefined) {
+            params.set('page', String(queryParams.paginationDto.page))
+          }
+          if (queryParams.paginationDto?.perPage !== undefined) {
+            params.set('perPage', String(queryParams.paginationDto.perPage))
+          }
+          return params.toString()
         },
       }),
     ).pipe(
@@ -85,7 +108,7 @@ export class QuezapHttpService implements QuezapService {
 
   find(quezapId: QuezapId): ServiceOutput<QuezapWithQuestionsAndAnswers, NotFoundError> {
     return from(
-      client.get<{ 200: QuezapDetailDto }>({ url: `/apiv1/quezaps/${quezapId}` }),
+      getById({ path: { id: quezapId } }),
     ).pipe(
       map(({ data, error }) => {
         if (error || !data) {
@@ -103,13 +126,14 @@ export class QuezapHttpService implements QuezapService {
             id: (data.id ?? quezapId) as QuezapId,
             title: data.title ?? '',
             description: data.description || '',
+            isPublic: data.isPublic ?? true,
             questionWithAnswersAndResponses: slides.map((s) => {
               const rawType = s.question?.type
               const type = rawType?.toUpperCase() === 'AFFIRMATION'
                 ? QuestionType.Boolean
                 : ((rawType as QuestionType) || QuestionType.Quizz)
               const rawAnswers = s.question?.answers || []
-              const points = s.points || 1000
+              const points = s.points ?? 1000
               const answers = type === QuestionType.Boolean && rawAnswers.length === 1
                 ? [
                     {
@@ -138,7 +162,8 @@ export class QuezapHttpService implements QuezapService {
                 value: s.question?.label ?? '',
                 type,
                 ...(s.question?.pictureUrl ? { picture: s.question.pictureUrl as PictureUrl } : {}),
-                limit: { seconds: s.timer || 30 },
+                ...(s.question?.theme?.id ? { themeId: s.question.theme.id } : {}),
+                limit: { seconds: s.timer ?? 30 },
                 answers,
               }
             }),
@@ -157,21 +182,24 @@ export class QuezapHttpService implements QuezapService {
   }
 
   persistQuezap(
-    quezap: QuezapWithQuestionsAndAnswers | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId }),
+    quezap: (QuezapWithQuestionsAndAnswers | (Omit<QuezapWithQuestionsAndAnswers, 'id'> & { id?: QuezapId })) & {
+      isPublic?: boolean
+    },
   ): ServiceOutput<Pick<Quezap, 'id'>> {
     const slides = this.buildSlidesPayload(quezap.questionWithAnswersAndResponses)
+    const isPublic = quezap.isPublic ?? true
 
     if (quezap.id && String(quezap.id).length > 0) {
       const payload: UpdateQuezapRequest = {
         title: quezap.title,
         description: quezap.description || '',
-        isPublic: true,
+        isPublic,
         slides,
       }
 
       return from(
-        client.put<void>({
-          url: `/apiv1/quezaps/${quezap.id}`,
+        update({
+          path: { id: quezap.id },
           body: payload,
         }),
       ).pipe(
@@ -203,16 +231,13 @@ export class QuezapHttpService implements QuezapService {
     const payload: CreateQuezapRequest = {
       title: quezap.title,
       description: quezap.description || '',
-      isPublic: true,
+      isPublic,
       slides,
       questions: slides,
     }
 
     return from(
-      client.post<{ 200: QuezapIdDto, 201: QuezapIdDto }>({
-        url: '/apiv1/quezaps',
-        body: payload,
-      }),
+      create2({ body: payload }),
     ).pipe(
       map(({ data, error }) => {
         if (error || !data?.id) {
@@ -239,7 +264,9 @@ export class QuezapHttpService implements QuezapService {
     )
   }
 
-  private buildSlidesPayload(questions: QuestionWithAnswersAndResponses[]): QuezapSlideRequest[] {
+  private buildSlidesPayload(
+    questions: (QuestionWithAnswersAndResponses & { themeId?: string })[],
+  ): QuezapSlideRequest[] {
     return questions.map((q) => {
       const answers: InlineAnswerRequest[] = q.answers.map((a, aIdx) => ({
         label: a.value || (a.picture ? '' : `Option ${aIdx + 1}`),
@@ -253,13 +280,14 @@ export class QuezapHttpService implements QuezapService {
         label: q.value,
         type: q.type || 'QUIZZ',
         ...(q.picture ? { pictureFilename: q.picture } : {}),
+        ...(q.themeId ? { themeId: q.themeId } : {}),
         answers,
       }
 
       return {
-        timer: q.limit?.seconds || 30,
-        timerSeconds: q.limit?.seconds || 30,
-        points: q.answers[0]?.points || 1000,
+        timer: q.limit?.seconds ?? 30,
+        timerSeconds: q.limit?.seconds ?? 30,
+        points: q.answers[0]?.points ?? 1000,
         question: inlineQuestion,
         ...(q.id && String(q.id).length > 0 ? { questionId: q.id } : {}),
       }
@@ -268,10 +296,7 @@ export class QuezapHttpService implements QuezapService {
 
   duplicateQuezap(quezapId: QuezapId): ServiceOutput<Pick<Quezap, 'id'>> {
     return from(
-      client.post<{ 200: QuezapIdDto, 201: QuezapIdDto }>({
-        url: `/apiv1/quezaps/${quezapId}/duplicate`,
-        body: {},
-      }),
+      duplicate({ path: { id: quezapId } }),
     ).pipe(
       map(({ data, error }) => {
         if (error || !data?.id) {
@@ -300,7 +325,7 @@ export class QuezapHttpService implements QuezapService {
 
   deleteQuezap(quezapId: QuezapId): ServiceOutput<void> {
     return from(
-      client.delete<void>({ url: `/apiv1/quezaps/${quezapId}` }),
+      delete_({ path: { id: quezapId } }),
     ).pipe(
       map(({ error }) => {
         if (error) {
