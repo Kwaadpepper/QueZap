@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 import com.quezap.api.v1.exceptions.BadPaginationException;
+import com.quezap.api.v1.exceptions.InvalidFileException;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,15 @@ class GlobalExceptionHandlerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value(400))
         .andExpect(jsonPath("$.message").value("Page size must be less than or equal to 50"));
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenInvalidFileExceptionIsThrown() throws Exception {
+    mockMvc
+        .perform(get("/test/invalid-file"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value(400))
+        .andExpect(jsonPath("$.message").value("Extension mismatch"));
   }
 
   @Test
@@ -113,6 +123,11 @@ class GlobalExceptionHandlerTest {
   @RestController
   @SuppressWarnings("DoNotCallSuggester")
   static class TestController {
+
+    @GetMapping("/test/invalid-file")
+    void invalidFile() {
+      throw new InvalidFileException("Extension mismatch");
+    }
 
     @GetMapping("/test/bad-pagination")
     void badPagination() {

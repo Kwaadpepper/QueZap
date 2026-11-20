@@ -21,6 +21,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 
 import com.quezap.api.v1.exceptions.BadPaginationException;
+import com.quezap.api.v1.exceptions.InvalidFileException;
 import com.quezap.application.exceptions.ApplicationConstraintException;
 import com.quezap.domain.models.valueobjects.sessions.SessionDomainException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
@@ -142,6 +143,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler({
     BadPaginationException.class,
+    InvalidFileException.class,
     IllegalDomainStateException.class,
     IllegalArgumentException.class,
     HttpMessageNotReadableException.class,
