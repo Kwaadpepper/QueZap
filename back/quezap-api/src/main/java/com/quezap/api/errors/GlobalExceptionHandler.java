@@ -17,6 +17,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 
 import com.quezap.application.exceptions.ApplicationConstraintException;
+import com.quezap.domain.models.valueobjects.sessions.SessionDomainException;
 import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 
 import jakarta.validation.ConstraintViolationException;
@@ -95,6 +96,21 @@ public class GlobalExceptionHandler {
       return HttpStatus.CONFLICT;
     }
     return HttpStatus.BAD_REQUEST;
+  }
+
+  @ExceptionHandler(SessionDomainException.class)
+  public ResponseEntity<ErrorResonseDto> handleSessionDomainException(SessionDomainException ex) {
+    final var status =
+        switch (ex.category()) {
+          case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
+          case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
+          case FORBIDDEN -> HttpStatus.FORBIDDEN;
+          case NOT_FOUND -> HttpStatus.NOT_FOUND;
+          case CONFLICT -> HttpStatus.CONFLICT;
+        };
+    final var errorResponse =
+        new ErrorResonseDto(status.value(), ex.getMessage(), ZonedDateTime.now(clock));
+    return new ResponseEntity<>(errorResponse, status);
   }
 
   @ExceptionHandler(ResponseStatusException.class)

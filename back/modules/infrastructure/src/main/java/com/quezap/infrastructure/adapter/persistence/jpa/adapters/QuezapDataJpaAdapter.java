@@ -212,6 +212,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
         quezapJpaRepository
             .findById(quezapId)
             .orElseThrow(() -> new IllegalStateException("Quezap not found: " + quezapId));
+    quezapJpaRepository.detachSessions(quezapId);
     quezapJpaRepository.delete(quezap);
   }
 

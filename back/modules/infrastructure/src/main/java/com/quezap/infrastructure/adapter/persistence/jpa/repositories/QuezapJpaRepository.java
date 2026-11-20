@@ -5,6 +5,9 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
@@ -25,4 +28,8 @@ public interface QuezapJpaRepository extends JpaRepository<QuezapJpaEntity, UUID
 
   Page<QuezapJpaEntity> findByTitleContainingIgnoreCaseAndAuthorId(
       String title, UUID authorId, Pageable pageable);
+
+  @Modifying(flushAutomatically = true)
+  @Query("UPDATE SessionJpaEntity s SET s.quezap = null WHERE s.quezap.id = :quezapId")
+  int detachSessions(@Param("quezapId") UUID quezapId);
 }
