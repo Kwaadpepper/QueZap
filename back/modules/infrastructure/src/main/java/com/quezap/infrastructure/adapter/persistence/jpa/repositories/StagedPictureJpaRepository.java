@@ -23,6 +23,15 @@ public interface StagedPictureJpaRepository extends JpaRepository<StagedPictureJ
 
   Optional<StagedPictureJpaEntity> findByPictureUrl(String pictureUrl);
 
+  List<StagedPictureJpaEntity> findByPictureUrlIn(Collection<String> pictureUrls);
+
+  @Modifying
+  @Query(
+      "DELETE FROM StagedPictureJpaEntity sp "
+          + "WHERE sp.pictureUrl IN :pictureUrls AND sp.uploaderId = :uploaderId")
+  void deleteByPictureUrlInAndUploaderId(
+      @Param("pictureUrls") Collection<String> pictureUrls, @Param("uploaderId") UUID uploaderId);
+
   @Modifying
   @Query("DELETE FROM StagedPictureJpaEntity sp WHERE sp.pictureUrl IN :pictureUrls")
   void deleteByPictureUrlIn(@Param("pictureUrls") Collection<String> pictureUrls);

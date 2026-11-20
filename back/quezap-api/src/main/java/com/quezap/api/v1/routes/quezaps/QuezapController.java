@@ -1,21 +1,12 @@
 package com.quezap.api.v1.routes.quezaps;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,796 +33,237 @@ import com.quezap.api.v1.dto.response.quezaps.QuezapSummaryDto;
 import com.quezap.api.v1.dto.response.quezaps.ThemeDetailDto;
 import com.quezap.api.v1.dto.response.users.UserSummaryDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
-import com.quezap.domain.ports.services.QuestionPictureManager;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuestionJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapQuestionJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.ThemeJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuestionJpaRepository;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.QuezapJpaRepository;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.ThemeJpaRepository;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
-import com.quezap.infrastructure.adapter.services.StagedPictureService;
-import com.quezap.lib.utils.UuidV7;
+import com.quezap.application.ports.quezaps.QuezapDataPort.AnswerInput;
+import com.quezap.application.ports.quezaps.QuezapDataPort.InlineQuestionInput;
+import com.quezap.application.ports.quezaps.QuezapDataPort.QuezapDetails;
+import com.quezap.application.ports.quezaps.QuezapDataPort.SlideInput;
+import com.quezap.application.usecases.quezaps.QuezapApplicationService;
+import com.quezap.application.usecases.quezaps.QuezapApplicationService.QuezapBadRequestException;
+import com.quezap.application.usecases.quezaps.QuezapApplicationService.QuezapForbiddenException;
+import com.quezap.application.usecases.quezaps.QuezapApplicationService.QuezapNotFoundException;
+import com.quezap.application.usecases.quezaps.QuezapApplicationService.QuezapUnauthorizedException;
+import com.quezap.domain.ports.services.StagedPictureManager;
+import com.quezap.domain.ports.services.StagedPictureManager.InvalidPictureReferenceException;
+import com.quezap.domain.ports.services.StagedPictureManager.PictureOwnershipException;
 
 import jakarta.validation.Valid;
 import org.jspecify.annotations.Nullable;
 
 @RestController
 @RequestMapping("apiv1/quezaps")
-@Transactional
 public class QuezapController {
 
-  private static final String PUBLIC_BUCKET_PREFIX = "/quezap-public-images/";
-
-  private final QuezapJpaRepository quezapJpaRepository;
-  private final QuestionJpaRepository questionJpaRepository;
-  private final ThemeJpaRepository themeJpaRepository;
-  private final UserJpaRepository userJpaRepository;
+  private final QuezapApplicationService quezapService;
   private final PaginationMapper paginationMapper;
-  private final @Nullable StagedPictureService stagedPictureService;
-  private final @Nullable QuestionPictureManager questionPictureManager;
 
   public QuezapController(
-      QuezapJpaRepository quezapJpaRepository,
-      QuestionJpaRepository questionJpaRepository,
-      ThemeJpaRepository themeJpaRepository,
-      UserJpaRepository userJpaRepository,
-      PaginationMapper paginationMapper) {
-    this(
-        quezapJpaRepository,
-        questionJpaRepository,
-        themeJpaRepository,
-        userJpaRepository,
-        paginationMapper,
-        null,
-        null);
-  }
-
-  public QuezapController(
-      QuezapJpaRepository quezapJpaRepository,
-      QuestionJpaRepository questionJpaRepository,
-      ThemeJpaRepository themeJpaRepository,
-      UserJpaRepository userJpaRepository,
-      PaginationMapper paginationMapper,
-      @Nullable QuestionPictureManager questionPictureManager) {
-    this(
-        quezapJpaRepository,
-        questionJpaRepository,
-        themeJpaRepository,
-        userJpaRepository,
-        paginationMapper,
-        null,
-        questionPictureManager);
-  }
-
-  @Autowired
-  public QuezapController(
-      QuezapJpaRepository quezapJpaRepository,
-      QuestionJpaRepository questionJpaRepository,
-      ThemeJpaRepository themeJpaRepository,
-      UserJpaRepository userJpaRepository,
-      PaginationMapper paginationMapper,
-      @Nullable StagedPictureService stagedPictureService,
-      @Nullable QuestionPictureManager questionPictureManager) {
-    this.quezapJpaRepository = quezapJpaRepository;
-    this.questionJpaRepository = questionJpaRepository;
-    this.themeJpaRepository = themeJpaRepository;
-    this.userJpaRepository = userJpaRepository;
+      QuezapApplicationService quezapService, PaginationMapper paginationMapper) {
+    this.quezapService = quezapService;
     this.paginationMapper = paginationMapper;
-    this.stagedPictureService = stagedPictureService;
-    this.questionPictureManager = questionPictureManager;
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public QuezapIdDto create(@Valid @RequestBody CreateQuezapRequest request) {
-    final var author = getCurrentUser();
-
+    final var principal = currentPrincipal();
     final var isPublic = Objects.requireNonNullElse(request.isPublic(), Boolean.TRUE);
-    final var quezap =
-        new QuezapJpaEntity(
-            UuidV7.randomUuid(),
-            request.title(),
-            request.description(),
-            author,
-            isPublic,
-            Instant.now(),
-            Instant.now());
-
-    final var effectiveSlides = request.getEffectiveSlides();
-    if (effectiveSlides.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Questions list cannot be empty");
-    }
-
-    var order = 1;
-    for (final var slideReq : effectiveSlides) {
-      final var question = resolveOrCreateQuestion(slideReq, order, java.util.Set.of());
-      final var timer = slideReq.getEffectiveTimer();
-      final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
-      final var qq =
-          new QuezapQuestionJpaEntity(
-              UuidV7.randomUuid(), quezap, question, timer, points, order++);
-      quezap.addQuestion(qq);
-    }
-
-    final var saved = quezapJpaRepository.save(quezap);
-    final var effectiveSaved = saved != null ? saved : quezap;
-    if (stagedPictureService != null) {
-      stagedPictureService.claimPictures(collectPictureUrls(effectiveSaved));
-    }
-
-    return new QuezapIdDto(effectiveSaved.getId());
+    final var slides = mapSlides(request.getEffectiveSlides());
+    final var id =
+        execute(
+            () ->
+                quezapService.create(
+                    principal, request.title(), request.description(), isPublic, slides));
+    return new QuezapIdDto(id);
   }
 
   @PostMapping("{id}/duplicate")
   @ResponseStatus(HttpStatus.CREATED)
-  @Transactional
   public QuezapIdDto duplicate(@PathVariable UUID id) {
-    final var original =
-        quezapJpaRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
+    final var principal = currentPrincipal();
+    return new QuezapIdDto(execute(() -> quezapService.duplicate(principal, id)));
+  }
 
-    final var currentUser = getCurrentUser();
-    if (!original.getAuthor().getId().equals(currentUser.getId())
-        && !Boolean.TRUE.equals(original.getIsPublic())) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Impossible de dupliquer un questionnaire privé d'un autre auteur");
-    }
-
-    final var copy =
-        new QuezapJpaEntity(
-            UuidV7.randomUuid(),
-            original.getTitle() + " (Copie)",
-            original.getDescription(),
-            currentUser,
-            false,
-            Instant.now(),
-            Instant.now());
-
-    final var sortedOriginalQuestions =
-        original.getQuestions().stream()
-            .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
-            .toList();
-    for (final var qq : sortedOriginalQuestions) {
-      final var clonedQuestion = cloneQuestion(qq.getQuestion());
-      final var copyQq =
-          new QuezapQuestionJpaEntity(
-              UuidV7.randomUuid(),
-              copy,
-              clonedQuestion,
-              qq.getTimerSeconds(),
-              qq.getPoints(),
-              qq.getQuestionOrder());
-      copy.addQuestion(copyQq);
-    }
-
-    final var saved = quezapJpaRepository.save(copy);
-    return new QuezapIdDto(saved.getId());
+  @PostMapping("{id}/clone")
+  @ResponseStatus(HttpStatus.CREATED)
+  public QuezapIdDto clone(@PathVariable UUID id) {
+    final var principal = currentPrincipal();
+    return new QuezapIdDto(execute(() -> quezapService.cloneQuezap(principal, id)));
   }
 
   @GetMapping("{id}")
-  @Transactional(readOnly = true)
   public QuezapDetailDto getById(@PathVariable UUID id) {
-    final var quezap =
-        quezapJpaRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
-
-    final var auth = SecurityContextHolder.getContext().getAuthentication();
-    final var currentUserId =
-        (auth != null && auth.getPrincipal() != null) ? auth.getPrincipal().toString() : null;
-    final var isAuthor =
-        currentUserId != null && currentUserId.equals(quezap.getAuthor().getId().toString());
-
-    if (!isAuthor && !Boolean.TRUE.equals(quezap.getIsPublic())) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to private quezap");
-    }
-
-    final var authorDto =
-        new UserSummaryDto(quezap.getAuthor().getId(), quezap.getAuthor().getName());
-
-    final var slideDtos = new ArrayList<QuezapSlideDetailDto>();
-    final var sortedQuestions =
-        quezap.getQuestions().stream()
-            .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
-            .toList();
-    for (final var qq : sortedQuestions) {
-      final var q = qq.getQuestion();
-      final var themeDto = new ThemeDetailDto(q.getTheme().getId(), q.getTheme().getName());
-
-      final var answerDtos =
-          q.getAnswers().stream()
-              .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
-              .map(
-                  a ->
-                      new AnswerDetailDto(
-                          a.getId(),
-                          a.getLabel(),
-                          isAuthor ? a.getIsCorrect() : false,
-                          toPublicPictureUrl(a.getPictureFilename())))
-              .toList();
-
-      final var questionDto =
-          new QuestionDetailDto(
-              q.getId(),
-              q.getType(),
-              q.getLabel(),
-              toPublicPictureUrl(q.getPictureFilename()),
-              themeDto,
-              answerDtos);
-
-      slideDtos.add(
-          new QuezapSlideDetailDto(
-              qq.getQuestionOrder(), qq.getTimerSeconds(), qq.getPoints(), questionDto));
-    }
-
-    return new QuezapDetailDto(
-        quezap.getId(),
-        quezap.getTitle(),
-        quezap.getDescription(),
-        quezap.getIsPublic(),
-        authorDto,
-        slideDtos,
-        quezap.getCreatedAt(),
-        quezap.getUpdatedAt());
+    final var principal = currentPrincipal();
+    final var details = execute(() -> quezapService.getById(principal, id));
+    return toDetailDto(details);
   }
 
   @GetMapping
-  @Transactional(readOnly = true)
   public PageOfDto<QuezapSummaryDto> list(
       @RequestParam(required = false) @Nullable String search,
       @RequestParam(required = false) @Nullable UUID authorId,
       PaginationDto paginationDto) {
-
+    final var principal = currentPrincipal();
     final var pagination = paginationMapper.toDomain(paginationDto);
-    final var pageNumber = (int) Math.max(pagination.pageNumber() - 1, 0);
-    final var pageSize = (int) pagination.pageSize();
-    final var pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").descending());
-
-    final var auth = SecurityContextHolder.getContext().getAuthentication();
-    final var currentUserId =
-        (auth != null && auth.getPrincipal() != null) ? auth.getPrincipal().toString() : null;
-
-    Page<QuezapJpaEntity> page;
-
-    if (search != null && !search.isBlank()) {
-      if (authorId != null) {
-        final var isAuthor = currentUserId != null && currentUserId.equals(authorId.toString());
-        if (isAuthor) {
-          page =
-              quezapJpaRepository.findByTitleContainingIgnoreCaseAndAuthorId(
-                  search, authorId, pageRequest);
-        } else {
-          page =
-              quezapJpaRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(
-                  search, pageRequest);
-        }
-      } else if (currentUserId != null) {
-        try {
-          final var userUuid = UUID.fromString(currentUserId);
-          page =
-              quezapJpaRepository.findByTitleContainingIgnoreCaseAndAuthorId(
-                  search, userUuid, pageRequest);
-        } catch (IllegalArgumentException _) {
-          page =
-              quezapJpaRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(
-                  search, pageRequest);
-        }
-      } else {
-        page =
-            quezapJpaRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(search, pageRequest);
-      }
-    } else if (authorId != null) {
-      final var isAuthor = currentUserId != null && currentUserId.equals(authorId.toString());
-      if (isAuthor) {
-        page = quezapJpaRepository.findByAuthorId(authorId, pageRequest);
-      } else {
-        page = quezapJpaRepository.findByAuthorIdAndIsPublicTrue(authorId, pageRequest);
-      }
-    } else if (currentUserId != null) {
-      try {
-        final var userUuid = UUID.fromString(currentUserId);
-        page = quezapJpaRepository.findByAuthorId(userUuid, pageRequest);
-      } catch (IllegalArgumentException _) {
-        page = quezapJpaRepository.findByIsPublicTrue(pageRequest);
-      }
-    } else {
-      page = quezapJpaRepository.findByIsPublicTrue(pageRequest);
-    }
+    final var page = execute(() -> quezapService.list(principal, search, authorId, pagination));
 
     final var items =
-        page.getContent().stream()
+        page.items().stream()
             .map(
                 q ->
                     new QuezapSummaryDto(
-                        q.getId(),
-                        q.getTitle(),
-                        q.getDescription(),
-                        q.getIsPublic(),
-                        q.getAuthor().getId(),
-                        q.getQuestions().size(),
-                        q.getCreatedAt()))
+                        q.id(),
+                        q.title(),
+                        q.description(),
+                        q.isPublic(),
+                        q.authorId(),
+                        q.questionCount(),
+                        q.createdAt()))
             .toList();
 
     return new PageOfDto<>(
         items,
-        page.getTotalElements(),
-        page.getTotalPages(),
-        pagination.pageNumber(),
-        pagination.pageSize(),
-        page.hasNext(),
-        page.hasPrevious());
+        page.totalItems(),
+        page.totalPages(),
+        page.currentPage(),
+        page.pageSize(),
+        page.hasNextPage(),
+        page.hasPreviousPage());
   }
 
   @PutMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void update(@PathVariable UUID id, @Valid @RequestBody UpdateQuezapRequest request) {
-    final var quezap =
-        quezapJpaRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
-
-    assertQuezapAuthor(quezap);
-    final var previousUrls = collectPictureUrls(quezap);
-
-    if (request.title() != null) {
-      quezap.setTitle(request.title());
-    }
-    quezap.setDescription(request.description());
-    if (request.isPublic() != null) {
-      quezap.setIsPublic(request.isPublic());
-    }
-
-    if (request.slides() != null) {
-      final var ownedQuestionIds =
-          quezap.getQuestions().stream()
-              .map(qq -> qq.getQuestion().getId())
-              .collect(java.util.stream.Collectors.toSet());
-      quezap.getQuestions().clear();
-      var order = 1;
-      for (final var slideReq : request.slides()) {
-        final var question = resolveOrCreateQuestion(slideReq, order, ownedQuestionIds);
-        final var timer = slideReq.getEffectiveTimer();
-        final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
-        final var qq =
-            new QuezapQuestionJpaEntity(
-                UuidV7.randomUuid(), quezap, question, timer, points, order++);
-        quezap.addQuestion(qq);
-      }
-    }
-
-    quezap.setUpdatedAt(Instant.now());
-    final var saved = quezapJpaRepository.save(quezap);
-    final var effectiveSaved = saved != null ? saved : quezap;
-    final var currentUrls = collectPictureUrls(effectiveSaved);
-
-    if (stagedPictureService != null) {
-      stagedPictureService.claimPictures(currentUrls);
-    }
-
-    final var removedUrls = previousUrls.stream().filter(u -> !currentUrls.contains(u)).toList();
-    removePicturesFromStorage(removedUrls);
+    final var principal = currentPrincipal();
+    final var slides = request.slides() != null ? mapSlides(request.slides()) : null;
+    executeVoid(
+        () ->
+            quezapService.update(
+                principal, id, request.title(), request.description(), request.isPublic(), slides));
   }
 
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable UUID id) {
-    final var quezap =
-        quezapJpaRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
-
-    assertQuezapAuthor(quezap);
-    final var urlsToDelete = collectPictureUrls(quezap);
-    quezapJpaRepository.delete(quezap);
-    removePicturesFromStorage(urlsToDelete);
+    final var principal = currentPrincipal();
+    executeVoid(() -> quezapService.delete(principal, id));
   }
 
   @PostMapping("{id}/questions")
   @ResponseStatus(HttpStatus.CREATED)
   public void addQuestion(@PathVariable UUID id, @Valid @RequestBody QuezapSlideRequest request) {
-    final var quezap =
-        quezapJpaRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
-
-    assertQuezapAuthor(quezap);
-
-    final var order = quezap.getQuestions().size() + 1;
-    final var question = resolveOrCreateQuestion(request, order, java.util.Set.of());
-    final var timer = request.getEffectiveTimer();
-    final var points = Objects.requireNonNullElse(request.points(), 1000);
-    final var qq =
-        new QuezapQuestionJpaEntity(UuidV7.randomUuid(), quezap, question, timer, points, order);
-
-    quezap.addQuestion(qq);
-    quezap.setUpdatedAt(Instant.now());
-    final var saved = quezapJpaRepository.save(quezap);
-    final var effectiveSaved = saved != null ? saved : quezap;
-    if (stagedPictureService != null) {
-      stagedPictureService.claimPictures(collectPictureUrls(effectiveSaved));
-    }
-  }
-
-  private QuestionJpaEntity resolveOrCreateQuestion(
-      QuezapSlideRequest slideReq, int order, java.util.Set<UUID> allowedQuestionIds) {
-    if (slideReq.question() != null) {
-      final var qReq = slideReq.question();
-      final var answersReq = qReq.answers();
-      if (answersReq == null || answersReq.isEmpty()) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Question #" + order + " has no answers");
-      }
-
-      final var resolvedQuestionPicture = resolvePictureFilename(qReq.pictureFilename());
-
-      if (qReq.id() != null && allowedQuestionIds.contains(qReq.id())) {
-        final var existingOpt = questionJpaRepository.findById(qReq.id());
-        if (existingOpt.isPresent()) {
-          final var existing = existingOpt.get();
-          existing.setLabel(qReq.label());
-          if (qReq.type() != null) {
-            existing.setType(qReq.type());
-          }
-          existing.setPictureFilename(resolvedQuestionPicture);
-          if (qReq.themeId() != null || qReq.themeName() != null) {
-            existing.setTheme(resolveTheme(qReq.themeId(), qReq.themeName()));
-          }
-          final var existingAnswersById = new java.util.HashMap<UUID, AnswerJpaEntity>();
-          for (final var existingAns : existing.getAnswers()) {
-            existingAnswersById.put(existingAns.getId(), existingAns);
-          }
-          final var retainedIds = new java.util.HashSet<UUID>();
-          final var newAnswers = new ArrayList<AnswerJpaEntity>();
-          var ansOrder = 1;
-          for (final var ansReq : answersReq) {
-            final var effectiveOrder =
-                ansReq.answerOrder() != null ? ansReq.answerOrder() : ansOrder++;
-            final var effectiveCorrect =
-                Objects.requireNonNullElse(ansReq.isCorrect(), Boolean.FALSE);
-            final var effectivePic = resolvePictureFilename(ansReq.pictureFilename());
-            if (ansReq.id() != null && existingAnswersById.containsKey(ansReq.id())) {
-              final var matched = existingAnswersById.get(ansReq.id());
-              matched.setLabel(ansReq.label());
-              matched.setPictureFilename(effectivePic);
-              matched.setIsCorrect(effectiveCorrect);
-              matched.setAnswerOrder(effectiveOrder);
-              retainedIds.add(ansReq.id());
-            } else {
-              newAnswers.add(
-                  new AnswerJpaEntity(
-                      UuidV7.randomUuid(),
-                      existing,
-                      ansReq.label(),
-                      effectivePic,
-                      effectiveCorrect,
-                      effectiveOrder));
-            }
-          }
-          existing.getAnswers().removeIf(a -> !retainedIds.contains(a.getId()));
-          for (final var ansEntity : newAnswers) {
-            existing.addAnswer(ansEntity);
-          }
-          existing.setUpdatedAt(Instant.now());
-          return questionJpaRepository.save(existing);
-        }
-      }
-
-      final var theme = resolveTheme(qReq.themeId(), qReq.themeName());
-      final var newQuestionId =
-          (qReq.id() != null && allowedQuestionIds.contains(qReq.id()))
-              ? qReq.id()
-              : UuidV7.randomUuid();
-      final var newQuestion =
-          new QuestionJpaEntity(
-              newQuestionId,
-              qReq.type() != null ? qReq.type() : "QUIZZ",
-              qReq.label(),
-              resolvedQuestionPicture,
-              theme,
-              Instant.now(),
-              Instant.now());
-
-      var ansOrder = 1;
-      for (final var ansReq : answersReq) {
-        final var ansEntity =
-            new AnswerJpaEntity(
-                UuidV7.randomUuid(),
-                newQuestion,
-                ansReq.label(),
-                resolvePictureFilename(ansReq.pictureFilename()),
-                Objects.requireNonNullElse(ansReq.isCorrect(), Boolean.FALSE),
-                ansReq.answerOrder() != null ? ansReq.answerOrder() : ansOrder++);
-        newQuestion.addAnswer(ansEntity);
-      }
-      return questionJpaRepository.save(newQuestion);
-    }
-
-    if (slideReq.questionId() != null) {
-      final var question =
-          questionJpaRepository
-              .findById(slideReq.questionId())
-              .orElseThrow(
-                  () ->
-                      new ResponseStatusException(
-                          HttpStatus.BAD_REQUEST, "Question not found: " + slideReq.questionId()));
-
-      final var answers = question.getAnswers();
-      if (answers == null || answers.isEmpty()) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Question #" + order + " has no answers");
-      }
-
-      return question;
-    }
-
-    throw new ResponseStatusException(
-        HttpStatus.BAD_REQUEST,
-        "Slide #" + order + " must provide a questionId or inline question");
-  }
-
-  private @Nullable String resolvePictureFilename(@Nullable String rawPicture) {
-    if (rawPicture == null || rawPicture.isBlank()) {
-      return null;
-    }
-
-    final var trimmed = rawPicture.trim();
-    if (trimmed.startsWith("data:")) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST,
-          "Base64 data URLs are not supported. Upload image to /apiv1/pictures/upload first.");
-    }
-
-    return toPublicPictureUrl(trimmed);
-  }
-
-  private Set<String> collectPictureUrls(QuezapJpaEntity quezap) {
-    final var urls = new HashSet<String>();
-    for (final var qq : quezap.getQuestions()) {
-      final var q = qq.getQuestion();
-      if (q.getPictureFilename() != null && !q.getPictureFilename().isBlank()) {
-        urls.add(q.getPictureFilename().trim());
-      }
-      for (final var a : q.getAnswers()) {
-        if (a.getPictureFilename() != null && !a.getPictureFilename().isBlank()) {
-          urls.add(a.getPictureFilename().trim());
-        }
-      }
-    }
-    return urls;
-  }
-
-  public static @Nullable String toObjectKey(@Nullable String pictureUrl) {
-    if (pictureUrl == null || pictureUrl.isBlank()) {
-      return null;
-    }
-    final var trimmed = pictureUrl.trim();
-    if (trimmed.startsWith(PUBLIC_BUCKET_PREFIX)) {
-      return trimmed.substring(PUBLIC_BUCKET_PREFIX.length());
-    }
-    if (trimmed.startsWith("/quezap-public-images/")) {
-      return trimmed.substring("/quezap-public-images/".length());
-    }
-    if (trimmed.startsWith("quezap-public-images/")) {
-      return trimmed.substring("quezap-public-images/".length());
-    }
-    if (trimmed.startsWith("pictures/")) {
-      return trimmed;
-    }
-    if (trimmed.startsWith("/")) {
-      return trimmed.substring(1);
-    }
-    return trimmed;
-  }
-
-  private void removePicturesFromStorage(Collection<String> pictureUrls) {
-    if (questionPictureManager == null || pictureUrls.isEmpty()) {
-      return;
-    }
-    for (final var url : pictureUrls) {
-      final var key = toObjectKey(url);
-      if (key != null && key.startsWith("pictures/")) {
-        try {
-          questionPictureManager.removeByObjectKey(key);
-        } catch (Exception _) {
-          // Best effort cleanup
-        }
-      }
-    }
-  }
-
-  public static @Nullable String toPublicPictureUrl(@Nullable String pictureFilename) {
-    if (pictureFilename == null || pictureFilename.isBlank()) {
-      return null;
-    }
-    final var trimmed = pictureFilename.trim();
-    if (trimmed.startsWith("http://")
-        || trimmed.startsWith("https://")
-        || trimmed.startsWith("data:")
-        || trimmed.startsWith("/")) {
-      return trimmed;
-    }
-    if (trimmed.startsWith("quezap-public-images/")) {
-      return "/" + trimmed;
-    }
-    if (trimmed.startsWith("pictures/")) {
-      return PUBLIC_BUCKET_PREFIX + trimmed;
-    }
-    return PUBLIC_BUCKET_PREFIX + "pictures/questions/" + trimmed;
-  }
-
-  private ThemeJpaEntity resolveTheme(@Nullable UUID themeId, @Nullable String themeName) {
-    if (themeId != null) {
-      return themeJpaRepository
-          .findById(themeId)
-          .orElseThrow(
-              () ->
-                  new ResponseStatusException(
-                      HttpStatus.BAD_REQUEST, "Theme not found: " + themeId));
-    }
-    if (themeName != null && !themeName.isBlank()) {
-      return themeJpaRepository
-          .findByName(themeName.trim())
-          .orElseGet(
-              () ->
-                  themeJpaRepository.save(
-                      new ThemeJpaEntity(UuidV7.randomUuid(), themeName.trim(), Instant.now())));
-    }
-    return themeJpaRepository
-        .findByName("Général")
-        .orElseGet(
-            () ->
-                themeJpaRepository.save(
-                    new ThemeJpaEntity(UuidV7.randomUuid(), "Général", Instant.now())));
+    final var principal = currentPrincipal();
+    final var slide = mapSlide(request);
+    executeVoid(() -> quezapService.addQuestion(principal, id, slide));
   }
 
   @DeleteMapping("{id}/questions/{questionId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeQuestion(@PathVariable UUID id, @PathVariable UUID questionId) {
-    final var quezap =
-        quezapJpaRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
+    final var principal = currentPrincipal();
+    executeVoid(() -> quezapService.removeQuestion(principal, id, questionId));
+  }
 
-    assertQuezapAuthor(quezap);
+  public static @Nullable String toPublicPictureUrl(@Nullable String pictureFilename) {
+    return StagedPictureManager.normalizePublicUrl(pictureFilename);
+  }
 
-    final var removedQuestions =
-        quezap.getQuestions().stream()
-            .filter(qq -> qq.getQuestion().getId().equals(questionId))
-            .map(QuezapQuestionJpaEntity::getQuestion)
+  private List<SlideInput> mapSlides(List<QuezapSlideRequest> requests) {
+    return requests.stream().map(this::mapSlide).toList();
+  }
+
+  private SlideInput mapSlide(QuezapSlideRequest slideReq) {
+    final var timer = slideReq.getEffectiveTimer();
+    final var points = Objects.requireNonNullElse(slideReq.points(), 1000);
+    final var inlineReq = slideReq.question();
+    if (inlineReq == null) {
+      return new SlideInput(slideReq.questionId(), timer, points, null);
+    }
+
+    final var answers =
+        inlineReq.answers() != null
+            ? inlineReq.answers().stream()
+                .map(
+                    a ->
+                        new AnswerInput(
+                            a.id(),
+                            a.label(),
+                            Objects.requireNonNullElse(a.isCorrect(), Boolean.FALSE),
+                            a.pictureFilename(),
+                            a.answerOrder()))
+                .toList()
+            : null;
+    final var inlineQuestion =
+        new InlineQuestionInput(
+            inlineReq.id(),
+            inlineReq.label(),
+            inlineReq.type(),
+            inlineReq.pictureFilename(),
+            inlineReq.themeId(),
+            inlineReq.themeName(),
+            answers);
+    return new SlideInput(slideReq.questionId(), timer, points, inlineQuestion);
+  }
+
+  private QuezapDetailDto toDetailDto(QuezapDetails details) {
+    final var authorDto = new UserSummaryDto(details.author().id(), details.author().name());
+    final var slideDtos =
+        details.slides().stream()
+            .map(
+                s -> {
+                  final var q = s.question();
+                  final var themeDto = new ThemeDetailDto(q.theme().id(), q.theme().name());
+                  final var answerDtos =
+                      q.answers().stream()
+                          .map(
+                              a ->
+                                  new AnswerDetailDto(
+                                      a.id(), a.label(), a.isCorrect(), a.pictureFilename()))
+                          .toList();
+                  final var questionDto =
+                      new QuestionDetailDto(
+                          q.id(), q.type(), q.label(), q.pictureFilename(), themeDto, answerDtos);
+                  return new QuezapSlideDetailDto(
+                      s.questionOrder(), s.timerSeconds(), s.points(), questionDto);
+                })
             .toList();
 
-    quezap.getQuestions().removeIf(qq -> qq.getQuestion().getId().equals(questionId));
-    quezap.setUpdatedAt(Instant.now());
-    quezapJpaRepository.save(quezap);
-
-    for (final var q : removedQuestions) {
-      final var urls = new HashSet<String>();
-      if (q.getPictureFilename() != null && !q.getPictureFilename().isBlank()) {
-        urls.add(q.getPictureFilename().trim());
-      }
-      for (final var a : q.getAnswers()) {
-        if (a.getPictureFilename() != null && !a.getPictureFilename().isBlank()) {
-          urls.add(a.getPictureFilename().trim());
-        }
-      }
-      removePicturesFromStorage(urls);
-    }
+    return new QuezapDetailDto(
+        details.id(),
+        details.title(),
+        details.description(),
+        details.isPublic(),
+        authorDto,
+        slideDtos,
+        details.createdAt(),
+        details.updatedAt());
   }
 
-  private void assertQuezapAuthor(QuezapJpaEntity quezap) {
-    final var currentUser = getCurrentUser();
-    if (!quezap.getAuthor().getId().equals(currentUser.getId())) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Seul le créateur peut modifier ou supprimer ce questionnaire");
-    }
-  }
-
-  @PostMapping("{id}/clone")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Transactional
-  public QuezapIdDto clone(@PathVariable UUID id) {
-    final var original =
-        quezapJpaRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quezap not found"));
-    final var author = getCurrentUser();
-    if (!original.getAuthor().getId().equals(author.getId())
-        && !Boolean.TRUE.equals(original.getIsPublic())) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Impossible de cloner un questionnaire privé d'un autre auteur");
-    }
-
-    final var cloned =
-        new QuezapJpaEntity(
-            UuidV7.randomUuid(),
-            original.getTitle() + " (Copie)",
-            original.getDescription(),
-            author,
-            original.getIsPublic(),
-            Instant.now(),
-            Instant.now());
-
-    final var sortedOriginalQuestions =
-        original.getQuestions().stream()
-            .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
-            .toList();
-    for (final var qq : sortedOriginalQuestions) {
-      final var clonedQuestion = cloneQuestion(qq.getQuestion());
-      final var newQq =
-          new QuezapQuestionJpaEntity(
-              UuidV7.randomUuid(),
-              cloned,
-              clonedQuestion,
-              qq.getTimerSeconds(),
-              qq.getPoints(),
-              qq.getQuestionOrder());
-      cloned.addQuestion(newQq);
-    }
-
-    final var saved = quezapJpaRepository.save(cloned);
-    return new QuezapIdDto(saved.getId());
-  }
-
-  private QuestionJpaEntity cloneQuestion(QuestionJpaEntity source) {
-    final var now = Instant.now();
-    final var clonedQuestion =
-        new QuestionJpaEntity(
-            UuidV7.randomUuid(),
-            source.getType(),
-            source.getLabel(),
-            source.getPictureFilename(),
-            source.getTheme(),
-            now,
-            now);
-    final var sortedAnswers =
-        source.getAnswers().stream()
-            .sorted(Comparator.comparing(AnswerJpaEntity::getAnswerOrder))
-            .toList();
-    for (final var ans : sortedAnswers) {
-      final var clonedAnswer =
-          new AnswerJpaEntity(
-              UuidV7.randomUuid(),
-              clonedQuestion,
-              ans.getLabel(),
-              ans.getPictureFilename(),
-              ans.getIsCorrect(),
-              ans.getAnswerOrder());
-      clonedQuestion.addAnswer(clonedAnswer);
-    }
-    final var saved = questionJpaRepository.save(clonedQuestion);
-    return saved != null ? saved : clonedQuestion;
-  }
-
-  private com.quezap.infrastructure.adapter.persistence.jpa.entities.UserJpaEntity
-      getCurrentUser() {
+  private @Nullable String currentPrincipal() {
     final var auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth != null && auth.getPrincipal() != null) {
-      final var principal = auth.getPrincipal().toString();
-      try {
-        final var userId = UUID.fromString(principal);
-        final var userOpt = userJpaRepository.findById(userId);
-        if (userOpt.isPresent()) {
-          return userOpt.get();
-        }
-      } catch (IllegalArgumentException _) {
-        final var userOpt = userJpaRepository.findByName(principal);
-        if (userOpt.isPresent()) {
-          return userOpt.get();
-        }
-      }
-    }
+    return (auth != null && auth.getPrincipal() != null) ? auth.getPrincipal().toString() : null;
+  }
 
-    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No authenticated user available");
+  private void executeVoid(Runnable action) {
+    execute(
+        () -> {
+          action.run();
+          return null;
+        });
+  }
+
+  private <T> T execute(Supplier<T> supplier) {
+    try {
+      return supplier.get();
+    } catch (QuezapUnauthorizedException e) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
+    } catch (QuezapForbiddenException | PictureOwnershipException e) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage(), e);
+    } catch (QuezapNotFoundException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+    } catch (QuezapBadRequestException | InvalidPictureReferenceException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+    }
   }
 }

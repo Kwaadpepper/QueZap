@@ -15,33 +15,37 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.quezap.api.v1.dto.response.pictures.PictureUploadResponseDto;
-import com.quezap.api.v1.routes.quezaps.QuezapController;
 import com.quezap.api.v1.services.PictureMetadataValidatorService;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
+import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.domain.ports.services.QuestionPictureManager;
-import com.quezap.infrastructure.adapter.persistence.jpa.entities.UserJpaEntity;
-import com.quezap.infrastructure.adapter.persistence.jpa.repositories.UserJpaRepository;
-import com.quezap.infrastructure.adapter.services.StagedPictureService;
+import com.quezap.domain.ports.services.StagedPictureManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("apiv1/pictures")
 public class PictureUploadController {
 
+  private static final Logger logger = LoggerFactory.getLogger(PictureUploadController.class);
+
   private final QuestionPictureManager questionPictureManager;
-  private final StagedPictureService stagedPictureService;
+  private final StagedPictureManager stagedPictureManager;
   private final PictureMetadataValidatorService validatorService;
-  private final UserJpaRepository userJpaRepository;
+  private final UserRepository userRepository;
 
   public PictureUploadController(
       QuestionPictureManager questionPictureManager,
-      StagedPictureService stagedPictureService,
+      StagedPictureManager stagedPictureManager,
       PictureMetadataValidatorService validatorService,
-      UserJpaRepository userJpaRepository) {
+      UserRepository userRepository) {
     this.questionPictureManager = questionPictureManager;
-    this.stagedPictureService = stagedPictureService;
+    this.stagedPictureManager = stagedPictureManager;
     this.validatorService = validatorService;
-    this.userJpaRepository = userJpaRepository;
+    this.userRepository = userRepository;
   }
 
   @PostMapping(value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -51,44 +55,58 @@ public class PictureUploadController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
     }
 
-    final var currentUser = getCurrentUser();
+    final var currentUserId = getCurrentUserId();
     final var mimeType = validatorService.validateAndGetMimeType(file);
     final var pictureType = PictureType.fromMimeType(mimeType);
 
     try (final var inputStream = file.getInputStream()) {
       final var uploadData = new PictureUploadData(inputStream, file.getSize(), pictureType);
       final var stored = questionPictureManager.store(uploadData);
-      final var pictureUrl = QuezapController.toPublicPictureUrl(stored.objectKey());
+      final var pictureUrl = stagedPictureManager.toPublicUrl(stored.objectKey());
       if (pictureUrl == null) {
+        compensateS3Upload(stored.objectKey());
         throw new ResponseStatusException(
             HttpStatus.INTERNAL_SERVER_ERROR, "Failed to resolve public picture URL");
       }
 
-      final var staged =
-          stagedPictureService.registerStagedPicture(
-              stored.objectKey(), pictureUrl, currentUser.getId(), null);
+      try {
+        final var staged =
+            stagedPictureManager.registerStagedPicture(
+                stored.objectKey(), pictureUrl, currentUserId, null);
 
-      return new PictureUploadResponseDto(pictureUrl, stored.objectKey(), staged.getExpiresAt());
+        return new PictureUploadResponseDto(pictureUrl, stored.objectKey(), staged.expiresAt());
+      } catch (RuntimeException e) {
+        compensateS3Upload(stored.objectKey());
+        throw e;
+      }
     } catch (IOException e) {
       throw new ResponseStatusException(
           HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process uploaded file", e);
     }
   }
 
-  private UserJpaEntity getCurrentUser() {
+  private void compensateS3Upload(String objectKey) {
+    try {
+      questionPictureManager.removeByObjectKey(objectKey);
+    } catch (Exception cleanupEx) {
+      logger.warn("Failed to compensate S3 upload for objectKey {}", objectKey, cleanupEx);
+    }
+  }
+
+  private UUID getCurrentUserId() {
     final var auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth != null && auth.getPrincipal() != null) {
       final var principal = auth.getPrincipal().toString();
       try {
         final var userId = UUID.fromString(principal);
-        final var userOpt = userJpaRepository.findById(userId);
+        final var userOpt = userRepository.find(new UserId(userId));
         if (userOpt.isPresent()) {
-          return userOpt.get();
+          return userOpt.get().getId().value();
         }
       } catch (IllegalArgumentException _) {
-        final var userOpt = userJpaRepository.findByName(principal);
+        final var userOpt = userRepository.findByName(principal);
         if (userOpt.isPresent()) {
-          return userOpt.get();
+          return userOpt.get().getId().value();
         }
       }
     }

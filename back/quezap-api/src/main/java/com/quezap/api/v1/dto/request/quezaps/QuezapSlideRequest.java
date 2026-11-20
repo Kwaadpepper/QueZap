@@ -9,10 +9,12 @@ import org.jspecify.annotations.Nullable;
 
 public record QuezapSlideRequest(
     @Nullable UUID questionId,
-    @Nullable @Min(value = 5, message = "Timer must be at least 5s") @Max(value = 300, message = "Timer cannot exceed 300s") Integer timer,
-    @Nullable @Min(value = 5, message = "Timer must be at least 5s") @Max(value = 300, message = "Timer cannot exceed 300s") Integer timerSeconds,
+    @Nullable @Min(value = 5, message = MIN) @Max(value = 300, message = MAX) Integer timer,
+    @Nullable @Min(value = 5, message = MIN) @Max(value = 300, message = MAX) Integer timerSeconds,
     @Nullable @Min(value = 0, message = "Points must be positive") Integer points,
     @Nullable @Valid InlineQuestionRequest question) {
+  static final String MIN = "Timer must be at least 5s";
+  static final String MAX = "Timer cannot exceed 300s";
 
   public QuezapSlideRequest(UUID questionId, Integer timer, Integer points) {
     this(questionId, timer, timer, points, null);

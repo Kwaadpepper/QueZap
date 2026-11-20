@@ -1,5 +1,6 @@
 package com.quezap.api.v1.services;
 
+import java.util.Locale;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -30,12 +31,13 @@ public class PictureMetadataValidatorService {
       throw new InvalidFileException("Could not determine picture MIME type.");
     }
 
-    if (!ALLOWED_PICTURE_MIME_TYPES.contains(mimeType)) {
+    final var normalizedMimeType = mimeType.toLowerCase(Locale.ROOT);
+    if (!ALLOWED_PICTURE_MIME_TYPES.contains(normalizedMimeType)) {
       throw new InvalidFileException(
           "Picture file must be one of the following types: "
               + String.join(", ", ALLOWED_PICTURE_MIME_TYPES));
     }
 
-    return mimeType;
+    return normalizedMimeType;
   }
 }

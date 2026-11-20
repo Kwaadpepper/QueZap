@@ -2,15 +2,19 @@ package com.quezap.lib.utils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.quezap.domain.models.valueobjects.pictures.PictureType;
+
 import org.apache.tika.Tika;
 import org.apache.tika.io.FilenameUtils;
-import org.apache.tika.parser.txt.CharsetDetector;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +44,33 @@ public final class FileVerifyingHelper {
     final var expectedMimeType = file.getContentType();
     final var detectedMimeType = getFileMimeType(file);
 
-    return detectedMimeType != null
-        && expectedMimeType != null
-        && detectedMimeType.equalsIgnoreCase(expectedMimeType);
+    if (detectedMimeType == null
+        || expectedMimeType == null
+        || !detectedMimeType.equalsIgnoreCase(expectedMimeType)) {
+      return false;
+    }
+
+    return extensionMatchesMimeType(fileExtension, detectedMimeType);
+  }
+
+  private static boolean extensionMatchesMimeType(String fileExtension, String detectedMimeType) {
+    final var normalizedExtension = fileExtension.toLowerCase(Locale.ROOT);
+    final Optional<PictureType> pictureType =
+        Arrays.stream(PictureType.values())
+            .filter(type -> type.mimeType().equalsIgnoreCase(detectedMimeType))
+            .findFirst();
+
+    if (pictureType.isPresent()) {
+      return pictureType.get().extensions().contains(normalizedExtension);
+    }
+
+    try {
+      final var tikaMimeType = MimeTypes.getDefaultMimeTypes().forName(detectedMimeType);
+      return tikaMimeType.getExtensions().contains("." + normalizedExtension);
+    } catch (MimeTypeException e) {
+      logger.debug("Unknown MIME type for extension check: {}", detectedMimeType, e);
+      return false;
+    }
   }
 
   public static @Nullable String getFileMimeType(MultipartFile file) {
@@ -86,13 +114,11 @@ public final class FileVerifyingHelper {
   public static String sanitizeFileName(final String fileName) {
     final var uuid = UUID.randomUUID();
     final Long randomizedUuidMsb = uuid.getMostSignificantBits();
-    final var originalEncoding = detectEncoding(fileName);
-    final var originalBytes = fileName.getBytes(originalEncoding);
 
-    // Convert to UTF-8
-    var sanitizedFileName = new String(originalBytes, StandardCharsets.UTF_8);
-
-    sanitizedFileName = FilenameUtils.normalize(sanitizedFileName);
+    var sanitizedFileName = FilenameUtils.normalize(fileName);
+    if (sanitizedFileName == null) {
+      return "";
+    }
 
     // Define the regex pattern to match reserved characters
     final var regex =
@@ -129,21 +155,6 @@ public final class FileVerifyingHelper {
         truncateString(nameWithoutExtension, maxLength, encodingForTruncation);
 
     return truncatedName + (extension.isEmpty() ? "" : "." + extension);
-  }
-
-  @SuppressWarnings("DefaultCharset")
-  private static Charset detectEncoding(final String filename) {
-    final var detector = new CharsetDetector();
-    detector.setText(filename.getBytes());
-
-    final var charsetMatch =
-        Stream.of(detector.detectAll()).filter(match -> match.getConfidence() > 50).findFirst();
-
-    if (charsetMatch.isPresent()) {
-      return Charset.forName(charsetMatch.get().getName());
-    } else {
-      return StandardCharsets.UTF_8;
-    }
   }
 
   private static String getFileExtension(final String filename) {
