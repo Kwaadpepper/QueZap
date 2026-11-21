@@ -127,6 +127,8 @@ services:
       APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:-LocalPassword}
       APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:-b7f2c9e14d8a3065f19e2c4b7a8d0315e6f9a2c4b7d8e013579bdf02468ace13}
       APP_JWT_ISSUER: quezap.com
+      APP_IDENTIFIER_PEPPER: ${APP_IDENTIFIER_PEPPER:-9c4e1a7f3b8d2056e1a4c9f7b2d8e305a6c9f1b4e7d20385a1c6e9f2b4d80713}
+      APP_COOKIE_SECURE: ${APP_COOKIE_SECURE:-false}
       APP_PUBLIC_URL: http://localhost:${APP_PORT:-8000}
       APP_NAME: ${APP_NAME:-QueZap}
       APP_MAIL_ENABLED: ${APP_MAIL_ENABLED:-false}
@@ -159,9 +161,10 @@ services:
       APP_API_URL: ${APP_API_URL:-/apiv1}
       APP_TURNSTILE_SITE_KEY: ${APP_TURNSTILE_SITE_KEY:-}
     ports:
-      - "${APP_PORT:-8000}:80"
+      - "${APP_PORT:-8000}:8080"
     volumes:
       - ./front/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./front/nginx-security-headers.conf:/etc/nginx/includes/security-headers.conf:ro
     networks:
       - quezap-dev-net
 
@@ -190,6 +193,8 @@ services:
       APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:-LocalPassword}
       APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:-b7f2c9e14d8a3065f19e2c4b7a8d0315e6f9a2c4b7d8e013579bdf02468ace13}
       APP_JWT_ISSUER: quezap.com
+      APP_IDENTIFIER_PEPPER: ${APP_IDENTIFIER_PEPPER:-9c4e1a7f3b8d2056e1a4c9f7b2d8e305a6c9f1b4e7d20385a1c6e9f2b4d80713}
+      APP_COOKIE_SECURE: ${APP_COOKIE_SECURE:-false}
       APP_PUBLIC_URL: http://localhost:${APP_PORT:-8000}
       APP_NAME: ${APP_NAME:-QueZap}
       APP_MAIL_ENABLED: ${APP_MAIL_ENABLED:-false}

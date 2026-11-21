@@ -1,3 +1,4 @@
+import { Location } from '@angular/common'
 import { signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { ActivatedRoute } from '@angular/router'
@@ -22,6 +23,10 @@ describe('ResetPassword', () => {
   const queryTokenValue = signal<string | null>(null)
 
   const activatedRoute = { snapshot: { queryParamMap: { get: jest.fn(() => queryTokenValue()) } } }
+  const locationMock = {
+    path: jest.fn(() => '/auth/reset-password?token=secret-token'),
+    replaceState: jest.fn(),
+  }
 
   const message$ = { add: jest.fn<void, [unknown]>() }
 
@@ -49,6 +54,7 @@ describe('ResetPassword', () => {
       imports: [ResetPassword],
       providers: [
         { provide: ActivatedRoute, useValue: activatedRoute },
+        { provide: Location, useValue: locationMock },
         { provide: AUTHENTICATION_SERVICE, useValue: auth$ },
         { provide: MessageService, useValue: message$ },
       ],
@@ -73,6 +79,7 @@ describe('ResetPassword', () => {
 
     expect(component['tokenIsInvalid']()).toBe(false)
     expect(auth$.verifyResetToken).toHaveBeenCalledWith(validJwtToken)
+    expect(locationMock.replaceState).toHaveBeenCalledWith('/auth/reset-password')
   })
 
   it('should accept and verify an opaque non-JWT reset token', () => {

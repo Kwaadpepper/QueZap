@@ -1,3 +1,4 @@
+import { Location } from '@angular/common'
 import {
   Component, DestroyRef, ErrorHandler, inject, OnInit, signal,
 } from '@angular/core'
@@ -28,6 +29,7 @@ import { ACCOUNT_ACTIVATION_SERVICE } from '../services'
 export class AccountActivation implements OnInit {
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
+  private readonly location = inject(Location)
   private readonly destroyRef = inject(DestroyRef)
   private readonly message = inject(MessageService)
   private readonly activationService = inject(ACCOUNT_ACTIVATION_SERVICE)
@@ -37,6 +39,7 @@ export class AccountActivation implements OnInit {
 
   ngOnInit() {
     const token = this.route.snapshot.queryParamMap.get('token')?.trim() || null
+    this.location.replaceState(this.location.path(false).split('?')[0])
     if (token === null) {
       this.errorOccurred.set(true)
       this.message.add({

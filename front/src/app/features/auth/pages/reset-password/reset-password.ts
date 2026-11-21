@@ -1,3 +1,4 @@
+import { Location } from '@angular/common'
 import {
   Component, computed, DestroyRef, ErrorHandler, inject, OnInit, signal,
 } from '@angular/core'
@@ -29,6 +30,7 @@ import { AUTHENTICATION_SERVICE } from '../../services'
 })
 export class ResetPassword implements OnInit {
   private readonly route = inject(ActivatedRoute)
+  private readonly location = inject(Location)
   private readonly destroyRef = inject(DestroyRef)
   private readonly authenticationService = inject(AUTHENTICATION_SERVICE)
   private readonly errorHandler = inject(ErrorHandler)
@@ -46,6 +48,7 @@ export class ResetPassword implements OnInit {
 
   ngOnInit() {
     const queryResetToken = this.route.snapshot.queryParamMap.get('token')?.trim() ?? ''
+    this.location.replaceState(this.location.path(false).split('?')[0])
     const resetToken = this.validTokenSchema.safeParse(queryResetToken).success ? queryResetToken : null
 
     if (resetToken === null) {

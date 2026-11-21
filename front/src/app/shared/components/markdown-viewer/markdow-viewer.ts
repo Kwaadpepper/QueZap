@@ -1,9 +1,7 @@
 import { HttpClient } from '@angular/common/http'
 import { Component, inject, input } from '@angular/core'
 
-import {
-  MarkdownComponent, MarkdownService, MARKED_OPTIONS, MERMAID_OPTIONS, provideMarkdown, SANITIZE,
-} from 'ngx-markdown'
+import { MarkdownComponent, MarkdownService, MARKED_OPTIONS, MERMAID_OPTIONS, provideMarkdown } from 'ngx-markdown'
 
 @Component({
   selector: 'quizz-markdow-viewer',
@@ -27,10 +25,6 @@ import {
           darkMode: true,
           look: 'handDrawn',
         },
-      },
-      sanitize: {
-        provide: SANITIZE,
-        useValue: (html: string) => html,
       },
     }),
   ],
