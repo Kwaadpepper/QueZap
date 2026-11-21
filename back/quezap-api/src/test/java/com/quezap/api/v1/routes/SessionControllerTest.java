@@ -879,7 +879,7 @@ class SessionControllerTest {
     assertThat(sessionController.getByCode(created.code(), ip2Request).id())
         .isEqualTo(created.id());
 
-    for (var i = 0; i < SessionEndpointRateLimiter.DEFAULT_MAX_REQUESTS; i++) {
+    for (var i = 0; i < SessionEndpointRateLimiter.DEFAULT_JOIN_MAX_REQUESTS; i++) {
       sessionController.join(new JoinSessionRequest(created.code(), "User" + i), null, ip1Request);
     }
 

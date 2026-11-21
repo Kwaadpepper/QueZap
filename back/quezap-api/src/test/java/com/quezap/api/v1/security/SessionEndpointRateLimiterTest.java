@@ -56,6 +56,12 @@ class SessionEndpointRateLimiterTest {
     // After 60 seconds, window resets
     clock.advanceSeconds(60);
     assertThat(limiter.tryAcquire("join:1.2.3.4")).isTrue();
+
+    // Explicit per-endpoint limit override works independently
+    for (var i = 0; i < 5; i++) {
+      assertThat(limiter.tryAcquire("join:burst-ip", 5)).isTrue();
+    }
+    assertThat(limiter.tryAcquire("join:burst-ip", 5)).isFalse();
   }
 
   @Test

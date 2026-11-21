@@ -13,6 +13,7 @@ import org.jspecify.annotations.Nullable;
 public class SessionEndpointRateLimiter {
 
   public static final int DEFAULT_MAX_REQUESTS = 30;
+  public static final int DEFAULT_JOIN_MAX_REQUESTS = 120;
   public static final long DEFAULT_WINDOW_SECONDS = 60L;
   public static final int MAX_ENTRIES = 10_000;
 
@@ -37,6 +38,10 @@ public class SessionEndpointRateLimiter {
   }
 
   public boolean tryAcquire(String key) {
+    return tryAcquire(key, maxRequests);
+  }
+
+  public boolean tryAcquire(String key, int maxAllowedRequests) {
     final var now = clock.instant().getEpochSecond();
     if (windows.size() >= MAX_ENTRIES) {
       purgeExpired(now);
@@ -54,7 +59,7 @@ public class SessionEndpointRateLimiter {
               }
               return new RateWindow(current.count() + 1, current.expiresAtEpochSeconds());
             });
-    return updated != null && updated.count() <= maxRequests;
+    return updated != null && updated.count() <= maxAllowedRequests;
   }
 
   public void clearAll() {

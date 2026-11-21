@@ -147,7 +147,7 @@ public class SessionController {
   @GetMapping("by-code/{code}")
   public SessionDetailDto getByCode(
       @PathVariable String code, @Nullable HttpServletRequest httpRequest) {
-    enforceRateLimit("by-code", httpRequest);
+    enforceRateLimit("by-code", httpRequest, SessionEndpointRateLimiter.DEFAULT_MAX_REQUESTS);
     final var view = commandGateway.translateDomainError(() -> sessionQueryService.getByCode(code));
     return SessionDtoMapper.toPublicDetailDto(view);
   }
@@ -170,7 +170,7 @@ public class SessionController {
           @RequestHeader(value = "X-Participant-Token", required = false)
           @Nullable String headerToken,
       @Nullable HttpServletRequest httpRequest) {
-    enforceRateLimit("join", httpRequest);
+    enforceRateLimit("join", httpRequest, SessionEndpointRateLimiter.DEFAULT_JOIN_MAX_REQUESTS);
     final var out =
         commandGateway.join(
             new JoinSession.Input(request.code(), request.participantName(), headerToken));
@@ -341,12 +341,13 @@ public class SessionController {
     return emitter;
   }
 
-  private void enforceRateLimit(String endpointKey, @Nullable HttpServletRequest httpRequest) {
+  private void enforceRateLimit(
+      String endpointKey, @Nullable HttpServletRequest httpRequest, int maxAllowedRequests) {
     if (httpRequest == null) {
       return;
     }
     final var clientIp = SessionEndpointRateLimiter.resolveClientIp(httpRequest);
-    if (!rateLimiter.tryAcquire(endpointKey + ":" + clientIp)) {
+    if (!rateLimiter.tryAcquire(endpointKey + ":" + clientIp, maxAllowedRequests)) {
       throw new ResponseStatusException(
           HttpStatus.TOO_MANY_REQUESTS, "Trop de requêtes. Veuillez réessayer plus tard.");
     }
