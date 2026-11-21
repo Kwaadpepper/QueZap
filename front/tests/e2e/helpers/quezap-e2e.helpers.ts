@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { deflateSync } from 'node:zlib'
 
-import { Browser, BrowserContext, expect, Page } from '@playwright/test'
+import { Browser, BrowserContext, expect, Locator, Page } from '@playwright/test'
 
 export const AUDIT_SCREENSHOT_DIR = '/tmp/quezap-e2e-audit'
 
@@ -113,10 +114,105 @@ export async function createMobileStudent(
 /**
  * Generates a valid 64x64 solid-color PNG buffer (with valid PNG signature, IHDR, IDAT, IEND).
  */
-export function createValidPngBuffer(): Buffer {
-  // Minimal valid 1x1 RGBA PNG
-  return Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
-    'base64',
-  )
+export function createValidPngBuffer(width = 200, height = 120): Buffer {
+  // Real, clearly visible RGB PNG (horizontal colour bands) generated without any dependency
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    }
+    return c >>> 0
+  })
+  const crc32 = (buf: Buffer): number => {
+    let c = 0xffffffff
+    for (const byte of buf) {
+      c = crcTable[(c ^ byte) & 0xff] ^ (c >>> 8)
+    }
+    return (c ^ 0xffffffff) >>> 0
+  }
+  const chunk = (type: string, data: Buffer): Buffer => {
+    const length = Buffer.alloc(4)
+    length.writeUInt32BE(data.length)
+    const body = Buffer.concat([Buffer.from(type, 'ascii'), data])
+    const crc = Buffer.alloc(4)
+    crc.writeUInt32BE(crc32(body))
+    return Buffer.concat([length, body, crc])
+  }
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(width, 0)
+  ihdr.writeUInt32BE(height, 4)
+  ihdr[8] = 8 // bit depth
+  ihdr[9] = 2 // RGB
+  const bands = [[239, 68, 68], [250, 204, 21], [34, 197, 94], [59, 130, 246]]
+  const rows: Buffer[] = []
+  for (let y = 0; y < height; y++) {
+    const [r, g, b] = bands[Math.floor((y * bands.length) / height)]
+    const row = Buffer.alloc(1 + width * 3)
+    for (let x = 0; x < width; x++) {
+      row[1 + x * 3] = r
+      row[2 + x * 3] = g
+      row[3 + x * 3] = b
+    }
+    rows.push(row)
+  }
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', deflateSync(Buffer.concat(rows))),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+export async function expectImageRendered(locator: Locator, minWidth = 80, minHeight = 60): Promise<void> {
+  await expect(locator).toBeVisible({ timeout: 15000 })
+  await expect.poll(
+    () => locator.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+    { timeout: 15000 },
+  ).toBe(true)
+  const box = await locator.boundingBox()
+  expect(box).not.toBeNull()
+  expect(box!.width).toBeGreaterThanOrEqual(minWidth)
+  expect(box!.height).toBeGreaterThanOrEqual(minHeight)
+}
+
+/** Waits for podium CSS animations / transitions to end, then asserts nothing overlaps or is clipped. */
+export async function expectPodiumLayoutClean(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const finite = () => document.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity)
+    for (let i = 0; i < 5 && finite().length > 0; i++) {
+      await Promise.allSettled(finite().map(a => a.finished))
+    }
+  })
+  const rects = await page.evaluate(() => {
+    const toRect = (el: Element) => {
+      const r = el.getBoundingClientRect()
+      return { x: r.x, y: r.y, w: r.width, h: r.height, right: r.right, bottom: r.bottom }
+    }
+    const blocks = [...document.querySelectorAll('main.relative > *')]
+      .filter(el => el.querySelector('.podium-step') || el.matches('.podium-box') || (el.textContent ?? '').trim().length > 0)
+      .filter(el => !(el instanceof HTMLCanvasElement) && !el.classList.contains('confetti-piece'))
+      .map(el => ({ name: el.className.toString().slice(0, 40), ...toRect(el) }))
+    const steps = [...document.querySelectorAll('.podium-step')].map(el => {
+      const r = toRect(el)
+      const clipped = [...el.querySelectorAll('*')].some((c) => {
+        const cr = c.getBoundingClientRect()
+        return cr.width > 0 && (cr.bottom > r.bottom + 1 || cr.right > r.right + 1 || cr.top < r.y - 1 || cr.x < r.x - 1)
+      })
+      return { ...r, clipped }
+    })
+    return { blocks, steps, vh: window.innerHeight }
+  })
+  for (const step of rects.steps) {
+    expect(step.clipped, 'podium step content must stay inside its step').toBe(false)
+  }
+  const sorted = [...rects.blocks].sort((a, b) => a.y - b.y)
+  for (let i = 1; i < sorted.length; i++) {
+    expect(
+      sorted[i].y,
+      `block "${sorted[i].name}" overlaps "${sorted[i - 1].name}"`,
+    ).toBeGreaterThanOrEqual(sorted[i - 1].bottom - 1)
+  }
+  for (const block of sorted) {
+    expect(block.bottom, `block "${block.name}" is cut off by the viewport`).toBeLessThanOrEqual(rects.vh + 1)
+  }
 }

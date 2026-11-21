@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test'
 import {
   apiCall,
   attachErrorTracker,
+  expectImageRendered,
+  expectPodiumLayoutClean,
   createMobileStudent,
   createValidPngBuffer,
   loginAsAdminApi,
@@ -81,6 +83,10 @@ test.describe('05 - Accessibility, Keyboard Navigation & Responsive Viewports', 
     await expect(hostPage.locator('body')).toContainText('1')
     await hostPage.getByRole('button', { name: /Démarrer le Quizz/i }).click()
 
+    // Host (720p) and mobile both render the real uploaded picture
+    await expectImageRendered(hostPage.locator('p-image img[alt="Illustration de la question"]'))
+    await expectImageRendered(student.page.locator('quizz-picture img'))
+
     // Student sees question with image
     await student.page.waitForSelector('quizz-question-answer', { timeout: 15000 })
     await expect(student.page.locator('[aria-live="polite"]').first()).toBeAttached()
@@ -119,6 +125,7 @@ test.describe('05 - Accessibility, Keyboard Navigation & Responsive Viewports', 
     // Host reveals and goes to 720p podium
     await hostPage.getByRole('button', { name: /Révéler les réponses/i }).click()
     await expect(hostPage.locator('body')).toContainText('BONNE RÉPONSE RÉVÉLÉE')
+    await expectImageRendered(hostPage.locator('p-image img[alt="Illustration de la question"]'))
     await hostPage.getByRole('button', { name: /Afficher le Podium Final/i }).click()
     await expect(hostPage.locator('body')).toContainText('PODIUM DE LA CLASSE')
 
@@ -126,6 +133,7 @@ test.describe('05 - Accessibility, Keyboard Navigation & Responsive Viewports', 
     if (await skipBtn.isVisible().catch(() => false)) {
       await skipBtn.click()
     }
+    await expectPodiumLayoutClean(hostPage)
     await saveAuditScreenshot(hostPage, '05-host-podium-720p.png')
 
     // Check 720p podium fits within 720px viewport without vertical clipping
@@ -166,6 +174,46 @@ test.describe('05 - Accessibility, Keyboard Navigation & Responsive Viewports', 
     await page.keyboard.press('Tab')
     const activeTag = await page.evaluate(() => document.activeElement?.tagName ?? '')
     expect(activeTag).toBeTruthy()
+
+    tracker.assertNoErrors()
+    await context.close()
+  })
+
+  test('A new teacher registers through the modal and can then log in with the chosen password', async ({ browser, baseURL }) => {
+    const base = baseURL || 'http://localhost:8000'
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } })
+    const page = await context.newPage()
+    const tracker = attachErrorTracker(page, 'register')
+
+    const email = `teacher${Date.now()}@quezap.com`
+    const password = 'Teacher#2026x'
+
+    await page.goto(`${base}/`)
+    await page.getByRole('button', { name: 'Créer une partie' }).first().click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+
+    // Weak password / mismatch keeps the submit disabled
+    await dialog.locator('input#email').fill(email)
+    await dialog.locator('input#register-password').fill('weak')
+    await dialog.locator('input#register-password-confirmation').fill('weak')
+    await expect(dialog.getByRole('button', { name: /Créer mon compte/i })).toBeDisabled()
+
+    await dialog.locator('input#register-password').fill(password)
+    await dialog.locator('input#register-password-confirmation').fill(password)
+    const registerResponse = page.waitForResponse(
+      res => res.url().endsWith('/apiv1/users') && res.request().method() === 'POST',
+    )
+    await dialog.getByRole('button', { name: /Créer mon compte/i }).click()
+    expect((await registerResponse).status()).toBe(201)
+    await expect(dialog).toBeHidden()
+
+    // Log in with the password typed in the modal
+    await page.goto(`${base}/auth/login`)
+    await page.locator('input[type="password"]').first().fill(password)
+    await page.locator('input').first().fill(email)
+    await page.keyboard.press('Enter')
+    await page.waitForURL(/\/admin/, { timeout: 15000 })
 
     tracker.assertNoErrors()
     await context.close()

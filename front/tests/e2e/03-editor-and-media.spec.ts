@@ -4,6 +4,7 @@ import {
   attachErrorTracker,
   createMobileStudent,
   createValidPngBuffer,
+  expectImageRendered,
   loginAsAdminUi,
   saveAuditScreenshot,
 } from './helpers/quezap-e2e.helpers'
@@ -103,23 +104,17 @@ test.describe('03 - QueZap Editor & S3 Media Upload', () => {
 
     // 9. Image renders on Host (QUESTION) and Mobile Student
     const hostQuestionImg = presenterPage.locator('p-image img[alt="Illustration de la question"]')
-    await expect(hostQuestionImg).toBeVisible({ timeout: 15000 })
-    await expect(hostQuestionImg).toHaveJSProperty('complete', true)
-    const hostImgWidth = await hostQuestionImg.evaluate((img: HTMLImageElement) => img.naturalWidth)
-    expect(hostImgWidth).toBeGreaterThan(0)
+    await expectImageRendered(hostQuestionImg)
     await saveAuditScreenshot(presenterPage, '03-host-question-with-image.png')
 
     const studentImg = student.page.locator('quizz-picture img')
-    await expect(studentImg).toBeVisible({ timeout: 15000 })
-    await expect(studentImg).toHaveJSProperty('complete', true)
-    const studentImgWidth = await studentImg.evaluate((img: HTMLImageElement) => img.naturalWidth)
-    expect(studentImgWidth).toBeGreaterThan(0)
+    await expectImageRendered(studentImg)
 
     // Student votes, host reveals -> image also visible on REVEAL
     await student.page.locator('quizz-question-answer').first().click()
     await presenterPage.getByRole('button', { name: /Révéler les réponses/i }).click()
     await expect(presenterPage.locator('body')).toContainText('BONNE RÉPONSE RÉVÉLÉE')
-    await expect(presenterPage.locator('p-image img[alt="Illustration de la question"]')).toBeVisible()
+    await expectImageRendered(presenterPage.locator('p-image img[alt="Illustration de la question"]'))
     await saveAuditScreenshot(presenterPage, '03-host-reveal-with-image.png')
 
     // Expect no uncaught pageerrors; allow the expected 4xx resource console error from invalid picture upload

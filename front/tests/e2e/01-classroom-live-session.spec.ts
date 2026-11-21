@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import {
   apiCall,
   attachErrorTracker,
+  expectPodiumLayoutClean,
   createMobileStudent,
   loginAsAdminApi,
   loginAsAdminUi,
@@ -207,6 +208,7 @@ test.describe('01 - Classroom Live Session (Multi-Types: Vrai/Faux, QCM, Cash + 
     if (await skipBtn.isVisible().catch(() => false)) {
       await skipBtn.click()
     }
+    await expectPodiumLayoutClean(hostPage)
     await saveAuditScreenshot(hostPage, '01-host-podium-1080p.png')
 
     // 9. Students redirected to /quizz/ended with rank and score
