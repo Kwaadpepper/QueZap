@@ -4,7 +4,8 @@
 # Prérequis avant le premier lancement :
 #   cp .env.example .env
 #   # Éditer .env (mots de passe, APP_JWT_SECRET_KEY, APP_PUBLIC_URL)
-#   docker compose up -d --build
+#   docker compose pull && docker compose up -d
+#   # (ou `docker compose up -d --build` pour recompiler localement)
 # ==============================================================================
 
 x-logging: &default-logging
@@ -106,6 +107,7 @@ services:
       - quezap-net
 
   backend:
+    image: ghcr.io/kwaadpepper/quezap-backend:${QUEZAP_VERSION:-latest}
     build:
       context: ./back
       dockerfile: Dockerfile.native
@@ -145,6 +147,7 @@ services:
       - quezap-net
 
   frontend:
+    image: ghcr.io/kwaadpepper/quezap-frontend:${QUEZAP_VERSION:-latest}
     build:
       context: ./front
       dockerfile: Dockerfile

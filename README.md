@@ -27,13 +27,17 @@ openssl rand -hex 32     # pour APP_JWT_SECRET_KEY
 openssl rand -base64 24  # pour POSTGRES_PASSWORD et RUSTFS_SECRET_KEY
 ```
 
-### 2. Compiler et démarrer la stack
+### 2. Télécharger les images pré-compilées et démarrer la stack
+
+Les images `linux/amd64` (backend natif GraalVM 25 + frontend Angular 22) sont publiées automatiquement sur GitHub Container Registry (`ghcr.io/kwaadpepper/quezap-*`) à chaque tag `v*` :
 
 ```bash
-docker compose up -d --build
+git pull
+docker compose pull
+docker compose up -d
 ```
 
-> **Note** : La première compilation native GraalVM dans `back/Dockerfile.native` demande ~2 à 4 Go de RAM et quelques minutes ; une fois compilée, l'image finale repose sur `oraclelinux:9-slim` et ne contient plus ni JDK ni Gradle.
+> **Note** : Pour recompiler localement au lieu d'utiliser les images GHCR, lance `docker compose up -d --build` (prévoir ~4 à 8 Go de RAM pour la compilation native GraalVM dans `back/Dockerfile.native`). Une fois compilée, l'image finale repose sur `oraclelinux:9-slim` et ne contient plus ni JDK ni Gradle.
 
 ### 🌐 Ports exposés en production
 
