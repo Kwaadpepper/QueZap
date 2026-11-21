@@ -31,7 +31,7 @@ RUN groupadd --system spring \
     && useradd --system --gid spring --no-create-home spring
 
 COPY --from=builder --chown=spring:spring \
-    /workspace/quezap-api/build/native/nativeCompile/quezap-api /app/quezap-api
+    /workspace/quezap-api/build/native/nativeCompile/ /app/
 
 USER spring:spring
 

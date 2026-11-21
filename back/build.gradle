@@ -168,6 +168,54 @@ project(":modules:application") {
 }
 
 project(":modules:infrastructure") {
+  tasks.named('compileJava') {
+    doLast {
+      // Build-time Hibernate bytecode enhancement (Gradle 9 compatible replacement for
+      // org.hibernate.orm plugin) so GraalVM native images never need runtime HibernateProxy.
+      def classesDir = destinationDirectory.get().asFile
+      def urls = ([classesDir] + configurations.compileClasspath.files).collect { it.toURI().toURL() } as URL[]
+      def cl = new URLClassLoader(urls, Thread.currentThread().contextClassLoader)
+      try {
+        def providerClass = cl.loadClass('org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl')
+        def defaultCtxClass = cl.loadClass('org.hibernate.bytecode.enhance.spi.DefaultEnhancementContext')
+        def ctxInterface = cl.loadClass('org.hibernate.bytecode.enhance.spi.EnhancementContext')
+        def defaultCtx = defaultCtxClass.getDeclaredConstructor().newInstance()
+        def ctxProxy = java.lang.reflect.Proxy.newProxyInstance(
+          cl,
+          [ctxInterface] as Class[],
+          { proxy, method, args ->
+            if (method.name == 'getLoadingClassLoader') { return cl }
+            return method.invoke(defaultCtx, args)
+          } as java.lang.reflect.InvocationHandler
+        )
+        def provider = providerClass.getDeclaredConstructor().newInstance()
+        def enhancer = providerClass.getMethod('getEnhancer', ctxInterface).invoke(provider, ctxProxy)
+        def classFiles = []
+        classesDir.eachFileRecurse { f ->
+          if (f.isFile() && f.name.endsWith('.class')) { classFiles << f }
+        }
+        classFiles.each { f ->
+          def rel = classesDir.toPath().relativize(f.toPath()).toString()
+          def className = rel.substring(0, rel.length() - 6).replace(File.separatorChar, '.' as char)
+          enhancer.discoverTypes(className, f.bytes)
+        }
+        int enhancedCount = 0
+        classFiles.each { f ->
+          def rel = classesDir.toPath().relativize(f.toPath()).toString()
+          def className = rel.substring(0, rel.length() - 6).replace(File.separatorChar, '.' as char)
+          byte[] enhanced = enhancer.enhance(className, f.bytes)
+          if (enhanced != null) {
+            f.bytes = enhanced
+            enhancedCount++
+          }
+        }
+        logger.lifecycle("Hibernate bytecode enhancement completed: ${enhancedCount} classes enhanced in :modules:infrastructure")
+      } finally {
+        cl.close()
+      }
+    }
+  }
+
   dependencies {
     api(project(":modules:application"))
     implementation(project(":modules:domain"))
