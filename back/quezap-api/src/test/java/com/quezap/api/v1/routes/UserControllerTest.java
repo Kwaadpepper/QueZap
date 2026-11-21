@@ -87,7 +87,7 @@ class UserControllerTest {
         .thenReturn(new AddUser.Output.UserAdded(userId));
 
     final var response =
-        userController.create(new CreateUserRequest("Alice", "alice123", "Password123!"));
+        userController.create(new CreateUserRequest("Alice", "alice123", "Password123!"), null);
 
     assertThat(response.id()).isEqualTo(userId.value());
   }
@@ -96,7 +96,7 @@ class UserControllerTest {
   void shouldRejectCreateUserWhenPasswordIsBlank() {
     final var req = new CreateUserRequest("Alice", "alice@example.com", "alice@example.com", "");
 
-    assertThatThrownBy(() -> userController.create(req))
+    assertThatThrownBy(() -> userController.create(req, null))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(e -> ((ResponseStatusException) e).getStatusCode())
         .isEqualTo(HttpStatus.BAD_REQUEST);

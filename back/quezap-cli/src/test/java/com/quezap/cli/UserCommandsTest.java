@@ -13,12 +13,20 @@ import java.util.List;
 
 import com.quezap.application.exceptions.ApplicationConstraintException;
 import com.quezap.application.exceptions.users.AddUserError;
+import com.quezap.application.ports.users.ActivateUser;
+import com.quezap.application.ports.users.ActivateUser.ActivateUserUsecase;
 import com.quezap.application.ports.users.AddUser;
 import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.DeleteUser;
 import com.quezap.application.ports.users.DeleteUser.DeleteUserUsecase;
+import com.quezap.application.ports.users.FindUserCredential;
+import com.quezap.application.ports.users.FindUserCredential.FindUserCredentialUsecase;
 import com.quezap.application.ports.users.ListUsers;
 import com.quezap.application.ports.users.ListUsers.ListUsersUsecase;
+import com.quezap.application.ports.users.RenameUser;
+import com.quezap.application.ports.users.RenameUser.RenameUserUsecase;
+import com.quezap.application.ports.users.ResetUserPassword;
+import com.quezap.application.ports.users.ResetUserPassword.ResetUserPasswordUsecase;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
@@ -37,7 +45,11 @@ class UserCommandsTest {
 
   private UsecaseExecutor executor;
   private ListUsersUsecase listUsersUsecase;
+  private FindUserCredentialUsecase findUserCredentialUsecase;
   private AddUserUsecase addUserUsecase;
+  private RenameUserUsecase renameUserUsecase;
+  private ResetUserPasswordUsecase resetUserPasswordUsecase;
+  private ActivateUserUsecase activateUserUsecase;
   private DeleteUserUsecase deleteUserUsecase;
   private LineReader lineReader;
   private UserCommands userCommands;
@@ -46,10 +58,23 @@ class UserCommandsTest {
   void setUp() {
     executor = Mockito.mock(UsecaseExecutor.class);
     listUsersUsecase = Mockito.mock(ListUsersUsecase.class);
+    findUserCredentialUsecase = Mockito.mock(FindUserCredentialUsecase.class);
     addUserUsecase = Mockito.mock(AddUserUsecase.class);
+    renameUserUsecase = Mockito.mock(RenameUserUsecase.class);
+    resetUserPasswordUsecase = Mockito.mock(ResetUserPasswordUsecase.class);
+    activateUserUsecase = Mockito.mock(ActivateUserUsecase.class);
     deleteUserUsecase = Mockito.mock(DeleteUserUsecase.class);
     lineReader = Mockito.mock(LineReader.class);
-    userCommands = new UserCommands(executor, listUsersUsecase, addUserUsecase, deleteUserUsecase);
+    userCommands =
+        new UserCommands(
+            executor,
+            listUsersUsecase,
+            findUserCredentialUsecase,
+            addUserUsecase,
+            renameUserUsecase,
+            resetUserPasswordUsecase,
+            activateUserUsecase,
+            deleteUserUsecase);
     userCommands.setLineReader(lineReader);
   }
 
@@ -65,7 +90,7 @@ class UserCommandsTest {
 
     final var result = userCommands.listUsers();
 
-    assertThat(result).contains("Users list :").contains("- alice (" + userId + ")");
+    assertThat(result).contains("Users list :").contains("- alice (" + userId.value() + ")");
     verify(executor, times(1)).execute(eq(listUsersUsecase), any(ListUsers.Input.class));
   }
 
@@ -90,8 +115,28 @@ class UserCommandsTest {
 
     final var result = userCommands.listUsers();
 
-    assertThat(result).contains("- alice (" + id1 + ")").contains("- bob (" + id2 + ")");
+    assertThat(result)
+        .contains("- alice (" + id1.value() + ")")
+        .contains("- bob (" + id2.value() + ")");
     verify(executor, times(2)).execute(eq(listUsersUsecase), any(ListUsers.Input.class));
+  }
+
+  @Test
+  void showUserByNameDisplaysDetailsAndActivationStatus() {
+    final var now = new TimelinePoint(Instant.parse("2026-01-01T00:00:00Z"));
+    final var userId = new UserId(UuidV7.randomUuid());
+    when(executor.execute(eq(findUserCredentialUsecase), any(FindUserCredential.Input.class)))
+        .thenReturn(
+            new FindUserCredential.Output(userId, "alice", true, "0123456789abcdef", now, now));
+
+    final var result = userCommands.showUser("alice");
+
+    assertThat(result)
+        .contains("ID: " + userId.value())
+        .contains("Name: alice")
+        .contains("Activated: true");
+    verify(executor)
+        .execute(eq(findUserCredentialUsecase), eq(new FindUserCredential.Input.ByName("alice")));
   }
 
   @Test
@@ -100,7 +145,7 @@ class UserCommandsTest {
     when(executor.execute(eq(addUserUsecase), any(AddUser.Input.class)))
         .thenReturn(new AddUser.Output.UserAdded(new UserId(UuidV7.randomUuid())));
 
-    final var result = userCommands.addUser("alice", "alice@example.com");
+    final var result = userCommands.addUser("alice", "alice@example.com", null);
 
     assertThat(result).isEqualTo("Done");
     verify(lineReader).readLine("Mot de passe : ", '*');
@@ -108,10 +153,22 @@ class UserCommandsTest {
   }
 
   @Test
+  void addUserWithPasswordOptionSkipsPrompt() {
+    when(executor.execute(eq(addUserUsecase), any(AddUser.Input.class)))
+        .thenReturn(new AddUser.Output.UserAdded(new UserId(UuidV7.randomUuid())));
+
+    final var result = userCommands.addUser("alice", "alice@example.com", "StrongPass1!");
+
+    assertThat(result).isEqualTo("Done");
+    verifyNoInteractions(lineReader);
+    verify(executor).execute(eq(addUserUsecase), any(AddUser.Input.class));
+  }
+
+  @Test
   void addUserHandlesNullEofCleanly() {
     when(lineReader.readLine("Mot de passe : ", '*')).thenReturn(null);
 
-    final var result = userCommands.addUser("alice", "alice@example.com");
+    final var result = userCommands.addUser("alice", "alice@example.com", null);
 
     assertThat(result).startsWith("Error");
     verifyNoInteractions(executor);
@@ -121,7 +178,7 @@ class UserCommandsTest {
   void addUserHandlesEndOfFileExceptionCleanly() {
     when(lineReader.readLine("Mot de passe : ", '*')).thenThrow(new EndOfFileException());
 
-    final var result = userCommands.addUser("alice", "alice@example.com");
+    final var result = userCommands.addUser("alice", "alice@example.com", null);
 
     assertThat(result).startsWith("Error");
     verifyNoInteractions(executor);
@@ -131,7 +188,7 @@ class UserCommandsTest {
   void addUserHandlesUserInterruptExceptionCleanly() {
     when(lineReader.readLine("Mot de passe : ", '*')).thenThrow(new UserInterruptException(""));
 
-    final var result = userCommands.addUser("alice", "alice@example.com");
+    final var result = userCommands.addUser("alice", "alice@example.com", null);
 
     assertThat(result).startsWith("Error");
     verifyNoInteractions(executor);
@@ -141,7 +198,7 @@ class UserCommandsTest {
   void addUserHandlesWeakPasswordDomainError() {
     when(lineReader.readLine("Mot de passe : ", '*')).thenReturn("weak");
 
-    final var result = userCommands.addUser("alice", "alice@example.com");
+    final var result = userCommands.addUser("alice", "alice@example.com", null);
 
     assertThat(result).startsWith("Error :");
     verifyNoInteractions(executor);
@@ -153,9 +210,51 @@ class UserCommandsTest {
     when(executor.execute(eq(addUserUsecase), any(AddUser.Input.class)))
         .thenThrow(new ApplicationConstraintException(AddUserError.IDENTIFIER_ALREADY_TAKEN));
 
-    final var result = userCommands.addUser("alice", "alice@example.com");
+    final var result = userCommands.addUser("alice", "alice@example.com", null);
 
     assertThat(result).startsWith("Error");
+  }
+
+  @Test
+  void renameUserByIdAndByName() {
+    final var uuid = UuidV7.randomUuid();
+    when(executor.execute(eq(renameUserUsecase), any(RenameUser.Input.class)))
+        .thenReturn(new RenameUser.Output.UserRenamed(new UserId(uuid), "alice-new"));
+
+    assertThat(userCommands.renameUser(uuid.toString(), "alice-new")).isEqualTo("Done");
+    assertThat(userCommands.renameUser("alice", "alice-new")).isEqualTo("Done");
+
+    verify(executor)
+        .execute(eq(renameUserUsecase), eq(new RenameUser.Input.Id(new UserId(uuid), "alice-new")));
+    verify(executor)
+        .execute(eq(renameUserUsecase), eq(new RenameUser.Input.UserName("alice", "alice-new")));
+  }
+
+  @Test
+  void resetPasswordPromptsAndExecutesUsecase() {
+    when(lineReader.readLine("Nouveau mot de passe : ", '*')).thenReturn("NewStrong1!");
+    when(executor.execute(eq(resetUserPasswordUsecase), any(ResetUserPassword.Input.class)))
+        .thenReturn(new ResetUserPassword.Output.PasswordReset());
+
+    final var result = userCommands.resetPassword("alice", null);
+
+    assertThat(result).isEqualTo("Done");
+    verify(lineReader).readLine("Nouveau mot de passe : ", '*');
+    verify(executor).execute(eq(resetUserPasswordUsecase), any(ResetUserPassword.Input.class));
+  }
+
+  @Test
+  void activateUserByIdAndByName() {
+    final var uuid = UuidV7.randomUuid();
+    when(executor.execute(eq(activateUserUsecase), any(ActivateUser.Input.class)))
+        .thenReturn(new ActivateUser.Output.UserActivated(new UserId(uuid)));
+
+    assertThat(userCommands.activateUser(uuid.toString())).isEqualTo("Done");
+    assertThat(userCommands.activateUser("alice")).isEqualTo("Done");
+
+    verify(executor)
+        .execute(eq(activateUserUsecase), eq(new ActivateUser.Input.Id(new UserId(uuid))));
+    verify(executor).execute(eq(activateUserUsecase), eq(new ActivateUser.Input.UserName("alice")));
   }
 
   @Test

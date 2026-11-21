@@ -7,10 +7,16 @@ public record CreateUserRequest(
     @Nullable String name,
     @Nullable String identifier,
     @Nullable String email,
-    @NotBlank(message = "Password is required") String password) {
+    @NotBlank(message = "Password is required") String password,
+    @Nullable String turnstileToken) {
 
   public CreateUserRequest(String name, String identifier, String password) {
-    this(name, identifier, identifier, password);
+    this(name, identifier, identifier, password, null);
+  }
+
+  public CreateUserRequest(
+      @Nullable String name, @Nullable String identifier, @Nullable String email, String password) {
+    this(name, identifier, email, password, null);
   }
 
   public String getEffectiveName() {

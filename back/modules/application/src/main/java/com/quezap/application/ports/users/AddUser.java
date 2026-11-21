@@ -8,8 +8,12 @@ import com.quezap.lib.ddd.usecases.UsecaseInput;
 import com.quezap.lib.ddd.usecases.UsecaseOutput;
 
 public interface AddUser {
-  record Input(String name, RawIdentifier identifier, RawPassword password)
-      implements UsecaseInput {}
+  record Input(String name, RawIdentifier identifier, RawPassword password, boolean activated)
+      implements UsecaseInput {
+    public Input(String name, RawIdentifier identifier, RawPassword password) {
+      this(name, identifier, password, true);
+    }
+  }
 
   sealed interface Output extends UsecaseOutput {
     record UserAdded(UserId id) implements Output {}

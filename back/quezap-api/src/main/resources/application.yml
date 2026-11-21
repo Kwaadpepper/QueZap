@@ -34,6 +34,20 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
+  mail:
+    host: ${APP_MAIL_HOST:localhost}
+    port: ${APP_MAIL_PORT:1025}
+    username: ${APP_MAIL_USERNAME:}
+    password: ${APP_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${APP_MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${APP_MAIL_STARTTLS:false}
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 logging:
   level:
@@ -63,3 +77,13 @@ jwt:
 
 participation:
   token-expiration-seconds: 3600
+
+app:
+  public-url: ${APP_PUBLIC_URL:http://localhost:8000}
+  mail:
+    enabled: ${APP_MAIL_ENABLED:false}
+    from: ${APP_MAIL_FROM:noreply@quezap.fr}
+    app-name: ${APP_NAME:QueZap}
+  turnstile:
+    secret-key: ${APP_TURNSTILE_SECRET_KEY:}
+    verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.quezap.domain.models.entities.User;
+import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.ports.directories.UserDirectory;
 import com.quezap.domain.ports.directories.views.UserView;
@@ -70,6 +71,15 @@ public class UserRepositoryJpaAdapter implements UserRepository, UserDirectory {
   @Transactional(readOnly = true)
   public Optional<User> findByName(String name) {
     return userJpaRepository.findByName(name).map(userJpaMapper::toDomain);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<User> findByCredential(CredentialId credentialId) {
+    if (credentialId == null || credentialId.value() == null) {
+      return Optional.empty();
+    }
+    return userJpaRepository.findByCredentialId(credentialId.value()).map(userJpaMapper::toDomain);
   }
 
   @Override

@@ -35,6 +35,9 @@ public class CredentialJpaEntity {
   @Column(name = "last_connection_at")
   private @Nullable Instant lastConnectionAt;
 
+  @Column(name = "activated", nullable = false, columnDefinition = "boolean default true")
+  private boolean activated = true;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
@@ -53,10 +56,22 @@ public class CredentialJpaEntity {
       @Nullable Instant lastConnectionAt,
       Instant createdAt,
       Instant updatedAt) {
+    this(id, hashedIdentifier, hashedPassword, lastConnectionAt, true, createdAt, updatedAt);
+  }
+
+  public CredentialJpaEntity(
+      UUID id,
+      String hashedIdentifier,
+      String hashedPassword,
+      @Nullable Instant lastConnectionAt,
+      boolean activated,
+      Instant createdAt,
+      Instant updatedAt) {
     this.id = id;
     this.hashedIdentifier = hashedIdentifier;
     this.hashedPassword = hashedPassword;
     this.lastConnectionAt = lastConnectionAt;
+    this.activated = activated;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
@@ -91,6 +106,14 @@ public class CredentialJpaEntity {
 
   public void setLastConnectionAt(@Nullable Instant lastConnectionAt) {
     this.lastConnectionAt = lastConnectionAt;
+  }
+
+  public boolean isActivated() {
+    return activated;
+  }
+
+  public void setActivated(boolean activated) {
+    this.activated = activated;
   }
 
   public Instant getCreatedAt() {

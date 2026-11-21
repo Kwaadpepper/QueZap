@@ -18,6 +18,7 @@ public class CredentialJpaMapper {
         domain.getHashedIdentifier().value(),
         domain.getHashedPassword().value(),
         domain.getLastConnectionAt() != null ? domain.getLastConnectionAt().position() : null,
+        domain.isActivated(),
         domain.getCreatedAt().position(),
         domain.getUpdatedAt().position());
   }
@@ -30,6 +31,7 @@ public class CredentialJpaMapper {
         entity.getLastConnectionAt() != null
             ? TimelinePoint.at(entity.getLastConnectionAt())
             : null,
-        TimelinePoint.at(entity.getUpdatedAt()));
+        TimelinePoint.at(entity.getUpdatedAt()),
+        entity.isActivated());
   }
 }

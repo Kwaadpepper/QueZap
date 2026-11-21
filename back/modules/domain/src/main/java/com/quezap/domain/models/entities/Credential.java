@@ -17,13 +17,20 @@ public class Credential extends AggregateRoot<CredentialId> implements TracksUpd
   private final @Nullable TimelinePoint lastConnectionAt;
 
   private HashedPassword hashedPassword;
+  private boolean activated;
   private TimelinePoint updatedAt;
 
   public Credential(HashedPassword hashedPassword, HashedIdentifier hashedIdentifier) {
+    this(hashedPassword, hashedIdentifier, true);
+  }
+
+  public Credential(
+      HashedPassword hashedPassword, HashedIdentifier hashedIdentifier, boolean activated) {
     super();
     this.hashedPassword = hashedPassword;
     this.hashedIdentifier = hashedIdentifier;
     this.lastConnectionAt = null;
+    this.activated = activated;
     this.updatedAt = TimelinePoint.now();
   }
 
@@ -32,11 +39,13 @@ public class Credential extends AggregateRoot<CredentialId> implements TracksUpd
       HashedPassword hashedPassword,
       HashedIdentifier hashedIdentifier,
       @Nullable TimelinePoint lastConnectionAt,
-      TimelinePoint updatedAt) {
+      TimelinePoint updatedAt,
+      boolean activated) {
     super(id.value());
     this.hashedPassword = hashedPassword;
     this.hashedIdentifier = hashedIdentifier;
     this.lastConnectionAt = lastConnectionAt;
+    this.activated = activated;
     this.updatedAt = updatedAt;
   }
 
@@ -46,7 +55,18 @@ public class Credential extends AggregateRoot<CredentialId> implements TracksUpd
       HashedIdentifier hashedIdentifier,
       @Nullable TimelinePoint lastConnectionAt,
       TimelinePoint updatedAt) {
-    return new Credential(id, hashedPassword, hashedIdentifier, lastConnectionAt, updatedAt);
+    return new Credential(id, hashedPassword, hashedIdentifier, lastConnectionAt, updatedAt, true);
+  }
+
+  public static Credential hydrate(
+      CredentialId id,
+      HashedPassword hashedPassword,
+      HashedIdentifier hashedIdentifier,
+      @Nullable TimelinePoint lastConnectionAt,
+      TimelinePoint updatedAt,
+      boolean activated) {
+    return new Credential(
+        id, hashedPassword, hashedIdentifier, lastConnectionAt, updatedAt, activated);
   }
 
   @Override
@@ -79,6 +99,18 @@ public class Credential extends AggregateRoot<CredentialId> implements TracksUpd
   @Override
   public void setUpdateAt(TimelinePoint now) {
     this.updatedAt = now;
+  }
+
+  public boolean isActivated() {
+    return activated;
+  }
+
+  public void activate() {
+    this.activated = true;
+  }
+
+  public void deactivate() {
+    this.activated = false;
   }
 
   public void updatePassword(HashedPassword newHashedPassword) {

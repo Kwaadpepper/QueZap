@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Repository;
 
 import com.quezap.domain.models.entities.User;
+import com.quezap.domain.models.valueobjects.identifiers.CredentialId;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.infrastructure.adapter.spi.DataSource;
@@ -33,6 +34,13 @@ public class UserInMemoryRepository implements UserRepository, DataSource<User> 
   @Override
   public Optional<User> findByName(String name) {
     return storage.values().stream().filter(user -> user.getName().equals(name)).findFirst();
+  }
+
+  @Override
+  public Optional<User> findByCredential(CredentialId credentialId) {
+    return storage.values().stream()
+        .filter(user -> user.getCredential().equals(credentialId))
+        .findFirst();
   }
 
   @Override

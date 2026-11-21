@@ -48,7 +48,7 @@ final class AddUserHandler implements AddUserUsecase {
       throw new ApplicationConstraintException(AddUserError.USER_NAME_ALREADY_TAKEN);
     }
 
-    final var credential = new Credential(hashedPassword, hashedIdentifier);
+    final var credential = new Credential(hashedPassword, hashedIdentifier, input.activated());
     final var user = new User(userName, credential.getId());
 
     credentialRepository.persist(credential);

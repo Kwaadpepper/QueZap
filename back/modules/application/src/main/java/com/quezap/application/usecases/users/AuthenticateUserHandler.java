@@ -57,8 +57,14 @@ final class AuthenticateUserHandler implements AuthenticateUserUsecase {
       throw new ApplicationConstraintException(AuthenticateUserError.INVALID_CREDENTIALS);
     }
 
+    if (!credential.isActivated()) {
+      throw new ApplicationConstraintException(AuthenticateUserError.ACCOUNT_NOT_ACTIVATED);
+    }
+
     final var user =
-        findUserByCredentialId(credential.getId())
+        userRepository
+            .findByCredential(credential.getId())
+            .or(() -> findUserByCredentialId(credential.getId()))
             .orElseThrow(ApplicationConstraintException.with(AuthenticateUserError.USER_NOT_FOUND));
 
     return new Output(user.getId(), user.getName());

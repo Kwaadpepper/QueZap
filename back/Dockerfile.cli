@@ -1,0 +1,27 @@
+# Multi-stage Dockerfile for QueZap Admin CLI (Spring Shell on Java 25 JRE)
+FROM eclipse-temurin:25-jdk AS builder
+
+WORKDIR /workspace
+
+COPY gradlew gradlew
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+COPY gradle/libs.versions.toml gradle/
+COPY checkstyle checkstyle
+
+COPY modules modules
+COPY quezap-api quezap-api
+COPY quezap-cli quezap-cli
+
+RUN chmod +x gradlew && ./gradlew :quezap-cli:bootJar -x test --no-daemon
+
+FROM eclipse-temurin:25-jre
+
+WORKDIR /app
+
+RUN addgroup --system spring && adduser --system --ingroup spring spring
+USER spring:spring
+
+COPY --from=builder /workspace/quezap-cli/build/libs/quezap-cli.jar app.jar
+
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
