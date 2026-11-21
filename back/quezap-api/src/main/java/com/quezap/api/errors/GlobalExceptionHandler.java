@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -193,6 +194,20 @@ public class GlobalExceptionHandler {
             "Resource conflict or constraint violation",
             ZonedDateTime.now(clock));
     return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<ErrorResonseDto> handleMethodNotSupported(
+      HttpRequestMethodNotSupportedException ex) {
+    final var errorResponse =
+        new ErrorResonseDto(
+            HttpStatus.METHOD_NOT_ALLOWED.value(), ex.getMessage(), ZonedDateTime.now(clock));
+    final var builder = ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED);
+    final var allowed = ex.getSupportedHttpMethods();
+    if (allowed != null && !allowed.isEmpty()) {
+      builder.allow(allowed.toArray(new org.springframework.http.HttpMethod[0]));
+    }
+    return builder.body(errorResponse);
   }
 
   @ExceptionHandler(AccessDeniedException.class)

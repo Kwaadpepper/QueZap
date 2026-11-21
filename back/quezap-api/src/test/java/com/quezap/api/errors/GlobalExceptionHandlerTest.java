@@ -2,6 +2,7 @@ package com.quezap.api.errors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -51,6 +52,14 @@ class GlobalExceptionHandlerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value(400))
         .andExpect(jsonPath("$.message").value("Page size must be less than or equal to 50"));
+  }
+
+  @Test
+  void shouldReturnMethodNotAllowedWhenHttpMethodIsNotSupported() throws Exception {
+    mockMvc
+        .perform(post("/test/invalid-file"))
+        .andExpect(status().isMethodNotAllowed())
+        .andExpect(jsonPath("$.code").value(405));
   }
 
   @Test
