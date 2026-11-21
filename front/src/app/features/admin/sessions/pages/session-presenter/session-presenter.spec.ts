@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing'
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { provideRouter, Router } from '@angular/router'
 
 import { MessageService } from 'primeng/api'
@@ -71,6 +71,10 @@ describe('SessionPresenter', () => {
     fixture.detectChanges()
   })
 
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('should create', () => {
     expect(component).toBeTruthy()
   })
@@ -88,7 +92,8 @@ describe('SessionPresenter', () => {
     expect(mockSessionService.revealAnswers).toHaveBeenCalled()
   })
 
-  it('should progress through podium steps based on leaderboard size and allow skipping', fakeAsync(() => {
+  it('should progress through podium steps based on leaderboard size and allow skipping', () => {
+    jest.useFakeTimers()
     // 0 players -> immediate reveal without waiting
     component['leaderboard'].set([])
     component['launchPodiumAnimation']()
@@ -98,9 +103,9 @@ describe('SessionPresenter', () => {
     component['leaderboard'].set([{ name: 'Salut', score: 1000 }])
     component['launchPodiumAnimation']()
     expect(component['podiumStep']()).toBe(2)
-    tick(650)
+    jest.advanceTimersByTime(650)
     expect(component['podiumStep']()).toBe(3)
-    tick(100)
+    jest.advanceTimersByTime(100)
 
     // 3 players -> reveals 3rd, 2nd, 1st cleanly
     component['leaderboard'].set([
@@ -111,22 +116,22 @@ describe('SessionPresenter', () => {
     component['launchPodiumAnimation']()
     expect(component['podiumStep']()).toBe(0)
 
-    tick(450)
+    jest.advanceTimersByTime(450)
     expect(component['podiumStep']()).toBe(1)
 
-    tick(700)
+    jest.advanceTimersByTime(700)
     expect(component['podiumStep']()).toBe(2)
 
-    tick(800)
+    jest.advanceTimersByTime(800)
     expect(component['podiumStep']()).toBe(3)
-    tick(100)
+    jest.advanceTimersByTime(100)
 
     component['launchPodiumAnimation']()
     expect(component['podiumStep']()).toBe(0)
     component['skipPodiumAnimation']()
     expect(component['podiumStep']()).toBe(3)
-    tick(100)
-  }))
+    jest.advanceTimersByTime(100)
+  })
 
   it('should toggle qrZoomed when toggleQrZoom is called', () => {
     expect(component['qrZoomed']()).toBe(false)
@@ -214,7 +219,8 @@ describe('SessionPresenter', () => {
     expect(component['stage']()).toBe('LEADERBOARD')
   })
 
-  it('should automatically reveal answers at countdown 0 when autoReveal is enabled', fakeAsync(() => {
+  it('should automatically reveal answers at countdown 0 when autoReveal is enabled', () => {
+    jest.useFakeTimers()
     component.autoReveal.set(true)
     mockSessionService.revealAnswers.mockClear()
 
@@ -237,13 +243,14 @@ describe('SessionPresenter', () => {
     })
 
     expect(component['timer']()).toBe(3)
-    tick(3500)
+    jest.advanceTimersByTime(3500)
     expect(component['timer']()).toBe(0)
     expect(mockSessionService.revealAnswers).toHaveBeenCalled()
     expect(component['stage']()).toBe('REVEAL')
-  }))
+  })
 
-  it('should not automatically reveal answers at countdown 0 when autoReveal is disabled', fakeAsync(() => {
+  it('should not automatically reveal answers at countdown 0 when autoReveal is disabled', () => {
+    jest.useFakeTimers()
     component.autoReveal.set(false)
     mockSessionService.revealAnswers.mockClear()
 
@@ -265,10 +272,10 @@ describe('SessionPresenter', () => {
       },
     })
 
-    tick(3500)
+    jest.advanceTimersByTime(3500)
     expect(component['timer']()).toBe(0)
     expect(mockSessionService.revealAnswers).not.toHaveBeenCalled()
-  }))
+  })
 
   it('should manage accessible kick confirmation workflow safely', () => {
     mockSessionService.kickParticipant.mockClear()
@@ -310,7 +317,8 @@ describe('SessionPresenter', () => {
     expect(component['progressionMode']()).toBe('MANUAL')
   })
 
-  it('should toggle pause, call pauseSession API, and freeze timer countdown', fakeAsync(() => {
+  it('should toggle pause, call pauseSession API, and freeze timer countdown', () => {
+    jest.useFakeTimers()
     component['handleEvent']({
       type: 'QUESTION_START',
       payload: {
@@ -322,7 +330,7 @@ describe('SessionPresenter', () => {
     expect(component['timer']()).toBe(10)
     expect(component['isPaused']()).toBe(false)
 
-    tick(2000)
+    jest.advanceTimersByTime(2000)
     expect(component['timer']()).toBe(8)
 
     // Pause
@@ -331,7 +339,7 @@ describe('SessionPresenter', () => {
     expect(mockSessionService.pauseSession).toHaveBeenCalledWith('test-session-id', true)
 
     // Timer should be frozen while paused
-    tick(3000)
+    jest.advanceTimersByTime(3000)
     expect(component['timer']()).toBe(8)
 
     // Resume
@@ -339,9 +347,9 @@ describe('SessionPresenter', () => {
     expect(component['isPaused']()).toBe(false)
     expect(mockSessionService.pauseSession).toHaveBeenCalledWith('test-session-id', false)
 
-    tick(2000)
+    jest.advanceTimersByTime(2000)
     expect(component['timer']()).toBe(6)
-  }))
+  })
 
   it('should handle SESSION_PAUSE_STATUS SSE event', () => {
     expect(component['isPaused']()).toBe(false)
@@ -358,7 +366,8 @@ describe('SessionPresenter', () => {
     expect(component['isPaused']()).toBe(false)
   })
 
-  it('should auto-advance after explanation countdown in AUTOMATIC mode during REVEAL', fakeAsync(() => {
+  it('should auto-advance after explanation countdown in AUTOMATIC mode during REVEAL', () => {
+    jest.useFakeTimers()
     mockSessionService.nextQuestion.mockClear()
     component['setProgressionMode']('AUTOMATIC')
     component['setExplanationDuration'](5)
@@ -374,16 +383,17 @@ describe('SessionPresenter', () => {
     expect(component['stage']()).toBe('REVEAL')
     expect(component['explanationTimer']()).toBe(5)
 
-    tick(3000)
+    jest.advanceTimersByTime(3000)
     expect(component['explanationTimer']()).toBe(2)
     expect(mockSessionService.nextQuestion).not.toHaveBeenCalled()
 
-    tick(2500)
+    jest.advanceTimersByTime(2500)
     expect(component['explanationTimer']()).toBe(0)
     expect(mockSessionService.nextQuestion).toHaveBeenCalled()
-  }))
+  })
 
-  it('should auto-advance after countdown in AUTOMATIC mode when viewing LEADERBOARD', fakeAsync(() => {
+  it('should auto-advance after countdown in AUTOMATIC mode when viewing LEADERBOARD', () => {
+    jest.useFakeTimers()
     mockSessionService.nextQuestion.mockClear()
     component['setProgressionMode']('AUTOMATIC')
     component['setExplanationDuration'](5)
@@ -399,17 +409,17 @@ describe('SessionPresenter', () => {
     expect(component['stage']()).toBe('REVEAL')
     expect(component['explanationTimer']()).toBe(5)
 
-    tick(2000)
+    jest.advanceTimersByTime(2000)
     expect(component['explanationTimer']()).toBe(3)
 
     // Presenter clicks intermediate leaderboard during countdown
     component['showIntermediateLeaderboard']()
     expect(component['stage']()).toBe('LEADERBOARD')
 
-    tick(3500)
+    jest.advanceTimersByTime(3500)
     expect(component['explanationTimer']()).toBe(0)
     expect(mockSessionService.nextQuestion).toHaveBeenCalled()
-  }))
+  })
 
   it('should store class metrics on SESSION_ENDED event', () => {
     component['handleEvent']({
@@ -521,7 +531,8 @@ describe('SessionPresenter', () => {
     })
   })
 
-  it('should synchronize timer with payload.deadline in QUESTION_START', fakeAsync(() => {
+  it('should synchronize timer with payload.deadline in QUESTION_START', () => {
+    jest.useFakeTimers()
     const futureDeadline = new Date(Date.now() + 12000).toISOString()
     component['handleEvent']({
       type: 'QUESTION_START',
@@ -540,9 +551,9 @@ describe('SessionPresenter', () => {
     })
 
     expect(component['timer']()).toBe(12)
-    tick(3000)
+    jest.advanceTimersByTime(3000)
     expect(component['timer']()).toBe(9)
-  }))
+  })
 
   it('should enter SYNCING stage on reload when session is STARTED until QUESTION_START arrives', () => {
     mockSessionService.getSession.mockReturnValueOnce(

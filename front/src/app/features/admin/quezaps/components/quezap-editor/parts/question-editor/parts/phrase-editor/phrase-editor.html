@@ -30,8 +30,8 @@
           class="border-0! border-transparent! p-6! text-center! text-2xl! md:text-3xl! font-bold! tracking-tight!"
           placeholder="Saisissez votre question ici..."
           [pAutoFocus]="true"
-          (blur)="inplaceRef.deactivate()"
-          (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate() : ''"
+          (blur)="inplaceRef.deactivate($event)"
+          (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate($event) : ''"
           [(ngModel)]="editedPhrase"
         />
       </div>

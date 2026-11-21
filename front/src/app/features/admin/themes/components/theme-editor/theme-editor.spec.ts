@@ -12,6 +12,8 @@ describe('ThemeEditor', () => {
 
     fixture = TestBed.createComponent(ThemeEditor)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('theme', { name: 'Culture' })
+    fixture.componentRef.setInput('visible', false)
     await fixture.whenStable()
   })
 

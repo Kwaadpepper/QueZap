@@ -1,12 +1,11 @@
 import '@angular/compiler'
-import 'zone.js'
-import 'zone.js/testing'
 import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { ErrorHandler } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { provideRouter } from '@angular/router'
 
-import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone'
+import { setupZonelessTestEnv } from 'jest-preset-angular/setup-env/zoneless'
 import { provideMarkdown } from 'ngx-markdown'
 import { ConfirmationService, MessageService } from 'primeng/api'
 
@@ -28,7 +27,7 @@ import {
 } from '@quezap/features/quizz/services'
 import { ActiveSessionStore, TimerStore } from '@quezap/features/quizz/stores'
 
-setupZoneTestEnv()
+setupZonelessTestEnv()
 
 jest.setTimeout(15000)
 
@@ -36,6 +35,10 @@ global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
+}
+
+if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.scrollTo) {
+  HTMLElement.prototype.scrollTo = jest.fn()
 }
 
 Object.defineProperty(HTMLElement.prototype, 'inert', {
@@ -79,6 +82,7 @@ beforeEach(() => {
       { provide: THEME_SERVICE, useClass: ThemeMockService },
       provideMarkdown(),
       provideHttpClient(),
+      provideHttpClientTesting(),
       provideRouter([]),
     ],
   })

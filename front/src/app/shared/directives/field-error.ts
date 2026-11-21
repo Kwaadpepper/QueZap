@@ -21,7 +21,7 @@ export class FieldError implements OnDestroy {
 
   constructor() {
     this.messageRef = this.viewContainerRef.createComponent(Message)
-    this.messageRef.instance.severity = 'error'
+    this.messageRef.setInput('severity', 'error')
 
     effect(() => {
       const errorList = this.extractErrorMessagesFrom(this.fieldState()())

@@ -3,7 +3,6 @@ import {
   ApplicationConfig, enableProdMode, ErrorHandler, isDevMode, provideAppInitializer,
   provideBrowserGlobalErrorListeners, provideZonelessChangeDetection,
 } from '@angular/core'
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { provideRouter, TitleStrategy, withComponentInputBinding } from '@angular/router'
 import { provideServiceWorker } from '@angular/service-worker'
 
@@ -89,8 +88,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([loadingProgressionInterceptor, refreshSessionInterceptor])),
     provideHeyApiClient(client),
-    provideAnimationsAsync(),
     providePrimeNG({
+      license: environment.primeUiLicense || undefined,
       overlayAppendTo: 'body',
       theme: {
         preset: Quezap,

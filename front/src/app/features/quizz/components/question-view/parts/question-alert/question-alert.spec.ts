@@ -12,6 +12,7 @@ describe('QuestionAlert', () => {
 
     fixture = TestBed.createComponent(QuestionAlert)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('timeLeft', 30)
     await fixture.whenStable()
   })
 

@@ -12,6 +12,7 @@ describe('Picture', () => {
 
     fixture = TestBed.createComponent(Picture)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('pictureUrl', 'https://example.com/image.png')
     await fixture.whenStable()
   })
 

@@ -12,6 +12,8 @@ describe('QuestionIcon', () => {
 
     fixture = TestBed.createComponent(QuestionIcon)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('form', 'circle')
+    fixture.componentRef.setInput('checked', false)
     await fixture.whenStable()
   })
 

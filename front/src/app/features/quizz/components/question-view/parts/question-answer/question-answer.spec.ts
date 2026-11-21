@@ -1,4 +1,6 @@
+import { signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { form } from '@angular/forms/signals'
 
 import { QuestionAnswer } from './question-answer'
 
@@ -10,8 +12,12 @@ describe('QuestionAnswer', () => {
     await TestBed.configureTestingModule({ imports: [QuestionAnswer] })
       .compileComponents()
 
+    const mockField = TestBed.runInInjectionContext(() => form(signal(false)))
     fixture = TestBed.createComponent(QuestionAnswer)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('questionId', '018e3a2b-8888-7def-8123-abcdef888888')
+    fixture.componentRef.setInput('answer', { index: 0, value: 'Option A' })
+    fixture.componentRef.setInput('field', mockField)
     await fixture.whenStable()
   })
 

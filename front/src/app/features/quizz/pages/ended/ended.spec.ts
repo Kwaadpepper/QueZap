@@ -92,6 +92,8 @@ describe('Ended', () => {
         { rank: 3, participantName: 'Bob', score: 500 },
       ],
     })
+    fixture = TestBed.createComponent(Ended)
+    component = fixture.componentInstance
     fixture.detectChanges()
 
     const compiled = fixture.nativeElement as HTMLElement

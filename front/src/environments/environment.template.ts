@@ -5,4 +5,5 @@ export const environment = {
   authorName: '${APP_AUTHOR_NAME}',
   authorEmail: '${APP_AUTHOR_EMAIL}',
   apiUrl: 'https://${APP_API_URL}/api/v1',
+  primeUiLicense: '${APP_PRIMEUI_LICENSE}',
 }

@@ -59,6 +59,8 @@ describe('QuezapEditor', () => {
     jest.spyOn(store, 'persist').mockRejectedValue(new Error('Erreur serveur'))
 
     component['onSaveQuezap']()
+    await Promise.resolve()
+    await Promise.resolve()
     await fixture.whenStable()
 
     expect(toastSpy).toHaveBeenCalledWith(

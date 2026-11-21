@@ -30,8 +30,8 @@
           class="bg-surface-0! dark:bg-surface-700/50! line-clamp-1! rounded-sm! border-transparent!"
           placeholder="Titre du QueZap (cliquez pour éditer)..."
           [pAutoFocus]="true"
-          (blur)="inplaceRef.deactivate()"
-          (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate() : ''"
+          (blur)="inplaceRef.deactivate($event)"
+          (keypress)="$event.key === 'Enter' ? inplaceRef.deactivate($event) : ''"
           [(ngModel)]="editedTitle"
         />
       </div>

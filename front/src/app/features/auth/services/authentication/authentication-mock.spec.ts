@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http'
-import { fakeAsync, TestBed } from '@angular/core/testing'
+import { TestBed } from '@angular/core/testing'
 
 import { tap } from 'rxjs'
 
@@ -23,6 +23,7 @@ describe('AuthenticationMockService', () => {
   }
 
   beforeEach(() => {
+    jest.useFakeTimers()
     TestBed.configureTestingModule({
       providers: [
         AuthenticationMockService,
@@ -38,6 +39,10 @@ describe('AuthenticationMockService', () => {
     })
   })
 
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('should be created', () => {
     const service = createService()
 
@@ -46,7 +51,7 @@ describe('AuthenticationMockService', () => {
 
   // --- LOGIN TESTS ---
 
-  it('should login successfully with valid credentials', fakeAsync(() => {
+  it('should login successfully with valid credentials', () => {
     // GIVEN
     const email = 'user@example.net'
     const password = 'password'
@@ -64,9 +69,10 @@ describe('AuthenticationMockService', () => {
           }
         }),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output validation error on login with invalid credentials', fakeAsync(() => {
+  it('should output validation error on login with invalid credentials', () => {
     // GIVEN
     const email = 'invalid@example.net'
     const password = 'wrong'
@@ -78,9 +84,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(result).toBeInstanceOf(ValidationError)),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output network error on login when network fails', fakeAsync(() => {
+  it('should output network error on login when network fails', () => {
     // GIVEN
     const email = 'user@example.net'
     const password = 'password'
@@ -93,11 +100,12 @@ describe('AuthenticationMockService', () => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },
     })
-  }))
+    jest.runAllTimers()
+  })
 
   // --- REFRESH TESTS ---
 
-  it('should refresh tokens successfully with valid refresh token', fakeAsync(() => {
+  it('should refresh tokens successfully with valid refresh token', () => {
     // GIVEN
     const tokens = { accessToken: validJwtToken, refreshToken: validJwtToken }
     const service = createService()
@@ -108,9 +116,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(isSuccess(result)).toBeTruthy()),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output validation error on refresh when jwt generation fails validation', fakeAsync(() => {
+  it('should output validation error on refresh when jwt generation fails validation', () => {
     // GIVEN
     const tokens = { accessToken: 'invalid', refreshToken: 'invalid' }
     const service = createService()
@@ -121,9 +130,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(result).toBeInstanceOf(ValidationError)),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output network error on refresh when network fails', fakeAsync(() => {
+  it('should output network error on refresh when network fails', () => {
     // GIVEN
     const tokens = { accessToken: validJwtToken, refreshToken: validJwtToken }
     const service = createService({ mockError: true })
@@ -135,11 +145,12 @@ describe('AuthenticationMockService', () => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },
     })
-  }))
+    jest.runAllTimers()
+  })
 
   // --- LOGOUT TESTS ---
 
-  it('should logout successfully', fakeAsync(() => {
+  it('should logout successfully', () => {
     // GIVEN
     const service = createService()
     expect.assertions(1)
@@ -149,9 +160,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(isSuccess(result)).toBeTruthy()),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output network error on logout when network fails', fakeAsync(() => {
+  it('should output network error on logout when network fails', () => {
     // GIVEN
     const service = createService({ mockError: true })
     expect.assertions(1)
@@ -162,11 +174,12 @@ describe('AuthenticationMockService', () => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },
     })
-  }))
+    jest.runAllTimers()
+  })
 
   // --- ME TESTS ---
 
-  it('should return user on me', fakeAsync(() => {
+  it('should return user on me', () => {
     // GIVEN
     const service = createService()
     expect.assertions(2)
@@ -181,9 +194,10 @@ describe('AuthenticationMockService', () => {
           }
         }),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output network error on me when network fails', fakeAsync(() => {
+  it('should output network error on me when network fails', () => {
     // GIVEN
     const service = createService({ mockError: true })
     expect.assertions(1)
@@ -194,11 +208,12 @@ describe('AuthenticationMockService', () => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },
     })
-  }))
+    jest.runAllTimers()
+  })
 
   // --- ASK RESET PASSWORD TESTS ---
 
-  it('should not output error on askToResetPassword with valid email', fakeAsync(() => {
+  it('should not output error on askToResetPassword with valid email', () => {
     // GIVEN
     const email = 'user@example.net'
     const service = createService()
@@ -209,9 +224,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(isSuccess(result)).toBeTruthy()),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output validation error on askToResetPassword with invalid email', fakeAsync(() => {
+  it('should output validation error on askToResetPassword with invalid email', () => {
     // GIVEN
     const email = 'invalid@example.net'
     const service = createService()
@@ -222,9 +238,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(result).toBeInstanceOf(ValidationError)),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output network error on askToResetPassword when network fails', fakeAsync(() => {
+  it('should output network error on askToResetPassword when network fails', () => {
     // GIVEN
     const email = 'user@example.net'
     const service = createService({ mockError: true })
@@ -236,11 +253,12 @@ describe('AuthenticationMockService', () => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },
     })
-  }))
+    jest.runAllTimers()
+  })
 
   // --- VERIFY RESET TOKEN TESTS ---
 
-  it('should not ouput error on verifyResetToken with valid token', fakeAsync(() => {
+  it('should not ouput error on verifyResetToken with valid token', () => {
     // GIVEN
     const tokenToVerify = validJwtToken
     const service = createService()
@@ -251,9 +269,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(isSuccess(result)).toBeTruthy()),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output forbiden error on verifyResetToken with invalid token', fakeAsync(() => {
+  it('should output forbiden error on verifyResetToken with invalid token', () => {
     // GIVEN
     const tokenToVerify = 'invalid-token'
     const service = createService()
@@ -264,9 +283,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(result).toBeInstanceOf(ValidationError)),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output network error on verifyResetToken when network fails', fakeAsync(() => {
+  it('should output network error on verifyResetToken when network fails', () => {
     // GIVEN
     const tokenToVerify = validJwtToken
     const service = createService({ mockError: true })
@@ -278,11 +298,12 @@ describe('AuthenticationMockService', () => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },
     })
-  }))
+    jest.runAllTimers()
+  })
 
   // --- RESET PASSWORD TESTS ---
 
-  it('should not ouput error on resetPassword with valid token and password', fakeAsync(() => {
+  it('should not ouput error on resetPassword with valid token and password', () => {
     // GIVEN
     const tokenToVerify = validJwtToken
     const newPassword = 'newStrongPassword123!'
@@ -294,9 +315,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(isSuccess(result)).toBeTruthy()),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output forbiden error on resetPassword with invalid token', fakeAsync(() => {
+  it('should output forbiden error on resetPassword with invalid token', () => {
     // GIVEN
     const tokenToVerify = 'invalid-token'
     const newPassword = 'newStrongPassword123!'
@@ -308,9 +330,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(result).toBeInstanceOf(ValidationError)),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output validation error on resetPassword with weak password', fakeAsync(() => {
+  it('should output validation error on resetPassword with weak password', () => {
     // GIVEN
     const tokenToVerify = validJwtToken
     const newPassword = 'weak'
@@ -322,9 +345,10 @@ describe('AuthenticationMockService', () => {
       .pipe(
         tap(result => expect(result).toBeInstanceOf(ValidationError)),
       ).subscribe()
-  }))
+    jest.runAllTimers()
+  })
 
-  it('should output network error on resetPassword when network fails', fakeAsync(() => {
+  it('should output network error on resetPassword when network fails', () => {
     // GIVEN
     const tokenToVerify = validJwtToken
     const newPassword = 'newStrongPassword123!'
@@ -337,5 +361,6 @@ describe('AuthenticationMockService', () => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },
     })
-  }))
+    jest.runAllTimers()
+  })
 })

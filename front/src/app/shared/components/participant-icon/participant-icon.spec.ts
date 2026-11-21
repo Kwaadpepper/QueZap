@@ -12,6 +12,8 @@ describe('ParticipantIcon', () => {
 
     fixture = TestBed.createComponent(ParticipantIcon)
     component = fixture.componentInstance
+    fixture.componentRef.setInput('leafColor', '#ffffff')
+    fixture.componentRef.setInput('backgroundColor', '#22c55e')
     await fixture.whenStable()
   })
 

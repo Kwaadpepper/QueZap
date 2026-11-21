@@ -1,6 +1,5 @@
 import { signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
-import { provideNoopAnimations } from '@angular/platform-browser/animations'
 
 import { of, Subject, throwError } from 'rxjs'
 
@@ -31,8 +30,6 @@ describe('ForgottenPassword', () => {
         // Fourniture des Mocks
         { provide: Config, useValue: mockConfig },
         { provide: AUTHENTICATION_SERVICE, useValue: mockAuthenticationService },
-        // Nécessaire pour les animations des composants PrimeNG
-        provideNoopAnimations(),
       ],
     }).compileComponents()
 

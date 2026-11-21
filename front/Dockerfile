@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for QueZap Frontend (Angular 21 + Bun + Nginx)
+# Multi-stage Dockerfile for QueZap Frontend (Angular 22 + Bun + Nginx)
 FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app

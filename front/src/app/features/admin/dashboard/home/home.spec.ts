@@ -95,7 +95,7 @@ describe('Home', () => {
   })
 
   it('should launch session directly when launch button is clicked', () => {
-    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => ({}) as Window)
     const quiz = {
       id: 'quiz-1',
       title: 'Quiz Maths',

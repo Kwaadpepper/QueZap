@@ -55,7 +55,7 @@ test.describe('03 - QueZap Editor & S3 Media Upload', () => {
     })
     const invalidRes = await invalidUploadPromise
     expect(invalidRes.status()).toBeGreaterThanOrEqual(400)
-    await expect(hostPage.locator('p-toast')).toBeVisible({ timeout: 10000 })
+    await expect(hostPage.locator('p-toast .p-toast-message').first()).toBeVisible({ timeout: 10000 })
 
     // 5. Upload valid PNG image
     const validUploadPromise = hostPage.waitForResponse(

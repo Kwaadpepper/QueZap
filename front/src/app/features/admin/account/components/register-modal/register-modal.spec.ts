@@ -1,6 +1,5 @@
 import { ErrorHandler } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
-import { provideNoopAnimations } from '@angular/platform-browser/animations'
 
 import { MessageService } from 'primeng/api'
 import { of, throwError } from 'rxjs'
@@ -28,7 +27,6 @@ describe('RegisterModal', () => {
     await TestBed.configureTestingModule({
       imports: [RegisterModal],
       providers: [
-        provideNoopAnimations(),
         { provide: REGISTER_SERVICE, useValue: registerServiceMock },
         { provide: MessageService, useValue: messageServiceMock },
         { provide: ErrorHandler, useValue: errorHandlerMock },

@@ -72,7 +72,7 @@ describe('QuezapCard', () => {
   })
 
   it('should create a session and open presenter on onQuezapLaunch', () => {
-    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => ({}) as Window)
     component['onQuezapLaunch']()
     const sessionService = TestBed.inject(SESSION_SERVICE)
     expect(sessionService.createSession).toHaveBeenCalledWith('1', expect.stringContaining('Plantes caducs -'))
