@@ -6,9 +6,9 @@
   maxlength="75"
   rows="2"
   cols="30"
-  ondragstart="return false;"
   [placeholder]="`Ajouter réponse ${index() + 1}`"
   [value]="phrase()"
   [disabled]="readonly()"
+  (dragstart)="$event.preventDefault()"
   (input)="onPhraseChanged(textarea.value)"
 ></textarea>
