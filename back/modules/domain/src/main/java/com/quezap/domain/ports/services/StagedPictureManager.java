@@ -11,6 +11,7 @@ import org.jspecify.annotations.Nullable;
 /** Domain port managing the lifecycle of temporarily staged pictures and picture URL validation. */
 public interface StagedPictureManager {
 
+  int MAX_ACTIVE_STAGED_PICTURES_PER_USER = 50;
   String PUBLIC_BUCKET_PREFIX = "/quezap-public-images/";
   String OBJECT_KEY_REGEX = "pictures/questions/[0-9a-fA-F-]{36}\\.(jpg|jpeg|png|webp)";
   Pattern VALID_PICTURE_PATTERN =
@@ -46,6 +47,16 @@ public interface StagedPictureManager {
    * @return number of pictures deleted
    */
   int purgeExpiredPictures();
+
+  /**
+   * Counts active (non-expired) staged pictures uploaded by {@code uploaderId}.
+   *
+   * @param uploaderId identifier of the authenticated user
+   * @return active staged picture count
+   */
+  default long countActiveStagedPictures(UUID uploaderId) {
+    return 0L;
+  }
 
   /**
    * Resolves and validates a user-supplied picture reference into a canonical public picture URL.
@@ -165,6 +176,13 @@ public interface StagedPictureManager {
   /** Thrown when a user attempts to claim a picture staged by another user. */
   class PictureOwnershipException extends RuntimeException {
     public PictureOwnershipException(String message) {
+      super(message);
+    }
+  }
+
+  /** Thrown when a user exceeds the active staged picture upload quota. */
+  class StagedPictureQuotaExceededException extends RuntimeException {
+    public StagedPictureQuotaExceededException(String message) {
       super(message);
     }
   }

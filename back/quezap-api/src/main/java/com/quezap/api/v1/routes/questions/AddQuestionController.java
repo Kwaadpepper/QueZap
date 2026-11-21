@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,9 +21,11 @@ import com.quezap.api.v1.helpers.PictureStreamHelper;
 import com.quezap.api.v1.mappers.QuestionMapper;
 import com.quezap.application.ports.questions.AddQuestion;
 import com.quezap.application.ports.questions.AddQuestion.AddQuestionUsecase;
+import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.validation.Valid;
+import org.jspecify.annotations.Nullable;
 
 @RestController
 public class AddQuestionController {
@@ -31,16 +34,29 @@ public class AddQuestionController {
   private final UsecaseExecutor executor;
   private final AddQuestionUsecase usecase;
   private final QuestionMapper mapper;
+  private final @Nullable UserRepository userRepository;
 
   AddQuestionController(
       UsecaseExecutor executor, AddQuestionUsecase usecase, QuestionMapper mapper) {
+    this(executor, usecase, mapper, null);
+  }
+
+  @Autowired
+  AddQuestionController(
+      UsecaseExecutor executor,
+      AddQuestionUsecase usecase,
+      QuestionMapper mapper,
+      @Nullable UserRepository userRepository) {
     this.executor = executor;
     this.usecase = usecase;
     this.mapper = mapper;
+    this.userRepository = userRepository;
   }
 
   @PostMapping("apiv1/questions/affirmation")
   public QuestionIdDto addAffirmation(@Valid AffirmationDto request) {
+    final var auth = QuestionAuthHelper.requireAuthentication(null);
+    final var authorId = QuestionAuthHelper.requireUserId(auth, userRepository);
 
     final var picture = request.picture();
     final var themeId = request.themeId();
@@ -51,7 +67,8 @@ public class AddQuestionController {
 
       final var pictureData = mapper.toPictureUploadData(pictureStream, picture);
 
-      final var input = new AddQuestion.Input.Affirmation(question, isTrue, pictureData, themeId);
+      final var input =
+          new AddQuestion.Input.Affirmation(question, isTrue, pictureData, themeId, authorId);
       final var output = executor.execute(usecase, input);
 
       return mapper.toDto(output);
@@ -63,6 +80,8 @@ public class AddQuestionController {
 
   @PostMapping("apiv1/questions/binary")
   public QuestionIdDto addBinary(@Valid BinaryDto request) {
+    final var auth = QuestionAuthHelper.requireAuthentication(null);
+    final var authorId = QuestionAuthHelper.requireUserId(auth, userRepository);
 
     final var picture = request.picture();
     final var themeId = request.themeId();
@@ -78,7 +97,7 @@ public class AddQuestionController {
           answerDataList -> {
             final var input =
                 new AddQuestion.Input.Binary(
-                    question, answerDataList, questionPictureData, themeId);
+                    question, answerDataList, questionPictureData, themeId, authorId);
             final var output = executor.execute(usecase, input);
 
             return mapper.toDto(output);
@@ -91,6 +110,8 @@ public class AddQuestionController {
 
   @PostMapping("apiv1/questions/quizz")
   public QuestionIdDto addQuizz(@Valid QuizzDto request) {
+    final var auth = QuestionAuthHelper.requireAuthentication(null);
+    final var authorId = QuestionAuthHelper.requireUserId(auth, userRepository);
 
     final var picture = request.picture();
     final var themeId = request.themeId();
@@ -105,7 +126,8 @@ public class AddQuestionController {
           answers,
           answerDataList -> {
             final var input =
-                new AddQuestion.Input.Quizz(question, answerDataList, questionPictureData, themeId);
+                new AddQuestion.Input.Quizz(
+                    question, answerDataList, questionPictureData, themeId, authorId);
             final var output = executor.execute(usecase, input);
 
             return mapper.toDto(output);

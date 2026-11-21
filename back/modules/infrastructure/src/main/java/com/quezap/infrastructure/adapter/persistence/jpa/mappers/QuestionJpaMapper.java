@@ -10,6 +10,7 @@ import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Sha256Hash;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
@@ -33,6 +34,7 @@ public class QuestionJpaMapper {
             domain.getValue(),
             domain.getPicture() != null ? domain.getPicture().objectKey() : null,
             themeEntity,
+            domain.getAuthorId() != null ? domain.getAuthorId().value() : null,
             domain.getCreatedAt().position(),
             domain.getUpdatedAt().position());
 
@@ -85,7 +87,8 @@ public class QuestionJpaMapper {
         questionPic,
         new ThemeId(entity.getTheme().getId()),
         domainAnswers,
-        TimelinePoint.at(entity.getUpdatedAt()));
+        TimelinePoint.at(entity.getUpdatedAt()),
+        entity.getAuthorId() != null ? new UserId(entity.getAuthorId()) : null);
   }
 
   public QuestionView toView(QuestionJpaEntity entity) {

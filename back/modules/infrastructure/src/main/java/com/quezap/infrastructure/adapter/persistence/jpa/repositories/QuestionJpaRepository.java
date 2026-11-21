@@ -33,4 +33,32 @@ public interface QuestionJpaRepository extends JpaRepository<QuestionJpaEntity, 
 
   Page<QuestionJpaEntity> findByThemeIdInAndLabelContainingIgnoreCase(
       Collection<UUID> themeIds, String label, Pageable pageable);
+
+  Page<QuestionJpaEntity> findByAuthorId(UUID authorId, Pageable pageable);
+
+  Page<QuestionJpaEntity> findByAuthorIdAndThemeIdIn(
+      UUID authorId, Collection<UUID> themeIds, Pageable pageable);
+
+  Page<QuestionJpaEntity> findByAuthorIdAndLabelContainingIgnoreCase(
+      UUID authorId, String label, Pageable pageable);
+
+  Page<QuestionJpaEntity> findByAuthorIdAndThemeIdInAndLabelContainingIgnoreCase(
+      UUID authorId, Collection<UUID> themeIds, String label, Pageable pageable);
+
+  @Query(
+      "SELECT COUNT(DISTINCT qq.quezap.id) FROM QuezapQuestionJpaEntity qq "
+          + "WHERE qq.question.id = :questionId")
+  long countQuezapsReferencingQuestion(@Param("questionId") UUID questionId);
+
+  @Query(
+      "SELECT COUNT(DISTINCT qq.quezap.id) FROM QuezapQuestionJpaEntity qq "
+          + "WHERE qq.question.id = :questionId AND qq.quezap.id <> :quezapId")
+  long countOtherQuezapsReferencingQuestion(
+      @Param("questionId") UUID questionId, @Param("quezapId") UUID quezapId);
+
+  @Query(
+      "SELECT CASE WHEN COUNT(qq) > 0 THEN true ELSE false END "
+          + "FROM QuezapQuestionJpaEntity qq "
+          + "WHERE qq.question.id = :questionId AND qq.quezap.isPublic = true")
+  boolean isQuestionInPublicQuezap(@Param("questionId") UUID questionId);
 }

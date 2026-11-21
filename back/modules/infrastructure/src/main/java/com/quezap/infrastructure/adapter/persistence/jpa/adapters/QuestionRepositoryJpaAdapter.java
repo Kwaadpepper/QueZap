@@ -14,6 +14,7 @@ import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.ports.directories.QuestionDirectory;
 import com.quezap.domain.ports.directories.views.QuestionView;
 import com.quezap.domain.ports.repositories.QuestionRepository;
@@ -125,6 +126,58 @@ public class QuestionRepositoryJpaAdapter implements QuestionRepository, Questio
     final var page =
         questionJpaRepository.findByThemeIdInAndLabelContainingIgnoreCase(
             ids, search.value(), pageRequest);
+
+    return toPageOf(page, pagination);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PageOf<QuestionView> paginateForUser(Pagination pagination, UserId userId) {
+    final var pageRequest = createPageRequest(pagination);
+    final var page = questionJpaRepository.findByAuthorId(userId.value(), pageRequest);
+
+    return toPageOf(page, pagination);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PageOf<QuestionView> paginateWithThemesForUser(
+      Pagination pagination, Set<ThemeId> themes, UserId userId) {
+    if (themes.isEmpty()) {
+      return PageOf.empty(pagination);
+    }
+    final var ids = themes.stream().map(ThemeId::value).toList();
+    final var pageRequest = createPageRequest(pagination);
+    final var page =
+        questionJpaRepository.findByAuthorIdAndThemeIdIn(userId.value(), ids, pageRequest);
+
+    return toPageOf(page, pagination);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PageOf<QuestionView> paginateSearchingForUser(
+      Pagination pagination, SearchQuery search, UserId userId) {
+    final var pageRequest = createPageRequest(pagination);
+    final var page =
+        questionJpaRepository.findByAuthorIdAndLabelContainingIgnoreCase(
+            userId.value(), search.value(), pageRequest);
+
+    return toPageOf(page, pagination);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PageOf<QuestionView> paginateSearchingWithThemesForUser(
+      Pagination pagination, SearchQuery search, Set<ThemeId> themes, UserId userId) {
+    if (themes.isEmpty()) {
+      return PageOf.empty(pagination);
+    }
+    final var ids = themes.stream().map(ThemeId::value).toList();
+    final var pageRequest = createPageRequest(pagination);
+    final var page =
+        questionJpaRepository.findByAuthorIdAndThemeIdInAndLabelContainingIgnoreCase(
+            userId.value(), ids, search.value(), pageRequest);
 
     return toPageOf(page, pagination);
   }

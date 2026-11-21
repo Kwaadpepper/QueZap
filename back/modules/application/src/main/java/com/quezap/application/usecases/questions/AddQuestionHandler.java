@@ -12,6 +12,7 @@ import com.quezap.application.ports.questions.AddQuestion.Output;
 import com.quezap.domain.models.entities.Question;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
@@ -67,7 +68,12 @@ final class AddQuestionHandler implements AddQuestionUsecase {
     final var answer = new Answer(isTrue ? "True" : "False", null, isTrue);
     final var question =
         createQuestion(
-            QuestionType.BOOLEAN, questionValue, picture, themeId, Set.<Answer>of(answer));
+            QuestionType.BOOLEAN,
+            questionValue,
+            picture,
+            themeId,
+            Set.<Answer>of(answer),
+            input.authorId());
 
     questionRepository.persist(question);
 
@@ -91,7 +97,8 @@ final class AddQuestionHandler implements AddQuestionUsecase {
 
     final var picture = storePicture(pictureBytes, unitOfWork);
     final var question =
-        createQuestion(QuestionType.BINARY, questionValue, picture, themeId, answers);
+        createQuestion(
+            QuestionType.BINARY, questionValue, picture, themeId, answers, input.authorId());
 
     questionRepository.persist(question);
 
@@ -115,7 +122,8 @@ final class AddQuestionHandler implements AddQuestionUsecase {
 
     final var picture = storePicture(pictureBytes, unitOfWork);
     final var question =
-        createQuestion(QuestionType.QUIZZ, questionValue, picture, themeId, answers);
+        createQuestion(
+            QuestionType.QUIZZ, questionValue, picture, themeId, answers, input.authorId());
 
     questionRepository.persist(question);
 
@@ -127,9 +135,10 @@ final class AddQuestionHandler implements AddQuestionUsecase {
       String value,
       @Nullable Picture picture,
       ThemeId theme,
-      Set<Answer> answers) {
+      Set<Answer> answers,
+      @Nullable UserId authorId) {
     try {
-      return new Question(type, value, picture, theme, answers);
+      return new Question(type, value, picture, theme, answers, authorId);
     } catch (IllegalDomainStateException e) {
       // * Convert to a more specific domain exception with relevant error message
       throw new ApplicationConstraintException(

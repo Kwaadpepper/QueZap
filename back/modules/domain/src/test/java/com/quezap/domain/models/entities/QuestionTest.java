@@ -7,6 +7,7 @@ import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.Sha256Hash;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.pictures.PictureType;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
@@ -273,5 +274,29 @@ class QuestionTest {
     Assertions.assertThrows(
         IllegalDomainStateException.class,
         () -> new Question(questionType, value, null, themeId, answers));
+  }
+
+  @Test
+  void canInstantiateAndHydrateWithAuthorId() {
+    var questionType = QuestionType.BOOLEAN;
+    var value = "Is Paris the capital of France?";
+    var themeId = ThemeId.fromString("017f5a80-7e6d-7e6b-0000-000000000000");
+    var answers = Set.of(new Answer("True", null, true));
+    var authorId = new UserId(UuidV7.randomUuid());
+
+    var created = new Question(questionType, value, null, themeId, answers, authorId);
+    Assertions.assertEquals(authorId, created.getAuthorId());
+
+    var hydrated =
+        Question.hydrate(
+            created.getId(),
+            questionType,
+            value,
+            null,
+            themeId,
+            answers,
+            created.getUpdatedAt(),
+            authorId);
+    Assertions.assertEquals(authorId, hydrated.getAuthorId());
   }
 }

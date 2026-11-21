@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
     name = "questions",
     indexes = {
       @Index(name = "idx_questions_theme_id", columnList = "theme_id"),
+      @Index(name = "idx_questions_author_id", columnList = "author_id"),
       @Index(name = "idx_questions_created_at", columnList = "created_at")
     })
 public class QuestionJpaEntity {
@@ -44,6 +45,9 @@ public class QuestionJpaEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "theme_id", nullable = false)
   private ThemeJpaEntity theme;
+
+  @Column(name = "author_id")
+  private @Nullable UUID authorId;
 
   @OneToMany(
       mappedBy = "question",
@@ -72,11 +76,24 @@ public class QuestionJpaEntity {
       ThemeJpaEntity theme,
       Instant createdAt,
       Instant updatedAt) {
+    this(id, type, label, pictureFilename, theme, null, createdAt, updatedAt);
+  }
+
+  public QuestionJpaEntity(
+      UUID id,
+      String type,
+      String label,
+      @Nullable String pictureFilename,
+      ThemeJpaEntity theme,
+      @Nullable UUID authorId,
+      Instant createdAt,
+      Instant updatedAt) {
     this.id = id;
     this.type = type;
     this.label = label;
     this.pictureFilename = pictureFilename;
     this.theme = theme;
+    this.authorId = authorId;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
@@ -119,6 +136,14 @@ public class QuestionJpaEntity {
 
   public void setTheme(ThemeJpaEntity theme) {
     this.theme = theme;
+  }
+
+  public @Nullable UUID getAuthorId() {
+    return authorId;
+  }
+
+  public void setAuthorId(@Nullable UUID authorId) {
+    this.authorId = authorId;
   }
 
   public Set<AnswerJpaEntity> getAnswers() {

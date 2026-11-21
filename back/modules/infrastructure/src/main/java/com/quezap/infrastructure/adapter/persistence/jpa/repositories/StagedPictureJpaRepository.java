@@ -19,6 +19,8 @@ public interface StagedPictureJpaRepository extends JpaRepository<StagedPictureJ
 
   List<StagedPictureJpaEntity> findByExpiresAtBefore(Instant now);
 
+  long countByUploaderIdAndExpiresAtAfter(UUID uploaderId, Instant now);
+
   Optional<StagedPictureJpaEntity> findByObjectKey(String objectKey);
 
   Optional<StagedPictureJpaEntity> findByPictureUrl(String pictureUrl);

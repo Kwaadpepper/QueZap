@@ -19,6 +19,7 @@ import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.infrastructure.adapter.persistence.jpa.adapters.QuestionRepositoryJpaAdapter;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
@@ -132,5 +133,79 @@ class QuestionRepositoryJpaAdapterTest {
 
     assertThat(result.items()).hasSize(1);
     assertThat(result.items().get(0).question()).contains("World War");
+  }
+
+  @Test
+  void shouldPersistAndFindAuthorId() {
+    final var themeId = UuidV7.randomUuid();
+    final var authorId = new UserId(UuidV7.randomUuid());
+    final var themeEntity = new ThemeJpaEntity(themeId, "History", Instant.now());
+    when(themeJpaRepository.findById(themeId)).thenReturn(Optional.of(themeEntity));
+
+    final var question =
+        new Question(
+            QuestionType.QUIZZ,
+            "What year did World War II end?",
+            null,
+            new ThemeId(themeId),
+            Set.of(
+                new Answer("1945", null, true),
+                new Answer("1944", null, false),
+                new Answer("1939", null, false)),
+            authorId);
+
+    adapter.persist(question);
+    final var captor = org.mockito.ArgumentCaptor.forClass(QuestionJpaEntity.class);
+    verify(questionJpaRepository).save(captor.capture());
+    assertThat(captor.getValue().getAuthorId()).isEqualTo(authorId.value());
+
+    when(questionJpaRepository.findById(question.getId().value()))
+        .thenReturn(Optional.of(captor.getValue()));
+    final var found = adapter.find(question.getId());
+    assertThat(found).isPresent();
+    assertThat(found.get().getAuthorId()).isEqualTo(authorId);
+  }
+
+  @Test
+  void shouldScopePaginationToAuthorId() {
+    final var userId = new UserId(UuidV7.randomUuid());
+    final var themeId = UuidV7.randomUuid();
+    final var themeEntity = new ThemeJpaEntity(themeId, "History", Instant.now());
+    final var entity =
+        new QuestionJpaEntity(
+            UuidV7.randomUuid(),
+            "QUIZZ",
+            "User private question?",
+            null,
+            themeEntity,
+            userId.value(),
+            Instant.now(),
+            Instant.now());
+
+    when(questionJpaRepository.findByAuthorId(eq(userId.value()), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(questionJpaRepository.findByAuthorIdAndThemeIdIn(
+            eq(userId.value()), eq(List.of(themeId)), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(questionJpaRepository.findByAuthorIdAndLabelContainingIgnoreCase(
+            eq(userId.value()), eq("private"), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(questionJpaRepository.findByAuthorIdAndThemeIdInAndLabelContainingIgnoreCase(
+            eq(userId.value()), eq(List.of(themeId)), eq("private"), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+
+    final var page = Pagination.firstPage(10);
+    assertThat(adapter.paginateForUser(page, userId).items()).hasSize(1);
+    assertThat(
+            adapter.paginateWithThemesForUser(page, Set.of(new ThemeId(themeId)), userId).items())
+        .hasSize(1);
+    assertThat(adapter.paginateSearchingForUser(page, new SearchQuery("private"), userId).items())
+        .hasSize(1);
+    assertThat(
+            adapter
+                .paginateSearchingWithThemesForUser(
+                    page, new SearchQuery("private"), Set.of(new ThemeId(themeId)), userId)
+                .items())
+        .hasSize(1);
   }
 }

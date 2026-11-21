@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.UUID;
 
 import com.quezap.domain.ports.services.QuestionPictureManager;
+import com.quezap.domain.ports.services.StagedPictureManager;
 import com.quezap.domain.ports.services.StagedPictureManager.InvalidPictureReferenceException;
 import com.quezap.domain.ports.services.StagedPictureManager.PictureOwnershipException;
+import com.quezap.domain.ports.services.StagedPictureManager.StagedPictureQuotaExceededException;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.StagedPictureJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.repositories.StagedPictureJpaRepository;
 import com.quezap.lib.utils.UuidV7;
@@ -249,5 +251,39 @@ class StagedPictureServiceTest {
         .isInstanceOf(InvalidPictureReferenceException.class);
     assertThatThrownBy(() -> service.resolveValidPublicPictureUrl("/apiv1/auth/logout"))
         .isInstanceOf(InvalidPictureReferenceException.class);
+  }
+
+  @Test
+  void shouldRejectRegisteringWhenActiveStagedQuotaIsReached() {
+    final var uploaderId = UuidV7.randomUuid();
+    final var objectKey = "pictures/questions/" + UuidV7.randomUuid() + ".png";
+    final var pictureUrl = "/quezap-public-images/" + objectKey;
+
+    when(repository.countByUploaderIdAndExpiresAtAfter(
+            org.mockito.ArgumentMatchers.eq(uploaderId), any(Instant.class)))
+        .thenReturn((long) StagedPictureManager.MAX_ACTIVE_STAGED_PICTURES_PER_USER);
+
+    assertThatThrownBy(() -> service.registerStagedPicture(objectKey, pictureUrl, uploaderId, null))
+        .isInstanceOf(StagedPictureQuotaExceededException.class)
+        .hasMessageContaining("quota exceeded");
+
+    verify(repository, never()).save(any());
+  }
+
+  @Test
+  void shouldAllowRegisteringWhenActiveStagedCountIsBelowQuota() {
+    final var uploaderId = UuidV7.randomUuid();
+    final var objectKey = "pictures/questions/" + UuidV7.randomUuid() + ".png";
+    final var pictureUrl = "/quezap-public-images/" + objectKey;
+
+    when(repository.countByUploaderIdAndExpiresAtAfter(
+            org.mockito.ArgumentMatchers.eq(uploaderId), any(Instant.class)))
+        .thenReturn((long) StagedPictureManager.MAX_ACTIVE_STAGED_PICTURES_PER_USER - 1);
+    when(repository.save(any(StagedPictureJpaEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    final var registered = service.registerStagedPicture(objectKey, pictureUrl, uploaderId, null);
+
+    assertThat(registered.objectKey()).isEqualTo(objectKey);
+    verify(repository).save(any(StagedPictureJpaEntity.class));
   }
 }

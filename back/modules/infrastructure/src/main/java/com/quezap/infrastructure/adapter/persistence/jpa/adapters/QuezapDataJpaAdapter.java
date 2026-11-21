@@ -16,8 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.quezap.application.ports.quezaps.QuezapDataPort;
+import com.quezap.application.usecases.quezaps.QuezapApplicationService.QuezapForbiddenException;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.AnswerJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuestionJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.QuezapJpaEntity;
@@ -147,7 +149,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
 
     var order = 1;
     for (final var slide : slides) {
-      final var question = resolveOrCreateQuestion(slide, order, Set.of());
+      final var question = resolveOrCreateQuestion(slide, order, Set.of(), authorId, null);
       final var qq =
           new QuezapQuestionJpaEntity(
               UuidV7.randomUuid(), quezap, question, slide.timerSeconds(), slide.points(), order++);
@@ -180,6 +182,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
     }
 
     if (slides != null) {
+      final var authorId = quezap.getAuthor().getId();
       final var ownedQuestionIds =
           quezap.getQuestions().stream()
               .map(qq -> qq.getQuestion().getId())
@@ -187,7 +190,8 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
       quezap.getQuestions().clear();
       var order = 1;
       for (final var slide : slides) {
-        final var question = resolveOrCreateQuestion(slide, order, ownedQuestionIds);
+        final var question =
+            resolveOrCreateQuestion(slide, order, ownedQuestionIds, authorId, quezapId);
         final var qq =
             new QuezapQuestionJpaEntity(
                 UuidV7.randomUuid(),
@@ -244,7 +248,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
             .sorted(Comparator.comparing(QuezapQuestionJpaEntity::getQuestionOrder))
             .toList();
     for (final var qq : sortedOriginalQuestions) {
-      final var clonedQuestion = cloneQuestion(qq.getQuestion());
+      final var clonedQuestion = cloneQuestion(qq.getQuestion(), authorId);
       final var copyQq =
           new QuezapQuestionJpaEntity(
               UuidV7.randomUuid(),
@@ -269,7 +273,8 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
             .orElseThrow(() -> new IllegalStateException("Quezap not found: " + quezapId));
 
     final var order = quezap.getQuestions().size() + 1;
-    final var question = resolveOrCreateQuestion(slide, order, Set.of());
+    final var question =
+        resolveOrCreateQuestion(slide, order, Set.of(), quezap.getAuthor().getId(), quezapId);
     final var qq =
         new QuezapQuestionJpaEntity(
             UuidV7.randomUuid(), quezap, question, slide.timerSeconds(), slide.points(), order);
@@ -326,6 +331,22 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public QuestionAccessStatus checkQuestionAccess(UUID questionId, UUID userId) {
+    return questionJpaRepository
+        .findById(questionId)
+        .map(q -> evaluateQuestionAccess(q, userId))
+        .orElse(QuestionAccessStatus.FORBIDDEN);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long countQuezapsReferencingQuestion(UUID questionId) {
+    return questionJpaRepository.countQuezapsReferencingQuestion(questionId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public boolean isPictureReferenced(Collection<String> pictureCandidates) {
     if (pictureCandidates.isEmpty()) {
       return false;
@@ -340,8 +361,22 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
     questionJpaRepository.flush();
   }
 
+  private QuestionAccessStatus evaluateQuestionAccess(QuestionJpaEntity question, UUID userId) {
+    if (userId.equals(question.getAuthorId())) {
+      return QuestionAccessStatus.OWNED;
+    }
+    if (questionJpaRepository.isQuestionInPublicQuezap(question.getId())) {
+      return QuestionAccessStatus.PUBLIC_CLONE_REQUIRED;
+    }
+    return QuestionAccessStatus.FORBIDDEN;
+  }
+
   private QuestionJpaEntity resolveOrCreateQuestion(
-      SlideInput slide, int order, Set<UUID> allowedQuestionIds) {
+      SlideInput slide,
+      int order,
+      Set<UUID> allowedQuestionIds,
+      UUID authorId,
+      @Nullable UUID currentQuezapId) {
     final var inlineQuestion = slide.question();
     if (inlineQuestion != null) {
       final var answersInput = inlineQuestion.answers();
@@ -352,15 +387,23 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
       if (inlineQuestion.id() != null && allowedQuestionIds.contains(inlineQuestion.id())) {
         final var existingOpt = questionJpaRepository.findById(inlineQuestion.id());
         if (existingOpt.isPresent()) {
-          return updateExistingQuestion(existingOpt.get(), inlineQuestion, answersInput);
+          final var existing = existingOpt.get();
+          final var isOwnedByAuthor = authorId.equals(existing.getAuthorId());
+          final var sharedWithOtherQuezaps =
+              currentQuezapId != null
+                  ? questionJpaRepository.countOtherQuezapsReferencingQuestion(
+                          existing.getId(), currentQuezapId)
+                      > 0L
+                  : questionJpaRepository.countQuezapsReferencingQuestion(existing.getId()) > 1L;
+          if (isOwnedByAuthor && !sharedWithOtherQuezaps) {
+            return updateExistingQuestion(existing, inlineQuestion, answersInput, authorId);
+          }
         }
       }
 
-      final var theme = resolveTheme(inlineQuestion.themeId(), inlineQuestion.themeName());
-      final var newQuestionId =
-          (inlineQuestion.id() != null && allowedQuestionIds.contains(inlineQuestion.id()))
-              ? inlineQuestion.id()
-              : UuidV7.randomUuid();
+      final var theme =
+          resolveTheme(inlineQuestion.themeId(), inlineQuestion.themeName(), authorId);
+      final var newQuestionId = UuidV7.randomUuid();
       final var now = Instant.now();
       final var newQuestion =
           new QuestionJpaEntity(
@@ -369,6 +412,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
               inlineQuestion.label(),
               inlineQuestion.pictureFilename(),
               theme,
+              authorId,
               now,
               now);
 
@@ -391,10 +435,17 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
     }
 
     if (slide.questionId() != null) {
-      return questionJpaRepository
-          .findById(slide.questionId())
-          .orElseThrow(
-              () -> new IllegalArgumentException("Question not found: " + slide.questionId()));
+      final var question =
+          questionJpaRepository
+              .findById(slide.questionId())
+              .orElseThrow(
+                  () -> new IllegalArgumentException("Question not found: " + slide.questionId()));
+      return switch (evaluateQuestionAccess(question, authorId)) {
+        case OWNED -> question;
+        case PUBLIC_CLONE_REQUIRED -> cloneQuestion(question, authorId);
+        case FORBIDDEN ->
+            throw new QuezapForbiddenException("Access denied to question: " + slide.questionId());
+      };
     }
 
     throw new IllegalArgumentException(
@@ -404,14 +455,16 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
   private QuestionJpaEntity updateExistingQuestion(
       QuestionJpaEntity existing,
       InlineQuestionInput inlineQuestion,
-      List<AnswerInput> answersInput) {
+      List<AnswerInput> answersInput,
+      UUID authorId) {
     existing.setLabel(inlineQuestion.label());
     if (inlineQuestion.type() != null) {
       existing.setType(inlineQuestion.type());
     }
     existing.setPictureFilename(inlineQuestion.pictureFilename());
     if (inlineQuestion.themeId() != null || inlineQuestion.themeName() != null) {
-      existing.setTheme(resolveTheme(inlineQuestion.themeId(), inlineQuestion.themeName()));
+      existing.setTheme(
+          resolveTheme(inlineQuestion.themeId(), inlineQuestion.themeName(), authorId));
     }
 
     final var existingAnswersById = new HashMap<UUID, AnswerJpaEntity>();
@@ -455,7 +508,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
     return saved != null ? saved : existing;
   }
 
-  private QuestionJpaEntity cloneQuestion(QuestionJpaEntity source) {
+  private QuestionJpaEntity cloneQuestion(QuestionJpaEntity source, @Nullable UUID authorId) {
     final var now = Instant.now();
     final var clonedQuestion =
         new QuestionJpaEntity(
@@ -464,6 +517,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
             source.getLabel(),
             source.getPictureFilename(),
             source.getTheme(),
+            authorId,
             now,
             now);
     final var sortedAnswers =
@@ -485,7 +539,8 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
     return saved != null ? saved : clonedQuestion;
   }
 
-  private ThemeJpaEntity resolveTheme(@Nullable UUID themeId, @Nullable String themeName) {
+  private ThemeJpaEntity resolveTheme(
+      @Nullable UUID themeId, @Nullable String themeName, @Nullable UUID createdBy) {
     if (themeId != null) {
       return themeJpaRepository
           .findById(themeId)
@@ -498,7 +553,7 @@ public class QuezapDataJpaAdapter implements QuezapDataPort {
           .orElseGet(
               () -> {
                 final var entity =
-                    new ThemeJpaEntity(UuidV7.randomUuid(), trimmedName, Instant.now());
+                    new ThemeJpaEntity(UuidV7.randomUuid(), trimmedName, Instant.now(), createdBy);
                 final var saved = themeJpaRepository.save(entity);
                 return saved != null ? saved : entity;
               });

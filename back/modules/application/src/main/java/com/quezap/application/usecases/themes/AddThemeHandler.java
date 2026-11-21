@@ -26,7 +26,7 @@ final class AddThemeHandler implements AddThemeUsecase {
       throw new ApplicationConstraintException(AddThemeError.THEME_ALREADY_EXISTS);
     }
 
-    final var theme = new Theme(themeName);
+    final var theme = new Theme(themeName, usecaseInput.createdBy());
 
     themeRepository.persist(theme);
 

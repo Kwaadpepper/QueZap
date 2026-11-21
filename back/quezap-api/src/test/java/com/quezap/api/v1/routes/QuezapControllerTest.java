@@ -115,7 +115,7 @@ class QuezapControllerTest {
     final var theme = new ThemeJpaEntity(UUID.randomUUID(), "History", Instant.now());
     final var question =
         new QuestionJpaEntity(
-            qId, "QUIZZ", "What year is it?", null, theme, Instant.now(), Instant.now());
+            qId, "QUIZZ", "What year is it?", null, theme, authorId, Instant.now(), Instant.now());
     question.addAnswer(new AnswerJpaEntity(UUID.randomUUID(), question, "1789", null, true, 0));
     when(questionJpaRepository.findById(qId)).thenReturn(Optional.of(question));
 
@@ -450,6 +450,7 @@ class QuezapControllerTest {
             "Question with picture",
             picUrl,
             theme,
+            authorId,
             Instant.now(),
             Instant.now());
     final var quezap =
@@ -521,6 +522,7 @@ class QuezapControllerTest {
             "Cloned Question",
             sharedUrl,
             theme,
+            authorId,
             Instant.now(),
             Instant.now());
     final var cloned =
@@ -679,6 +681,7 @@ class QuezapControllerTest {
             "Old label",
             existingPicUrl,
             theme,
+            authorId,
             Instant.now(),
             Instant.now());
     final var quezap =
@@ -731,7 +734,14 @@ class QuezapControllerTest {
 
     final var ownQuestion =
         new QuestionJpaEntity(
-            ownQuestionId, "QUIZZ", "Own Question", null, theme, Instant.now(), Instant.now());
+            ownQuestionId,
+            "QUIZZ",
+            "Own Question",
+            null,
+            theme,
+            authorId,
+            Instant.now(),
+            Instant.now());
     final var existingAnswer =
         new AnswerJpaEntity(existingAnswerId, ownQuestion, "Old Label", null, true, 1);
     ownQuestion.addAnswer(existingAnswer);
@@ -867,5 +877,215 @@ class QuezapControllerTest {
     assertThatThrownBy(() -> quezapController.clone(privateQuezapId))
         .isInstanceOf(ResponseStatusException.class)
         .hasFieldOrPropertyWithValue("statusCode", HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void shouldRejectAttachingAnotherUsersPrivateOrNullAuthorQuestion() {
+    final var otherAuthorId = UUID.randomUUID();
+    final var privateQuestionId = UUID.randomUUID();
+    final var nullAuthorQuestionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "History", Instant.now());
+
+    final var privateQuestion =
+        new QuestionJpaEntity(
+            privateQuestionId,
+            "QUIZZ",
+            "Secret Question",
+            null,
+            theme,
+            otherAuthorId,
+            Instant.now(),
+            Instant.now());
+    privateQuestion.addAnswer(
+        new AnswerJpaEntity(UUID.randomUUID(), privateQuestion, "Ans", null, true, 1));
+
+    final var nullAuthorQuestion =
+        new QuestionJpaEntity(
+            nullAuthorQuestionId,
+            "QUIZZ",
+            "Legacy Orphan Question",
+            null,
+            theme,
+            null,
+            Instant.now(),
+            Instant.now());
+    nullAuthorQuestion.addAnswer(
+        new AnswerJpaEntity(UUID.randomUUID(), nullAuthorQuestion, "Ans", null, true, 1));
+
+    final var ownQuezapId = UUID.randomUUID();
+    final var ownQuezap =
+        new QuezapJpaEntity(
+            ownQuezapId, "Own Quiz", "Desc", author, false, Instant.now(), Instant.now());
+
+    when(questionJpaRepository.findById(privateQuestionId))
+        .thenReturn(Optional.of(privateQuestion));
+    when(questionJpaRepository.findById(nullAuthorQuestionId))
+        .thenReturn(Optional.of(nullAuthorQuestion));
+    when(questionJpaRepository.isQuestionInPublicQuezap(privateQuestionId)).thenReturn(false);
+    when(questionJpaRepository.isQuestionInPublicQuezap(nullAuthorQuestionId)).thenReturn(false);
+    when(quezapJpaRepository.findById(ownQuezapId)).thenReturn(Optional.of(ownQuezap));
+
+    final var createWithPrivate =
+        new CreateQuezapRequest(
+            "Steal Quiz",
+            "Desc",
+            false,
+            List.of(new QuezapSlideRequest(privateQuestionId, 30, 100)));
+    assertThatThrownBy(() -> quezapController.create(createWithPrivate))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.FORBIDDEN);
+
+    final var createWithNullAuthor =
+        new CreateQuezapRequest(
+            "Legacy Bypass Quiz",
+            "Desc",
+            false,
+            List.of(new QuezapSlideRequest(nullAuthorQuestionId, 30, 100)));
+    assertThatThrownBy(() -> quezapController.create(createWithNullAuthor))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.FORBIDDEN);
+
+    final var updateWithPrivate =
+        new UpdateQuezapRequest(
+            "Steal Quiz",
+            "Desc",
+            false,
+            List.of(new QuezapSlideRequest(privateQuestionId, 30, 100)));
+    assertThatThrownBy(() -> quezapController.update(ownQuezapId, updateWithPrivate))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.FORBIDDEN);
+
+    assertThatThrownBy(
+            () ->
+                quezapController.addQuestion(
+                    ownQuezapId, new QuezapSlideRequest(privateQuestionId, 30, 100)))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("statusCode", HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void shouldClonePublicQuestionInsteadOfLinkingWhenAttachedByAnotherUser() {
+    final var otherAuthorId = UUID.randomUUID();
+    final var publicQuestionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Science", Instant.now());
+    final var publicQuestion =
+        new QuestionJpaEntity(
+            publicQuestionId,
+            "QUIZZ",
+            "Public Question?",
+            null,
+            theme,
+            otherAuthorId,
+            Instant.now(),
+            Instant.now());
+    publicQuestion.addAnswer(
+        new AnswerJpaEntity(UUID.randomUUID(), publicQuestion, "Yes", null, true, 1));
+    publicQuestion.addAnswer(
+        new AnswerJpaEntity(UUID.randomUUID(), publicQuestion, "No", null, false, 2));
+
+    when(questionJpaRepository.findById(publicQuestionId)).thenReturn(Optional.of(publicQuestion));
+    when(questionJpaRepository.isQuestionInPublicQuezap(publicQuestionId)).thenReturn(true);
+    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+    final var savedQuezapCaptor = ArgumentCaptor.forClass(QuezapJpaEntity.class);
+    when(quezapJpaRepository.save(savedQuezapCaptor.capture()))
+        .thenAnswer(inv -> inv.getArgument(0));
+
+    final var request =
+        new CreateQuezapRequest(
+            "Remix Quiz",
+            "Desc",
+            false,
+            List.of(new QuezapSlideRequest(publicQuestionId, 30, 100)));
+
+    quezapController.create(request);
+
+    final var savedQuiz = savedQuezapCaptor.getValue();
+    final var attachedQuestion = savedQuiz.getQuestions().iterator().next().getQuestion();
+    assertThat(attachedQuestion.getId()).isNotEqualTo(publicQuestionId);
+    assertThat(attachedQuestion.getAuthorId()).isEqualTo(authorId);
+    assertThat(attachedQuestion.getLabel()).isEqualTo("Public Question?");
+    assertThat(publicQuestion.getAuthorId()).isEqualTo(otherAuthorId);
+  }
+
+  @Test
+  void shouldCopyOnWriteWhenUpdatingQuestionSharedAcrossMultipleQuezaps() {
+    final var quezapId = UUID.randomUUID();
+    final var sharedQuestionId = UUID.randomUUID();
+    final var theme = new ThemeJpaEntity(UUID.randomUUID(), "Science", Instant.now());
+    final var sharedQuestion =
+        new QuestionJpaEntity(
+            sharedQuestionId,
+            "QUIZZ",
+            "Original Shared Label",
+            null,
+            theme,
+            authorId,
+            Instant.now(),
+            Instant.now());
+    sharedQuestion.addAnswer(
+        new AnswerJpaEntity(UUID.randomUUID(), sharedQuestion, "Original Ans", null, true, 1));
+
+    final var quezap =
+        new QuezapJpaEntity(quezapId, "Quiz 1", "Desc", author, true, Instant.now(), Instant.now());
+    quezap.addQuestion(
+        new QuezapQuestionJpaEntity(UUID.randomUUID(), quezap, sharedQuestion, 20, 1000, 1));
+
+    when(quezapJpaRepository.findById(quezapId)).thenReturn(Optional.of(quezap));
+    when(questionJpaRepository.findById(sharedQuestionId)).thenReturn(Optional.of(sharedQuestion));
+    when(questionJpaRepository.countOtherQuezapsReferencingQuestion(sharedQuestionId, quezapId))
+        .thenReturn(1L);
+    when(questionJpaRepository.save(any(QuestionJpaEntity.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+
+    final var updatedInline =
+        new InlineQuestionRequest(
+            sharedQuestionId,
+            "Edited Label Only For Quiz 1",
+            "QUIZZ",
+            null,
+            null,
+            "Science",
+            List.of(new InlineAnswerRequest(null, "New Ans", true, null, 1)));
+
+    quezapController.update(
+        quezapId,
+        new UpdateQuezapRequest(
+            "Quiz 1",
+            "Desc",
+            true,
+            List.of(new QuezapSlideRequest(sharedQuestionId, 20, 1000, 1, updatedInline))));
+
+    // Shared question entity MUST NOT be mutated in place
+    assertThat(sharedQuestion.getLabel()).isEqualTo("Original Shared Label");
+    final var quizQuestion = quezap.getQuestions().iterator().next().getQuestion();
+    assertThat(quizQuestion.getId()).isNotEqualTo(sharedQuestionId);
+    assertThat(quizQuestion.getLabel()).isEqualTo("Edited Label Only For Quiz 1");
+    assertThat(quizQuestion.getAuthorId()).isEqualTo(authorId);
+  }
+
+  @Test
+  void shouldRejectOversizedDescriptionAndSlidesInRequestDtos() {
+    final var factory = jakarta.validation.Validation.buildDefaultValidatorFactory();
+    final var validator = factory.getValidator();
+    final var longDescription = "a".repeat(2001);
+    final var tooManySlides =
+        java.util.stream.IntStream.range(0, 101)
+            .mapToObj(i -> new QuezapSlideRequest(UUID.randomUUID(), 20, 100))
+            .toList();
+
+    final var createWithLongDesc =
+        new CreateQuezapRequest("Title", longDescription, true, List.of());
+    assertThat(validator.validate(createWithLongDesc)).isNotEmpty();
+
+    final var createWithTooManySlides = new CreateQuezapRequest("Title", "ok", true, tooManySlides);
+    assertThat(validator.validate(createWithTooManySlides)).isNotEmpty();
+
+    final var updateWithLongDesc =
+        new UpdateQuezapRequest("Title", longDescription, true, List.of());
+    assertThat(validator.validate(updateWithLongDesc)).isNotEmpty();
+
+    final var updateWithTooManySlides = new UpdateQuezapRequest("Title", "ok", true, tooManySlides);
+    assertThat(validator.validate(updateWithTooManySlides)).isNotEmpty();
   }
 }

@@ -38,10 +38,25 @@ public class StagedPictureService implements StagedPictureManager {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public long countActiveStagedPictures(UUID uploaderId) {
+    return stagedPictureJpaRepository.countByUploaderIdAndExpiresAtAfter(uploaderId, Instant.now());
+  }
+
+  @Override
   @Transactional
   public StagedPictureInfo registerStagedPicture(
       String objectKey, String pictureUrl, UUID uploaderId, @Nullable Duration ttl) {
     final var now = Instant.now();
+    final var activeCount =
+        stagedPictureJpaRepository.countByUploaderIdAndExpiresAtAfter(uploaderId, now);
+    if (activeCount >= MAX_ACTIVE_STAGED_PICTURES_PER_USER) {
+      throw new StagedPictureQuotaExceededException(
+          "Staged picture upload quota exceeded (max "
+              + MAX_ACTIVE_STAGED_PICTURES_PER_USER
+              + " active pictures)");
+    }
+
     final var effectiveTtl = Objects.requireNonNullElse(ttl, DEFAULT_TTL);
     final var expiresAt = now.plus(effectiveTtl);
 
