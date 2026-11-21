@@ -3,8 +3,8 @@
 import * as z from 'zod';
 
 export const zUpdatePasswordRequest = z.object({
-    oldPassword: z.string(),
-    newPassword: z.string()
+    oldPassword: z.string().min(1),
+    newPassword: z.string().min(1)
 });
 
 export const zSessionSettingsRequestDto = z.object({
@@ -21,7 +21,7 @@ export const zSessionSettingsResponseDto = z.object({
 
 export const zInlineAnswerRequest = z.object({
     id: z.uuid().optional(),
-    label: z.string(),
+    label: z.string().min(1),
     isCorrect: z.boolean().optional(),
     pictureFilename: z.string().optional(),
     answerOrder: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional()
@@ -29,7 +29,7 @@ export const zInlineAnswerRequest = z.object({
 
 export const zInlineQuestionRequest = z.object({
     id: z.uuid().optional(),
-    label: z.string(),
+    label: z.string().min(1),
     type: z.string().optional(),
     pictureFilename: z.string().optional(),
     themeId: z.uuid().optional(),
@@ -57,7 +57,8 @@ export const zCreateUserRequest = z.object({
     name: z.string().optional(),
     identifier: z.string().optional(),
     email: z.string().optional(),
-    password: z.string(),
+    password: z.string().min(1),
+    turnstileToken: z.string().optional(),
     effectiveName: z.string().optional(),
     effectiveIdentifier: z.string().optional(),
     effectivePassword: z.string().optional()
@@ -121,7 +122,7 @@ export const zAnswerSubmittedDto = z.object({
 });
 
 export const zJoinSessionRequest = z.object({
-    code: z.string().regex(/^\s*[A-Za-z0-9\-]{3,20}\s*$/),
+    code: z.string().min(1).regex(/^\s*[A-Za-z0-9\-]{3,20}\s*$/),
     participantName: z.string().min(2).max(50).regex(/^[^<>]*$/)
 });
 
@@ -145,7 +146,7 @@ export const zQuezapIdDto = z.object({
 });
 
 export const zAnswerDto = z.object({
-    answer: z.string(),
+    answer: z.string().min(1),
     picture: z.string().optional(),
     isTrue: z.boolean().optional()
 });
@@ -155,8 +156,8 @@ export const zThemeId = z.object({
 });
 
 export const zQuizzDto = z.object({
-    question: z.string(),
-    answers: z.array(zAnswerDto),
+    question: z.string().min(1),
+    answers: z.array(zAnswerDto).min(1),
     picture: z.string().optional(),
     themeId: zThemeId
 });
@@ -166,14 +167,14 @@ export const zQuestionIdDto = z.object({
 });
 
 export const zBinaryDto = z.object({
-    question: z.string(),
-    answers: z.array(zAnswerDto),
+    question: z.string().min(1),
+    answers: z.array(zAnswerDto).min(1),
     picture: z.string().optional(),
     themeId: zThemeId
 });
 
 export const zAffirmationDto = z.object({
-    question: z.string(),
+    question: z.string().min(1),
     isTrue: z.boolean().optional(),
     picture: z.string().optional(),
     themeId: zThemeId
@@ -186,8 +187,8 @@ export const zPictureUploadResponseDto = z.object({
 });
 
 export const zResetPasswordRequest = z.object({
-    token: z.string(),
-    newPassword: z.string()
+    token: z.string().min(1),
+    newPassword: z.string().min(1)
 });
 
 export const zMessageResponseDto = z.object({
@@ -195,7 +196,7 @@ export const zMessageResponseDto = z.object({
 });
 
 export const zRefreshTokenRequest = z.object({
-    refreshToken: z.string()
+    refreshToken: z.string().min(1)
 });
 
 export const zRefreshTokenResponseDto = z.object({
@@ -206,12 +207,12 @@ export const zRefreshTokenResponseDto = z.object({
 });
 
 export const zLogoutRequest = z.object({
-    refreshToken: z.string()
+    refreshToken: z.string().min(1)
 });
 
 export const zLoginRequest = z.object({
-    identifier: z.string(),
-    password: z.string()
+    identifier: z.string().min(1),
+    password: z.string().min(1)
 });
 
 export const zUserSummaryDto = z.object({
@@ -228,11 +229,12 @@ export const zLoginResponseDto = z.object({
 });
 
 export const zForgottenPasswordRequest = z.object({
-    identifier: z.string()
+    identifier: z.string().min(1),
+    turnstileToken: z.string().optional()
 });
 
 export const zActivateRequest = z.object({
-    token: z.string()
+    token: z.string().min(1)
 });
 
 export const zRenameThemeRequest = z.object({
@@ -240,12 +242,12 @@ export const zRenameThemeRequest = z.object({
 });
 
 export const zPaginationDto = z.object({
-    page: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
-    perPage: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
-    from: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
-    to: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
-    offset: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
-    limit: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional()
+    page: z.coerce.bigint().gt(BigInt(0)).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
+    perPage: z.coerce.bigint().gt(BigInt(0)).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
+    from: z.coerce.bigint().gte(BigInt(0)).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
+    to: z.coerce.bigint().gt(BigInt(0)).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
+    offset: z.coerce.bigint().gte(BigInt(0)).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
+    limit: z.coerce.bigint().gt(BigInt(0)).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional()
 });
 
 export const zTimelinePoint = z.object({
@@ -395,7 +397,7 @@ export const zSessionReportDto = z.object({
 });
 
 export const zSseEmitter = z.object({
-    timeout: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional()
+    timeout: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish()
 });
 
 export const zQuezapSummaryDto = z.object({
@@ -459,7 +461,7 @@ export const zQuezapDetailDto = z.object({
 
 export const zFindQuestionsDto = z.object({
     search: zSearchQuery.optional(),
-    themes: z.array(zThemeId).optional()
+    themes: z.array(zThemeId).nullish()
 });
 
 export const zQuestionShortInfoDto = z.object({
@@ -563,7 +565,7 @@ export const zAddBody = zCreateThemeRequest;
 export const zAddResponse = zThemeIdDto;
 
 export const zList1Query = z.object({
-    authorId: z.uuid().optional(),
+    authorId: z.uuid().nullish(),
     paginationDto: zPaginationDto
 });
 
@@ -623,7 +625,7 @@ export const zNextQuestionPath = z.object({
 export const zNextQuestionResponse = zNextQuestionResponseDto;
 
 export const zLeaveSessionHeaders = z.object({
-    'X-Participant-Token': z.string().optional()
+    'X-Participant-Token': z.string().nullish()
 });
 
 export const zLeaveSessionPath = z.object({
@@ -638,7 +640,7 @@ export const zLeaveSessionResponse = z.void();
 export const zSubmitAnswerBody = zSubmitAnswerRequest;
 
 export const zSubmitAnswerHeaders = z.object({
-    'X-Participant-Token': z.string().optional()
+    'X-Participant-Token': z.string().nullish()
 });
 
 export const zSubmitAnswerPath = z.object({
@@ -658,8 +660,8 @@ export const zJoinBody = zJoinSessionRequest;
 export const zJoinResponse = zJoinSessionResponseDto;
 
 export const zList2Query = z.object({
-    search: z.string().optional(),
-    authorId: z.uuid().optional(),
+    search: z.string().nullish(),
+    authorId: z.uuid().nullish(),
     paginationDto: zPaginationDto
 });
 
@@ -853,7 +855,7 @@ export const zExportCsvPath = z.object({
 export const zExportCsvResponse = z.string();
 
 export const zStreamEventsHeaders = z.object({
-    'Last-Event-ID': z.string().optional()
+    'Last-Event-ID': z.string().nullish()
 });
 
 export const zStreamEventsPath = z.object({

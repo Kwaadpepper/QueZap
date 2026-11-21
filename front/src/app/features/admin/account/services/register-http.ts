@@ -14,12 +14,13 @@ import { RegisterService } from './register'
 export class RegisterHttpService implements RegisterService {
   private readonly httpClient = inject(HttpClient, { optional: true })
 
-  register(email: string, password: string): ServiceOutput<void> {
+  register(email: string, password: string, turnstileToken?: string): ServiceOutput<void> {
     const payload: CreateUserRequest = {
       name: email.split('@')[0],
       identifier: email,
       email,
       password,
+      ...(turnstileToken ? { turnstileToken } : {}),
     }
 
     return defer(() =>

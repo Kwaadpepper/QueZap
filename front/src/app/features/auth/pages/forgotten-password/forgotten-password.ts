@@ -1,5 +1,5 @@
 import {
-  Component, computed, DestroyRef, ErrorHandler, inject, signal,
+  Component, computed, DestroyRef, ErrorHandler, inject, signal, viewChild,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
@@ -16,13 +16,17 @@ import { Config } from '@quezap/core/services/config/config'
 import { isFailure } from '@quezap/core/types'
 import { BackButton } from '@quezap/shared/components/back-button/back-button'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
+import { TurnstileWidget } from '@quezap/shared/components/turnstile/turnstile'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { AUTHENTICATION_SERVICE } from '../../services'
 
 @Component({
   selector: 'quizz-forgotten-password',
-  imports: [InputText, Button, Message, BackButton, FormField, FieldError, IconFacade, ButtonIcon],
+  imports: [
+    InputText, Button, Message, BackButton, FormField, FieldError, IconFacade, ButtonIcon,
+    TurnstileWidget,
+  ],
   templateUrl: './forgotten-password.html',
 })
 export class ForgottenPassword {
@@ -33,32 +37,44 @@ export class ForgottenPassword {
 
   readonly #mockedCredentials = { email: 'user@example.net' }
 
+  private readonly turnstileWidget = viewChild(TurnstileWidget)
   private readonly resetInfo = signal({ email: '' })
 
   protected readonly isDebug = computed(() => this.config.debug())
   protected readonly hasBeenAskedToReset = signal(false)
   protected readonly errorHasOccured = signal(false)
+  protected readonly turnstileToken = signal<string | null>(null)
+  protected readonly isTurnstilePending = computed(
+    () => Boolean(this.turnstileWidget()?.enabled()) && !this.turnstileToken(),
+  )
 
   protected readonly resetForm = form(this.resetInfo, (path) => {
     validateStandardSchema(path, zod.object({ email: zod.email('Email invalide') }))
   })
 
+  protected onTurnstileToken(token: string | null) {
+    this.turnstileToken.set(token)
+  }
+
   protected onAskToReset() {
-    if (this.resetForm().invalid()) {
+    if (this.resetForm().invalid() || this.isTurnstilePending()) {
       this.resetForm().markAsTouched()
       return
     }
 
     this.hasBeenAskedToReset.set(false)
     this.errorHasOccured.set(false)
+    const token = this.turnstileToken()
 
     submit(this.resetForm, form =>
       firstValueFrom(
-        this.authenticationService.askToResetPassword(
-          form.email().value(),
+        (token
+          ? this.authenticationService.askToResetPassword(form.email().value(), token)
+          : this.authenticationService.askToResetPassword(form.email().value())
         ).pipe(
           takeUntilDestroyed(this.destroyRef),
           switchMap((result) => {
+            this.turnstileWidget()?.reset()
             if (isFailure(result)) {
               const error = result.error
               if (error instanceof ValidationError) {
@@ -78,6 +94,7 @@ export class ForgottenPassword {
             return of(void 0)
           }),
           catchError((err) => {
+            this.turnstileWidget()?.reset()
             this.resetForm().reset()
             this.resetFormInput()
             this.errorHasOccured.set(true)

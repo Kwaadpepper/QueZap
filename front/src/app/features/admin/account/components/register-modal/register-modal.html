@@ -66,12 +66,17 @@
           [fieldState]="registerForm.passwordConfirmation"
         />
       </div>
+      <quizz-turnstile (tokenChange)="onTurnstileToken($event)" />
       <div class="flex justify-end gap-2">
         <p-button label="Fermer" severity="secondary" text (onClick)="onCancel()" />
         <p-button
           label="Créer mon compte"
           type="submit"
-          [disabled]="this.registerForm().invalid() || this.registerForm().submitting()"
+          [disabled]="
+            this.registerForm().invalid()
+            || this.registerForm().submitting()
+            || isTurnstilePending()
+          "
         >
           @if (this.registerForm().submitting()) {
             <quizz-icon name="cog" animation="spin" pButtonIcon />

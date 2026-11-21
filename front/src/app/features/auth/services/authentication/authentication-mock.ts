@@ -143,7 +143,7 @@ export class AuthenticationMockService implements AuthenticationService {
     return response
   }
 
-  askToResetPassword(email: string): ServiceOutput<void> {
+  askToResetPassword(email: string, _turnstileToken?: string): ServiceOutput<void> {
     const response = new Subject<Tried<void>>()
 
     const result = validationAskResetPasswordSchema.safeParse({ email })

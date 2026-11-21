@@ -40,6 +40,7 @@ first=1
   add_field "authorName" "${APP_AUTHOR_NAME:-}"
   add_field "authorEmail" "${APP_AUTHOR_EMAIL:-}"
   add_field "apiUrl" "${APP_API_URL:-}"
+  add_field "turnstileSiteKey" "${APP_TURNSTILE_SITE_KEY:-}"
 
   printf '\n}\n'
 } > "$CONFIG_PATH"

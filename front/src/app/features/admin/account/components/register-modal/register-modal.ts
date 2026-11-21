@@ -1,5 +1,5 @@
 import {
-  Component, DestroyRef, ErrorHandler, inject, model, signal,
+  Component, computed, DestroyRef, ErrorHandler, inject, model, signal, viewChild,
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
@@ -15,6 +15,7 @@ import * as zod from 'zod/v4'
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'
 import { isFailure } from '@quezap/core/types'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
+import { TurnstileWidget } from '@quezap/shared/components/turnstile/turnstile'
 import { FieldError } from '@quezap/shared/directives/field-error'
 
 import { REGISTER_SERVICE } from '../../services'
@@ -29,6 +30,7 @@ import { REGISTER_SERVICE } from '../../services'
     FieldError,
     IconFacade,
     ButtonIcon,
+    TurnstileWidget,
   ],
   providers: [],
   templateUrl: './register-modal.html',
@@ -64,28 +66,44 @@ export class RegisterModal {
     )
   })
 
+  private readonly turnstileWidget = viewChild(TurnstileWidget)
+
   public readonly visible = model(false)
+
+  protected readonly turnstileToken = signal<string | null>(null)
+  protected readonly isTurnstilePending = computed(
+    () => Boolean(this.turnstileWidget()?.enabled()) && !this.turnstileToken(),
+  )
+
+  protected onTurnstileToken(token: string | null) {
+    this.turnstileToken.set(token)
+  }
 
   protected onModalHide() {
     this.userInfo.set({ email: '', password: '', passwordConfirmation: '' })
     this.registerForm().reset()
+    this.turnstileToken.set(null)
+    this.turnstileWidget()?.reset()
   }
 
   protected onRegister() {
-    if (this.registerForm().invalid()) {
+    if (this.registerForm().invalid() || this.isTurnstilePending()) {
       this.registerForm().markAsTouched()
       return
     }
 
+    const token = this.turnstileToken()
+
     submit(this.registerForm, form =>
       firstValueFrom(
-        this.registerService.register(
-          form.email().value(),
-          form.password().value(),
+        (token
+          ? this.registerService.register(form.email().value(), form.password().value(), token)
+          : this.registerService.register(form.email().value(), form.password().value())
         ).pipe(
           takeUntilDestroyed(this.destroyRef),
           exhaustMap((result) => {
             if (isFailure(result)) {
+              this.turnstileWidget()?.reset()
               const err = result.error
               if (err instanceof ValidationError) {
                 return of(err.getErrorsForForm(this.registerForm))
@@ -106,6 +124,7 @@ export class RegisterModal {
             return of(void 0)
           }),
           catchError((err) => {
+            this.turnstileWidget()?.reset()
             this.message.add({
               severity: 'error',
               summary: 'Erreur lors de l\'inscription',

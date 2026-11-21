@@ -11,7 +11,7 @@ const validationSchema = zod.object({ email: zod.email().check(zod.regex(/@queza
 export class RegisterMockService implements RegisterService {
   private readonly MOCK_DELAY = () => Math.max(100, Math.random() * 3000)
 
-  register(email: string, _password: string): ServiceOutput<void> {
+  register(email: string, _password: string, _turnstileToken?: string): ServiceOutput<void> {
     const response = new Subject<Tried<void>>()
 
     validationSchema

@@ -157,11 +157,14 @@ export class AuthenticationHttpService implements AuthenticationService {
     )
   }
 
-  askToResetPassword(email: string): ServiceOutput<void> {
+  askToResetPassword(email: string, turnstileToken?: string): ServiceOutput<void> {
     return defer(() =>
       from(
         forgottenPassword({
-          body: { identifier: email },
+          body: {
+            identifier: email,
+            ...(turnstileToken ? { turnstileToken } : {}),
+          },
           ...(this.httpClient ? { httpClient: this.httpClient } : {}),
         }),
       ),

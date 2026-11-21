@@ -13,6 +13,7 @@ const appNameSchema = zod.string().trim().min(1)
 const authorNameSchema = zod.string().trim().min(1)
 const authorEmailSchema = zod.email()
 const apiUrlSchema = zod.union([zod.url(), zod.string().regex(/^\/.*$/)])
+const turnstileSiteKeySchema = zod.string().trim().min(1)
 
 const configSchema = zod.object({
   env: zod.enum(Environment),
@@ -21,6 +22,7 @@ const configSchema = zod.object({
   authorName: authorNameSchema,
   authorEmail: authorEmailSchema,
   apiUrl: apiUrlSchema,
+  turnstileSiteKey: turnstileSiteKeySchema.optional(),
 })
 
 export type AppConfig = zod.infer<typeof configSchema>
@@ -99,6 +101,16 @@ export class Config {
         }
         else {
           console.warn('Config: Ignoring invalid runtime apiUrl override.')
+        }
+      }
+
+      if (record['turnstileSiteKey'] !== undefined && record['turnstileSiteKey'] !== '') {
+        const parsed = turnstileSiteKeySchema.safeParse(record['turnstileSiteKey'])
+        if (parsed.success) {
+          overrides.turnstileSiteKey = parsed.data
+        }
+        else {
+          console.warn('Config: Ignoring invalid runtime turnstileSiteKey override.')
         }
       }
 

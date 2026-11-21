@@ -60,6 +60,7 @@ export type CreateUserRequest = {
     identifier?: string;
     email?: string;
     password: string;
+    turnstileToken?: string;
     effectiveName?: string;
     effectiveIdentifier?: string;
     effectivePassword?: string;
@@ -231,6 +232,7 @@ export type UserSummaryDto = {
 
 export type ForgottenPasswordRequest = {
     identifier: string;
+    turnstileToken?: string;
 };
 
 export type ActivateRequest = {
@@ -397,7 +399,7 @@ export type SessionReportDto = {
 };
 
 export type SseEmitter = {
-    timeout?: number;
+    timeout?: number | null;
 };
 
 export type PageOfDtoQuezapSummaryDto = {
@@ -461,7 +463,7 @@ export type ThemeDetailDto = {
 
 export type FindQuestionsDto = {
     search?: SearchQuery;
-    themes?: Array<ThemeId>;
+    themes?: Array<ThemeId> | null;
 };
 
 export type PageOfDtoQuestionShortInfoDto = {
@@ -643,7 +645,7 @@ export type List1Data = {
     body?: never;
     path?: never;
     query: {
-        authorId?: string;
+        authorId?: string | null;
         paginationDto: PaginationDto;
     };
     url: '/apiv1/sessions';
@@ -766,7 +768,7 @@ export type NextQuestionResponse = NextQuestionResponses[keyof NextQuestionRespo
 export type LeaveSessionData = {
     body?: never;
     headers?: {
-        'X-Participant-Token'?: string;
+        'X-Participant-Token'?: string | null;
     };
     path: {
         id: string;
@@ -787,7 +789,7 @@ export type LeaveSessionResponse = LeaveSessionResponses[keyof LeaveSessionRespo
 export type SubmitAnswerData = {
     body: SubmitAnswerRequest;
     headers?: {
-        'X-Participant-Token'?: string;
+        'X-Participant-Token'?: string | null;
     };
     path: {
         id: string;
@@ -825,8 +827,8 @@ export type List2Data = {
     body?: never;
     path?: never;
     query: {
-        search?: string;
-        authorId?: string;
+        search?: string | null;
+        authorId?: string | null;
         paginationDto: PaginationDto;
     };
     url: '/apiv1/quezaps';
@@ -1123,6 +1125,62 @@ export type Rename1Responses = {
     200: unknown;
 };
 
+export type SseBrokenPipeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/test/sse-broken-pipe';
+};
+
+export type SseBrokenPipeResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type SseAsyncNotUsableData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/test/sse-async-not-usable';
+};
+
+export type SseAsyncNotUsableResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type InvalidFileData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/test/invalid-file';
+};
+
+export type InvalidFileResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type BadPaginationData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/test/bad-pagination';
+};
+
+export type BadPaginationResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type Delete2Data = {
     body?: never;
     path: {
@@ -1253,7 +1311,7 @@ export type ExportCsvResponse = ExportCsvResponses[keyof ExportCsvResponses];
 export type StreamEventsData = {
     body?: never;
     headers?: {
-        'Last-Event-ID'?: string;
+        'Last-Event-ID'?: string | null;
     };
     path: {
         id: string;

@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type ServerSentEventsResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateData, ActivateResponses, AddAffirmationData, AddAffirmationResponses, AddBinaryData, AddBinaryResponses, AddData, AddQuestionData, AddQuestionResponses, AddQuizzData, AddQuizzResponses, AddResponses, CloneData, CloneResponses, Create1Data, Create1Responses, Create2Data, Create2Responses, CreateData, CreateResponses, Delete1Data, Delete1Responses, Delete2Data, Delete2Responses, Delete3Data, Delete3Responses, DeleteData, DeleteResponses, DuplicateData, DuplicateResponses, ExportCsvData, ExportCsvResponses, Find1Data, Find1Responses, Find2Data, Find2Responses, Find3Data, Find3Responses, FindData, FindResponses, ForgottenPasswordData, ForgottenPasswordResponses, GetByCodeData, GetByCodeResponses, GetById1Data, GetById1Responses, GetById2Data, GetById2Responses, GetByIdData, GetByIdResponses, GetReportData, GetReportResponses, GetScoresData, GetScoresResponses, JoinData, JoinResponses, KickParticipantData, KickParticipantResponses, LeaveSessionData, LeaveSessionResponses, List1Data, List1Responses, List2Data, List2Responses, ListData, ListResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, MeData, MeResponses, NextQuestionData, NextQuestionResponses, PauseSessionData, PauseSessionResponses, RefreshData, RefreshResponses, RemoveQuestionData, RemoveQuestionResponses, Rename1Data, Rename1Responses, RenameData, RenameResponses, ResetPasswordData, ResetPasswordResponses, RevealData, RevealResponses, StartData, StartResponses, StreamEventsData, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerResponses, UpdateData, UpdatePasswordData, UpdatePasswordResponses, UpdateResponses, UpdateSettingsData, UpdateSettingsResponses, UploadData, UploadResponses, VerifyResetTokenData, VerifyResetTokenResponses } from './types.gen';
+import type { ActivateData, ActivateResponses, AddAffirmationData, AddAffirmationResponses, AddBinaryData, AddBinaryResponses, AddData, AddQuestionData, AddQuestionResponses, AddQuizzData, AddQuizzResponses, AddResponses, BadPaginationData, BadPaginationResponses, CloneData, CloneResponses, Create1Data, Create1Responses, Create2Data, Create2Responses, CreateData, CreateResponses, Delete1Data, Delete1Responses, Delete2Data, Delete2Responses, Delete3Data, Delete3Responses, DeleteData, DeleteResponses, DuplicateData, DuplicateResponses, ExportCsvData, ExportCsvResponses, Find1Data, Find1Responses, Find2Data, Find2Responses, Find3Data, Find3Responses, FindData, FindResponses, ForgottenPasswordData, ForgottenPasswordResponses, GetByCodeData, GetByCodeResponses, GetById1Data, GetById1Responses, GetById2Data, GetById2Responses, GetByIdData, GetByIdResponses, GetReportData, GetReportResponses, GetScoresData, GetScoresResponses, InvalidFileData, InvalidFileResponses, JoinData, JoinResponses, KickParticipantData, KickParticipantResponses, LeaveSessionData, LeaveSessionResponses, List1Data, List1Responses, List2Data, List2Responses, ListData, ListResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, MeData, MeResponses, NextQuestionData, NextQuestionResponses, PauseSessionData, PauseSessionResponses, RefreshData, RefreshResponses, RemoveQuestionData, RemoveQuestionResponses, Rename1Data, Rename1Responses, RenameData, RenameResponses, ResetPasswordData, ResetPasswordResponses, RevealData, RevealResponses, SseAsyncNotUsableData, SseAsyncNotUsableResponses, SseBrokenPipeData, SseBrokenPipeResponses, StartData, StartResponses, StreamEventsData, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerResponses, UpdateData, UpdatePasswordData, UpdatePasswordResponses, UpdateResponses, UpdateSettingsData, UpdateSettingsResponses, UploadData, UploadResponses, VerifyResetTokenData, VerifyResetTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -319,6 +319,30 @@ export const rename1 = <ThrowOnError extends boolean = false>(options: Options<R
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+export const sseBrokenPipe = <ThrowOnError extends boolean = false>(options?: Options<SseBrokenPipeData, ThrowOnError>): RequestResult<SseBrokenPipeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<SseBrokenPipeResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/test/sse-broken-pipe',
+    ...options
+});
+
+export const sseAsyncNotUsable = <ThrowOnError extends boolean = false>(options?: Options<SseAsyncNotUsableData, ThrowOnError>): RequestResult<SseAsyncNotUsableResponses, unknown, ThrowOnError> => (options?.client ?? client).get<SseAsyncNotUsableResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/test/sse-async-not-usable',
+    ...options
+});
+
+export const invalidFile = <ThrowOnError extends boolean = false>(options?: Options<InvalidFileData, ThrowOnError>): RequestResult<InvalidFileResponses, unknown, ThrowOnError> => (options?.client ?? client).get<InvalidFileResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/test/invalid-file',
+    ...options
+});
+
+export const badPagination = <ThrowOnError extends boolean = false>(options?: Options<BadPaginationData, ThrowOnError>): RequestResult<BadPaginationResponses, unknown, ThrowOnError> => (options?.client ?? client).get<BadPaginationResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/test/bad-pagination',
+    ...options
 });
 
 export const delete2 = <ThrowOnError extends boolean = false>(options: Options<Delete2Data, ThrowOnError>): RequestResult<Delete2Responses, unknown, ThrowOnError> => (options.client ?? client).delete<Delete2Responses, unknown, ThrowOnError>({

@@ -22,7 +22,7 @@ export interface AuthenticationService {
 
   me(): ServiceOutput<AuthenticatedUser, ForbidenError>
 
-  askToResetPassword(email: string): ServiceOutput<void>
+  askToResetPassword(email: string, turnstileToken?: string): ServiceOutput<void>
 
   verifyResetToken(token: string): ServiceOutput<void, ForbidenError>
 
