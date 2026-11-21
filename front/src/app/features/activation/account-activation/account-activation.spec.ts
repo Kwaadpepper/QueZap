@@ -1,3 +1,4 @@
+import { Location } from '@angular/common'
 import { signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { ActivatedRoute, Router } from '@angular/router'
@@ -19,6 +20,10 @@ describe('AccountActivation', () => {
   const queryTokenValue = signal<string | null>(null)
   const activatedRoute = { snapshot: { queryParamMap: { get: jest.fn(() => queryTokenValue()) } } }
   const router = { navigateByUrl: jest.fn().mockResolvedValue(true) }
+  const locationMock = {
+    path: jest.fn(() => '/activate?token=valid-activation-token'),
+    replaceState: jest.fn(),
+  }
   const messageService = { add: jest.fn() }
   const activateMock = jest.fn<ReturnType<AccountActivationService['activate']>, [string]>(() =>
     of({ kind: 'success', result: void 0 }),
@@ -38,6 +43,7 @@ describe('AccountActivation', () => {
       providers: [
         { provide: ActivatedRoute, useValue: activatedRoute },
         { provide: Router, useValue: router },
+        { provide: Location, useValue: locationMock },
         { provide: MessageService, useValue: messageService },
         { provide: ACCOUNT_ACTIVATION_SERVICE, useValue: activationService },
       ],
@@ -58,6 +64,7 @@ describe('AccountActivation', () => {
   it('should activate account when valid token is provided in queryParamMap', async () => {
     queryTokenValue.set('valid-activation-token')
     await createComponent()
+    expect(locationMock.replaceState).toHaveBeenCalledWith('/activate')
     expect(activationService.activate).toHaveBeenCalledWith('valid-activation-token')
     expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login')
   })

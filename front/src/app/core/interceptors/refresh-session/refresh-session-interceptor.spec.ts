@@ -68,6 +68,48 @@ describe('refreshSessionInterceptor', () => {
     req.flush([])
   })
 
+  it('should NOT attach Authorization header or refresh on 401 for external URLs', () => {
+    currentTokensSignal.set(oldTokens)
+    let caughtStatus: number | undefined
+
+    http.get('https://evil.example/apiv1/quezaps').subscribe({
+      error: (err) => {
+        caughtStatus = err.status
+      },
+    })
+
+    const req = httpMock.expectOne('https://evil.example/apiv1/quezaps')
+    expect(req.request.headers.has('Authorization')).toBe(false)
+    req.flush({}, { status: 401, statusText: 'Unauthorized' })
+
+    expect(mockStore.refresh).not.toHaveBeenCalled()
+    expect(caughtStatus).toBe(401)
+  })
+
+  it('should NOT attach Authorization header for static asset URLs', () => {
+    currentTokensSignal.set(oldTokens)
+
+    http.get('/config.json').subscribe()
+    const configReq = httpMock.expectOne('/config.json')
+    expect(configReq.request.headers.has('Authorization')).toBe(false)
+    configReq.flush({})
+
+    http.get('images/logo.png').subscribe()
+    const imageReq = httpMock.expectOne('images/logo.png')
+    expect(imageReq.request.headers.has('Authorization')).toBe(false)
+    imageReq.flush('ok')
+
+    http.get('markdown/help.md').subscribe()
+    const mdReq = httpMock.expectOne('markdown/help.md')
+    expect(mdReq.request.headers.has('Authorization')).toBe(false)
+    mdReq.flush('# Help')
+
+    http.get('/apiv1-other/test').subscribe()
+    const otherReq = httpMock.expectOne('/apiv1-other/test')
+    expect(otherReq.request.headers.has('Authorization')).toBe(false)
+    otherReq.flush({})
+  })
+
   it('should not attach Authorization header or intercept 401 when IS_REFRESHING_ACCESS_TOKEN is true', () => {
     currentTokensSignal.set(oldTokens)
     const context = new HttpContext().set(IS_REFRESHING_ACCESS_TOKEN, true)

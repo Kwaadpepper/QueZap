@@ -159,9 +159,10 @@ services:
       APP_API_URL: ${APP_API_URL:-/apiv1}
       APP_TURNSTILE_SITE_KEY: ${APP_TURNSTILE_SITE_KEY:-}
     ports:
-      - "${APP_PORT:-8000}:80"
+      - "${APP_PORT:-8000}:8080"
     volumes:
       - ./front/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./front/nginx-security-headers.conf:/etc/nginx/includes/security-headers.conf:ro
     networks:
       - quezap-dev-net
 

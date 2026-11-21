@@ -5,11 +5,29 @@ import {
   catchError, defer, finalize, Observable, retry, shareReplay, switchMap, throwError,
 } from 'rxjs'
 
+import { Config } from '@quezap/core/services/config/config'
 import { IS_REFRESHING_ACCESS_TOKEN } from '@quezap/core/tokens'
 import { AuthTokens } from '@quezap/domain/models'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'
 
 let refreshInFlight$: Observable<void> | null = null
+
+function normalizeBaseUrl(url: string): string {
+  return url.endsWith('/') ? url.slice(0, -1) : url
+}
+
+function isApiRequest(requestUrl: string, apiUrl: string): boolean {
+  const base = normalizeBaseUrl(apiUrl.trim())
+  if (!base) {
+    return false
+  }
+
+  return (
+    requestUrl === base
+    || requestUrl.startsWith(`${base}/`)
+    || requestUrl.startsWith(`${base}?`)
+  )
+}
 
 function cloneRequestWithAuthHeader(req: HttpRequest<unknown>, tokens: AuthTokens) {
   return req.clone({ setHeaders: { Authorization: `Bearer ${tokens.accessToken}` } })
@@ -17,6 +35,13 @@ function cloneRequestWithAuthHeader(req: HttpRequest<unknown>, tokens: AuthToken
 
 export const refreshSessionInterceptor: HttpInterceptorFn = (req, next) => {
   const store = inject(AuthenticatedUserStore)
+  const config = inject(Config, { optional: true })
+  const apiUrl = config?.appConfig.value().apiUrl ?? '/apiv1'
+
+  if (!isApiRequest(req.url, apiUrl)) {
+    return next(req)
+  }
+
   const requestTokens = store.currentTokens()
 
   if (requestTokens?.accessToken && !req.context.get(IS_REFRESHING_ACCESS_TOKEN)) {

@@ -11,14 +11,21 @@ RUN bun install --frozen-lockfile --ignore-scripts
 COPY . .
 RUN bun run build
 
-# Nginx Alpine Runtime
-FROM nginx:alpine
+# Unprivileged Nginx Alpine Runtime (UID/GID 101)
+FROM nginxinc/nginx-unprivileged:1.27-alpine
 
-COPY --from=builder /app/dist/quezap/browser /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY docker-entrypoint.d/40-generate-config.sh /docker-entrypoint.d/40-generate-config.sh
-RUN chmod +x /docker-entrypoint.d/40-generate-config.sh
+USER root
 
-EXPOSE 80
+COPY --from=builder --chown=101:101 /app/dist/quezap/browser /usr/share/nginx/html
+COPY --chown=101:101 nginx-security-headers.conf /etc/nginx/includes/security-headers.conf
+COPY --chown=101:101 nginx.conf /etc/nginx/conf.d/default.conf
+COPY --chown=101:101 docker-entrypoint.d/40-generate-config.sh /docker-entrypoint.d/40-generate-config.sh
+
+RUN chmod +x /docker-entrypoint.d/40-generate-config.sh \
+    && chown -R 101:101 /usr/share/nginx/html
+
+USER 101
+
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
