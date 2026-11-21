@@ -52,6 +52,18 @@ describe('refreshSessionInterceptor', () => {
     httpMock.verify()
   })
 
+  it('should attach Authorization header and withCredentials when relative apiUrl resolves to same origin', () => {
+    currentTokensSignal.set(oldTokens)
+    const sameOriginUrl = `${window.location.origin}/apiv1/auth/me`
+
+    http.get(sameOriginUrl).subscribe()
+
+    const req = httpMock.expectOne(sameOriginUrl)
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${oldTokens.accessToken}`)
+    expect(req.request.withCredentials).toBe(true)
+    req.flush({})
+  })
+
   it('should attach Authorization header when tokens are available', () => {
     currentTokensSignal.set(oldTokens)
 

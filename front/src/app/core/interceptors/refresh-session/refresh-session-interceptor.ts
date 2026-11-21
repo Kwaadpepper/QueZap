@@ -16,17 +16,29 @@ function normalizeBaseUrl(url: string): string {
   return url.endsWith('/') ? url.slice(0, -1) : url
 }
 
+function matchesApiBase(url: string, base: string): boolean {
+  return (
+    url === base
+    || url.startsWith(`${base}/`)
+    || url.startsWith(`${base}?`)
+  )
+}
+
 function isApiRequest(requestUrl: string, apiUrl: string): boolean {
   const base = normalizeBaseUrl(apiUrl.trim())
   if (!base) {
     return false
   }
 
-  return (
-    requestUrl === base
-    || requestUrl.startsWith(`${base}/`)
-    || requestUrl.startsWith(`${base}?`)
-  )
+  if (matchesApiBase(requestUrl, base)) {
+    return true
+  }
+
+  if (base.startsWith('/') && typeof window !== 'undefined' && window.location?.origin) {
+    return matchesApiBase(requestUrl, `${window.location.origin}${base}`)
+  }
+
+  return false
 }
 
 function cloneRequestWithAuthHeader(req: HttpRequest<unknown>, tokens: AuthTokens) {
