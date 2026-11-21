@@ -88,23 +88,44 @@ describe('SessionPresenter', () => {
     expect(mockSessionService.revealAnswers).toHaveBeenCalled()
   })
 
-  it('should progress through podium steps during launchPodiumAnimation and allow skipping', fakeAsync(() => {
+  it('should progress through podium steps based on leaderboard size and allow skipping', fakeAsync(() => {
+    // 0 players -> immediate reveal without waiting
+    component['leaderboard'].set([])
+    component['launchPodiumAnimation']()
+    expect(component['podiumStep']()).toBe(3)
+
+    // 1 player -> skips empty 3rd/2nd steps
+    component['leaderboard'].set([{ name: 'Salut', score: 1000 }])
+    component['launchPodiumAnimation']()
+    expect(component['podiumStep']()).toBe(2)
+    tick(650)
+    expect(component['podiumStep']()).toBe(3)
+    tick(100)
+
+    // 3 players -> reveals 3rd, 2nd, 1st cleanly
+    component['leaderboard'].set([
+      { name: 'Alice', score: 3000 },
+      { name: 'Bob', score: 2000 },
+      { name: 'Charlie', score: 1000 },
+    ])
     component['launchPodiumAnimation']()
     expect(component['podiumStep']()).toBe(0)
 
-    tick(1200)
+    tick(450)
     expect(component['podiumStep']()).toBe(1)
 
-    tick(1400)
+    tick(700)
     expect(component['podiumStep']()).toBe(2)
 
-    tick(1400)
+    tick(800)
     expect(component['podiumStep']()).toBe(3)
+    tick(100)
 
     component['launchPodiumAnimation']()
     expect(component['podiumStep']()).toBe(0)
     component['skipPodiumAnimation']()
     expect(component['podiumStep']()).toBe(3)
+    tick(100)
   }))
 
   it('should toggle qrZoomed when toggleQrZoom is called', () => {

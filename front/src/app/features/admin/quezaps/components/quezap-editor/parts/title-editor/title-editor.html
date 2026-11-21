@@ -1,17 +1,17 @@
-<div class="inline-block w-sm rounded border-2 border-gray-300 dark:border-gray-600">
+<div class="block w-full min-w-0 rounded border-2 border-gray-300 dark:border-gray-600">
   <p-inplace
     #inplaceRef
-    class="inplace-quezap-title"
+    class="inplace-quezap-title block w-full"
     [pt]="{
       display: {
-        class: 'w-full',
+        class: 'w-full overflow-hidden',
       },
     }"
     (onActivate)="openCallback()"
     (onDeactivate)="closeCallback()"
   >
     <ng-template #display class="w-full">
-      <span class="line-clamp-1 w-xs">
+      <span class="block truncate w-full">
         @if (editedTitle().length > 0) {
           <span>{{ editedTitle() }}</span>
         } @else {

@@ -1,17 +1,20 @@
-<div class="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto lg:flex-row lg:overflow-hidden">
-  <!-- QUESTION EDITOR -->
-  <main class="quezap-theme-background relative flex min-h-0 grow flex-col gap-4 overflow-y-auto p-4 transition-colors duration-300">
-    <quizz-phrase-editor class="w-full" />
+<div class="flex h-full min-h-0 w-full flex-col overflow-y-auto xl:flex-row xl:overflow-hidden">
+  <!-- QUESTION EDITOR CANVAS -->
+  <main class="quezap-theme-background relative flex shrink-0 min-h-[460px] flex-col gap-5 p-4 sm:p-6 transition-colors duration-300 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
+    <div class="flex w-full max-w-4xl mx-auto items-start gap-3">
+      <quizz-phrase-editor class="min-w-0 flex-1" />
+      <quizz-question-timer class="shrink-0 mt-1" />
+    </div>
 
-    <div class="grow flex flex-col items-center justify-center">
+    <div class="flex grow flex-col items-center justify-center py-2 w-full max-w-4xl mx-auto">
       @if (isUploading()) {
-        <div class="flex flex-col items-center justify-center gap-2 p-6 rounded-2xl bg-slate-100/50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700">
+        <div class="flex flex-col items-center justify-center gap-2 p-6 rounded-2xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 backdrop-blur-sm">
           <i class="pi pi-spin pi-spinner text-3xl text-indigo-500"></i>
           <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Téléversement de l'image en cours...</span>
         </div>
       } @else if (question().picture) {
         <div class="relative inline-block max-w-full">
-          <img alt="Question Image" class="max-h-80 max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300" [src]="question().picture" />
+          <img alt="Question Image" class="max-h-64 sm:max-h-72 max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300" [src]="question().picture" />
           <button type="button" class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg focus:outline-hidden focus:ring-2 focus:ring-red-400 cursor-pointer" title="Supprimer l'image" aria-label="Supprimer l'image de la question" (click)="removePicture()">
             <i class="pi pi-times"></i>
           </button>
@@ -29,22 +32,22 @@
       }
     </div>
 
-    <quizz-answer-editor />
-
-    <quizz-question-timer class="pointer-events-none absolute right-5 bottom-5 z-10" />
+    <div class="w-full max-w-4xl mx-auto">
+      <quizz-answer-editor />
+    </div>
   </main>
 
-  <!-- RIGHT SIDE PANEL -->
-  <div class="question-details flex w-full shrink-0 flex-col p-3 lg:h-full lg:w-72 lg:min-w-64 lg:overflow-y-auto">
-    <div>
-      <span class="font-bold text-base">Détails</span>
+  <!-- PROPERTIES PANEL (Right sidebar on xl+, clean 2-col section below canvas on narrow screens) -->
+  <aside class="question-details flex w-full shrink-0 flex-col gap-4 border-t border-surface-300/70 dark:border-surface-700/70 p-4 xl:h-full xl:w-76 xl:min-w-72 xl:border-t-0 xl:border-l xl:overflow-y-auto">
+    <div class="flex items-center justify-between">
+      <span class="font-extrabold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-200">Paramètres</span>
     </div>
-    <div class="grow">
-      <quizz-type-selector class="my-4 block" />
-      <p-divider />
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:flex xl:flex-col xl:gap-4 grow">
+      <quizz-type-selector class="block" />
 
       @if (themes().length > 0) {
-        <div class="my-4 flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
           <span id="question-theme-label" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Thème</span>
           <p-select
             class="w-full"
@@ -58,14 +61,13 @@
             (ngModelChange)="onThemeChange($event)"
           />
         </div>
-        <p-divider />
       }
 
-      <quizz-limit-selector class="my-4 block" />
-      <p-divider />
-      <quizz-points-selector class="my-4 block" />
+      <quizz-limit-selector class="block" />
+      <quizz-points-selector class="block" />
     </div>
-    <p-divider />
+
+    <p-divider class="my-1!" />
     <quizz-panel-question-actions />
-  </div>
+  </aside>
 </div>

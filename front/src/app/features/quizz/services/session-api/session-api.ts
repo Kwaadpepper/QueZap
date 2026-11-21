@@ -8,7 +8,7 @@ import { Session, SessionCode } from '@quezap/domain/models'
 export interface SessionApiService {
   joinSessionWith(code: SessionCode): ServiceOutput<Session, NotFoundError | ExpiredError>
 
-  chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError>
+  chooseNickname(nickname: string): ServiceOutput<string | void, ForbidenError | ValidationError>
 
   submitAnswer(answerIndex?: number, textAnswer?: string): ServiceOutput<void>
   leaveSession?(): ServiceOutput<void>

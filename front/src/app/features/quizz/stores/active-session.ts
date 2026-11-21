@@ -202,20 +202,25 @@ export const ActiveSessionStore = signalStore(
             return throwError(() => response.error)
           }
 
-          activeSessionPersistence.persistNickname(remember ? nickname : undefined)
+          const canonicalName = (typeof response.result === 'string' && response.result.trim())
+            ? response.result.trim()
+            : nickname.trim()
+          const normalizedKey = canonicalName.toLowerCase()
+
+          activeSessionPersistence.persistNickname(remember ? canonicalName : undefined)
 
           patchState(store, state => ({
             _nickname: signalState({
-              value: nickname,
+              value: canonicalName,
               remembered: remember,
             }),
-            _participants: state._participants.some(p => p.nickname === nickname)
+            _participants: state._participants.some(p => p.nickname.trim().toLowerCase() === normalizedKey)
               ? state._participants
               : [
                   ...state._participants,
                   {
                     id: '018e3a2b-8888-7def-8123-000000000000' as ParticipantId,
-                    nickname,
+                    nickname: canonicalName,
                     score: 0 as Score,
                   },
                 ],

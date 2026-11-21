@@ -4,7 +4,9 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/ro
 
 import { firstValueFrom, Observable, of, Subject } from 'rxjs'
 
-import { QuestionId, QuestionType, Session, SessionCode, SessionId } from '@quezap/domain/models'
+import {
+  Participant, ParticipantId, QuestionId, QuestionType, Score, Session, SessionCode, SessionId,
+} from '@quezap/domain/models'
 
 import { hasActiveSessionGuard } from '../guards'
 import {
@@ -207,5 +209,25 @@ describe('ActiveSessionStore', () => {
         message: 'Vous avez été exclu de la session',
       },
     })
+  })
+
+  it('should deduplicate case-insensitively and keep canonical nickname returned by API', () => {
+    ;(mockObserver.participants as WritableSignal<Participant[]>).set([
+      {
+        id: '018e3a2b-0000-7000-8000-000000000001' as ParticipantId,
+        nickname: 'Salut',
+        score: 0 as Score,
+      },
+    ])
+    ;(mockApi.chooseNickname as jest.Mock).mockReturnValueOnce(of({ kind: 'success', result: 'Salut' }))
+
+    const store = TestBed.inject(ActiveSessionStore)
+    TestBed.flushEffects()
+
+    store.chooseNickname('SAlut', true).subscribe()
+    TestBed.flushEffects()
+
+    expect(store.nickname()?.value()).toBe('Salut')
+    expect(store.participants().map(p => p.nickname)).toEqual(['Salut'])
   })
 })

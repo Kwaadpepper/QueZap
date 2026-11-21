@@ -1,20 +1,20 @@
 <div
-  class="container-question-list-view flex h-full min-h-0 w-full flex-col"
+  class="container-question-list-view flex h-full min-h-0 w-full flex-row items-center gap-2 lg:flex-col lg:items-stretch lg:gap-0"
   tabindex="0"
   aria-label="Panneau de sélection des questions"
   role="listbox"
   (keydown)="onKeyDown($event)"
 >
-  <div #questionContainer class="flex min-h-0 grow flex-col gap-3 overflow-x-hidden overflow-y-auto px-3 py-4">
+  <div #questionContainer class="flex min-h-0 min-w-0 flex-1 flex-row items-stretch gap-2 overflow-x-auto overflow-y-hidden px-3 py-2 lg:flex-col lg:gap-3 lg:overflow-x-hidden lg:overflow-y-auto lg:py-4">
     @for (question of questions(); track $index) {
       <div
-        class="flex min-w-0 flex-row transition-all duration-300"
+        class="flex w-60 shrink-0 flex-row transition-all duration-300 lg:w-full lg:min-w-0"
         role="option"
         [attr.aria-selected]="$index === selectedIdx()"
       >
         <!-- QUESTION ACTION BAR -->
         @if ($index === selectedIdx()) {
-          <div class="w-11 shrink-0">
+          <div class="w-10 shrink-0 lg:w-11">
             <quizz-question-action-bar [index]="$index" />
           </div>
         }
@@ -30,13 +30,17 @@
     }
   </div>
 
-  <p-button
-    label="Ajouter une question"
-    icon="pi pi-plus"
-    severity="primary"
-    styleClass="m-4 font-semibold"
-    (onClick)="onAddQuestion()"
-  />
+  <div class="shrink-0 pe-3 lg:p-4 lg:pt-2">
+    <p-button
+      label="Ajouter"
+      icon="pi pi-plus"
+      severity="primary"
+      size="small"
+      ariaLabel="Ajouter une question"
+      styleClass="font-semibold whitespace-nowrap lg:w-full"
+      (onClick)="onAddQuestion()"
+    />
+  </div>
 
   <p-confirmpopup
     #confirmDeleteQuestionFromViewList

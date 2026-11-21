@@ -167,7 +167,7 @@ export class SessionApiHttpService implements SessionApiService {
     )
   }
 
-  chooseNickname(nickname: string): ServiceOutput<void, ForbidenError | ValidationError> {
+  chooseNickname(nickname: string): ServiceOutput<string | void, ForbidenError | ValidationError> {
     const rawCode = this.currentSessionCode || this.sessionPersistence.retrieve()?.code || ''
     const code = rawCode.trim().toUpperCase()
     const trimmedNickname = nickname.trim()
@@ -225,12 +225,13 @@ export class SessionApiHttpService implements SessionApiService {
 
         const token = data.participationToken ?? ''
         const sessId = data.sessionId ?? ''
+        const canonicalName = (data.participantName || trimmedNickname).trim()
         this.currentParticipationToken = token
         this.currentSessionId = sessId
-        this.sessionPersistence.saveParticipationData(sessId, token, trimmedNickname)
+        this.sessionPersistence.saveParticipationData(sessId, token, canonicalName)
         return {
           kind: 'success' as const,
-          result: undefined,
+          result: canonicalName,
         }
       }),
       catchError(() =>

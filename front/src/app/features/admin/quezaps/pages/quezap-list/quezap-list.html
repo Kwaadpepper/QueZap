@@ -1,16 +1,18 @@
-<div class="my-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-  <div>
-    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Mes Quiz</h1>
+<div class="my-6 flex flex-wrap items-start sm:items-center justify-between gap-4">
+  <div class="min-w-0 flex-1">
+    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Mes Quiz</h1>
     <p class="text-sm text-surface-500 dark:text-surface-400 mt-1">Créez, modifiez et organisez vos questionnaires QueZap.</p>
   </div>
-  <p-button
-    label="Nouveau quiz"
-    icon="pi pi-plus"
-    severity="primary"
-    ariaLabel="Créer un nouveau quiz"
-    styleClass="w-full sm:w-auto font-semibold"
-    (onClick)="onCreateQuezap()"
-  />
+  <div class="shrink-0 w-full sm:w-auto">
+    <p-button
+      label="Nouveau quiz"
+      icon="pi pi-plus"
+      severity="primary"
+      ariaLabel="Créer un nouveau quiz"
+      styleClass="w-full sm:w-auto font-semibold"
+      (onClick)="onCreateQuezap()"
+    />
+  </div>
 </div>
 
 <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -21,12 +23,12 @@
 </div>
 
 <div
-  class="border-surface-200 dark:border-surface-800 min-h-[300px] rounded-2xl border bg-surface-50/50 dark:bg-surface-900/40 p-6"
+  class="border-surface-200 dark:border-surface-800 min-h-[300px] rounded-2xl border bg-surface-50/50 dark:bg-surface-900/40 p-4 sm:p-6"
 >
   @if (pageInfo().totalElements === 0) {
     <div class="py-16 text-center text-surface-500 dark:text-surface-400">Aucun quiz trouvé.</div>
   } @else {
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
       @for (quezap of quezaps(); track quezap.id) {
         <quizz-quezap-card [quezap]="quezap" [editable]="isEditable(quezap)" />
       }

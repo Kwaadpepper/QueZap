@@ -388,7 +388,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       if (session.status === 'ENDED' || session.endedAt != null) {
         this.stage.set('PODIUM')
         this.fetchScores()
-        this.launchPodiumAnimation()
+        this.podiumStep.set(3)
       }
       else if (isStartedAndNotEnded && !this.hasReceivedInitialQuestionEvent) {
         this.stage.set('SYNCING')
@@ -401,21 +401,49 @@ export class SessionPresenter implements OnInit, OnDestroy {
 
   protected launchPodiumAnimation(): void {
     this.clearPodiumTimeouts()
+    const count = this.leaderboard().length
+    if (count === 0) {
+      this.podiumStep.set(3)
+      return
+    }
+    if (count === 1) {
+      this.podiumStep.set(2)
+      this.podiumTimeouts.push(
+        setTimeout(() => {
+          this.podiumStep.set(3)
+          this.triggerCanvasConfetti()
+        }, 650),
+      )
+      return
+    }
+    if (count === 2) {
+      this.podiumStep.set(1)
+      this.podiumTimeouts.push(
+        setTimeout(() => this.podiumStep.set(2), 500),
+        setTimeout(() => {
+          this.podiumStep.set(3)
+          this.triggerCanvasConfetti()
+        }, 1250),
+      )
+      return
+    }
     this.podiumStep.set(0)
     this.podiumTimeouts.push(
-      setTimeout(() => this.podiumStep.set(1), 1200),
-      setTimeout(() => this.podiumStep.set(2), 2600),
+      setTimeout(() => this.podiumStep.set(1), 450),
+      setTimeout(() => this.podiumStep.set(2), 1150),
       setTimeout(() => {
         this.podiumStep.set(3)
         this.triggerCanvasConfetti()
-      }, 4000),
+      }, 1950),
     )
   }
 
   protected skipPodiumAnimation(): void {
     this.clearPodiumTimeouts()
     this.podiumStep.set(3)
-    this.triggerCanvasConfetti()
+    if (this.leaderboard().length > 0) {
+      this.triggerCanvasConfetti()
+    }
   }
 
   private triggerCanvasConfetti(): void {
@@ -428,7 +456,7 @@ export class SessionPresenter implements OnInit, OnDestroy {
       if (canvasEl) {
         this.startCanvasConfetti(canvasEl)
       }
-    }, 100)
+    }, 80)
   }
 
   private startCanvasConfetti(canvas: HTMLCanvasElement): void {
@@ -449,21 +477,36 @@ export class SessionPresenter implements OnInit, OnDestroy {
     }[] = []
 
     const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#fbbf24']
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 65; i++) {
       particles.push({
         x: Math.random() * canvas.width,
-        y: -20 - Math.random() * 200,
-        size: 8 + Math.random() * 8,
+        y: -20 - Math.random() * 180,
+        size: 7 + Math.random() * 6,
         color: colors[Math.floor(Math.random() * colors.length)],
-        vx: (Math.random() - 0.5) * 4,
-        vy: 2.5 + Math.random() * 4,
+        vx: (Math.random() - 0.5) * 3.5,
+        vy: 2.8 + Math.random() * 3.8,
         angle: Math.random() * Math.PI * 2,
-        dAngle: (Math.random() - 0.5) * 0.1,
+        dAngle: (Math.random() - 0.5) * 0.12,
       })
     }
 
-    const draw = () => {
+    const startTime = performance.now()
+    const totalDurationMs = 4200
+    const fadeStartMs = 2800
+
+    const draw = (now: number) => {
+      const elapsed = now - startTime
       ctx.clearRect(0, 0, canvas.width, canvas.height)
+      if (elapsed >= totalDurationMs) {
+        this.confettiAnimId = null
+        return
+      }
+
+      const alpha = elapsed > fadeStartMs
+        ? Math.max(0, 1 - (elapsed - fadeStartMs) / (totalDurationMs - fadeStartMs))
+        : 1
+      ctx.globalAlpha = alpha
+
       for (const p of particles) {
         p.x += p.vx
         p.y += p.vy
@@ -473,14 +516,15 @@ export class SessionPresenter implements OnInit, OnDestroy {
         ctx.translate(p.x, p.y)
         ctx.rotate(p.angle)
         ctx.fillStyle = p.color
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.4)
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.35)
         ctx.restore()
 
-        if (p.y > canvas.height + 30) {
-          p.y = -20
+        if (p.y > canvas.height + 24 && elapsed < fadeStartMs) {
+          p.y = -16
           p.x = Math.random() * canvas.width
         }
       }
+      ctx.globalAlpha = 1
       this.confettiAnimId = requestAnimationFrame(draw)
     }
     this.confettiAnimId = requestAnimationFrame(draw)
@@ -988,16 +1032,6 @@ export class SessionPresenter implements OnInit, OnDestroy {
       }
     }
   }
-
-  protected readonly confettiPieces = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    left: `${(i * 2.5) % 100}%`,
-    delay: `${(i * 0.12) % 3}s`,
-    duration: `${2.5 + ((i * 0.3) % 2)}s`,
-    color: ['#ef4444', '#3b82f6', '#eab308', '#22c55e', '#ec4899', '#a855f7', '#06b6d4', '#fbbf24'][i % 8],
-    width: `${8 + (i % 6)}px`,
-    height: `${12 + (i % 8)}px`,
-  }))
 
   protected getInitials(name: string): string {
     return name ? name.slice(0, 2).toUpperCase() : '?'

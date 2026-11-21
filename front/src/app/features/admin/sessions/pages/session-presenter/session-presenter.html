@@ -655,20 +655,9 @@
 
   <!-- PODIUM & LEADERBOARD SCREEN -->
   @if (stage() === 'PODIUM') {
-    <!-- Floating HTML5 Canvas Confetti -->
-    @if (podiumStep() >= 3) {
+    <!-- Floating HTML5 Canvas Confetti (graceful 4.2s celebration burst) -->
+    @if (podiumStep() >= 3 && leaderboard().length > 0) {
       <canvas #confettiCanvas class="pointer-events-none fixed inset-0 z-30 w-full h-full"></canvas>
-      @for (c of confettiPieces; track c.id) {
-        <div
-          class="confetti-piece"
-          [style.left]="c.left"
-          [style.animation-delay]="c.delay"
-          [style.animation-duration]="c.duration"
-          [style.background-color]="c.color"
-          [style.width]="c.width"
-          [style.height]="c.height">
-        </div>
-      }
     }
 
     <main class="flex-1 min-h-0 flex flex-col items-center justify-evenly py-1 text-center max-w-6xl mx-auto w-full relative z-20 overflow-y-auto overflow-x-hidden">
@@ -680,12 +669,19 @@
       </div>
 
       @if (podiumStep() < 3) {
-        <div class="my-1 shrink-0">
-          <button
-            class="px-5 py-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 shadow-md transition cursor-pointer text-sm"
-            (click)="skipPodiumAnimation()">
-            <span>Passer l'animation ⏩</span>
-          </button>
+        <div class="my-1 shrink-0 flex flex-wrap items-center justify-center gap-3">
+          <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-200 text-sm font-bold animate-pulse">
+            <span>🥁</span>
+            <span>Révélation du podium...</span>
+          </span>
+          @if (leaderboard().length >= 2) {
+            <button
+              type="button"
+              class="px-4 py-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 shadow-md transition cursor-pointer text-sm"
+              (click)="skipPodiumAnimation()">
+              <span>Passer l'animation ⏩</span>
+            </button>
+          }
         </div>
       }
 

@@ -1,9 +1,9 @@
 <div class="flex h-dvh flex-col overflow-hidden">
-  <nav class="bg-surface-200 dark:bg-surface-800 flex flex-wrap items-center gap-2 p-2 drop-shadow-md">
-    <quizz-title-editor class="mx-4" />
+  <nav class="bg-surface-200 dark:bg-surface-800 flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-surface-300/70 dark:border-surface-700/70 drop-shadow-sm shrink-0">
+    <quizz-title-editor class="min-w-0 flex-1 max-w-md" />
 
     <!-- Editorial buttons -->
-    <menu class="ms-auto flex items-center gap-2">
+    <menu class="flex flex-wrap items-center gap-2 m-0 p-0">
       <p-button
         outlined
         size="small"
@@ -56,11 +56,11 @@
     </p-confirmdialog>
   </nav>
 
-  <div class="flex min-h-0 grow flex-col md:flex-row overflow-hidden">
-    <!-- Sidebar with questions list -->
-    <quizz-question-list-view class="max-h-60 w-full shrink-0 md:h-full md:max-h-none md:w-72 md:min-w-64 lg:basis-1/5" />
+  <div class="flex min-h-0 grow flex-col lg:flex-row overflow-hidden">
+    <!-- Sidebar with questions list (horizontal filmstrip on <lg, vertical sidebar on lg+) -->
+    <quizz-question-list-view class="w-full shrink-0 border-b border-surface-200 dark:border-surface-800 lg:h-full lg:w-64 xl:w-72 lg:border-b-0 lg:border-r" />
 
     <!-- Question editor -->
-    <quizz-question-editor class="min-h-0 min-w-0 w-full grow overflow-y-auto" />
+    <quizz-question-editor class="min-h-0 min-w-0 flex-1 overflow-hidden" />
   </div>
 </div>

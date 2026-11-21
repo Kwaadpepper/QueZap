@@ -3,9 +3,7 @@
 /* stylelint-enable */
 
 .theme-title {
-  @apply text-center py-2 pe-2;
-  @apply line-clamp-1;
-  @apply text-lg font-semibold;
+  @apply text-left leading-snug;
 }
 
 .theme-chip {

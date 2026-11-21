@@ -1,9 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed, effect, inject, signal,
 } from '@angular/core'
-import { FormsModule } from '@angular/forms'
-
-import { Select, SelectChangeEvent } from 'primeng/select'
 
 import { QuezapEditorStore } from '../../../../../../stores'
 
@@ -17,7 +14,7 @@ let uniqueId = 0
 
 @Component({
   selector: 'quizz-points-selector',
-  imports: [Select, FormsModule],
+  imports: [],
   templateUrl: './points-selector.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -48,11 +45,6 @@ export class PointsSelector {
 
   protected setQuickPoints(points: number): void {
     this.selectedPoints.set(points)
-    this.applyPointsChange(points)
-  }
-
-  protected onPointsChange(event: SelectChangeEvent): void {
-    const points = event.value as number
     this.applyPointsChange(points)
   }
 

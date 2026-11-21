@@ -1,14 +1,14 @@
-<p-card styleClass="h-full border border-surface-200 dark:border-surface-700/80 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200" [style]="{ '--p-card-body-padding': '1rem' }">
-  <div class="flex items-center justify-between gap-3">
-    <div class="flex min-w-0 items-center gap-3">
-      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-200 dark:border-indigo-800">
+<p-card styleClass="h-full overflow-hidden border border-surface-200 dark:border-surface-700/80 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200" [style]="{ '--p-card-body-padding': '0.875rem 1rem' }">
+  <div class="flex items-center justify-between gap-2.5">
+    <div class="flex min-w-0 flex-1 items-center gap-3">
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-200 dark:border-indigo-800">
         <quizz-icon name="theme" />
       </div>
-      <span class="truncate text-base font-bold text-slate-900 dark:text-white" [title]="theme().name">{{ theme().name }}</span>
+      <span class="min-w-0 flex-1 line-clamp-2 break-words text-sm sm:text-base font-bold leading-snug text-slate-900 dark:text-white" [title]="theme().name">{{ theme().name }}</span>
     </div>
 
     @if (editable()) {
-      <div class="flex shrink-0 items-center gap-1">
+      <div class="flex shrink-0 items-center gap-0.5">
         <p-button
           icon="pi pi-pencil"
           severity="secondary"
