@@ -101,6 +101,6 @@ public class Credential extends AggregateRoot<CredentialId> implements TracksUpd
 
   @Override
   public int hashCode() {
-    return Objects.hash(rawId);
+    return Objects.hashCode(rawId);
   }
 }

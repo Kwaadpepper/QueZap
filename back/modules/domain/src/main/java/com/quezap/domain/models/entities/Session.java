@@ -952,6 +952,6 @@ public class Session extends AggregateRoot<SessionId> {
 
   @Override
   public int hashCode() {
-    return Objects.hash(rawId);
+    return Objects.hashCode(rawId);
   }
 }

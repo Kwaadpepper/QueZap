@@ -60,6 +60,6 @@ public class Theme extends AggregateRoot<ThemeId> {
 
   @Override
   public int hashCode() {
-    return Objects.hash(rawId);
+    return Objects.hashCode(rawId);
   }
 }

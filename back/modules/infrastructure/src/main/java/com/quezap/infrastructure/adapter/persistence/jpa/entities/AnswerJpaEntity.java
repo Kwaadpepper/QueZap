@@ -120,6 +120,6 @@ public class AnswerJpaEntity {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return Objects.hashCode(id);
   }
 }

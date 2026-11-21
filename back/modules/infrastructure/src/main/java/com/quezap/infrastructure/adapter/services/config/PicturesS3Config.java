@@ -2,7 +2,6 @@ package com.quezap.infrastructure.adapter.services.config;
 
 import java.net.URI;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -12,12 +11,10 @@ import org.springframework.context.annotation.Configuration;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 
 @Configuration
 public class PicturesS3Config {
@@ -80,12 +77,8 @@ public class PicturesS3Config {
     final var retryStrategy = createRetryStrategy();
 
     return S3Client.builder()
-        .endpointProvider(
-            (S3EndpointParams endpointParams) ->
-                CompletableFuture.completedFuture(
-                    Endpoint.builder()
-                        .url(URI.create(endpoint + "/" + endpointParams.bucket()))
-                        .build()))
+        .endpointOverride(endpoint)
+        .forcePathStyle(true)
         .credentialsProvider(credentialsProvider)
         .overrideConfiguration(conf -> conf.retryStrategy(retryStrategy))
         .region(Region.EU_WEST_1)

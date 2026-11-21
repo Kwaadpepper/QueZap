@@ -42,6 +42,13 @@ subprojects {
     compileOnly { extendsFrom annotationProcessor }
   }
 
+  // Security BOM overrides for Spring Boot managed transitive dependencies
+  // (Tomcat CVE-2026-86248 / CVE-2026-133325, Jackson CVE-2026-110879 / CVE-2026-68497 / CVE-2026-91776)
+  ext['tomcat.version'] = libs.versions.tomcat.get()
+  ext['jackson-bom.version'] = libs.versions.jacksonBom.get()
+  ext['postgresql.version'] = libs.versions.postgresql.get()
+  ext['netty.version'] = libs.versions.netty.get()
+
   // BOM Spring Boot only to libraries (apps inherit via Spring Boot plugin)
   if (!projectIsAnApplication) {
     dependencyManagement {
@@ -50,7 +57,7 @@ subprojects {
   }
 
   // Override Guava version to avoid conflicts
-  configurations.all { resolutionStrategy { force 'com.google.guava:guava:33.5.0-jre' } }
+  configurations.all { resolutionStrategy { force "com.google.guava:guava:${libs.versions.guava.get()}" } }
 
   // All modules dependencies
   dependencies {

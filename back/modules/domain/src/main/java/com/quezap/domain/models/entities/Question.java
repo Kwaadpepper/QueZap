@@ -238,6 +238,6 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
 
   @Override
   public int hashCode() {
-    return Objects.hash(rawId);
+    return Objects.hashCode(rawId);
   }
 }

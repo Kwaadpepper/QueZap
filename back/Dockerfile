@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for QueZap Backend (Spring Boot 3.5+ on Java 25)
+# Multi-stage Dockerfile for QueZap Backend (Spring Boot 3.5.16 on Java 25 >= 25.0.5.1 for CVE-2026-114938)
 FROM eclipse-temurin:25-jdk AS builder
 
 WORKDIR /workspace
