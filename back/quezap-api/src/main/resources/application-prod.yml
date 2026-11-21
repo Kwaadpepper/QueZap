@@ -37,3 +37,9 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+app:
+  security:
+    identifier-pepper: ${APP_IDENTIFIER_PEPPER}
+  cookie:
+    secure: ${APP_COOKIE_SECURE:true}

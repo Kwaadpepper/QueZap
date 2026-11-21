@@ -40,6 +40,9 @@ public class ParticipationTokenServiceImpl implements ParticipationTokenService 
   public SessionId validate(ParticipationToken participationToken) {
     try {
       final var payload = jwtService.validateAndParse(participationToken.value());
+      if (!"participation".equals(payload.customClaims().get("type"))) {
+        throw new ParticipationTokenGenerationException("Invalid participation token type");
+      }
       final var subjectValue = Objects.requireNonNull(payload.sub(), "JWT subject is null");
       final var sessionIdValue =
           Objects.requireNonNull(
@@ -63,10 +66,15 @@ public class ParticipationTokenServiceImpl implements ParticipationTokenService 
         .issuedAt(issuedAt)
         .notBefore(notBefore)
         .jwtId(jwtId)
+        .claim("type", "participation")
         .build();
   }
 
   public static class ParticipationTokenGenerationException extends RuntimeException {
+    public ParticipationTokenGenerationException(String message) {
+      super(message);
+    }
+
     public ParticipationTokenGenerationException(String message, Throwable cause) {
       super(message, cause);
     }

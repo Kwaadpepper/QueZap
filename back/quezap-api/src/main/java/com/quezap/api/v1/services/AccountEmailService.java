@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
@@ -26,6 +28,7 @@ public class AccountEmailService {
   private final String fromAddress;
   private final String appName;
   private final String publicUrl;
+  private final @Nullable Environment environment;
 
   @Autowired
   public AccountEmailService(
@@ -33,8 +36,15 @@ public class AccountEmailService {
       @Value("${app.mail.enabled:false}") boolean mailEnabled,
       @Value("${app.mail.from:noreply@quezap.fr}") String fromAddress,
       @Value("${app.mail.app-name:QueZap}") String appName,
-      @Value("${app.public-url:http://localhost:8000}") String publicUrl) {
-    this(mailSenderProvider.getIfAvailable(), mailEnabled, fromAddress, appName, publicUrl);
+      @Value("${app.public-url:http://localhost:8000}") String publicUrl,
+      Environment environment) {
+    this(
+        mailSenderProvider.getIfAvailable(),
+        mailEnabled,
+        fromAddress,
+        appName,
+        publicUrl,
+        environment);
   }
 
   public AccountEmailService(
@@ -43,11 +53,22 @@ public class AccountEmailService {
       String fromAddress,
       String appName,
       String publicUrl) {
+    this(mailSender, mailEnabled, fromAddress, appName, publicUrl, null);
+  }
+
+  public AccountEmailService(
+      @Nullable JavaMailSender mailSender,
+      boolean mailEnabled,
+      String fromAddress,
+      String appName,
+      String publicUrl,
+      @Nullable Environment environment) {
     this.mailSender = mailSender;
     this.mailEnabled = mailEnabled;
     this.fromAddress = fromAddress;
     this.appName = appName;
     this.publicUrl = stripTrailingSlash(publicUrl);
+    this.environment = environment;
   }
 
   public boolean isEnabled() {
@@ -59,7 +80,14 @@ public class AccountEmailService {
     final var activationUrl = publicUrl + "/activation?token=" + encodedToken;
 
     if (!mailEnabled) {
-      logger.info("[MAIL DISABLED] Activation link for {}: {}", userName, activationUrl);
+      if (isProduction()) {
+        logger.warn(
+            "[MAIL DISABLED] Activation email not sent for {}: "
+                + "mail sending is disabled in production",
+            userName);
+      } else {
+        logger.info("[MAIL DISABLED] Activation link for {}: {}", userName, activationUrl);
+      }
       return;
     }
 
@@ -90,7 +118,14 @@ public class AccountEmailService {
     final var resetUrl = publicUrl + "/auth/reset-password?token=" + encodedToken;
 
     if (!mailEnabled) {
-      logger.info("[MAIL DISABLED] Password reset link for {}: {}", userName, resetUrl);
+      if (isProduction()) {
+        logger.warn(
+            "[MAIL DISABLED] Password reset email not sent for {}: "
+                + "mail sending is disabled in production",
+            userName);
+      } else {
+        logger.info("[MAIL DISABLED] Password reset link for {}: {}", userName, resetUrl);
+      }
       return;
     }
 
@@ -126,6 +161,13 @@ public class AccountEmailService {
     message.setSubject(subject);
     message.setText(body);
     mailSender.send(message);
+  }
+
+  private boolean isProduction() {
+    if (environment == null) {
+      return false;
+    }
+    return environment.acceptsProfiles(Profiles.of("prod", "production"));
   }
 
   private static String stripTrailingSlash(String url) {

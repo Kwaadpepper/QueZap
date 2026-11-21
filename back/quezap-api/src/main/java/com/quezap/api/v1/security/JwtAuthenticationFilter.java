@@ -44,8 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       try {
         final var payload = jwtService.validateAndParse(token);
         final var typeClaim = payload.customClaims().get("type");
-        if ("refresh".equals(typeClaim)) {
-          logger.debug("Refresh token provided in Authorization header instead of access token");
+        if (!"access".equals(typeClaim)) {
+          logger.debug(
+              "Non-access JWT token (type={}) provided in Authorization header", typeClaim);
           SecurityContextHolder.clearContext();
           filterChain.doFilter(request, response);
           return;

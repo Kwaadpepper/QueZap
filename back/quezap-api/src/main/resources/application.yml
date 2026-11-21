@@ -87,6 +87,10 @@ app:
   turnstile:
     secret-key: ${APP_TURNSTILE_SECRET_KEY:}
     verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+  security:
+    identifier-pepper: ${APP_IDENTIFIER_PEPPER:7d9e3b1f4c8a2e6d5b0f9a1c3e7d2b4f6a8c0e1d3b5f7a9c2e4d6f8a0b1c3e5d}
+  cookie:
+    secure: ${APP_COOKIE_SECURE:false}
 
 management:
   health:

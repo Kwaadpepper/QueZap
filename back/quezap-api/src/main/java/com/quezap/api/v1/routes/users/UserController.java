@@ -27,6 +27,8 @@ import com.quezap.api.v1.dto.response.PageOfDto;
 import com.quezap.api.v1.dto.response.users.UserDetailDto;
 import com.quezap.api.v1.dto.response.users.UserIdDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
+import com.quezap.api.v1.security.ClientIpResolver;
+import com.quezap.api.v1.security.LoginRateLimiter;
 import com.quezap.api.v1.services.AccountEmailService;
 import com.quezap.api.v1.services.TurnstileService;
 import com.quezap.application.ports.users.AddUser;
@@ -56,6 +58,8 @@ import org.jspecify.annotations.Nullable;
 public class UserController {
 
   private static final long ACTIVATION_TOKEN_EXPIRATION_SECONDS = 60L * 60L * 24L; // 24 hours
+  private static final int REGISTER_MAX_ATTEMPTS = 10;
+  private static final long REGISTER_WINDOW_SECONDS = 60L;
 
   private final UsecaseExecutor executor;
   private final AddUserUsecase addUserUsecase;
@@ -67,6 +71,7 @@ public class UserController {
   private final @Nullable TurnstileService turnstileService;
   private final @Nullable AccountEmailService accountEmailService;
   private final @Nullable JwtService jwtService;
+  private final @Nullable LoginRateLimiter loginRateLimiter;
 
   @Autowired
   public UserController(
@@ -79,7 +84,8 @@ public class UserController {
       PaginationMapper paginationMapper,
       TurnstileService turnstileService,
       AccountEmailService accountEmailService,
-      JwtService jwtService) {
+      JwtService jwtService,
+      LoginRateLimiter loginRateLimiter) {
     this.executor = executor;
     this.addUserUsecase = addUserUsecase;
     this.findUserUsecase = findUserUsecase;
@@ -90,6 +96,7 @@ public class UserController {
     this.turnstileService = turnstileService;
     this.accountEmailService = accountEmailService;
     this.jwtService = jwtService;
+    this.loginRateLimiter = loginRateLimiter;
   }
 
   public UserController(
@@ -110,12 +117,21 @@ public class UserController {
     this.turnstileService = null;
     this.accountEmailService = null;
     this.jwtService = null;
+    this.loginRateLimiter = null;
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public UserIdDto create(
       @Valid @RequestBody CreateUserRequest request, @Nullable HttpServletRequest httpRequest) {
+    final var clientIp = ClientIpResolver.resolve(httpRequest);
+    if (loginRateLimiter != null
+        && !loginRateLimiter.tryAcquire(
+            "register", clientIp, REGISTER_MAX_ATTEMPTS, REGISTER_WINDOW_SECONDS)) {
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS, "Too many registration attempts. Please try again later.");
+    }
+
     final var effName = request.getEffectiveName();
     final var effIdentifier = request.getEffectiveIdentifier();
     final var effPassword = request.getEffectivePassword();
@@ -128,7 +144,7 @@ public class UserController {
     }
 
     if (turnstileService != null) {
-      turnstileService.verifyOrThrow(request.turnstileToken(), extractClientIp(httpRequest));
+      turnstileService.verifyOrThrow(request.turnstileToken(), clientIp);
     }
 
     final boolean requiresEmailActivation =
@@ -267,17 +283,5 @@ public class UserController {
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied", e);
     }
-  }
-
-  private @Nullable String extractClientIp(@Nullable HttpServletRequest request) {
-    if (request == null) {
-      return null;
-    }
-    final var forwardedFor = request.getHeader("X-Forwarded-For");
-    if (forwardedFor != null && !forwardedFor.isBlank()) {
-      final var commaIndex = forwardedFor.indexOf(',');
-      return (commaIndex > 0 ? forwardedFor.substring(0, commaIndex) : forwardedFor).trim();
-    }
-    return request.getRemoteAddr();
   }
 }

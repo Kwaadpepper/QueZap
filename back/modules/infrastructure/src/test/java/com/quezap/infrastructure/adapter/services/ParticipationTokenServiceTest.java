@@ -3,6 +3,8 @@ package com.quezap.infrastructure.adapter.services;
 import java.util.UUID;
 
 import com.quezap.domain.models.valueobjects.identifiers.SessionId;
+import com.quezap.domain.models.valueobjects.participations.ParticipationToken;
+import com.quezap.infrastructure.adapter.services.ParticipationTokenServiceImpl.ParticipationTokenGenerationException;
 import com.quezap.infrastructure.adapter.services.config.ParticipationTokenConfig;
 import com.quezap.infrastructure.adapter.services.jwt.JwtService;
 import com.quezap.infrastructure.adapter.services.jwt.JwtService.JwtException;
@@ -10,6 +12,7 @@ import com.quezap.infrastructure.adapter.services.jwt.JwtToken.JwtPayload;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 class ParticipationTokenServiceTest {
@@ -39,7 +42,9 @@ class ParticipationTokenServiceTest {
     participationTokenService.generate(sessionId);
 
     // THEN
-    Assertions.assertThatCode(() -> {}).doesNotThrowAnyException();
+    final var captor = ArgumentCaptor.forClass(JwtPayload.class);
+    Mockito.verify(jwtService).generateToken(captor.capture());
+    Assertions.assertThat(captor.getValue().customClaims().get("type")).isEqualTo("participation");
   }
 
   @Test
@@ -48,7 +53,10 @@ class ParticipationTokenServiceTest {
     var sessionIdValue = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
     var sessionId = new SessionId(sessionIdValue);
     var expiration = System.currentTimeMillis() + 3600_000;
-    var jwtPayload = JwtPayload.builder(sessionIdValue.toString(), expiration).build();
+    var jwtPayload =
+        JwtPayload.builder(sessionIdValue.toString(), expiration)
+            .claim("type", "participation")
+            .build();
     var jwtToken =
         "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9."
             + "eyJpc3MiOiJleGFtcGxlLm5ldCIsInN1YiI6InN1YmplY3QiLCJleHAiOjE3MTYyM"
@@ -64,5 +72,26 @@ class ParticipationTokenServiceTest {
 
     // THEN
     Assertions.assertThat(validatedSessionId).isEqualTo(sessionId);
+  }
+
+  @Test
+  void rejectsParticipationTokenWithoutParticipationTypeClaim() throws JwtException {
+    var sessionIdValue = UUID.fromString("017f5a80-7e6d-7e6e-0000-000000000000");
+    var expiration = System.currentTimeMillis() + 3600_000;
+    var untypedPayload = JwtPayload.builder(sessionIdValue.toString(), expiration).build();
+    var accessPayload =
+        JwtPayload.builder(sessionIdValue.toString(), expiration).claim("type", "access").build();
+
+    final var untypedToken = "aaa.bbb.ccc";
+    final var accessToken = "ddd.eee.fff";
+    Mockito.when(jwtService.validateAndParse(untypedToken)).thenReturn(untypedPayload);
+    Mockito.when(jwtService.validateAndParse(accessToken)).thenReturn(accessPayload);
+
+    Assertions.assertThatThrownBy(
+            () -> participationTokenService.validate(new ParticipationToken(untypedToken)))
+        .isInstanceOf(ParticipationTokenGenerationException.class);
+    Assertions.assertThatThrownBy(
+            () -> participationTokenService.validate(new ParticipationToken(accessToken)))
+        .isInstanceOf(ParticipationTokenGenerationException.class);
   }
 }
