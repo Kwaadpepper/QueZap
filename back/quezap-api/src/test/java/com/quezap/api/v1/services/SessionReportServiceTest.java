@@ -169,4 +169,69 @@ class SessionReportServiceTest {
     assertThat(scores.leaderboard().get(1).delta()).isZero();
     assertThat(scores.leaderboard().get(1).streak()).isZero();
   }
+
+  @Test
+  void shouldMaskCurrentSlideScoreUntilRevealedAndShowAfterEnd() {
+    final var t0 = Instant.parse("2026-11-18T10:00:00Z");
+    final var session =
+        Session.hydrateLive(
+            new SessionId(UuidV7.randomUuid()),
+            "Scores Oracle Test",
+            new SessionNumber(4243L),
+            1,
+            new UserId(UuidV7.randomUuid()),
+            null,
+            null,
+            ProgressionMode.MANUAL,
+            false,
+            15,
+            false,
+            TimelinePoint.at(t0),
+            TimelinePoint.at(t0),
+            null,
+            null,
+            null,
+            TimelinePoint.at(t0),
+            List.of(),
+            List.of(
+                new SessionParticipant(
+                    UUID.randomUUID(), "Alice", 950, "t1", false, t0, 1000L, 1, 1000L)),
+            List.of(
+                new SessionAnswerRecord(
+                    UUID.randomUUID(), "Alice", 1, 0, null, 950, true, t0.plusSeconds(1))));
+
+    final var beforeReveal = sessionReportService.buildScores(session);
+    assertThat(beforeReveal.leaderboard()).hasSize(1);
+    assertThat(beforeReveal.leaderboard().get(0).score()).isZero();
+    assertThat(beforeReveal.leaderboard().get(0).delta()).isZero();
+    assertThat(beforeReveal.leaderboard().get(0).streak()).isZero();
+
+    final var endedSession =
+        Session.hydrateLive(
+            session.getId(),
+            "Scores Oracle Test",
+            new SessionNumber(4243L),
+            1,
+            session.getAuthor(),
+            null,
+            null,
+            ProgressionMode.MANUAL,
+            false,
+            15,
+            false,
+            TimelinePoint.at(t0),
+            TimelinePoint.at(t0),
+            null,
+            TimelinePoint.at(t0.plusSeconds(30)),
+            null,
+            TimelinePoint.at(t0),
+            List.of(),
+            session.getSessionParticipants(),
+            session.getSessionAnswers());
+
+    final var afterEnd = sessionReportService.buildScores(endedSession);
+    assertThat(afterEnd.leaderboard().get(0).score()).isEqualTo(950);
+    assertThat(afterEnd.leaderboard().get(0).delta()).isEqualTo(950);
+    assertThat(afterEnd.leaderboard().get(0).streak()).isEqualTo(1);
+  }
 }

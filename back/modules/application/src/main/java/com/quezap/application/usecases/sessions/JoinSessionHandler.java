@@ -18,6 +18,8 @@ import com.quezap.lib.utils.UuidV7;
 @Usecase
 public final class JoinSessionHandler implements JoinSessionUsecase {
 
+  public static final int MAX_ACTIVE_PARTICIPANTS = 200;
+
   private final SessionStorePort sessionStore;
   private final UserNameSanitizer userNameSanitizer;
   private final SessionRealtimePublisher realtimePublisher;
@@ -81,6 +83,13 @@ public final class JoinSessionHandler implements JoinSessionUsecase {
 
     if (session.getEndedAt() != null) {
       throw SessionDomainException.badRequest("Cette session est déjà terminée");
+    }
+
+    final var activeParticipantCount =
+        session.getSessionParticipants().stream().filter(p -> !p.isKicked()).count();
+    if (activeParticipantCount >= MAX_ACTIVE_PARTICIPANTS) {
+      throw SessionDomainException.conflict(
+          "La session a atteint le nombre maximal de participants");
     }
 
     final var token = "ptk_" + UUID.randomUUID();

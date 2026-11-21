@@ -5,6 +5,7 @@ import java.util.Set;
 import com.quezap.application.config.ProfanityConfig;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -43,5 +44,16 @@ class UserNameSanitizerTest {
 
     // THEN
     Assertions.assertEquals(expectedSanitized, sanitizedUserName);
+  }
+
+  @Test
+  void terminatesSafelyOnRepeatedOrLeetProfanityInputs() {
+    final var repeated = "crotte ".repeat(40) + "Alice";
+    final var sanitizedRepeated = sanitizer.sanitize(repeated);
+    Assertions.assertEquals("Alice", sanitizedRepeated);
+
+    final var leetInput = "sh1t f0ck Alice";
+    final var sanitizedLeet = sanitizer.sanitize(leetInput);
+    Assertions.assertNotNull(sanitizedLeet);
   }
 }

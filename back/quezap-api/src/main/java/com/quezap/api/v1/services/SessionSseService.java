@@ -1,10 +1,14 @@
 package com.quezap.api.v1.services;
 
+import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,9 +16,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.quezap.api.v1.dto.events.SessionEventEnvelope;
@@ -42,13 +48,25 @@ public class SessionSseService {
   private static final Logger logger = LoggerFactory.getLogger(SessionSseService.class);
   private static final long DEFAULT_TIMEOUT_MS = 120 * 60 * 1000L; // 2 hours
   private static final int MAX_HISTORY_SIZE = 50;
+  public static final int MAX_EMITTERS_PER_SESSION = 250;
+  public static final int MAX_EMITTERS_PER_IP = 25;
+  public static final Duration SSE_TICKET_TTL = Duration.ofSeconds(60);
+  public static final int MAX_SSE_TICKETS = 10_000;
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+  private static final Base64.Encoder URL_BASE64 = Base64.getUrlEncoder().withoutPadding();
   static final Duration ENDED_SESSION_TTL = Duration.ofMinutes(5);
   static final Duration INACTIVE_SESSION_TTL = Duration.ofHours(4);
 
+  private record SseTicketEntry(UUID sessionId, Instant expiresAt) {}
+
   private final Clock clock;
+  private final Object capacityLock = new Object();
   private final ConcurrentHashMap<UUID, CopyOnWriteArrayList<SseEmitter>> emitters =
       new ConcurrentHashMap<>();
+  private final IdentityHashMap<SseEmitter, String> emitterIps = new IdentityHashMap<>();
+  private final HashMap<String, Integer> ipCounts = new HashMap<>();
   private final ConcurrentHashMap<UUID, SessionChannelState> channels = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, SseTicketEntry> tickets = new ConcurrentHashMap<>();
 
   @Autowired
   public SessionSseService() {
@@ -73,17 +91,66 @@ public class SessionSseService {
     return state != null ? state.sequence.get() : 0L;
   }
 
+  public String issueTicket(UUID sessionId) {
+    final var now = clock.instant();
+    if (tickets.size() >= MAX_SSE_TICKETS) {
+      tickets.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+      if (tickets.size() >= MAX_SSE_TICKETS) {
+        throw new ResponseStatusException(
+            HttpStatus.TOO_MANY_REQUESTS, "Too many pending SSE tickets");
+      }
+    }
+    final var randomBytes = new byte[32];
+    SECURE_RANDOM.nextBytes(randomBytes);
+    final var ticket = "sset_" + URL_BASE64.encodeToString(randomBytes);
+    tickets.put(ticket, new SseTicketEntry(sessionId, now.plus(SSE_TICKET_TTL)));
+    return ticket;
+  }
+
+  public boolean consumeTicket(UUID sessionId, @Nullable String ticket) {
+    if (ticket == null || ticket.isBlank()) {
+      return false;
+    }
+    final var entry = tickets.remove(ticket);
+    if (entry == null) {
+      return false;
+    }
+    final var now = clock.instant();
+    return entry.sessionId().equals(sessionId) && entry.expiresAt().isAfter(now);
+  }
+
   public SseEmitter registerEmitter(UUID sessionId) {
+    return registerEmitter(sessionId, null);
+  }
+
+  public SseEmitter registerEmitter(UUID sessionId, @Nullable String clientIp) {
     final var now = clock.instant();
     final var state = channels.computeIfAbsent(sessionId, k -> new SessionChannelState(now));
     synchronized (state) {
       state.lastActivityAt = now;
     }
 
+    final @Nullable String normalizedIp =
+        (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : null;
     final var emitter = new SseEmitter(DEFAULT_TIMEOUT_MS);
-    final var sessionEmitters =
-        emitters.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>());
-    sessionEmitters.add(emitter);
+
+    synchronized (capacityLock) {
+      final var sessionEmitters =
+          emitters.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>());
+      if (sessionEmitters.size() >= MAX_EMITTERS_PER_SESSION) {
+        throw new ResponseStatusException(
+            HttpStatus.TOO_MANY_REQUESTS, "Too many SSE connections for this session");
+      }
+      if (normalizedIp != null && ipCounts.getOrDefault(normalizedIp, 0) >= MAX_EMITTERS_PER_IP) {
+        throw new ResponseStatusException(
+            HttpStatus.TOO_MANY_REQUESTS, "Too many SSE connections from this IP");
+      }
+      sessionEmitters.add(emitter);
+      if (normalizedIp != null) {
+        emitterIps.put(emitter, normalizedIp);
+        ipCounts.merge(normalizedIp, 1, Integer::sum);
+      }
+    }
 
     emitter.onCompletion(() -> removeEmitter(sessionId, emitter));
     emitter.onTimeout(
@@ -223,7 +290,15 @@ public class SessionSseService {
 
   public void clearSession(UUID sessionId) {
     channels.remove(sessionId);
-    final var sessionEmitters = emitters.remove(sessionId);
+    final CopyOnWriteArrayList<SseEmitter> sessionEmitters;
+    synchronized (capacityLock) {
+      sessionEmitters = emitters.remove(sessionId);
+      if (sessionEmitters != null) {
+        for (final var emitter : sessionEmitters) {
+          releaseEmitterIpLocked(emitter);
+        }
+      }
+    }
     if (sessionEmitters != null) {
       for (final var emitter : sessionEmitters) {
         completeQuietly(emitter, null);
@@ -237,6 +312,7 @@ public class SessionSseService {
   }
 
   public void purgeExpiredSessions(Instant now) {
+    tickets.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
     final var expiredIds = new ArrayList<UUID>();
     channels.forEach(
         (sessionId, state) -> {
@@ -261,12 +337,15 @@ public class SessionSseService {
   }
 
   private void removeEmitter(UUID sessionId, SseEmitter emitter) {
-    emitters.computeIfPresent(
-        sessionId,
-        (k, list) -> {
-          list.remove(emitter);
-          return list.isEmpty() ? null : list;
-        });
+    synchronized (capacityLock) {
+      emitters.computeIfPresent(
+          sessionId,
+          (k, list) -> {
+            list.remove(emitter);
+            return list.isEmpty() ? null : list;
+          });
+      releaseEmitterIpLocked(emitter);
+    }
   }
 
   private void removeDeadEmitters(
@@ -274,9 +353,21 @@ public class SessionSseService {
     if (dead.isEmpty()) {
       return;
     }
-    sessionEmitters.removeAll(dead);
-    if (sessionEmitters.isEmpty()) {
-      emitters.remove(sessionId, sessionEmitters);
+    synchronized (capacityLock) {
+      sessionEmitters.removeAll(dead);
+      if (sessionEmitters.isEmpty()) {
+        emitters.remove(sessionId, sessionEmitters);
+      }
+      for (final var emitter : dead) {
+        releaseEmitterIpLocked(emitter);
+      }
+    }
+  }
+
+  private void releaseEmitterIpLocked(SseEmitter emitter) {
+    final var ip = emitterIps.remove(emitter);
+    if (ip != null) {
+      ipCounts.computeIfPresent(ip, (k, count) -> count > 1 ? count - 1 : null);
     }
   }
 
@@ -295,6 +386,12 @@ public class SessionSseService {
   public int getActiveEmittersCount(UUID sessionId) {
     final var list = emitters.get(sessionId);
     return list != null ? list.size() : 0;
+  }
+
+  public int getActiveEmittersCountForIp(String clientIp) {
+    synchronized (capacityLock) {
+      return ipCounts.getOrDefault(clientIp.trim(), 0);
+    }
   }
 
   @Scheduled(fixedRate = 15000)

@@ -789,6 +789,72 @@ public class Session extends AggregateRoot<SessionId> {
     return entries;
   }
 
+  public List<SessionLeaderboardEntry> buildPublicLeaderboardEntries() {
+    if (endedAt != null
+        || currentSlideIndex <= 0
+        || (lastRevealedSlideIndex != null && lastRevealedSlideIndex >= currentSlideIndex)) {
+      return buildLeaderboardEntries(currentSlideIndex);
+    }
+
+    final var effectiveRevealedSlide = lastRevealedSlideIndex != null ? lastRevealedSlideIndex : 0;
+    final var indexedAnswers = indexAnswersByParticipantAndSlide(sessionAnswers);
+
+    record VisibleParticipantStats(
+        SessionParticipant participant, int visibleScore, int streak, int correctCount) {}
+
+    final var statsList = new ArrayList<VisibleParticipantStats>();
+    for (final var p : sessionParticipants) {
+      if (p.isKicked()) {
+        continue;
+      }
+      final var participantSlides = indexedAnswers.getOrDefault(p.name(), Map.of());
+      var visibleScore = 0;
+      var correctCount = 0;
+      for (final var ans : participantSlides.values()) {
+        if (ans.slideIndex() <= effectiveRevealedSlide) {
+          visibleScore += ans.pointsAwarded();
+          if (ans.isCorrect()) {
+            correctCount++;
+          }
+        }
+      }
+
+      var streak = 0;
+      for (var s = effectiveRevealedSlide; s >= 1; s--) {
+        final var ans = participantSlides.get(s);
+        if (ans != null && ans.isCorrect()) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+
+      statsList.add(new VisibleParticipantStats(p, visibleScore, streak, correctCount));
+    }
+
+    statsList.sort(
+        Comparator.comparingInt(VisibleParticipantStats::visibleScore)
+            .reversed()
+            .thenComparingLong(v -> v.participant().totalResponseTimeMs())
+            .thenComparing(v -> v.participant().joinedAt())
+            .thenComparing(v -> v.participant().name(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(v -> v.participant().name()));
+
+    final var entries = new ArrayList<SessionLeaderboardEntry>(statsList.size());
+    var rank = 1;
+    for (final var stats : statsList) {
+      entries.add(
+          new SessionLeaderboardEntry(
+              rank++,
+              stats.participant().name(),
+              stats.visibleScore(),
+              0,
+              stats.streak(),
+              stats.correctCount()));
+    }
+    return entries;
+  }
+
   public static Map<String, Map<Integer, SessionAnswerRecord>> indexAnswersByParticipantAndSlide(
       List<SessionAnswerRecord> answerRecords) {
     final var result = new HashMap<String, Map<Integer, SessionAnswerRecord>>();

@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +46,7 @@ import com.quezap.api.v1.mappers.PaginationMapper;
 import com.quezap.api.v1.routes.sessions.SessionCommandGateway;
 import com.quezap.api.v1.routes.sessions.SessionController;
 import com.quezap.api.v1.routes.sessions.SessionSseRealtimePublisher;
+import com.quezap.api.v1.security.SessionEndpointRateLimiter;
 import com.quezap.api.v1.services.SessionReportService;
 import com.quezap.api.v1.services.SessionSseService;
 import com.quezap.application.ports.sessions.SessionStorePort;
@@ -812,15 +814,16 @@ class SessionControllerTest {
         List.of(),
         List.of());
     when(sessionSseService.registerEmitter(sessionId)).thenReturn(new SseEmitter());
+    when(sessionSseService.consumeTicket(sessionId, "sset_valid")).thenReturn(true);
 
     final var storedEvent =
         new SessionSseService.StoredEvent(5L, "QUESTION_START", 1234L, Map.of("count", 1));
     when(sessionSseService.getEventsSince(sessionId, 4L)).thenReturn(List.of(storedEvent));
 
-    sessionController.streamEvents(sessionId, "4");
+    sessionController.streamEvents(sessionId, "sset_valid", "4");
     verify(sessionSseService).sendStoredEventToEmitter(any(), eq(sessionId), eq(storedEvent));
 
-    sessionController.streamEvents(sessionId, null);
+    sessionController.streamEvents(sessionId, "sset_valid", null);
     verify(sessionSseService)
         .sendToEmitter(any(), eq("QUESTION_REVEAL"), eq(1234L), eq(sessionId), any());
     verify(sessionSseService)
@@ -830,6 +833,192 @@ class SessionControllerTest {
             eq(1234L),
             eq(sessionId),
             any(IntermediateLeaderboardPayload.class));
+  }
+
+  @Test
+  void shouldRateLimitGetByCodeAndJoinPerIp() {
+    final var quezapId = UuidV7.randomUuid();
+    sessionStore.registerQuezap(
+        new SessionQuezapSnapshot(
+            quezapId,
+            "Quiz Rate Limit",
+            authorId,
+            true,
+            List.of(
+                new SessionSlideSpec(
+                    1,
+                    UuidV7.randomUuid(),
+                    "QUIZZ",
+                    "Q1",
+                    null,
+                    20,
+                    1000,
+                    List.of(
+                        new SessionSlideOption(0, "Yes", null, true),
+                        new SessionSlideOption(1, "No", null, false))))));
+    final var created =
+        sessionController.create(new CreateSessionRequest("Rate Limit Session", quezapId));
+
+    final var ip1Request = new MockHttpServletRequest();
+    ip1Request.setRemoteAddr("198.51.100.10");
+
+    for (var i = 0; i < SessionEndpointRateLimiter.DEFAULT_MAX_REQUESTS; i++) {
+      assertThat(sessionController.getByCode(created.code(), ip1Request).id())
+          .isEqualTo(created.id());
+    }
+
+    assertThatThrownBy(() -> sessionController.getByCode(created.code(), ip1Request))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.TOO_MANY_REQUESTS));
+
+    final var ip2Request = new MockHttpServletRequest();
+    ip2Request.setRemoteAddr("198.51.100.11");
+    assertThat(sessionController.getByCode(created.code(), ip2Request).id())
+        .isEqualTo(created.id());
+
+    for (var i = 0; i < SessionEndpointRateLimiter.DEFAULT_MAX_REQUESTS; i++) {
+      sessionController.join(new JoinSessionRequest(created.code(), "User" + i), null, ip1Request);
+    }
+
+    assertThatThrownBy(
+            () ->
+                sessionController.join(
+                    new JoinSessionRequest(created.code(), "UserOverflow"), null, ip1Request))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.TOO_MANY_REQUESTS));
+  }
+
+  @Test
+  void shouldMaskUnrevealedAnswerScoresOnGetScoresUntilRevealed() {
+    final var quezapId = UuidV7.randomUuid();
+    sessionStore.registerQuezap(
+        new SessionQuezapSnapshot(
+            quezapId,
+            "Quiz Oracle",
+            authorId,
+            true,
+            List.of(
+                new SessionSlideSpec(
+                    1,
+                    UuidV7.randomUuid(),
+                    "QUIZZ",
+                    "Q1",
+                    null,
+                    20,
+                    1000,
+                    List.of(
+                        new SessionSlideOption(0, "Correct", null, true),
+                        new SessionSlideOption(1, "Wrong", null, false))))));
+    final var created = sessionController.create(new CreateSessionRequest("Oracle", quezapId));
+    final var joinRes = sessionController.join(new JoinSessionRequest(created.code(), "Cheater"));
+    sessionController.start(created.id());
+
+    sessionController.submitAnswer(
+        created.id(), joinRes.participationToken(), new SubmitAnswerRequest(1, 0, null));
+
+    final var beforeReveal = sessionController.getScores(created.id());
+    assertThat(beforeReveal.leaderboard()).hasSize(1);
+    assertThat(beforeReveal.leaderboard().get(0).score()).isZero();
+    assertThat(beforeReveal.leaderboard().get(0).delta()).isZero();
+
+    sessionController.reveal(created.id());
+    final var afterReveal = sessionController.getScores(created.id());
+    assertThat(afterReveal.leaderboard()).hasSize(1);
+    assertThat(afterReveal.leaderboard().get(0).score()).isPositive();
+    assertThat(afterReveal.leaderboard().get(0).delta()).isPositive();
+  }
+
+  @Test
+  void shouldRequireAuthForGetByIdGetScoresAndSseTicketAndStripNamesFromByCode() {
+    final var quezapId = UuidV7.randomUuid();
+    sessionStore.registerQuezap(
+        new SessionQuezapSnapshot(
+            quezapId,
+            "Quiz Auth",
+            authorId,
+            true,
+            List.of(
+                new SessionSlideSpec(
+                    1,
+                    UuidV7.randomUuid(),
+                    "QUIZZ",
+                    "Q1",
+                    null,
+                    20,
+                    1000,
+                    List.of(
+                        new SessionSlideOption(0, "Correct", null, true),
+                        new SessionSlideOption(1, "Wrong", null, false))))));
+    final var created =
+        sessionController.create(new CreateSessionRequest("Auth Session", quezapId));
+    final var joinRes =
+        sessionController.join(new JoinSessionRequest(created.code(), "HiddenStudent"));
+
+    // Unauthenticated by-code strips participant names but preserves count
+    SecurityContextHolder.clearContext();
+    final var publicByCode = sessionController.getByCode(created.code());
+    assertThat(publicByCode.participantsCount()).isEqualTo(1);
+    assertThat(publicByCode.participants()).isEmpty();
+
+    // Unauthenticated without token -> 401 on getById, getScores, createEventsTicket, streamEvents
+    assertThatThrownBy(() -> sessionController.getById(created.id(), null))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.UNAUTHORIZED));
+    assertThatThrownBy(() -> sessionController.getScores(created.id(), null))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.UNAUTHORIZED));
+    assertThatThrownBy(() -> sessionController.createEventsTicket(created.id(), null))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.UNAUTHORIZED));
+    assertThatThrownBy(() -> sessionController.streamEvents(created.id(), null, null))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.UNAUTHORIZED));
+
+    // Valid participant token -> authorized
+    when(sessionSseService.issueTicket(created.id())).thenReturn("sset_student_ticket");
+    assertThat(sessionController.getById(created.id(), joinRes.participationToken()).participants())
+        .hasSize(1);
+    assertThat(sessionController.getScores(created.id(), joinRes.participationToken()).sessionId())
+        .isEqualTo(created.id());
+    final var ticketDto =
+        sessionController.createEventsTicket(created.id(), joinRes.participationToken());
+    assertThat(ticketDto.ticket()).isEqualTo("sset_student_ticket");
+    assertThat(ticketDto.expiresInSeconds()).isEqualTo(60L);
+
+    // Another authenticated user (not host, no participant token) -> 403 Forbidden
+    final var otherUserId = UuidV7.randomUuid();
+    sessionStore.registerUser(otherUserId, "OtherUser");
+    authenticateAs(otherUserId);
+    assertThatThrownBy(() -> sessionController.getById(created.id(), null))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.FORBIDDEN));
+    assertThatThrownBy(() -> sessionController.createEventsTicket(created.id(), null))
+        .isInstanceOf(ResponseStatusException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ResponseStatusException) ex).getStatusCode())
+                    .isEqualTo(HttpStatus.FORBIDDEN));
   }
 
   private static final class DirectUsecaseExecutor implements UsecaseExecutor {
