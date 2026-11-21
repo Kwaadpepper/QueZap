@@ -1,0 +1,207 @@
+# ==============================================================================
+# QueZap - Docker Compose Développement (JVM rapide + RustFS + ports locaux)
+# ==============================================================================
+# Aucun fichier .env requis : valeurs par défaut alignées avec application.yml.
+#
+# Infra seule (pour dev local bootRun + bun run start) :
+#   docker compose -f docker-compose.dev.yml up -d postgres rustfs rustfs-init
+#
+# Stack complète conteneurisée (JVM rapide) :
+#   docker compose -f docker-compose.dev.yml up -d --build
+# ==============================================================================
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: quezap-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-quezap}
+      POSTGRES_USER: ${POSTGRES_USER:-quezap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quezap_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - quezap_dev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quezap} -d ${POSTGRES_DB:-quezap}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quezap-dev-net
+
+  rustfs-perms:
+    image: alpine:3.21
+    container_name: quezap-dev-rustfs-perms
+    user: "0:0"
+    volumes:
+      - quezap_dev_rustfs_data:/data
+      - quezap_dev_rustfs_logs:/logs
+    command: ["sh", "-c", "mkdir -p /data /logs && chown -R 10001:10001 /data /logs"]
+    networks:
+      - quezap-dev-net
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: quezap-dev-rustfs
+    restart: unless-stopped
+    depends_on:
+      rustfs-perms:
+        condition: service_completed_successfully
+    environment:
+      RUSTFS_ADDRESS: "0.0.0.0:9000"
+      RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-quezap_java_writer}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-LocalPassword}
+      RUSTFS_VOLUMES: "/data"
+      RUSTFS_OBS_LOGGER_LEVEL: "info"
+    ports:
+      - "${RUSTFS_API_PORT:-9190}:9000"
+      - "${RUSTFS_CONSOLE_PORT:-9191}:9001"
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - quezap_dev_rustfs_data:/data
+      - quezap_dev_rustfs_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - quezap-dev-net
+
+  rustfs-init:
+    image: amazon/aws-cli:latest
+    container_name: quezap-dev-rustfs-init
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:-quezap_java_writer}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:-LocalPassword}
+      AWS_DEFAULT_REGION: "us-east-1"
+      APP_S3_BUCKET_NAME: ${APP_S3_BUCKET_NAME:-quezap-public-images}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        until aws --endpoint-url http://rustfs:9000 s3 ls >/dev/null 2>&1; do
+          echo "En attente de RustFS..."
+          sleep 1
+        done
+        aws --endpoint-url http://rustfs:9000 s3 mb "s3://$${APP_S3_BUCKET_NAME}" 2>/dev/null || true
+        aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy \
+          --bucket "$${APP_S3_BUCKET_NAME}" \
+          --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"PublicRead\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::$${APP_S3_BUCKET_NAME}/*\"]}]}"
+        echo "Bucket $${APP_S3_BUCKET_NAME} prêt (lecture publique activée)."
+    networks:
+      - quezap-dev-net
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: quezap-dev-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rustfs-init:
+        condition: service_completed_successfully
+    environment:
+      APP_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-quezap}
+      APP_DB_USERNAME: ${POSTGRES_USER:-quezap}
+      APP_DB_PASSWORD: ${POSTGRES_PASSWORD:-quezap_password}
+      APP_S3_HOST: rustfs
+      APP_S3_PORT: 9000
+      APP_S3_PUBLIC_ENDPOINT: http://localhost:${APP_PORT:-8000}
+      APP_S3_BUCKET_NAME: ${APP_S3_BUCKET_NAME:-quezap-public-images}
+      APP_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:-quezap_java_writer}
+      APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:-LocalPassword}
+      APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:-b7f2c9e14d8a3065f19e2c4b7a8d0315e6f9a2c4b7d8e013579bdf02468ace13}
+      APP_JWT_ISSUER: quezap.com
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+    expose:
+      - "8080"
+    networks:
+      - quezap-dev-net
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: quezap-dev-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - ./front/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - quezap-dev-net
+
+  cli:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+      target: builder
+    container_name: quezap-dev-cli
+    profiles:
+      - cli
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rustfs-init:
+        condition: service_completed_successfully
+    environment:
+      APP_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-quezap}
+      APP_DB_USERNAME: ${POSTGRES_USER:-quezap}
+      APP_DB_PASSWORD: ${POSTGRES_PASSWORD:-quezap_password}
+      APP_S3_HOST: rustfs
+      APP_S3_PORT: 9000
+      APP_S3_PUBLIC_ENDPOINT: http://localhost:${APP_PORT:-8000}
+      APP_S3_BUCKET_NAME: ${APP_S3_BUCKET_NAME:-quezap-public-images}
+      APP_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:-quezap_java_writer}
+      APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:-LocalPassword}
+      APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:-b7f2c9e14d8a3065f19e2c4b7a8d0315e6f9a2c4b7d8e013579bdf02468ace13}
+      APP_JWT_ISSUER: quezap.com
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+    stdin_open: true
+    tty: true
+    command: ["./gradlew", ":quezap-cli:bootRun", "--console=plain"]
+    networks:
+      - quezap-dev-net
+
+  seed:
+    image: curlimages/curl:latest
+    container_name: quezap-dev-seed
+    profiles:
+      - seed
+    depends_on:
+      - backend
+    volumes:
+      - ./seed.sh:/seed.sh:ro
+    environment:
+      BASE_URL: http://backend:8080/apiv1
+      FRONT_PORT: "${APP_PORT:-8000}"
+    entrypoint: ["/bin/sh", "/seed.sh"]
+    networks:
+      - quezap-dev-net
+
+networks:
+  quezap-dev-net:
+    driver: bridge
+    name: quezap-dev-net
+
+volumes:
+  quezap_dev_postgres_data:
+  quezap_dev_rustfs_data:
+  quezap_dev_rustfs_logs:

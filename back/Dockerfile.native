@@ -1,0 +1,41 @@
+# Multi-stage Dockerfile for QueZap Backend compiled to a GraalVM 25 Native Image
+# Usage: docker build -f back/Dockerfile.native ./back
+
+FROM container-registry.oracle.com/graalvm/native-image:25 AS builder
+
+WORKDIR /workspace
+
+# Copy Gradle wrapper and build descriptors first for better layer caching
+COPY gradlew gradlew
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+COPY gradle/libs.versions.toml gradle/
+COPY checkstyle checkstyle
+COPY user-code-filter.json ./
+
+# Copy all source modules
+COPY modules modules
+COPY quezap-api quezap-api
+COPY quezap-cli quezap-cli
+
+# Compile the Spring Boot AOT + GraalVM native executable
+# (-march=compatibility is configured in build.gradle for broad x86_64/NUC CPU compatibility)
+RUN chmod +x gradlew && ./gradlew :quezap-api:nativeCompile -x test --no-daemon
+
+# Minimal Oracle Linux 9 runtime matching the builder's glibc & zlib
+FROM oraclelinux:9-slim AS runtime
+
+WORKDIR /app
+
+RUN groupadd --system spring \
+    && useradd --system --gid spring --no-create-home spring
+
+COPY --from=builder --chown=spring:spring \
+    /workspace/quezap-api/build/native/nativeCompile/quezap-api /app/quezap-api
+
+USER spring:spring
+
+ENV SPRING_PROFILES_ACTIVE=prod
+EXPOSE 8080
+
+ENTRYPOINT ["/app/quezap-api"]

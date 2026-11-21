@@ -14,20 +14,24 @@ Le dépôt est un monorepo structuré en deux sous-projets principaux :
 
 ### Infrastructure locale (Docker / Podman Compose)
 - **PostgreSQL 17** (`localhost:5432`, base `quezap`, utilisateur `quezap`, mot de passe `quezap_password`)
-- **MinIO S3** (`localhost:9190` API hôte -> `9000` conteneur, console `9191` -> `9001`, bucket `quezap-public-images`)
+- **RustFS S3** (`localhost:9190` API hôte -> `9000` conteneur, console `9191` -> `9001`, bucket `quezap-public-images`)
+- **Deux fichiers Compose** :
+  - `docker-compose.dev.yml` : environnement de développement (backend JVM rapide, ports BDD/S3 exposés en local, aucun `.env` requis).
+  - `docker-compose.yml` : déploiement production (backend compilé nativement avec GraalVM 25 via `back/Dockerfile.native`, `.env` requis à partir de `.env.example`, BDD/RustFS non exposés sur l'hôte, persistance par volumes nommés).
 - **Application complète conteneurisée** : Accessible sur `http://localhost:8000` via Nginx frontend (`proxy_buffering off` SSE et proxy S3).
 
 #### ⚠️ Pièges & Commandes Podman Rootless / Docker Compose
 - **Socket Podman Rootless** : Sous Linux avec Podman en mode rootless, `/var/run/docker.sock` est inaccessible (erreur `Permission denied`). Exporter le socket utilisateur actif ou utiliser `podman-compose` :
   ```bash
   export DOCKER_HOST="unix://${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/podman/podman.sock"
-  docker-compose up -d postgres minio minio-init
+  docker-compose -f docker-compose.dev.yml up -d postgres rustfs rustfs-init
   # OU alternativement avec podman-compose natif :
-  podman-compose up -d postgres minio minio-init
+  podman-compose -f docker-compose.dev.yml up -d postgres rustfs rustfs-init
   ```
-- **Conflit de ports MinIO (9000 vs 9190)** : Sur beaucoup de machines hôtes, le port 9000 est déjà occupé. Le backend écoute en dev local sur `APP_S3_PORT=9190` (`APP_S3_HOST=localhost`). Le service `minio` dans `docker-compose.yml` publie impérativement `ports: ["9190:9000", "9191:9001"]` tout en conservant `expose: ["9000", "9001"]`.
+- **Conflit de ports RustFS (9000 vs 9190)** : Sur beaucoup de machines hôtes, le port 9000 est déjà occupé. Le backend écoute en dev local sur `APP_S3_PORT=9190` (`APP_S3_HOST=localhost`). Le service `rustfs` dans `docker-compose.dev.yml` publie impérativement `ports: ["9190:9000", "9191:9001"]` tout en conservant `expose: ["9000", "9001"]`.
+- **Permissions volume RustFS (UID 10001)** : L'image officielle `rustfs/rustfs` s'exécute avec l'UID/GID `10001:10001`. Le conteneur d'init `rustfs-perms` applique automatiquement `chown -R 10001:10001 /data /logs` avant le démarrage de `rustfs`.
 - **E2E Playwright et URL cible** :
-  - Sur conteneurs actifs (`docker-compose up`) : Playwright cible par défaut `http://localhost:8000`.
+  - Sur conteneurs actifs (`docker-compose -f docker-compose.dev.yml up`) : Playwright cible par défaut `http://localhost:8000`.
   - En dev local (`bun run start` sur port 4200) : passer la variable `PLAYWRIGHT_BASE_URL="http://localhost:4200" bun run test:e2e`.
 
 ---
