@@ -1,4 +1,3 @@
-import { HttpClient } from '@angular/common/http'
 import {
   ChangeDetectionStrategy, Component,
   computed,
@@ -13,6 +12,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser'
 
 import { tap } from 'rxjs'
+
+import { SvgAssetLoader } from './svg-asset-loader'
 
 export enum QuestionIconType {
   Circle = 'circle',
@@ -39,7 +40,7 @@ export enum QuestionIconType {
 export class QuestionIcon {
   readonly #iconsUrlPath = 'images/answers'
   private readonly sanitizer = inject(DomSanitizer)
-  private readonly httpClient = inject(HttpClient)
+  private readonly svgLoader = inject(SvgAssetLoader)
   private readonly destroyRef = inject(DestroyRef)
 
   readonly form = input.required<QuestionIconType>()
@@ -62,7 +63,7 @@ export class QuestionIcon {
         return
       }
 
-      this.httpClient.get(imageSourceUrl, { responseType: 'text' })
+      this.svgLoader.load(imageSourceUrl)
         .pipe(
           takeUntilDestroyed(this.destroyRef),
           tap((svgContent) => {

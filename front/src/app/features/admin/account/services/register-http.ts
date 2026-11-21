@@ -14,13 +14,12 @@ import { RegisterService } from './register'
 export class RegisterHttpService implements RegisterService {
   private readonly httpClient = inject(HttpClient, { optional: true })
 
-  register(email: string): ServiceOutput<void> {
-    const tempPassword = `Qz!9${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}Aa1!`}`
+  register(email: string, password: string): ServiceOutput<void> {
     const payload: CreateUserRequest = {
       name: email.split('@')[0],
       identifier: email,
       email,
-      password: tempPassword,
+      password,
     }
 
     return defer(() =>

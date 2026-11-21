@@ -28,7 +28,6 @@
 
 .podium-box {
   display: flex;
-  min-height: clamp(160px, 24vh, 230px);
   align-items: flex-end;
   justify-content: center;
   gap: 1.5rem;
@@ -38,28 +37,67 @@
 .podium-step {
   position: relative;
   display: flex;
-  width: 170px;
+  overflow: hidden;
+  width: clamp(130px, 14vw, 190px);
+  box-sizing: border-box;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.5rem 0.35rem;
   border-radius: 1.5rem 1.5rem 0 0;
   animation: slide-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transition: all 0.5s ease-out;
 }
 
+.podium-info {
+  display: flex;
+  max-width: 100%;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.podium-medal {
+  font-size: clamp(1.5rem, 4vh, 2.25rem);
+  line-height: 1.2;
+}
+
+.podium-medal-first {
+  font-size: clamp(1.75rem, 5vh, 3rem);
+}
+
+.podium-name {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: clamp(1.05rem, 2.8vh, 1.75rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.podium-name-first {
+  font-size: clamp(1.25rem, 3.4vh, 2.1rem);
+}
+
+.podium-rank {
+  font-size: clamp(1.75rem, 5vh, 3rem);
+  line-height: 1;
+}
+
 .step-first {
-  height: clamp(150px, 22vh, 210px);
+  min-height: clamp(170px, 24vh, 240px);
   background: linear-gradient(180deg, #fde047 0%, #ca8a04 100%);
   box-shadow: 0 0 50px rgb(250 204 21 / 50%), inset 0 2px 6px rgb(255 255 255 / 60%);
 }
 
 .step-second {
-  height: clamp(115px, 16vh, 155px);
+  min-height: clamp(140px, 19vh, 190px);
   background: linear-gradient(180deg, #e2e8f0 0%, #64748b 100%);
   box-shadow: 0 0 35px rgb(148 163 184 / 40%), inset 0 2px 6px rgb(255 255 255 / 60%);
 }
 
 .step-third {
-  height: clamp(90px, 12vh, 115px);
+  min-height: clamp(115px, 15vh, 150px);
   background: linear-gradient(180deg, #fdba74 0%, #9a3412 100%);
   box-shadow: 0 0 30px rgb(249 115 22 / 40%), inset 0 2px 6px rgb(255 255 255 / 50%);
 }

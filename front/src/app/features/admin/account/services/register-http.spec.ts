@@ -33,7 +33,7 @@ describe('RegisterHttpService', () => {
   })
 
   it('should create user via SDK create endpoint', async () => {
-    const resultPromise = firstValueFrom(service.register('teacher@quezap.com'))
+    const resultPromise = firstValueFrom(service.register('teacher@quezap.com', 'Secret#123'))
     await flushMicrotasks()
 
     const req = httpMock.expectOne(r => r.url.endsWith('/apiv1/users'))
@@ -42,7 +42,7 @@ describe('RegisterHttpService', () => {
       name: 'teacher',
       identifier: 'teacher@quezap.com',
       email: 'teacher@quezap.com',
-      password: expect.any(String),
+      password: 'Secret#123',
     })
     req.flush({ id: 'user-uuid' }, { status: 201, statusText: 'Created' })
 
@@ -51,7 +51,7 @@ describe('RegisterHttpService', () => {
   })
 
   it('should return ValidationError on email field when registration fails', async () => {
-    const resultPromise = firstValueFrom(service.register('duplicate@quezap.com'))
+    const resultPromise = firstValueFrom(service.register('duplicate@quezap.com', 'Secret#123'))
     await flushMicrotasks()
 
     const req = httpMock.expectOne(r => r.url.endsWith('/apiv1/users'))

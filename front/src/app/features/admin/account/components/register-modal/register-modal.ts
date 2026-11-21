@@ -38,16 +38,35 @@ export class RegisterModal {
   private readonly errorHandler = inject(ErrorHandler)
   private readonly destroyRef = inject(DestroyRef)
 
-  private readonly userInfo = signal({ email: '' })
+  private readonly userInfo = signal({ email: '', password: '', passwordConfirmation: '' })
 
   protected readonly registerForm = form(this.userInfo, (path) => {
-    validateStandardSchema(path, zod.object({ email: zod.email('Email invalide') }))
+    validateStandardSchema(
+      path,
+      zod
+        .object({
+          email: zod.email('Email invalide'),
+          password: zod
+            .string()
+            .min(8, 'Au moins 8 caractères')
+            .max(80, 'Au plus 80 caractères')
+            .regex(/[a-z]/, 'Au moins une minuscule')
+            .regex(/[A-Z]/, 'Au moins une majuscule')
+            .regex(/\d/, 'Au moins un chiffre')
+            .regex(/[!-/:-@[-`{-~]/, 'Au moins un caractère spécial'),
+          passwordConfirmation: zod.string(),
+        })
+        .refine(value => value.password === value.passwordConfirmation, {
+          path: ['passwordConfirmation'],
+          message: 'Les mots de passe ne correspondent pas',
+        }),
+    )
   })
 
   public readonly visible = model(false)
 
   protected onModalHide() {
-    this.userInfo.set({ email: '' })
+    this.userInfo.set({ email: '', password: '', passwordConfirmation: '' })
     this.registerForm().reset()
   }
 
@@ -61,6 +80,7 @@ export class RegisterModal {
       firstValueFrom(
         this.registerService.register(
           form.email().value(),
+          form.password().value(),
         ).pipe(
           takeUntilDestroyed(this.destroyRef),
           exhaustMap((result) => {

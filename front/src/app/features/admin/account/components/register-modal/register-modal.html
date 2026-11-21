@@ -5,7 +5,6 @@
   [pt]="{ root: { class: 'md:max-w-5/8 lg:md:max-w-3/8' } }"
   [inert]="this.registerForm().submitting()"
   (onHide)="onModalHide()"
-  (onShow)="onModalHide()"
   [(visible)]="visible"
 >
   <ng-template #content>
@@ -14,7 +13,7 @@
       [inert]="this.registerForm().submitting()"
       (submit)="onRegister(); $event.preventDefault()"
     >
-      <span class="p-text-secondary mb-8 block">
+      <span class="p-text-secondary mb-4 block">
         <p>Pour créer une partie <strong>vous devez posséder un compte</strong>.</p>
         <p>
           Votre adresse <strong>e-mail est obligatoire</strong> pour la
@@ -23,7 +22,7 @@
         </p>
         <p>Vos informations sont protégées et ne seront jamais divulguées à des tiers.</p>
       </span>
-      <div class="mb-6 flex flex-col gap-2">
+      <div class="mb-4 flex flex-col gap-2">
         <label for="email" class="text-sm font-semibold text-slate-700 dark:text-slate-200">Email</label>
         <input
           pInputText
@@ -37,10 +36,40 @@
           [fieldState]="registerForm.email"
         />
       </div>
+      <div class="mb-4 flex flex-col gap-2">
+        <label for="register-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200">Mot de passe</label>
+        <input
+          pInputText
+          id="register-password"
+          class="w-full"
+          autocomplete="new-password"
+          type="password"
+          aria-describedby="register-password-rules"
+          quizzFieldError
+          [formField]="registerForm.password"
+          [fieldState]="registerForm.password"
+        />
+        <small id="register-password-rules" class="p-text-secondary">
+          8 caractères minimum, avec une majuscule, une minuscule, un chiffre et un caractère spécial.
+        </small>
+      </div>
+      <div class="mb-4 flex flex-col gap-2">
+        <label for="register-password-confirmation" class="text-sm font-semibold text-slate-700 dark:text-slate-200">Confirmation du mot de passe</label>
+        <input
+          pInputText
+          id="register-password-confirmation"
+          class="w-full"
+          autocomplete="new-password"
+          type="password"
+          quizzFieldError
+          [formField]="registerForm.passwordConfirmation"
+          [fieldState]="registerForm.passwordConfirmation"
+        />
+      </div>
       <div class="flex justify-end gap-2">
         <p-button label="Fermer" severity="secondary" text (onClick)="onCancel()" />
         <p-button
-          label="Recevoir mon lien d'activation"
+          label="Créer mon compte"
           type="submit"
           [disabled]="this.registerForm().invalid() || this.registerForm().submitting()"
         >
