@@ -140,6 +140,10 @@ export class SessionObserverSseService implements SessionObserverService {
       console.debug('No valid sessionId available yet for SSE connection')
       return
     }
+    if (!this.sessionPersistence.getParticipationToken()) {
+      console.debug('No participation token available yet for SSE connection')
+      return
+    }
 
     if (this.currentConnectedSessionId === sessionId) {
       if (this.isSessionTerminated) {
@@ -192,7 +196,7 @@ export class SessionObserverSseService implements SessionObserverService {
       }
 
       const status = response?.status
-      if (status === 404 || status === 403 || status === 401 || status === 410) {
+      if (status === 404 || status === 403 || status === 410 || (status === 401 && Boolean(token))) {
         this.isSessionTerminated = true
         return
       }

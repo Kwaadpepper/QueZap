@@ -86,9 +86,14 @@ describe('ActiveSessionStore', () => {
     )
   })
 
-  it('should connect to observer via interface method without instanceof coupling', () => {
+  it('should wait for nickname or participation token before connecting to observer', () => {
     const store = TestBed.inject(ActiveSessionStore)
     store.joinSession('20082' as SessionCode).subscribe()
+    TestBed.flushEffects()
+
+    expect(mockObserver.connect).not.toHaveBeenCalled()
+
+    store.chooseNickname('Léa', false).subscribe()
     TestBed.flushEffects()
 
     expect(mockObserver.connect).toHaveBeenCalledWith('018e3a2b-8888-7def-8123-000000000001')

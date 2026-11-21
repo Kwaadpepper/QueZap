@@ -226,6 +226,11 @@ export const ActiveSessionStore = signalStore(
                 ],
           }))
 
+          const activeSessionId = store._session?.()?.id ?? activeSessionPersistence.getSessionId()
+          if (activeSessionId) {
+            sessionObserver.connect?.(activeSessionId as string)
+          }
+
           return of(void 0)
         }),
         catchError((err) => {
@@ -256,10 +261,17 @@ export const ActiveSessionStore = signalStore(
           console.debug('Running listeners')
         }
 
-        // * Auto-connect observer when active session is resolved
+        // * Auto-connect observer when active session and participation auth are resolved
         effect(() => {
           const session = store.session()
-          if (session && session.id && session.endedAt == null && session.status !== 'ENDED') {
+          const nickname = store.nickname()
+          if (
+            session
+            && session.id
+            && session.endedAt == null
+            && session.status !== 'ENDED'
+            && Boolean(nickname || activeSessionPersistence.getParticipationToken())
+          ) {
             sessionObserver.connect?.(session.id as string)
           }
         })

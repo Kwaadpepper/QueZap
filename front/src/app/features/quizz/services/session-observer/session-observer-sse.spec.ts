@@ -156,6 +156,7 @@ describe('SessionObserverSseService', () => {
 
   it('should stop reconnecting when server returns 404 or 403 or ENDED', async () => {
     const sessionId = '018e3a2b-8888-7def-8123-000000000002'
+    persistence.saveParticipationData(sessionId, 'ptk_2', 'Léa')
     jest.spyOn(sdk, 'createEventsTicket').mockResolvedValue({
       data: { ticket: 'sset_3', expiresInSeconds: 60 },
       error: undefined,
@@ -188,6 +189,7 @@ describe('SessionObserverSseService', () => {
 
   it('should not reconnect after SESSION_ENDED is received', async () => {
     const sessionId = '018e3a2b-8888-7def-8123-000000000003'
+    persistence.saveParticipationData(sessionId, 'ptk_3', 'Léa')
     jest.spyOn(sdk, 'createEventsTicket').mockResolvedValue({
       data: { ticket: 'sset_4', expiresInSeconds: 60 },
       error: undefined,
@@ -212,5 +214,16 @@ describe('SessionObserverSseService', () => {
     source.triggerClosedError()
     jest.advanceTimersByTime(5000)
     expect(MockEventSource.instances).toHaveLength(1)
+  })
+
+  it('should not attempt ticket acquisition before participation token is saved', async () => {
+    const sessionId = '018e3a2b-8888-7def-8123-000000000004'
+    const ticketSpy = jest.spyOn(sdk, 'createEventsTicket')
+
+    service.connect(sessionId)
+    await Promise.resolve()
+
+    expect(ticketSpy).not.toHaveBeenCalled()
+    expect(MockEventSource.instances).toHaveLength(0)
   })
 })
