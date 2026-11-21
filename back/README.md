@@ -1,144 +1,146 @@
-# QueZap - Backend
+# QueZap — Backend
 
-Backend Spring Boot (Java 25) organisé en DDD et architecture hexagonale. Expose:
-- une API HTTP (REST)
-- un Shell CLI (Spring Shell)
-- des binaires natifs (GraalVM)
+Spring Boot 3.5.16 (Java 25) backend built with Domain-Driven Design (DDD) and Hexagonal Architecture. Exposes:
+- a stateless REST API (`quezap-api`) with Server-Sent Events (SSE)
+- an interactive Spring Shell admin CLI (`quezap-cli`)
+- GraalVM 25 native executables
 
-[Documentation racine](../README.md)
+[Root documentation](../README.md)
 
-## 🔧 Prérequis
+---
 
-- Java 25 (JDK) - la toolchain Gradle cible Java 25
-- GraalVM 25 (optionnel, pour native-image)
+## 🔧 Prerequisites
 
-## 🧭 Architecture (multi-modules)
+- **Java 25 JDK** (`>= 25.0.5.1` recommended for security fixes) — the Gradle toolchain targets Java 25
+- **GraalVM 25** (optional, required for `nativeCompile`)
+- PostgreSQL 17 and RustFS (start both locally with `docker compose -f ../docker-compose.dev.yml up -d postgres rustfs rustfs-init`)
 
-- `modules:domain` - modèle métier (agrégats, VOs, invariants, événements)
-- `modules:application` - ports/use cases, exécution transactionnelle, publication d’événements
-- `modules:infrastructure` - implémentations techniques (S3, sécurité, persistance, événements)
-- `modules:shared` - types partagés transverses
-- Applications :
-  - `quezap-api` - API REST Spring Boot
-  - `quezap-cli` - CLI Spring Shell
+---
 
-## 🚀 Démarrage rapide
+## 🧭 Multi-Module Architecture
 
-API (REST) :
+- `modules:domain` — pure business model (aggregates, value objects, invariants, domain events, repository ports; zero Spring dependencies)
+- `modules:application` — application ports/use cases (`@Usecase`), transactional execution, domain event publication
+- `modules:infrastructure` — technical adapters (JPA/Hibernate, InMemory, S3/RustFS, Argon2/JWT security, event listeners)
+- `modules:shared` — cross-cutting DDD primitives (typed IDs, UUIDv7, pagination)
+- Applications:
+  - `quezap-api` — Spring Boot REST & SSE adapter
+  - `quezap-cli` — Spring Shell admin CLI adapter
+
+---
+
+## 🚀 Quick Start
+
+Start the REST API:
 ```bash
 ./gradlew :quezap-api:bootRun
 ```
-CLI (Shell) :
+
+Start the interactive CLI:
 ```bash
 ./gradlew :quezap-cli:bootRun --console=plain
 ```
 
-Avec Docker Compose, le shell CLI est exposé via un service dédié et interactif :
+Run the CLI inside Docker Compose:
 ```bash
-docker compose --profile cli run --build --rm cli
+docker compose -f ../docker-compose.dev.yml --profile cli run --rm cli
 ```
 
-Puis, dans le shell ouvert :
-```bash
-users add --name <nom> --email <email>
+Create a user inside the interactive shell (password is prompted securely on TTY):
+```text
+users add --name <name> --email <email>
 ```
-Le mot de passe est demandé en TTY.
 
-Profils disponibles (API): `default`, `cli`, `test`, `prod` (voir `quezap-api/src/main/resources/application-*.yml`).
-Exemple :
+Available Spring profiles: `default`, `cli`, `test`, `prod` (see `quezap-api/src/main/resources/application*.yml`):
 ```bash
 SPRING_PROFILES_ACTIVE=prod ./gradlew :quezap-api:bootRun
 ```
 
-## 🧪 Tests
+---
 
-Exécuter l’ensemble des tests (tous modules) avec NullAway activé :
+## 🧪 Testing & Code Quality
+
+Run Spotless formatting, Checkstyle, NullAway (`-Werror`), and all unit/integration tests:
 ```bash
-./gradlew clean test -Pnullaway=true
+./gradlew spotlessApply checkstyleMain checkstyleTest test -Pnullaway=true
 ```
 
-Rapports JaCoCo par module, ex. API: `quezap-api/build/reports/jacoco/test/html/index.html`.
+Run a single test class:
+```bash
+./gradlew :quezap-api:test --tests "com.quezap.api.v1.routes.AuthControllerTest"
+```
 
-## 📦 Build
+Generate JaCoCo coverage reports (e.g. `quezap-api/build/reports/jacoco/test/html/index.html`):
+```bash
+./gradlew test jacocoTestReport
+```
 
-Build complet (tous modules) :
+Regenerate `front/openapi.json` after changing REST controllers or DTOs:
+```bash
+./gradlew :quezap-api:test --tests "com.quezap.api.v1.GenerateOpenApiJsonTest"
+```
+
+---
+
+## 📦 Build & GraalVM Native Image
+
+Build executable JARs:
 ```bash
 ./gradlew clean build -Pnullaway=true
+./gradlew :quezap-api:bootJar
+./gradlew :quezap-cli:bootJar
 ```
-JAR exécutable par application :
+
+Verify Spring AOT processing without running a full native build:
 ```bash
-./gradlew :quezap-api:build
-./gradlew :quezap-cli:build
+./gradlew :quezap-api:processAot :quezap-api:compileAotTestJava :quezap-cli:processAot
 ```
 
-### Binaire natif (GraalVM)
-
-Compilation native par application :
+Compile GraalVM native executables:
 ```bash
 ./gradlew :quezap-api:nativeCompile
 ./gradlew :quezap-cli:nativeCompile
 ```
-Exécuter les binaires générés :
+
+Run the compiled native binaries:
 ```bash
 ./quezap-api/build/native/nativeCompile/quezap-api
 ./quezap-cli/build/native/nativeCompile/quezap-cli
 ```
 
-Note : le support de certaines fonctionnalités (AOP/transactions) peut nécessiter des runtime hints.
+### AOT Runtime Hints & GraalVM Agent
 
-## 🛠️ Native image - Hints & Agent
+- **Programmatic hints**:
+  - `com.quezap.application.aot.QuezapRuntimeHints` — reflection hints for `ConstraintValidator`, `Converter`, `JsonDeserializer`, DTO records, and use case handlers
+  - `com.quezap.infrastructure.aot.QuezapRuntimeHints` — JDK dynamic proxies for Spring AOP (`Repository`, `DataSource`), JPA entities, JJWT `KeysBridge`, profanity-filter dictionaries, and Apache Tika resources
+  - `com.quezap.api.aot.QuezapApiRuntimeHints` — API-level DTO and Jackson hints
+- **GraalVM Tracing Agent**: configured in conditional mode (`user-code-filter.json`) to merge runtime metadata captured during tests into `src/main/resources/META-INF/native-image`.
 
-Le projet intègre des hints AOT programmatiques et l’agent GraalVM pour faciliter la compilation native.
+---
 
-- Hints programmatiques
-  - `@ImportRuntimeHints`: voir `ApiApplication.ValidationRuntimeHints` (ex: `PaginationValidator`).
-  - `com.quezap.application.aot.QuezapRuntimeHints` (application):
-    - Réflexion pour `ConstraintValidator`, `Converter`, `JsonDeserializer`, `Record` et les Use Cases
-  - `com.quezap.infrastructure.aot.QuezapRuntimeHints` (infrastructure):
-    - Proxies JDK pour Spring AOP (ex: `Repository`, `DataSource`) afin que les proxys soient reconnus par native-image
-  - Si une classe échoue en native (réflexion/proxy), ajoutez-la dans le hint approprié avec les `MemberCategory` adaptés.
+## ⚙️ Configuration
 
-- Agent GraalVM (capture au runtime)
-  - L’agent est configuré en mode « conditional » et fusionne automatiquement la metadata générée pendant `test` dans `src/main/resources/META-INF/native-image` (voir `graalvmNative.agent.metadataCopy`).
-  - Le filtre `user-code-filter.json` limite la capture au code applicatif.
+Configuration files live in `quezap-api/src/main/resources/application.yml` (+ profile overrides).
 
-## ⚙️ Configuration (API)
+Key environment variables:
+- **Database**: `APP_DB_URL`, `APP_DB_USERNAME`, `APP_DB_PASSWORD`, `SPRING_JPA_HIBERNATE_DDL_AUTO`
+- **Object Storage (S3 / RustFS)**: `APP_S3_HOST`, `APP_S3_PORT`, `APP_S3_PUBLIC_ENDPOINT`, `APP_S3_BUCKET_NAME`, `APP_S3_ACCESS_KEY_ID`, `APP_S3_SECRET_ACCESS_KEY`
+- **JWT**: `APP_JWT_SECRET_KEY` (hex key ≥ 32 bytes), `APP_JWT_ISSUER`
 
-Fichiers : `quezap-api/src/main/resources/application.yml` (+ variantes par profil).
+---
 
-- Sécurité : Spring Security, API stateless
-- Stockage d'images (S3-like) : variables attendues
-  - `APP_S3_HOST`, `APP_S3_PORT`, `APP_S3_PUBLIC_ENDPOINT`
-  - `APP_S3_BUCKET_NAME`, `APP_S3_ACCESS_KEY_ID`, `APP_S3_SECRET_ACCESS_KEY`
-- JWT: `APP_JWT_SECRET_KEY`, `APP_JWT_ISSUER`
+## 📚 API & CLI Summary
 
-## 🧰 Tâches Gradle utiles
+- **REST API**: endpoints under `/apiv1/**` (controllers in `quezap-api/src/main/java/com/quezap/api/v1/routes`)
+- **CLI commands**:
+  - List users: `users list`
+  - Add user: `users add --name <name> --email <email>`
+  - Delete user: `users delete --loginOrId <id-or-email>`
 
-Format/qualité :
-```bash
-./gradlew spotlessApply
-./gradlew spotlessCheck
-./gradlew checkstyleMain checkstyleTest
-```
-Tests + couverture :
-```bash
-./gradlew test jacocoTestReport
-```
-Build avec scan :
-```bash
-./gradlew build --scan
-```
+---
 
-## 📚 API & CLI en bref
+## 🤝 Contributing
 
-- REST : endpoints sous `apiv1/...` (voir contrôleurs dans `quezap-api/src/main/java/com/quezap/interfaces/api/v1`).
-- CLI :
-  - lister les utilisateurs: `users list`
-  - ajouter: `users add --name <nom> --email <email>` (mot de passe demandé en TTY)
-  - supprimer: `users delete --loginOrId <valeur>`
-
-## 🤝 Contributions
-
-- Respecter le formatage (Spotless) et le lint (Checkstyle).
-- Activer NullAway localement pour les CI-like: `-Pnullaway=true`.
-- Pousser un build/test vert avant PR.
+- Format code with `./gradlew spotlessApply` before committing.
+- Ensure Checkstyle (`checkstyleMain`, `checkstyleTest`) and NullAway (`-Pnullaway=true`) pass with zero warnings.
+- Run the full test suite and AOT verification before opening a pull request.

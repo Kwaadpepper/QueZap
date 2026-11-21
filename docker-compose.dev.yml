@@ -1,12 +1,12 @@
 # ==============================================================================
-# QueZap - Docker Compose Développement (JVM rapide + RustFS + ports locaux)
+# QueZap — Development Docker Compose (Fast JVM + RustFS + Local Ports)
 # ==============================================================================
-# Aucun fichier .env requis : valeurs par défaut alignées avec application.yml.
+# No .env file required: defaults match application.yml.
 #
-# Infra seule (pour dev local bootRun + bun run start) :
+# Infrastructure only (for local bootRun + bun run start):
 #   docker compose -f docker-compose.dev.yml up -d postgres rustfs rustfs-init
 #
-# Stack complète conteneurisée (JVM rapide) :
+# Full containerized stack (fast JVM mode):
 #   docker compose -f docker-compose.dev.yml up -d --build
 # ==============================================================================
 
@@ -93,14 +93,14 @@ services:
       - |
         set -e
         until aws --endpoint-url http://rustfs:9000 s3 ls >/dev/null 2>&1; do
-          echo "En attente de RustFS..."
+          echo "Waiting for RustFS..."
           sleep 1
         done
         aws --endpoint-url http://rustfs:9000 s3 mb "s3://$${APP_S3_BUCKET_NAME}" 2>/dev/null || true
         aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy \
           --bucket "$${APP_S3_BUCKET_NAME}" \
           --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"PublicRead\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::$${APP_S3_BUCKET_NAME}/*\"]}]}"
-        echo "Bucket $${APP_S3_BUCKET_NAME} prêt (lecture publique activée)."
+        echo "Bucket $${APP_S3_BUCKET_NAME} ready (public read enabled)."
     networks:
       - quezap-dev-net
 

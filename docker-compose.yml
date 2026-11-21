@@ -1,11 +1,11 @@
 # ==============================================================================
-# QueZap - Docker Compose Production (GraalVM Native + RustFS + Persistance)
+# QueZap — Production Docker Compose (GraalVM Native + RustFS + Persistence)
 # ==============================================================================
-# Prérequis avant le premier lancement :
+# Prerequisites before first startup:
 #   cp .env.example .env
-#   # Éditer .env (mots de passe, APP_JWT_SECRET_KEY, APP_PUBLIC_URL)
+#   # Edit .env (passwords, APP_JWT_SECRET_KEY, APP_PUBLIC_URL)
 #   docker compose pull && docker compose up -d
-#   # (ou `docker compose up -d --build` pour recompiler localement)
+#   # (or `docker compose up -d --build` to compile locally)
 # ==============================================================================
 
 x-logging: &default-logging
@@ -23,7 +23,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-quezap}
       POSTGRES_USER: ${POSTGRES_USER:-quezap}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD doit être défini dans .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
     volumes:
       - quezap_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -59,8 +59,8 @@ services:
       RUSTFS_ADDRESS: "0.0.0.0:9000"
       RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
       RUSTFS_CONSOLE_ENABLE: ${RUSTFS_CONSOLE_ENABLE:-false}
-      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY doit être défini dans .env}
-      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY doit être défini dans .env}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY must be set in .env}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set in .env}
       RUSTFS_VOLUMES: "/data"
       RUSTFS_OBS_LOGGER_LEVEL: "info"
     expose:
@@ -85,8 +85,8 @@ services:
       rustfs:
         condition: service_healthy
     environment:
-      AWS_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY doit être défini dans .env}
-      AWS_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY doit être défini dans .env}
+      AWS_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY must be set in .env}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set in .env}
       AWS_DEFAULT_REGION: "us-east-1"
       APP_S3_BUCKET_NAME: ${APP_S3_BUCKET_NAME:-quezap-public-images}
     entrypoint:
@@ -95,14 +95,14 @@ services:
       - |
         set -e
         until aws --endpoint-url http://rustfs:9000 s3 ls >/dev/null 2>&1; do
-          echo "En attente de RustFS..."
+          echo "Waiting for RustFS..."
           sleep 2
         done
         aws --endpoint-url http://rustfs:9000 s3 mb "s3://$${APP_S3_BUCKET_NAME}" 2>/dev/null || true
         aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy \
           --bucket "$${APP_S3_BUCKET_NAME}" \
           --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"PublicRead\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::$${APP_S3_BUCKET_NAME}/*\"]}]}"
-        echo "Bucket $${APP_S3_BUCKET_NAME} prêt (lecture publique activée)."
+        echo "Bucket $${APP_S3_BUCKET_NAME} ready (public read enabled)."
     networks:
       - quezap-net
 
@@ -125,14 +125,14 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       APP_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-quezap}
       APP_DB_USERNAME: ${POSTGRES_USER:-quezap}
-      APP_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD doit être défini dans .env}
+      APP_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       APP_S3_HOST: rustfs
       APP_S3_PORT: 9000
       APP_S3_PUBLIC_ENDPOINT: ${APP_PUBLIC_URL:-http://localhost:8000}
       APP_S3_BUCKET_NAME: ${APP_S3_BUCKET_NAME:-quezap-public-images}
-      APP_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY doit être défini dans .env}
-      APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY doit être défini dans .env}
-      APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:?APP_JWT_SECRET_KEY doit être défini dans .env}
+      APP_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY must be set in .env}
+      APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set in .env}
+      APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:?APP_JWT_SECRET_KEY must be set in .env}
       APP_JWT_ISSUER: ${APP_JWT_ISSUER:-quezap.fr}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
     expose:
@@ -178,14 +178,14 @@ services:
     environment:
       APP_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-quezap}
       APP_DB_USERNAME: ${POSTGRES_USER:-quezap}
-      APP_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD doit être défini dans .env}
+      APP_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       APP_S3_HOST: rustfs
       APP_S3_PORT: 9000
       APP_S3_PUBLIC_ENDPOINT: ${APP_PUBLIC_URL:-http://localhost:8000}
       APP_S3_BUCKET_NAME: ${APP_S3_BUCKET_NAME:-quezap-public-images}
-      APP_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY doit être défini dans .env}
-      APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY doit être défini dans .env}
-      APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:?APP_JWT_SECRET_KEY doit être défini dans .env}
+      APP_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY must be set in .env}
+      APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set in .env}
+      APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:?APP_JWT_SECRET_KEY must be set in .env}
       APP_JWT_ISSUER: ${APP_JWT_ISSUER:-quezap.fr}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
     stdin_open: true

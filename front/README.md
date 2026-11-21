@@ -1,59 +1,78 @@
-# Quezap
+# QueZap — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.2.2.
+Angular 22 single-page application (Standalone Components, Zoneless Change Detection, Signals, `@ngrx/signals`, OpenNG Optimus UI v2 MIT, Tailwind CSS v4, PWA Service Worker).
 
-## Development server
+[Root documentation](../README.md)
 
-To start a local development server, run:
+---
 
+## 🔧 Prerequisites
+
+- **Bun** `>= 1.3` (or Node.js `>= 22`)
+- Running backend API on `http://localhost:8080` (or full dev stack via `docker compose -f ../docker-compose.dev.yml up -d`)
+
+---
+
+## 🚀 Quick Start
+
+Install dependencies:
 ```bash
-ng serve
+bun install
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+Start the local development server (`http://localhost:4200`, proxying `/apiv1` to the backend):
 ```bash
-ng generate component component-name
+bun run start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
+## 🔄 OpenAPI SDK Code Generation
+
+All HTTP calls use the generated Hey API TypeScript client and Zod schemas under `src/app/core/api-client/` (`sdk.gen.ts`, `zod.gen.ts`).
+
+After updating backend endpoints or DTOs, regenerate `openapi.json` from `back/` and run:
 ```bash
-ng generate --help
+bun run codegen
 ```
 
-## Building
+---
 
-To build the project run:
+## 🧪 Testing & Linting
 
+Run ESLint (TypeScript/HTML) and Stylelint (CSS):
 ```bash
-ng build
+bun run lint
+bun run lint:ts:fix
+bun run lint:css:fix
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
+Run Jest unit tests (zoneless environment):
 ```bash
-ng test
+bun run test
+# Single spec file:
+bun run test -- src/app/features/admin/themes/components/theme-card/theme-card.spec.ts
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
+Run Playwright end-to-end tests:
 ```bash
-ng e2e
+# Against Docker Compose stack (default http://localhost:8000):
+bun run test:e2e -- --workers=1
+
+# Against local Angular dev server (port 4200):
+PLAYWRIGHT_BASE_URL="http://localhost:4200" bun run test:e2e -- --workers=1
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## 📦 Production Build
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Compile the AOT production bundle and generate the PWA service worker manifest (`dist/quezap/browser`):
+```bash
+bun run build
+```
+
+Run the full frontend quality gate before committing:
+```bash
+bun run lint && bun run test && bun run build
+```

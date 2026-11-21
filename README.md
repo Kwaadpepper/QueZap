@@ -1,35 +1,35 @@
 # QueZap
 
-Le jeu de Quizz pour mon amoureuse et ses élèves.
+Real-time interactive classroom quiz application (projector/host screen + mobile student clients synchronized via Server-Sent Events).
 
 ---
 
-## 🚀 Déploiement Production (NUC / Proxmox + Docker + GraalVM Native)
+## 🚀 Production Deployment (Docker + GraalVM Native + RustFS)
 
-Le fichier [docker-compose.yml](docker-compose.yml) est prêt pour la production :
-- Backend compilé en **binaire natif GraalVM 25** (`back/Dockerfile.native`) : démarrage instantané et faible empreinte RAM.
-- Stockage objet **RustFS** compatible S3 (remplace MinIO) avec initialisation automatique du bucket public et gestion des permissions UID `10001`.
-- **Persistance** des données via les volumes nommés `quezap_postgres_data`, `quezap_rustfs_data` et `quezap_rustfs_logs`.
-- **Isolation réseau** : seul le frontend Nginx est exposé sur l'hôte (`${APP_PORT:-8000}`), PostgreSQL et RustFS restent privés dans `quezap-net`.
-- Rotation automatique des logs Docker (`10 Mo` × 3 fichiers).
+[docker-compose.yml](docker-compose.yml) provides a production-ready stack:
+- **Pre-built `linux/amd64` images** published to GitHub Container Registry (`ghcr.io/kwaadpepper/quezap-backend` & `ghcr.io/kwaadpepper/quezap-frontend`) on every `v*` release tag.
+- **GraalVM 25 native backend** (`back/Dockerfile.native`): instant startup and low memory footprint.
+- **RustFS S3-compatible object storage** with automatic public bucket creation and UID `10001` volume permission setup.
+- **Persistent storage** via named Docker volumes (`quezap_postgres_data`, `quezap_rustfs_data`, `quezap_rustfs_logs`).
+- **Network isolation**: only the Nginx frontend is published on the host (`${APP_PORT:-8000}`); PostgreSQL, RustFS, and the backend remain internal to `quezap-net`.
+- Automatic Docker JSON log rotation (`10m` × 3 files).
 
-### 1. Préparer le fichier `.env`
+### 1. Configure `.env`
+
+Copy the template and replace every `CHANGE_ME_*` placeholder along with `APP_PUBLIC_URL` (for example, `https://quezap.example.com`):
 
 ```bash
 cp .env.example .env
 ```
 
-Éditer `.env` en remplaçant les secrets (`CHANGE_ME_*`) et `APP_PUBLIC_URL` (ex. `https://quezap.fr`).
-Pour générer des secrets robustes :
+Generate strong secrets:
 
 ```bash
-openssl rand -hex 32     # pour APP_JWT_SECRET_KEY
-openssl rand -base64 24  # pour POSTGRES_PASSWORD et RUSTFS_SECRET_KEY
+openssl rand -hex 32     # APP_JWT_SECRET_KEY
+openssl rand -base64 24  # POSTGRES_PASSWORD and RUSTFS_SECRET_KEY
 ```
 
-### 2. Télécharger les images pré-compilées et démarrer la stack
-
-Les images `linux/amd64` (backend natif GraalVM 25 + frontend Angular 22) sont publiées automatiquement sur GitHub Container Registry (`ghcr.io/kwaadpepper/quezap-*`) à chaque tag `v*` :
+### 2. Pull images and start the stack
 
 ```bash
 git pull
@@ -37,88 +37,108 @@ docker compose pull
 docker compose up -d
 ```
 
-> **Note** : Pour recompiler localement au lieu d'utiliser les images GHCR, lance `docker compose up -d --build` (prévoir ~4 à 8 Go de RAM pour la compilation native GraalVM dans `back/Dockerfile.native`). Une fois compilée, l'image finale repose sur `oraclelinux:9-slim` et ne contient plus ni JDK ni Gradle.
+To build locally instead of pulling from GHCR, run `docker compose up -d --build` (allow 6–8 GB of RAM for the GraalVM native compilation in `back/Dockerfile.native`, or switch `dockerfile` to `Dockerfile` to run on the JVM).
 
-### 🌐 Ports exposés en production
+### 3. Create the first teacher account
 
-| Service | Port hôte | Description |
+- **Web UI**: open the application, click **Créer une partie**, and register with an email and password.
+- **REST API**:
+  ```bash
+  curl -fsS -X POST http://127.0.0.1:8000/apiv1/users \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Admin","email":"admin@example.com","password":"StrongPassword#2026"}'
+  ```
+- **Admin CLI**:
+  ```bash
+  docker compose --profile cli run --rm cli
+  # Inside Spring Shell:
+  users add --name Admin --email admin@example.com
+  ```
+
+### Exposed Ports (Production)
+
+| Service | Host Port | Description |
 | :--- | :--- | :--- |
-| **Frontend** (`frontend`) | `${APP_PORT:-8000}` | Application Angular servie par Nginx (reverse proxy `/apiv1/` + SSE + images RustFS `/quezap-public-images/`) |
-| **Backend Native** (`backend`) | *Non exposé* | Binaire natif GraalVM 25 accessible uniquement dans `quezap-net` |
-| **BDD** (`postgres`) | *Non exposé* | PostgreSQL 17 persistant (`quezap_postgres_data`) |
-| **RustFS** (`rustfs`) | *Non exposé* | Stockage S3 persistant (`quezap_rustfs_data`), images servies via Nginx |
+| **Frontend** (`frontend`) | `${APP_PORT:-8000}` | Angular SPA served by Nginx (reverse proxies `/apiv1/` with SSE streaming and `/quezap-public-images/` to RustFS) |
+| **Backend Native** (`backend`) | *Internal only* | GraalVM 25 native binary reachable only inside `quezap-net` |
+| **Database** (`postgres`) | *Internal only* | Persistent PostgreSQL 17 (`quezap_postgres_data`) |
+| **Object Storage** (`rustfs`) | *Internal only* | Persistent S3 storage (`quezap_rustfs_data`), public images served through Nginx |
+
+> **Reverse proxy note (Traefik / Nginx / Caddy)**: disable response buffering and compression on `/apiv1/` so Server-Sent Events (SSE) stream in real time, and allow request bodies up to at least `10 MB` for image uploads.
 
 ---
 
-## 💻 Développement local (`docker-compose.dev.yml`)
+## 💻 Local Development (`docker-compose.dev.yml`)
 
-Le fichier [docker-compose.dev.yml](docker-compose.dev.yml) fonctionne sans `.env` (valeurs par défaut alignées sur `application.yml`) et utilise un build JVM rapide (`back/Dockerfile`) :
+[docker-compose.dev.yml](docker-compose.dev.yml) requires no `.env` file (defaults match `back/quezap-api/src/main/resources/application.yml`) and uses a fast JVM backend image (`back/Dockerfile`):
 
 ```bash
-# Option A : Lancer uniquement PostgreSQL + RustFS (pour dev local bootRun + bun run start)
+# Option A: Start infrastructure only (to run backend via bootRun and frontend via bun run start)
 docker compose -f docker-compose.dev.yml up -d postgres rustfs rustfs-init
 
-# Option B : Lancer toute la stack conteneurisée en mode JVM
+# Option B: Start the full containerized stack in JVM mode
 docker compose -f docker-compose.dev.yml up -d --build
 ```
 
-### Ports exposés en développement
+### Exposed Ports (Development)
 
-| Service | Port hôte | Description |
+| Service | Host Port | Description |
 | :--- | :--- | :--- |
-| **Frontend** (`frontend`) | `http://localhost:8000` | Application Angular via Nginx |
-| **PostgreSQL** (`postgres`) | `5432` | Accès local direct (`quezap` / `quezap_password`) |
-| **RustFS API S3** (`rustfs`) | `http://localhost:9190` | API S3 (évite les conflits sur le port `9000`) |
-| **RustFS Console** (`rustfs`) | `http://localhost:9191` | Interface web d'administration RustFS (`quezap_java_writer` / `LocalPassword`) |
+| **Frontend** (`frontend`) | `http://localhost:8000` | Angular application via Nginx |
+| **PostgreSQL** (`postgres`) | `5432` | Direct database access (`quezap` / `quezap_password`) |
+| **RustFS S3 API** (`rustfs`) | `http://localhost:9190` | S3 API (mapped from `9000` to avoid local port conflicts) |
+| **RustFS Console** (`rustfs`) | `http://localhost:9191` | RustFS admin UI (`quezap_java_writer` / `LocalPassword`) |
 
 ---
 
-## 🌱 Peupler la base de données (Seeding)
+## 🌱 Seed Sample Data
 
 ```bash
-# En développement :
+# Development:
 docker compose -f docker-compose.dev.yml --profile seed run --rm seed
 
-# En production (si souhaité pour un premier jeu de démonstration) :
+# Production (optional demo dataset; remove or change the demo account afterwards):
 docker compose --profile seed run --rm seed
 ```
 
-Identifiants admin créés par `seed.sh` :
-- **Identifiant** : `admin@quezap.com`
-- **Mot de passe** : `Password123!`
+Default admin credentials created by `seed.sh`:
+- **Email**: `admin@quezap.com`
+- **Password**: `Password123!`
 
-## 🔧 CLI d'administration
+---
+
+## 🔧 Admin CLI
 
 ```bash
-# En développement :
+# Development:
 docker compose -f docker-compose.dev.yml --profile cli run --rm cli
 
-# En production :
+# Production:
 docker compose --profile cli run --rm cli
 ```
 
-## 🛑 Arrêt & Sauvegarde
+---
+
+## 🛑 Stop & Backup
 
 ```bash
-# Arrêter les conteneurs en conservant les données persistantes
+# Stop containers while preserving persistent volumes
 docker compose down
 
-# Sauvegarder la base PostgreSQL à chaud
+# Hot-backup PostgreSQL database
 docker exec quezap-postgres pg_dump -U quezap quezap > backup_quezap_$(date +%F).sql
 
-# Supprimer conteneurs ET volumes de données (irréversible)
+# Remove containers AND data volumes (irreversible)
 docker compose down -v
 ```
 
 ---
 
-## 🛠️ Stack technique
+## 🛠️ Tech Stack & Module Documentation
 
-- **Backend** : Spring Boot 3.5+ (Java 25 / GraalVM 25 Native), architecture hexagonale & DDD, Spring Security, S3 (RustFS), PostgreSQL 17.
-- **Frontend** : Angular 22, Tailwind CSS v4, Nginx, PWA / Service Worker, SSE (Server-Sent Events).
+- **Backend**: Spring Boot 3.5.16 (Java 25 / GraalVM 25 Native), DDD & Hexagonal Architecture, Spring Security (JWT + Argon2), RustFS S3, PostgreSQL 17 → [back/README.md](back/README.md)
+- **Frontend**: Angular 22 (Standalone, Zoneless, Signals), `@ngrx/signals`, OpenNG Optimus UI v2 (MIT), Tailwind CSS v4, PWA Service Worker, SSE → [front/README.md](front/README.md)
 
-Documentation détaillée du backend : [back/README.md](back/README.md)
+## 🌍 Self-Hosting
 
-## 🌍 Hébergement
-
-Auto-hébergé sur <https://quezap.fr> (Docker + backend compilé nativement avec GraalVM 25).
+Self-hosted at <https://quezap.fr> using Docker Compose and a GraalVM 25 native backend.
