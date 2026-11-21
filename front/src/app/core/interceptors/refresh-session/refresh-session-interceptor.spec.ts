@@ -65,7 +65,17 @@ describe('refreshSessionInterceptor', () => {
 
     const req = httpMock.expectOne('/apiv1/quezaps')
     expect(req.request.headers.get('Authorization')).toBe(`Bearer ${oldTokens.accessToken}`)
+    expect(req.request.withCredentials).toBe(true)
     req.flush([])
+  })
+
+  it('should set withCredentials on API requests even without accessToken', () => {
+    http.post('/apiv1/auth/login', {}).subscribe()
+
+    const req = httpMock.expectOne('/apiv1/auth/login')
+    expect(req.request.withCredentials).toBe(true)
+    expect(req.request.headers.has('Authorization')).toBe(false)
+    req.flush({})
   })
 
   it('should NOT attach Authorization header or refresh on 401 for external URLs', () => {
@@ -80,6 +90,7 @@ describe('refreshSessionInterceptor', () => {
 
     const req = httpMock.expectOne('https://evil.example/apiv1/quezaps')
     expect(req.request.headers.has('Authorization')).toBe(false)
+    expect(req.request.withCredentials).toBe(false)
     req.flush({}, { status: 401, statusText: 'Unauthorized' })
 
     expect(mockStore.refresh).not.toHaveBeenCalled()

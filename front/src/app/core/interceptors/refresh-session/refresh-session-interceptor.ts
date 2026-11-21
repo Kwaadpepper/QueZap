@@ -30,7 +30,10 @@ function isApiRequest(requestUrl: string, apiUrl: string): boolean {
 }
 
 function cloneRequestWithAuthHeader(req: HttpRequest<unknown>, tokens: AuthTokens) {
-  return req.clone({ setHeaders: { Authorization: `Bearer ${tokens.accessToken}` } })
+  return req.clone({
+    withCredentials: true,
+    setHeaders: { Authorization: `Bearer ${tokens.accessToken}` },
+  })
 }
 
 export const refreshSessionInterceptor: HttpInterceptorFn = (req, next) => {
@@ -44,9 +47,9 @@ export const refreshSessionInterceptor: HttpInterceptorFn = (req, next) => {
 
   const requestTokens = store.currentTokens()
 
-  if (requestTokens?.accessToken && !req.context.get(IS_REFRESHING_ACCESS_TOKEN)) {
-    req = cloneRequestWithAuthHeader(req, requestTokens)
-  }
+  req = requestTokens?.accessToken && !req.context.get(IS_REFRESHING_ACCESS_TOKEN)
+    ? cloneRequestWithAuthHeader(req, requestTokens)
+    : req.clone({ withCredentials: true })
 
   return next(req).pipe(
     catchError((error: unknown) => {
