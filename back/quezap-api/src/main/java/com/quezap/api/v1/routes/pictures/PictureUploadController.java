@@ -22,6 +22,7 @@ import com.quezap.domain.models.valueobjects.pictures.PictureUploadData;
 import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.domain.ports.services.QuestionPictureManager;
 import com.quezap.domain.ports.services.StagedPictureManager;
+import com.quezap.domain.ports.services.StagedPictureManager.StagedPictureQuotaExceededException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,15 @@ public class PictureUploadController {
     }
 
     final var currentUserId = getCurrentUserId();
+    if (stagedPictureManager.countActiveStagedPictures(currentUserId)
+        >= StagedPictureManager.MAX_ACTIVE_STAGED_PICTURES_PER_USER) {
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS,
+          "Staged picture upload quota exceeded (max "
+              + StagedPictureManager.MAX_ACTIVE_STAGED_PICTURES_PER_USER
+              + " active pictures)");
+    }
+
     final var mimeType = validatorService.validateAndGetMimeType(file);
     final var pictureType = PictureType.fromMimeType(mimeType);
 
@@ -75,6 +85,9 @@ public class PictureUploadController {
                 stored.objectKey(), pictureUrl, currentUserId, null);
 
         return new PictureUploadResponseDto(pictureUrl, stored.objectKey(), staged.expiresAt());
+      } catch (StagedPictureQuotaExceededException e) {
+        compensateS3Upload(stored.objectKey());
+        throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, e.getMessage(), e);
       } catch (RuntimeException e) {
         compensateS3Upload(stored.objectKey());
         throw e;

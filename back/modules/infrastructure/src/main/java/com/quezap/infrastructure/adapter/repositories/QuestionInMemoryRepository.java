@@ -52,6 +52,7 @@ public class QuestionInMemoryRepository implements QuestionRepository, DataSourc
         question.getPicture(),
         question.getTheme(),
         Set.copyOf(question.getAnswers()),
-        question.getUpdatedAt());
+        question.getUpdatedAt(),
+        question.getAuthorId());
   }
 }

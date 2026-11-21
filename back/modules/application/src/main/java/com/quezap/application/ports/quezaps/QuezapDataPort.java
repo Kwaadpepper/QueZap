@@ -51,9 +51,19 @@ public interface QuezapDataPort {
 
   boolean questionHasAnswers(UUID questionId);
 
+  QuestionAccessStatus checkQuestionAccess(UUID questionId, UUID userId);
+
+  long countQuezapsReferencingQuestion(UUID questionId);
+
   boolean isPictureReferenced(Collection<String> pictureCandidates);
 
   void flush();
+
+  enum QuestionAccessStatus {
+    OWNED,
+    PUBLIC_CLONE_REQUIRED,
+    FORBIDDEN
+  }
 
   record UserSummary(UUID id, String name) {}
 

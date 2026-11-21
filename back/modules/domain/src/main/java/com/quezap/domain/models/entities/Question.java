@@ -9,6 +9,7 @@ import com.quezap.domain.events.questions.QuestionDeleted;
 import com.quezap.domain.models.valueobjects.Answer;
 import com.quezap.domain.models.valueobjects.identifiers.QuestionId;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.domain.models.valueobjects.pictures.Picture;
 import com.quezap.domain.models.valueobjects.questions.QuestionType;
 import com.quezap.lib.ddd.AggregateRoot;
@@ -26,6 +27,7 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
   private final @Nullable Picture picture;
   private final ThemeId theme;
   private final Set<Answer> answers;
+  private final @Nullable UserId authorId;
   private TimelinePoint updatedAt;
 
   private static void validateCommonInvariants(
@@ -117,6 +119,16 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
       @Nullable Picture picture,
       ThemeId theme,
       Set<Answer> answers) {
+    this(type, value, picture, theme, answers, null);
+  }
+
+  public Question(
+      QuestionType type,
+      String value,
+      @Nullable Picture picture,
+      ThemeId theme,
+      Set<Answer> answers,
+      @Nullable UserId authorId) {
     super();
     validateCommonInvariants(type, value, answers);
     this.type = type;
@@ -124,6 +136,7 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
     this.picture = picture;
     this.theme = theme;
     this.answers = new HashSet<>(answers);
+    this.authorId = authorId;
     this.updatedAt = TimelinePoint.now();
   }
 
@@ -135,6 +148,18 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
       ThemeId theme,
       Set<Answer> answers,
       TimelinePoint updatedAt) {
+    this(id, type, value, picture, theme, answers, updatedAt, null);
+  }
+
+  protected Question(
+      QuestionId id,
+      QuestionType type,
+      String value,
+      @Nullable Picture picture,
+      ThemeId theme,
+      Set<Answer> answers,
+      TimelinePoint updatedAt,
+      @Nullable UserId authorId) {
     super(id.value());
     validateCommonInvariants(type, value, answers);
     this.type = type;
@@ -142,6 +167,7 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
     this.picture = picture;
     this.theme = theme;
     this.answers = new HashSet<>(answers);
+    this.authorId = authorId;
     this.updatedAt = updatedAt;
   }
 
@@ -153,7 +179,19 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
       ThemeId theme,
       Set<Answer> answers,
       TimelinePoint updatedAt) {
-    return new Question(id, type, value, picture, theme, answers, updatedAt);
+    return hydrate(id, type, value, picture, theme, answers, updatedAt, null);
+  }
+
+  public static Question hydrate(
+      QuestionId id,
+      QuestionType type,
+      String value,
+      @Nullable Picture picture,
+      ThemeId theme,
+      Set<Answer> answers,
+      TimelinePoint updatedAt,
+      @Nullable UserId authorId) {
+    return new Question(id, type, value, picture, theme, answers, updatedAt, authorId);
   }
 
   // * PROPERTIES
@@ -181,6 +219,10 @@ public class Question extends AggregateRoot<QuestionId> implements TracksUpdated
 
   public Set<Answer> getAnswers() {
     return Set.copyOf(answers);
+  }
+
+  public @Nullable UserId getAuthorId() {
+    return authorId;
   }
 
   @Override

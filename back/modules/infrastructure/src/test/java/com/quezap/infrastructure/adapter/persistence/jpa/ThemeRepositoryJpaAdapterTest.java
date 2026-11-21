@@ -17,6 +17,7 @@ import com.quezap.domain.models.entities.Theme;
 import com.quezap.domain.models.valueobjects.SearchQuery;
 import com.quezap.domain.models.valueobjects.ThemeName;
 import com.quezap.domain.models.valueobjects.identifiers.ThemeId;
+import com.quezap.domain.models.valueobjects.identifiers.UserId;
 import com.quezap.infrastructure.adapter.persistence.jpa.adapters.ThemeRepositoryJpaAdapter;
 import com.quezap.infrastructure.adapter.persistence.jpa.entities.ThemeJpaEntity;
 import com.quezap.infrastructure.adapter.persistence.jpa.mappers.ThemeJpaMapper;
@@ -88,5 +89,22 @@ class ThemeRepositoryJpaAdapterTest {
 
     assertThat(result.items()).hasSize(1);
     assertThat(result.items().get(0).name().value()).isEqualTo("History");
+  }
+
+  @Test
+  void shouldPersistAndFindCreatedBy() {
+    final var creator = new UserId(UuidV7.randomUuid());
+    final var theme = new Theme(new ThemeName("Music"), creator);
+
+    adapter.persist(theme);
+    final var captor = org.mockito.ArgumentCaptor.forClass(ThemeJpaEntity.class);
+    verify(themeJpaRepository).save(captor.capture());
+    assertThat(captor.getValue().getCreatedBy()).isEqualTo(creator.value());
+
+    when(themeJpaRepository.findById(theme.getId().value()))
+        .thenReturn(Optional.of(captor.getValue()));
+    final var found = adapter.find(theme.getId());
+    assertThat(found).isPresent();
+    assertThat(found.get().getCreatedBy()).isEqualTo(creator);
   }
 }

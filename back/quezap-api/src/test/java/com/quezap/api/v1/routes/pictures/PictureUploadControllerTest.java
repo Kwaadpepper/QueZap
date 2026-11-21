@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +31,7 @@ import com.quezap.domain.ports.repositories.UserRepository;
 import com.quezap.domain.ports.services.QuestionPictureManager;
 import com.quezap.domain.ports.services.StagedPictureManager;
 import com.quezap.domain.ports.services.StagedPictureManager.StagedPictureInfo;
+import com.quezap.domain.ports.services.StagedPictureManager.StagedPictureQuotaExceededException;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.utils.UuidV7;
 
@@ -144,5 +146,40 @@ class PictureUploadControllerTest {
     assertThatThrownBy(() -> controller.upload(file))
         .isInstanceOf(ResponseStatusException.class)
         .hasFieldOrPropertyWithValue("status", HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  void shouldRejectWithTooManyRequestsWhenUploadQuotaExceeded() {
+    final var bytes = "fake-png-content".getBytes(StandardCharsets.UTF_8);
+    final var file = new MockMultipartFile("file", "test.png", "image/png", bytes);
+    when(stagedPictureManager.countActiveStagedPictures(userId))
+        .thenReturn((long) StagedPictureManager.MAX_ACTIVE_STAGED_PICTURES_PER_USER);
+
+    assertThatThrownBy(() -> controller.upload(file))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("status", HttpStatus.TOO_MANY_REQUESTS);
+
+    verify(questionPictureManager, never()).store(any());
+  }
+
+  @Test
+  void shouldCompensateS3AndReturnTooManyRequestsOnRaceQuotaExceeded() {
+    final var bytes = "fake-png-content".getBytes(StandardCharsets.UTF_8);
+    final var file = new MockMultipartFile("file", "test.png", "image/png", bytes);
+    when(validatorService.validateAndGetMimeType(file)).thenReturn("image/png");
+
+    final var objectKey = "pictures/questions/" + UuidV7.randomUuid() + ".png";
+    final var publicUrl = "/quezap-public-images/" + objectKey;
+    final var storedPicture = new Picture(objectKey, PictureType.PNG, new Sha256Hash(new byte[32]));
+    when(questionPictureManager.store(any())).thenReturn(storedPicture);
+    when(stagedPictureManager.toPublicUrl(objectKey)).thenReturn(publicUrl);
+    when(stagedPictureManager.registerStagedPicture(any(), any(), any(), any()))
+        .thenThrow(new StagedPictureQuotaExceededException("Quota exceeded"));
+
+    assertThatThrownBy(() -> controller.upload(file))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("status", HttpStatus.TOO_MANY_REQUESTS);
+
+    verify(questionPictureManager).removeByObjectKey(objectKey);
   }
 }

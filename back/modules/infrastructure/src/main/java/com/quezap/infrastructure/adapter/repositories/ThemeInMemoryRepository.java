@@ -42,6 +42,6 @@ public class ThemeInMemoryRepository implements ThemeRepository, DataSource<Them
   }
 
   private Theme clone(Theme theme) {
-    return Theme.hydrate(theme.getId(), theme.getName());
+    return Theme.hydrate(theme.getId(), theme.getName(), theme.getCreatedBy());
   }
 }

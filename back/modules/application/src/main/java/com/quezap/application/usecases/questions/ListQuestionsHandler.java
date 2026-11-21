@@ -28,7 +28,11 @@ final class ListQuestionsHandler implements ListQuestionsUsecase {
 
   private Output listPerPage(Input.PerPage input) {
     final var page = input.page();
-    final var questionPage = questionDirectory.paginate(page);
+    final var requesterId = input.requesterId();
+    final var questionPage =
+        requesterId != null
+            ? questionDirectory.paginateForUser(page, requesterId)
+            : questionDirectory.paginate(page);
 
     return new Output(questionPage.<Output.QuestionDto>map(this::toDto));
   }
@@ -36,7 +40,11 @@ final class ListQuestionsHandler implements ListQuestionsUsecase {
   private Output listWithThemes(Input.WithThemes input) {
     final var page = input.page();
     final var themes = input.themes();
-    final var questionPage = questionDirectory.paginateWithThemes(page, themes);
+    final var requesterId = input.requesterId();
+    final var questionPage =
+        requesterId != null
+            ? questionDirectory.paginateWithThemesForUser(page, themes, requesterId)
+            : questionDirectory.paginateWithThemes(page, themes);
 
     return new Output(questionPage.<Output.QuestionDto>map(this::toDto));
   }
@@ -44,7 +52,11 @@ final class ListQuestionsHandler implements ListQuestionsUsecase {
   private Output listSearching(Input.Searching input) {
     final var page = input.page();
     final var search = input.search();
-    final var questionPage = questionDirectory.paginateSearching(page, search);
+    final var requesterId = input.requesterId();
+    final var questionPage =
+        requesterId != null
+            ? questionDirectory.paginateSearchingForUser(page, search, requesterId)
+            : questionDirectory.paginateSearching(page, search);
 
     return new Output(questionPage.<Output.QuestionDto>map(this::toDto));
   }
@@ -53,7 +65,12 @@ final class ListQuestionsHandler implements ListQuestionsUsecase {
     final var page = input.page();
     final var search = input.search();
     final var themes = input.themes();
-    final var questionPage = questionDirectory.paginateSearchingWithThemes(page, search, themes);
+    final var requesterId = input.requesterId();
+    final var questionPage =
+        requesterId != null
+            ? questionDirectory.paginateSearchingWithThemesForUser(
+                page, search, themes, requesterId)
+            : questionDirectory.paginateSearchingWithThemes(page, search, themes);
 
     return new Output(questionPage.<Output.QuestionDto>map(this::toDto));
   }

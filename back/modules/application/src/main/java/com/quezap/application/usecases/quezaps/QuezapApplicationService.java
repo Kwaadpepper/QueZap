@@ -63,7 +63,7 @@ public class QuezapApplicationService {
     }
 
     final var inlinePictureUrls = new LinkedHashSet<String>();
-    final var validatedSlides = validateAndNormalizeSlides(slides, inlinePictureUrls);
+    final var validatedSlides = validateAndNormalizeSlides(slides, inlinePictureUrls, author.id());
 
     final var saved =
         quezapDataPort.create(author.id(), title, description, isPublic, validatedSlides);
@@ -170,7 +170,9 @@ public class QuezapApplicationService {
 
     final var inlinePictureUrls = new LinkedHashSet<String>();
     final @Nullable List<SlideInput> validatedSlides =
-        slides != null ? validateAndNormalizeSlides(slides, inlinePictureUrls) : null;
+        slides != null
+            ? validateAndNormalizeSlides(slides, inlinePictureUrls, currentUser.id())
+            : null;
 
     final var saved = quezapDataPort.update(id, title, description, isPublic, validatedSlides);
     final var currentUrls = saved.pictureUrls();
@@ -210,7 +212,8 @@ public class QuezapApplicationService {
 
     final var order = existing.slides().size() + 1;
     final var inlinePictureUrls = new LinkedHashSet<String>();
-    final var validatedSlide = validateAndNormalizeSlide(slide, order, inlinePictureUrls);
+    final var validatedSlide =
+        validateAndNormalizeSlide(slide, order, inlinePictureUrls, currentUser.id());
 
     quezapDataPort.addQuestion(id, validatedSlide);
     claimNewlyAttachedPictures(inlinePictureUrls, previousUrls, currentUser.id());
@@ -231,17 +234,18 @@ public class QuezapApplicationService {
   }
 
   private List<SlideInput> validateAndNormalizeSlides(
-      List<SlideInput> slides, Set<String> collectedInlinePictureUrls) {
+      List<SlideInput> slides, Set<String> collectedInlinePictureUrls, UUID currentUserId) {
     final var validated = new ArrayList<SlideInput>(slides.size());
     var order = 1;
     for (final var slide : slides) {
-      validated.add(validateAndNormalizeSlide(slide, order++, collectedInlinePictureUrls));
+      validated.add(
+          validateAndNormalizeSlide(slide, order++, collectedInlinePictureUrls, currentUserId));
     }
     return validated;
   }
 
   private SlideInput validateAndNormalizeSlide(
-      SlideInput slide, int order, Set<String> collectedInlinePictureUrls) {
+      SlideInput slide, int order, Set<String> collectedInlinePictureUrls, UUID currentUserId) {
     if (slide.question() != null) {
       final var q = slide.question();
       final var answers = q.answers();
@@ -284,6 +288,10 @@ public class QuezapApplicationService {
       }
       if (!quezapDataPort.questionHasAnswers(slide.questionId())) {
         throw new QuezapBadRequestException("Question #" + order + " has no answers");
+      }
+      final var access = quezapDataPort.checkQuestionAccess(slide.questionId(), currentUserId);
+      if (access == QuezapDataPort.QuestionAccessStatus.FORBIDDEN) {
+        throw new QuezapForbiddenException("Access denied to question: " + slide.questionId());
       }
       return slide;
     }

@@ -14,7 +14,10 @@ import org.jspecify.annotations.Nullable;
 @Entity
 @Table(
     name = "themes",
-    indexes = {@Index(name = "idx_themes_name", columnList = "name", unique = true)})
+    indexes = {
+      @Index(name = "idx_themes_name", columnList = "name", unique = true),
+      @Index(name = "idx_themes_created_by", columnList = "created_by")
+    })
 public class ThemeJpaEntity {
 
   @Id
@@ -23,6 +26,9 @@ public class ThemeJpaEntity {
 
   @Column(name = "name", nullable = false, length = 100, unique = true)
   private String name;
+
+  @Column(name = "created_by")
+  private @Nullable UUID createdBy;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
@@ -33,9 +39,14 @@ public class ThemeJpaEntity {
   }
 
   public ThemeJpaEntity(UUID id, String name, Instant createdAt) {
+    this(id, name, createdAt, null);
+  }
+
+  public ThemeJpaEntity(UUID id, String name, Instant createdAt, @Nullable UUID createdBy) {
     this.id = id;
     this.name = name;
     this.createdAt = createdAt;
+    this.createdBy = createdBy;
   }
 
   public UUID getId() {
@@ -52,6 +63,14 @@ public class ThemeJpaEntity {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public @Nullable UUID getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(@Nullable UUID createdBy) {
+    this.createdBy = createdBy;
   }
 
   public Instant getCreatedAt() {
