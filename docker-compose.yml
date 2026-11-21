@@ -157,6 +157,11 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-QueZap}
+      APP_AUTHOR_NAME: ${APP_AUTHOR_NAME:-Author User}
+      APP_AUTHOR_EMAIL: ${APP_AUTHOR_EMAIL:-author@example.net}
+      APP_API_URL: ${APP_API_URL:-/apiv1}
     ports:
       - "${APP_PORT:-8000}:80"
     networks:

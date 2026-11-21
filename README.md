@@ -16,7 +16,7 @@ Real-time interactive classroom quiz application (projector/host screen + mobile
 
 ### 1. Configure `.env`
 
-Copy the template and replace every `CHANGE_ME_*` placeholder along with `APP_PUBLIC_URL` (for example, `https://quezap.example.com`):
+Copy the template and replace every `CHANGE_ME_*` placeholder along with `APP_PUBLIC_URL` (for example, `https://quezap.example.com`) and optional frontend branding overrides (`APP_NAME`, `APP_AUTHOR_NAME`, `APP_AUTHOR_EMAIL`, `APP_API_URL` — injected at container startup via `/config.json` with no image rebuild):
 
 ```bash
 cp .env.example .env
