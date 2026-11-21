@@ -4,13 +4,16 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,13 +21,13 @@ import org.springframework.web.server.ResponseStatusException;
 import com.quezap.api.v1.dto.request.auth.ActivateRequest;
 import com.quezap.api.v1.dto.request.auth.ForgottenPasswordRequest;
 import com.quezap.api.v1.dto.request.auth.LoginRequest;
-import com.quezap.api.v1.dto.request.auth.LogoutRequest;
-import com.quezap.api.v1.dto.request.auth.RefreshTokenRequest;
 import com.quezap.api.v1.dto.request.auth.ResetPasswordRequest;
+import com.quezap.api.v1.dto.request.auth.VerifyResetTokenRequest;
 import com.quezap.api.v1.dto.response.auth.LoginResponseDto;
 import com.quezap.api.v1.dto.response.auth.MessageResponseDto;
 import com.quezap.api.v1.dto.response.auth.RefreshTokenResponseDto;
 import com.quezap.api.v1.dto.response.users.UserSummaryDto;
+import com.quezap.api.v1.security.ClientIpResolver;
 import com.quezap.api.v1.security.LoginRateLimiter;
 import com.quezap.api.v1.security.RefreshTokenRevocationStore;
 import com.quezap.api.v1.services.AccountEmailService;
@@ -51,6 +54,7 @@ import com.quezap.lib.ddd.exceptions.IllegalDomainStateException;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -60,10 +64,13 @@ import org.slf4j.LoggerFactory;
 @RequestMapping("apiv1/auth")
 public class AuthController {
 
+  public static final String REFRESH_TOKEN_COOKIE_NAME = "quezap_refresh_token";
   private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
   private static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 3600L; // 1 hour
   private static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 60L * 60L * 24L * 30L; // 30 days
   private static final long RESET_TOKEN_EXPIRATION_SECONDS = 60L * 30L; // 30 minutes
+  private static final int FORGOTTEN_PASSWORD_MAX_ATTEMPTS = 5;
+  private static final long FORGOTTEN_PASSWORD_WINDOW_SECONDS = 60L;
 
   private final UsecaseExecutor executor;
   private final AuthenticateUserUsecase authenticateUserUsecase;
@@ -76,6 +83,7 @@ public class AuthController {
   private final LoginRateLimiter loginRateLimiter;
   private final @Nullable TurnstileService turnstileService;
   private final @Nullable AccountEmailService accountEmailService;
+  private final boolean cookieSecure;
 
   @Autowired
   public AuthController(
@@ -89,7 +97,8 @@ public class AuthController {
       RefreshTokenRevocationStore revocationStore,
       LoginRateLimiter loginRateLimiter,
       TurnstileService turnstileService,
-      AccountEmailService accountEmailService) {
+      AccountEmailService accountEmailService,
+      @Value("${app.cookie.secure:false}") boolean cookieSecure) {
     this.executor = executor;
     this.authenticateUserUsecase = authenticateUserUsecase;
     this.findUserUsecase = findUserUsecase;
@@ -101,6 +110,7 @@ public class AuthController {
     this.loginRateLimiter = loginRateLimiter;
     this.turnstileService = turnstileService;
     this.accountEmailService = accountEmailService;
+    this.cookieSecure = cookieSecure;
   }
 
   public AuthController(
@@ -121,6 +131,7 @@ public class AuthController {
     this.loginRateLimiter = loginRateLimiter;
     this.turnstileService = null;
     this.accountEmailService = null;
+    this.cookieSecure = false;
   }
 
   public AuthController(
@@ -137,9 +148,21 @@ public class AuthController {
         new LoginRateLimiter());
   }
 
+  public LoginResponseDto login(LoginRequest request) {
+    return login(request, null, null);
+  }
+
+  public LoginResponseDto login(LoginRequest request, @Nullable HttpServletRequest httpRequest) {
+    return login(request, httpRequest, null);
+  }
+
   @PostMapping("login")
-  public LoginResponseDto login(@Valid @RequestBody LoginRequest request) {
-    if (loginRateLimiter.isRateLimited(request.identifier())) {
+  public LoginResponseDto login(
+      @Valid @RequestBody LoginRequest request,
+      @Nullable HttpServletRequest httpRequest,
+      @Nullable HttpServletResponse httpResponse) {
+    final var clientIp = ClientIpResolver.resolve(httpRequest);
+    if (loginRateLimiter.isLoginRateLimited(clientIp, request.identifier())) {
       throw new ResponseStatusException(
           HttpStatus.TOO_MANY_REQUESTS, "Too many failed login attempts. Please try again later.");
     }
@@ -158,17 +181,18 @@ public class AuthController {
             "Account is not activated. Please check your email for the activation link.",
             e);
       }
-      loginRateLimiter.recordFailure(request.identifier());
+      loginRateLimiter.recordLoginFailure(clientIp, request.identifier());
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials", e);
     } catch (IllegalDomainStateException e) {
-      loginRateLimiter.recordFailure(request.identifier());
+      loginRateLimiter.recordLoginFailure(clientIp, request.identifier());
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials", e);
     }
 
-    loginRateLimiter.reset(request.identifier());
+    loginRateLimiter.resetLogin(clientIp, request.identifier());
 
     final var userId = authenticatedUser.id().value();
     final var userName = authenticatedUser.name();
+    final var passwordFingerprint = resolvePasswordFingerprint(authenticatedUser.id());
 
     try {
       final var exp = Instant.now().getEpochSecond() + ACCESS_TOKEN_EXPIRATION_SECONDS;
@@ -180,16 +204,18 @@ public class AuthController {
 
       final var accessToken = jwtService.generateToken(payload);
       final var refreshExp = Instant.now().getEpochSecond() + REFRESH_TOKEN_EXPIRATION_SECONDS;
-      final var refreshPayload =
+      final var refreshBuilder =
           JwtToken.JwtPayload.builder(userId.toString(), refreshExp)
               .jwtId(UUID.randomUUID().toString())
-              .claim("type", "refresh")
-              .build();
-      final var refreshToken = jwtService.generateToken(refreshPayload);
+              .claim("type", "refresh");
+      if (passwordFingerprint != null) {
+        refreshBuilder.claim("fp", passwordFingerprint);
+      }
+      final var refreshToken = jwtService.generateToken(refreshBuilder.build());
+      addRefreshCookie(httpResponse, refreshToken, REFRESH_TOKEN_EXPIRATION_SECONDS);
 
       return new LoginResponseDto(
           accessToken,
-          refreshToken,
           "Bearer",
           ACCESS_TOKEN_EXPIRATION_SECONDS,
           new UserSummaryDto(userId, userName));
@@ -221,8 +247,13 @@ public class AuthController {
   }
 
   @PostMapping("refresh")
-  public RefreshTokenResponseDto refresh(@Valid @RequestBody RefreshTokenRequest request) {
-    final var rawRefreshToken = request.refreshToken();
+  public RefreshTokenResponseDto refresh(
+      @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false)
+          @Nullable String rawRefreshToken,
+      @Nullable HttpServletResponse httpResponse) {
+    if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is missing");
+    }
     if (revocationStore.isRevoked(rawRefreshToken)) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token has been revoked");
     }
@@ -242,6 +273,18 @@ public class AuthController {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found", e);
       }
 
+      String passwordFingerprint = null;
+      if (findUserCredentialUsecase != null) {
+        passwordFingerprint = resolvePasswordFingerprint(userId);
+        final var tokenFingerprint = validated.customClaims().get("fp");
+        if (passwordFingerprint == null
+            || !(tokenFingerprint instanceof String fp)
+            || !fp.equals(passwordFingerprint)) {
+          throw new ResponseStatusException(
+              HttpStatus.UNAUTHORIZED, "Refresh token is no longer valid");
+        }
+      }
+
       revocationStore.revoke(rawRefreshToken, validated.exp());
 
       final var exp = Instant.now().getEpochSecond() + ACCESS_TOKEN_EXPIRATION_SECONDS;
@@ -253,15 +296,17 @@ public class AuthController {
 
       final var accessToken = jwtService.generateToken(accessPayload);
       final var refreshExp = Instant.now().getEpochSecond() + REFRESH_TOKEN_EXPIRATION_SECONDS;
-      final var refreshPayload =
+      final var refreshBuilder =
           JwtToken.JwtPayload.builder(user.id().value().toString(), refreshExp)
               .jwtId(UUID.randomUUID().toString())
-              .claim("type", "refresh")
-              .build();
-      final var newRefreshToken = jwtService.generateToken(refreshPayload);
+              .claim("type", "refresh");
+      if (passwordFingerprint != null) {
+        refreshBuilder.claim("fp", passwordFingerprint);
+      }
+      final var newRefreshToken = jwtService.generateToken(refreshBuilder.build());
+      addRefreshCookie(httpResponse, newRefreshToken, REFRESH_TOKEN_EXPIRATION_SECONDS);
 
-      return new RefreshTokenResponseDto(
-          accessToken, newRefreshToken, "Bearer", ACCESS_TOKEN_EXPIRATION_SECONDS);
+      return new RefreshTokenResponseDto(accessToken, "Bearer", ACCESS_TOKEN_EXPIRATION_SECONDS);
     } catch (JwtService.JwtException | IllegalArgumentException | IllegalDomainStateException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token", e);
     }
@@ -269,13 +314,19 @@ public class AuthController {
 
   @PostMapping("logout")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void logout(@Valid @RequestBody LogoutRequest request) {
-    try {
-      final var validated = jwtService.validateAndParse(request.refreshToken());
-      revocationStore.revoke(request.refreshToken(), validated.exp());
-    } catch (JwtService.JwtException | IllegalArgumentException e) {
-      // Token is already invalid or expired; logout succeeds idempotently
+  public void logout(
+      @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false)
+          @Nullable String rawRefreshToken,
+      @Nullable HttpServletResponse httpResponse) {
+    if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
+      try {
+        final var validated = jwtService.validateAndParse(rawRefreshToken);
+        revocationStore.revoke(rawRefreshToken, validated.exp());
+      } catch (JwtService.JwtException | IllegalArgumentException e) {
+        // Token is already invalid or expired; logout succeeds idempotently
+      }
     }
+    addRefreshCookie(httpResponse, "", 0L);
   }
 
   @PostMapping("forgotten-password")
@@ -283,8 +334,16 @@ public class AuthController {
   public void forgottenPassword(
       @Valid @RequestBody ForgottenPasswordRequest request,
       @Nullable HttpServletRequest httpRequest) {
+    final var clientIp = ClientIpResolver.resolve(httpRequest);
+    if (!loginRateLimiter.tryAcquire(
+        "forgot", clientIp, FORGOTTEN_PASSWORD_MAX_ATTEMPTS, FORGOTTEN_PASSWORD_WINDOW_SECONDS)) {
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS,
+          "Too many password reset requests. Please try again later.");
+    }
+
     if (turnstileService != null) {
-      turnstileService.verifyOrThrow(request.turnstileToken(), extractClientIp(httpRequest));
+      turnstileService.verifyOrThrow(request.turnstileToken(), clientIp);
     }
 
     if (findUserCredentialUsecase == null || accountEmailService == null) {
@@ -315,16 +374,13 @@ public class AuthController {
     }
   }
 
-  @GetMapping("verify-reset-token")
+  @PostMapping("verify-reset-token")
   @ResponseStatus(HttpStatus.OK)
-  public void verifyResetToken(@RequestParam String token) {
-    if (token == null || token.isBlank()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token is required");
-    }
+  public void verifyResetToken(@Valid @RequestBody VerifyResetTokenRequest request) {
     if (findUserCredentialUsecase == null) {
       return;
     }
-    validatePasswordResetToken(token);
+    validatePasswordResetToken(request.token());
   }
 
   @PostMapping("reset-password")
@@ -386,15 +442,32 @@ public class AuthController {
     }
   }
 
-  private @Nullable String extractClientIp(@Nullable HttpServletRequest request) {
-    if (request == null) {
+  private void addRefreshCookie(
+      @Nullable HttpServletResponse response, String tokenValue, long maxAgeSeconds) {
+    if (response == null) {
+      return;
+    }
+    final var cookie =
+        ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenValue)
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite("Strict")
+            .path("/apiv1/auth")
+            .maxAge(maxAgeSeconds)
+            .build();
+    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+  }
+
+  private @Nullable String resolvePasswordFingerprint(UserId userId) {
+    if (findUserCredentialUsecase == null) {
       return null;
     }
-    final var forwardedFor = request.getHeader("X-Forwarded-For");
-    if (forwardedFor != null && !forwardedFor.isBlank()) {
-      final var commaIndex = forwardedFor.indexOf(',');
-      return (commaIndex > 0 ? forwardedFor.substring(0, commaIndex) : forwardedFor).trim();
+    try {
+      final var credential =
+          executor.execute(findUserCredentialUsecase, new FindUserCredential.Input.ById(userId));
+      return credential.passwordFingerprint();
+    } catch (ApplicationConstraintException e) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found", e);
     }
-    return request.getRemoteAddr();
   }
 }

@@ -1,4 +1,3 @@
 package com.quezap.api.v1.dto.response.auth;
 
-public record RefreshTokenResponseDto(
-    String accessToken, String refreshToken, String tokenType, long expiresIn) {}
+public record RefreshTokenResponseDto(String accessToken, String tokenType, long expiresIn) {}

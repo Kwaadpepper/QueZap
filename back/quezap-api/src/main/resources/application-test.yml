@@ -19,3 +19,9 @@ logging:
 jwt:
   signing-key: 0a7ff964f138ac9f1a2f8e995d49dc7ff52d3a27b97addf86072bfa4ff014dcf
   issuer: example.net
+
+app:
+  security:
+    identifier-pepper: 9f8e7d6c5b4a392817263544536271809f8e7d6c5b4a39281726354453627180
+  cookie:
+    secure: false

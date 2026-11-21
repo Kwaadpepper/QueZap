@@ -6,10 +6,15 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mock.env.MockEnvironment;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 
 class AccountEmailServiceTest {
 
@@ -53,5 +58,41 @@ class AccountEmailServiceTest {
     final var resetMsg = resetCaptor.getValue();
     assertThat(resetMsg.getText())
         .contains("https://quezap.example.com/auth/reset-password?token=rst.tok");
+  }
+
+  @Test
+  void shouldNeverLogTokensOrUrlsInProdWhenMailDisabled() {
+    final var mailSender = Mockito.mock(JavaMailSender.class);
+    final var prodEnv = new MockEnvironment();
+    prodEnv.setActiveProfiles("prod");
+    final var service =
+        new AccountEmailService(
+            mailSender,
+            false,
+            "noreply@quezap.fr",
+            "QueZap",
+            "https://quezap.example.com",
+            prodEnv);
+
+    final var logger = (Logger) LoggerFactory.getLogger(AccountEmailService.class);
+    final var listAppender = new ListAppender<ILoggingEvent>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    try {
+      service.sendActivationEmail("alice@example.com", "Alice", "secret-activation-token");
+      service.sendPasswordResetEmail("alice@example.com", "Alice", "secret-reset-token");
+    } finally {
+      logger.detachAppender(listAppender);
+    }
+
+    assertThat(listAppender.list).hasSize(2);
+    for (final var event : listAppender.list) {
+      assertThat(event.getFormattedMessage())
+          .doesNotContain("secret-activation-token")
+          .doesNotContain("secret-reset-token")
+          .doesNotContain("https://quezap.example.com");
+    }
+    verifyNoInteractions(mailSender);
   }
 }

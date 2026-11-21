@@ -62,6 +62,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/apiv1/sessions/*/leave")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/apiv1/sessions/*/events/ticket")
+                    .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*/events")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiv1/sessions/*/scores")
@@ -103,9 +105,14 @@ public class SecurityConfig {
             "Origin",
             "X-Requested-With",
             "X-Participation-Token",
+            "X-Participant-Token",
             "Last-Event-ID"));
     configuration.setExposedHeaders(
-        List.of("Authorization", "Content-Disposition", "X-Participation-Token"));
+        List.of(
+            "Authorization",
+            "Content-Disposition",
+            "X-Participation-Token",
+            "X-Participant-Token"));
     configuration.setAllowCredentials(true);
     final var source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);

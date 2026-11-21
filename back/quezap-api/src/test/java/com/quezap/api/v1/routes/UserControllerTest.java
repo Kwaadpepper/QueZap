@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,6 +21,9 @@ import com.quezap.api.v1.dto.request.users.CreateUserRequest;
 import com.quezap.api.v1.dto.request.users.UpdatePasswordRequest;
 import com.quezap.api.v1.mappers.PaginationMapper;
 import com.quezap.api.v1.routes.users.UserController;
+import com.quezap.api.v1.security.LoginRateLimiter;
+import com.quezap.api.v1.services.AccountEmailService;
+import com.quezap.api.v1.services.TurnstileService;
 import com.quezap.application.ports.users.AddUser;
 import com.quezap.application.ports.users.AddUser.AddUserUsecase;
 import com.quezap.application.ports.users.DeleteUser.DeleteUserUsecase;
@@ -29,6 +33,7 @@ import com.quezap.application.ports.users.ListUsers;
 import com.quezap.application.ports.users.ListUsers.ListUsersUsecase;
 import com.quezap.application.ports.users.UpdateUserPassword.UpdateUserPasswordUsecase;
 import com.quezap.domain.models.valueobjects.identifiers.UserId;
+import com.quezap.infrastructure.adapter.services.jwt.JwtService;
 import com.quezap.lib.ddd.usecases.UsecaseExecutor;
 import com.quezap.lib.ddd.valueobjects.TimelinePoint;
 import com.quezap.lib.pagination.PageOf;
@@ -198,5 +203,41 @@ class UserControllerTest {
         .isInstanceOf(ResponseStatusException.class)
         .extracting(e -> ((ResponseStatusException) e).getStatusCode())
         .isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void shouldRateLimitUserCreationPerIp() {
+    final var rateLimitedController =
+        new UserController(
+            executor,
+            addUserUsecase,
+            findUserUsecase,
+            listUsersUsecase,
+            updatePasswordUsecase,
+            deleteUserUsecase,
+            paginationMapper,
+            Mockito.mock(TurnstileService.class),
+            Mockito.mock(AccountEmailService.class),
+            Mockito.mock(JwtService.class),
+            new LoginRateLimiter());
+    final var userId = new UserId(UuidV7.randomUuid());
+    when(executor.execute(eq(addUserUsecase), any(AddUser.Input.class)))
+        .thenReturn(new AddUser.Output.UserAdded(userId));
+
+    final var request = new MockHttpServletRequest();
+    request.addHeader("X-Real-IP", "198.51.100.77");
+
+    for (int i = 0; i < 10; i++) {
+      rateLimitedController.create(
+          new CreateUserRequest("Alice", "alice" + i, "Password123!"), request);
+    }
+
+    assertThatThrownBy(
+            () ->
+                rateLimitedController.create(
+                    new CreateUserRequest("Alice", "alice10", "Password123!"), request))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
   }
 }

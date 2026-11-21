@@ -38,15 +38,8 @@ public class SpringSecurityConfig {
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
         .authorizeHttpRequests(
             request -> {
-
-              // Allow all for now
-              request.anyRequest().permitAll();
-
-              // Allow root path.
-              // request.requestMatchers("/").permitAll();
-
-              // Any other routes are.
-              // request.anyRequest().fullyAuthenticated();
+              // Fail closed if no primary SecurityFilterChain is active.
+              request.anyRequest().denyAll();
             })
         .build();
   }
