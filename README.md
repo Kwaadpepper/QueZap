@@ -107,15 +107,37 @@ Default admin credentials created by `seed.sh`:
 
 ---
 
-## 🔧 Admin CLI
+## 🔧 Admin CLI (User CRUD)
+
+User administration is handled exclusively through the pre-built CLI container (`ghcr.io/kwaadpepper/quezap-cli`):
 
 ```bash
 # Development:
 docker compose -f docker-compose.dev.yml --profile cli run --rm cli
 
-# Production:
+# Production (pulls pre-built CLI image, no local compilation):
+docker compose --profile cli pull cli
 docker compose --profile cli run --rm cli
 ```
+
+Available user CRUD commands inside Spring Shell:
+```text
+users list
+users show --user <name-or-uuid>
+users add --name <name> --email <email> [--password <password>]
+users rename --user <name-or-uuid> --new-name <new-name>
+users reset-password --user <name-or-uuid> [--password <password>]
+users activate --user <name-or-uuid>
+users delete --user <name-or-uuid>
+```
+
+---
+
+## ✉️ SMTP & Cloudflare Turnstile
+
+Configure SMTP in `.env` (`APP_MAIL_ENABLED=true`, `APP_MAIL_HOST`, `APP_MAIL_PORT`, `APP_MAIL_USERNAME`, `APP_MAIL_PASSWORD`, `APP_MAIL_FROM`, `APP_MAIL_SMTP_AUTH`, `APP_MAIL_STARTTLS`) to enable email activation links on public registration and single-use password reset links.
+
+Configure Cloudflare Turnstile in `.env` (`APP_TURNSTILE_SITE_KEY` + `APP_TURNSTILE_SECRET_KEY`) to protect public registration (`POST /apiv1/users`) and password reset requests (`POST /apiv1/auth/forgotten-password`) with anti-bot verification. Leave both empty to disable Turnstile in local development.
 
 ---
 

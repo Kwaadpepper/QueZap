@@ -134,6 +134,17 @@ services:
       APP_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set in .env}
       APP_JWT_SECRET_KEY: ${APP_JWT_SECRET_KEY:?APP_JWT_SECRET_KEY must be set in .env}
       APP_JWT_ISSUER: ${APP_JWT_ISSUER:-quezap.fr}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:8000}
+      APP_NAME: ${APP_NAME:-QueZap}
+      APP_MAIL_ENABLED: ${APP_MAIL_ENABLED:-false}
+      APP_MAIL_HOST: ${APP_MAIL_HOST:-localhost}
+      APP_MAIL_PORT: ${APP_MAIL_PORT:-587}
+      APP_MAIL_USERNAME: ${APP_MAIL_USERNAME:-}
+      APP_MAIL_PASSWORD: ${APP_MAIL_PASSWORD:-}
+      APP_MAIL_FROM: ${APP_MAIL_FROM:-noreply@quezap.fr}
+      APP_MAIL_SMTP_AUTH: ${APP_MAIL_SMTP_AUTH:-true}
+      APP_MAIL_STARTTLS: ${APP_MAIL_STARTTLS:-true}
+      APP_TURNSTILE_SECRET_KEY: ${APP_TURNSTILE_SECRET_KEY:-}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
     expose:
       - "8080"
@@ -162,16 +173,17 @@ services:
       APP_AUTHOR_NAME: ${APP_AUTHOR_NAME:-Author User}
       APP_AUTHOR_EMAIL: ${APP_AUTHOR_EMAIL:-author@example.net}
       APP_API_URL: ${APP_API_URL:-/apiv1}
+      APP_TURNSTILE_SITE_KEY: ${APP_TURNSTILE_SITE_KEY:-}
     ports:
       - "${APP_PORT:-8000}:80"
     networks:
       - quezap-net
 
   cli:
+    image: ghcr.io/kwaadpepper/quezap-cli:${QUEZAP_VERSION:-latest}
     build:
       context: ./back
-      dockerfile: Dockerfile
-      target: builder
+      dockerfile: Dockerfile.cli
     container_name: quezap-cli
     profiles:
       - cli
@@ -195,7 +207,6 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
     stdin_open: true
     tty: true
-    command: ["./gradlew", ":quezap-cli:bootRun", "--console=plain"]
     networks:
       - quezap-net
 

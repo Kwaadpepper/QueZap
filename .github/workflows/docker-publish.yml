@@ -30,6 +30,10 @@ jobs:
             image: ghcr.io/kwaadpepper/quezap-backend
             context: ./back
             dockerfile: ./back/Dockerfile.native
+          - name: cli
+            image: ghcr.io/kwaadpepper/quezap-cli
+            context: ./back
+            dockerfile: ./back/Dockerfile.cli
           - name: frontend
             image: ghcr.io/kwaadpepper/quezap-frontend
             context: ./front
