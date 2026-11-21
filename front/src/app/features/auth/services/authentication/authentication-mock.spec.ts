@@ -27,14 +27,7 @@ describe('AuthenticationMockService', () => {
     TestBed.configureTestingModule({
       providers: [
         AuthenticationMockService,
-        {
-          provide: TokenPersitance, useValue: {
-            getTokens: jest.fn(() => ({
-              accessToken: validJwtToken,
-              refreshToken: validJwtToken,
-            })),
-          },
-        },
+        { provide: TokenPersitance, useValue: { getTokens: jest.fn(() => ({ accessToken: validJwtToken })) } },
       ],
     })
   })
@@ -105,28 +98,28 @@ describe('AuthenticationMockService', () => {
 
   // --- REFRESH TESTS ---
 
-  it('should refresh tokens successfully with valid refresh token', () => {
+  it('should refresh tokens successfully when valid access token is present', () => {
     // GIVEN
-    const tokens = { accessToken: validJwtToken, refreshToken: validJwtToken }
     const service = createService()
     expect.assertions(1)
 
     // WHEN / THEN
-    service.refresh(tokens)
+    service.refresh()
       .pipe(
         tap(result => expect(isSuccess(result)).toBeTruthy()),
       ).subscribe()
     jest.runAllTimers()
   })
 
-  it('should output validation error on refresh when jwt generation fails validation', () => {
+  it('should output validation error on refresh when jwt validation fails', () => {
     // GIVEN
-    const tokens = { accessToken: 'invalid', refreshToken: 'invalid' }
+    const tokenPersistance = TestBed.inject(TokenPersitance)
+    jest.spyOn(tokenPersistance, 'getTokens').mockReturnValue({ accessToken: 'invalid' as never })
     const service = createService()
     expect.assertions(1)
 
     // WHEN / THEN
-    service.refresh(tokens)
+    service.refresh()
       .pipe(
         tap(result => expect(result).toBeInstanceOf(ValidationError)),
       ).subscribe()
@@ -135,12 +128,11 @@ describe('AuthenticationMockService', () => {
 
   it('should output network error on refresh when network fails', () => {
     // GIVEN
-    const tokens = { accessToken: validJwtToken, refreshToken: validJwtToken }
     const service = createService({ mockError: true })
     expect.assertions(1)
 
     // WHEN / THEN
-    service.refresh(tokens).subscribe({
+    service.refresh().subscribe({
       error: (error) => {
         expect(error).toBeInstanceOf(HttpErrorResponse)
       },

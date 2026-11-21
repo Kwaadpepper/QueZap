@@ -46,6 +46,7 @@ class MockEventSource {
 
 describe('SessionObserverSseService', () => {
   let service: SessionObserverSseService
+  let persistence: ActiveSessionPersistence
   const originalEventSource = globalThis.EventSource
 
   beforeEach(() => {
@@ -61,6 +62,7 @@ describe('SessionObserverSseService', () => {
 
     TestBed.configureTestingModule({ providers: [SessionObserverSseService, ActiveSessionPersistence] })
     service = TestBed.inject(SessionObserverSseService)
+    persistence = TestBed.inject(ActiveSessionPersistence)
   })
 
   afterEach(() => {
@@ -74,8 +76,24 @@ describe('SessionObserverSseService', () => {
     })
   })
 
-  it('should reconnect with exponential backoff and lastEventId when EventSource closes', async () => {
+  it('should acquire an SSE ticket and reconnect with backoff and lastEventId on close', async () => {
     const sessionId = '018e3a2b-8888-7def-8123-000000000001'
+    persistence.saveParticipationData(sessionId, 'ptk_abc', 'Léa')
+
+    const ticketSpy = jest.spyOn(sdk, 'createEventsTicket')
+      .mockResolvedValueOnce({
+        data: { ticket: 'sset_1', expiresInSeconds: 60 },
+        error: undefined,
+        request: {} as never,
+        response: { status: 200 } as never,
+      })
+      .mockResolvedValueOnce({
+        data: { ticket: 'sset_2', expiresInSeconds: 60 },
+        error: undefined,
+        request: {} as never,
+        response: { status: 200 } as never,
+      })
+
     const getByIdSpy = jest.spyOn(sdk, 'getById2').mockResolvedValue({
       data: { id: sessionId, status: 'STARTED' },
       error: undefined,
@@ -84,7 +102,15 @@ describe('SessionObserverSseService', () => {
     })
 
     service.connect(sessionId)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(ticketSpy).toHaveBeenCalledWith(expect.objectContaining({
+      path: { id: sessionId },
+      headers: { 'X-Participant-Token': 'ptk_abc' },
+    }))
     expect(MockEventSource.instances).toHaveLength(1)
+    expect(MockEventSource.instances[0].url).toContain('ticket=sset_1')
 
     // Receive event with id=42 and points=0 (verify ?? 1000 does not overwrite 0)
     MockEventSource.instances[0].emitNamedEvent('QUESTION_START', {
@@ -112,18 +138,30 @@ describe('SessionObserverSseService', () => {
     MockEventSource.instances[0].triggerClosedError()
     expect(MockEventSource.instances).toHaveLength(1)
 
-    // Advance 1s backoff -> checks session via getById2 and reopens EventSource with lastEventId=42
+    // Advance 1s backoff -> checks session via getById2 and reopens EventSource with fresh ticket + lastEventId=42
     jest.advanceTimersByTime(1000)
     await Promise.resolve()
     await Promise.resolve()
+    await Promise.resolve()
 
-    expect(getByIdSpy).toHaveBeenCalledWith(expect.objectContaining({ path: { id: sessionId } }))
+    expect(getByIdSpy).toHaveBeenCalledWith(expect.objectContaining({
+      path: { id: sessionId },
+      headers: { 'X-Participant-Token': 'ptk_abc' },
+    }))
+    expect(ticketSpy).toHaveBeenCalledTimes(2)
     expect(MockEventSource.instances).toHaveLength(2)
+    expect(MockEventSource.instances[1].url).toContain('ticket=sset_2')
     expect(MockEventSource.instances[1].url).toContain('lastEventId=42')
   })
 
   it('should stop reconnecting when server returns 404 or 403 or ENDED', async () => {
     const sessionId = '018e3a2b-8888-7def-8123-000000000002'
+    jest.spyOn(sdk, 'createEventsTicket').mockResolvedValue({
+      data: { ticket: 'sset_3', expiresInSeconds: 60 },
+      error: undefined,
+      request: {} as never,
+      response: { status: 200 } as never,
+    })
     jest.spyOn(sdk, 'getById2').mockResolvedValue({
       data: undefined,
       error: { message: 'Not found' },
@@ -132,6 +170,9 @@ describe('SessionObserverSseService', () => {
     })
 
     service.connect(sessionId)
+    await Promise.resolve()
+    await Promise.resolve()
+
     MockEventSource.instances[0].triggerClosedError()
 
     jest.advanceTimersByTime(1000)
@@ -145,9 +186,18 @@ describe('SessionObserverSseService', () => {
     expect(MockEventSource.instances).toHaveLength(1)
   })
 
-  it('should not reconnect after SESSION_ENDED is received', () => {
+  it('should not reconnect after SESSION_ENDED is received', async () => {
     const sessionId = '018e3a2b-8888-7def-8123-000000000003'
+    jest.spyOn(sdk, 'createEventsTicket').mockResolvedValue({
+      data: { ticket: 'sset_4', expiresInSeconds: 60 },
+      error: undefined,
+      request: {} as never,
+      response: { status: 200 } as never,
+    })
+
     service.connect(sessionId)
+    await Promise.resolve()
+    await Promise.resolve()
 
     const source = MockEventSource.instances[0]
     source.emitNamedEvent('SESSION_ENDED', {

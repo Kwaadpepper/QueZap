@@ -57,10 +57,7 @@ export class AuthenticationMockService implements AuthenticationService {
 
       response.next({
         kind: 'success',
-        result: {
-          accessToken: this.randomJwtToken(),
-          refreshToken: this.randomJwtToken(),
-        },
+        result: { accessToken: this.randomJwtToken() },
       })
       response.complete()
     }, this.MOCK_DELAY())
@@ -68,11 +65,12 @@ export class AuthenticationMockService implements AuthenticationService {
     return response
   }
 
-  refresh(tokens: AuthTokens): ServiceOutput<AuthTokens> {
+  refresh(): ServiceOutput<AuthTokens> {
     const response = new Subject<Tried<AuthTokens>>()
+    const currentTokens = this.tokenPersitance.getTokens()
 
     setTimeout(() => {
-      const result = validationRefreshSchema.safeParse(tokens.refreshToken)
+      const result = validationRefreshSchema.safeParse(currentTokens?.accessToken)
       if (!result.success) {
         response.next(zodToExternalValidationError(result.error))
         response.complete()
@@ -86,10 +84,7 @@ export class AuthenticationMockService implements AuthenticationService {
 
       response.next({
         kind: 'success',
-        result: {
-          accessToken: this.randomJwtToken(),
-          refreshToken: tokens.refreshToken,
-        },
+        result: { accessToken: this.randomJwtToken() },
       })
       response.complete()
     }, this.MOCK_DELAY())

@@ -11,7 +11,7 @@ import { Image } from '@openng/optimus-ui/image'
 
 import { QRCodeComponent } from 'angularx-qrcode'
 
-import { ServiceError, UnauthorizedError } from '@quezap/core/errors'
+import { ForbidenError, ServiceError, UnauthorizedError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'
 import { isFailure, isSuccess } from '@quezap/core/types'
@@ -655,6 +655,19 @@ export class SessionPresenter implements OnInit, OnDestroy {
   }
 
   private currentConnectedSessionId = ''
+  private isConnectingSse = false
+
+  private scheduleSseReconnect(id: string): void {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout)
+    }
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 15000)
+    this.reconnectAttempts++
+    this.reconnectTimeout = setTimeout(() => {
+      this.reconnectTimeout = null
+      this.connectSse(id)
+    }, delay)
+  }
 
   private connectSse(id: string): void {
     if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
@@ -667,6 +680,9 @@ export class SessionPresenter implements OnInit, OnDestroy {
     ) {
       return
     }
+    if (this.isConnectingSse && this.currentConnectedSessionId === id) {
+      return
+    }
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout)
       this.reconnectTimeout = null
@@ -676,9 +692,41 @@ export class SessionPresenter implements OnInit, OnDestroy {
       this.eventSource = null
     }
     this.currentConnectedSessionId = id
+    this.isConnectingSse = true
 
+    this.sessionService.createEventsTicket(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((output) => {
+        if (this.currentConnectedSessionId !== id) {
+          this.isConnectingSse = false
+          return
+        }
+        this.isConnectingSse = false
+
+        if (isFailure(output) || !output.result.ticket) {
+          const err = isFailure(output)
+            ? output.error
+            : new ServiceError('Ticket SSE manquant')
+          if (err instanceof UnauthorizedError || err instanceof ForbidenError) {
+            this.handleCommandFailure(err, 'Impossible de se connecter au flux en direct')
+            return
+          }
+          this.scheduleSseReconnect(id)
+          return
+        }
+
+        this.openSseStream(id, output.result.ticket)
+      })
+  }
+
+  private openSseStream(id: string, ticket: string): void {
+    if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
+      return
+    }
     const apiUrl = this.config.appConfig.value().apiUrl
-    this.eventSource = new EventSource(`${apiUrl}/sessions/${id}/events?ngsw-bypass=true`)
+    this.eventSource = new EventSource(
+      `${apiUrl}/sessions/${id}/events?ticket=${encodeURIComponent(ticket)}&ngsw-bypass=true`,
+    )
 
     const parseAndHandle = (data: string) => {
       try {
@@ -697,14 +745,9 @@ export class SessionPresenter implements OnInit, OnDestroy {
     this.eventSource.onerror = (err) => {
       console.warn('SSE connection error, scheduling reconnect...', err)
       if (this.eventSource?.readyState === EventSource.CLOSED) {
-        if (this.reconnectTimeout) {
-          clearTimeout(this.reconnectTimeout)
-        }
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 15000)
-        this.reconnectAttempts++
-        this.reconnectTimeout = setTimeout(() => {
-          this.connectSse(id)
-        }, delay)
+        this.eventSource.close()
+        this.eventSource = null
+        this.scheduleSseReconnect(id)
       }
     }
 

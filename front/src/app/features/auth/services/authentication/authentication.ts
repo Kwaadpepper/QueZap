@@ -6,7 +6,6 @@ import { type IS_REFRESHING_ACCESS_TOKEN as _IS_REFRESHING_ACCESS_TOKEN } from '
 import { ServiceOutput } from '@quezap/core/types'
 import { AuthenticatedUser } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
-import { JWT } from '@quezap/domain/types'
 
 export interface AuthenticationService {
   login(email: string, password: string): ServiceOutput<AuthTokens, UnauthorizedError>
@@ -16,9 +15,9 @@ export interface AuthenticationService {
    * In order to void recursivity : You MUST ensure that only one refresh process is running at a time.
    * Use the {@link _IS_REFRESHING_ACCESS_TOKEN} injection token to track the refresh state.
    */
-  refresh(tokens: AuthTokens): ServiceOutput<AuthTokens>
+  refresh(): ServiceOutput<AuthTokens>
 
-  logout(refreshToken?: JWT): ServiceOutput<void>
+  logout(): ServiceOutput<void>
 
   me(): ServiceOutput<AuthenticatedUser, ForbidenError>
 

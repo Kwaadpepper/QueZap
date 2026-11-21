@@ -10,6 +10,7 @@ import {
   SessionReportDto,
   SessionSettingsRequestDto,
   SessionSettingsResponseDto,
+  SseTicketResponseDto,
 } from '@quezap/core/api-client'
 import { ServiceError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
@@ -88,6 +89,16 @@ export class SessionMockService implements SessionService {
         id: 'mock-id',
         number: 1,
         code: 'QZ-8888',
+      },
+    })
+  }
+
+  createEventsTicket(_id: string): ServiceOutput<SseTicketResponseDto> {
+    return of({
+      kind: 'success' as const,
+      result: {
+        ticket: 'mock-sse-ticket',
+        expiresInSeconds: 60,
       },
     })
   }

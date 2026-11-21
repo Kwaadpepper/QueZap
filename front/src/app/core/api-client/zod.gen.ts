@@ -48,9 +48,9 @@ export const zQuezapSlideRequest = z.object({
 
 export const zUpdateQuezapRequest = z.object({
     title: z.string().min(0).max(100),
-    description: z.string().optional(),
+    description: z.string().min(0).max(2000).optional(),
     isPublic: z.boolean(),
-    slides: z.array(zQuezapSlideRequest).optional()
+    slides: z.array(zQuezapSlideRequest).min(0).max(100).optional()
 });
 
 export const zCreateUserRequest = z.object({
@@ -110,6 +110,11 @@ export const zNextQuestionResponseDto = z.object({
     totalSlides: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional()
 });
 
+export const zSseTicketResponseDto = z.object({
+    ticket: z.string().optional(),
+    expiresInSeconds: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional()
+});
+
 export const zSubmitAnswerRequest = z.object({
     slideIndex: z.int().gte(1).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     answerIndex: z.int().gte(0).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
@@ -134,10 +139,10 @@ export const zJoinSessionResponseDto = z.object({
 
 export const zCreateQuezapRequest = z.object({
     title: z.string().min(0).max(100),
-    description: z.string().optional(),
+    description: z.string().min(0).max(2000).optional(),
     isPublic: z.boolean().optional(),
-    slides: z.array(zQuezapSlideRequest).optional(),
-    questions: z.array(zQuezapSlideRequest).optional(),
+    slides: z.array(zQuezapSlideRequest).min(0).max(100).optional(),
+    questions: z.array(zQuezapSlideRequest).min(0).max(100).optional(),
     effectiveSlides: z.array(zQuezapSlideRequest).optional()
 });
 
@@ -186,6 +191,10 @@ export const zPictureUploadResponseDto = z.object({
     expiresAt: z.iso.datetime().optional()
 });
 
+export const zVerifyResetTokenRequest = z.object({
+    token: z.string().min(1)
+});
+
 export const zResetPasswordRequest = z.object({
     token: z.string().min(1),
     newPassword: z.string().min(1)
@@ -195,19 +204,10 @@ export const zMessageResponseDto = z.object({
     message: z.string().optional()
 });
 
-export const zRefreshTokenRequest = z.object({
-    refreshToken: z.string().min(1)
-});
-
 export const zRefreshTokenResponseDto = z.object({
     accessToken: z.string().optional(),
-    refreshToken: z.string().optional(),
     tokenType: z.string().optional(),
     expiresIn: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional()
-});
-
-export const zLogoutRequest = z.object({
-    refreshToken: z.string().min(1)
 });
 
 export const zLoginRequest = z.object({
@@ -222,7 +222,6 @@ export const zUserSummaryDto = z.object({
 
 export const zLoginResponseDto = z.object({
     accessToken: z.string().optional(),
-    refreshToken: z.string().optional(),
     tokenType: z.string().optional(),
     expiresIn: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).optional(),
     user: zUserSummaryDto.optional()
@@ -637,6 +636,19 @@ export const zLeaveSessionPath = z.object({
  */
 export const zLeaveSessionResponse = z.void();
 
+export const zCreateEventsTicketHeaders = z.object({
+    'X-Participant-Token': z.string().nullish()
+});
+
+export const zCreateEventsTicketPath = z.object({
+    id: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zCreateEventsTicketResponse = zSseTicketResponseDto;
+
 export const zSubmitAnswerBody = zSubmitAnswerRequest;
 
 export const zSubmitAnswerHeaders = z.object({
@@ -737,6 +749,8 @@ export const zUploadBody = z.object({
  */
 export const zUploadResponse = zPictureUploadResponseDto;
 
+export const zVerifyResetTokenBody = zVerifyResetTokenRequest;
+
 export const zResetPasswordBody = zResetPasswordRequest;
 
 /**
@@ -744,14 +758,10 @@ export const zResetPasswordBody = zResetPasswordRequest;
  */
 export const zResetPasswordResponse = zMessageResponseDto;
 
-export const zRefreshBody = zRefreshTokenRequest;
-
 /**
  * OK
  */
 export const zRefreshResponse = zRefreshTokenResponseDto;
-
-export const zLogoutBody = zLogoutRequest;
 
 /**
  * No Content
@@ -818,6 +828,10 @@ export const zFind1Query = z.object({
  */
 export const zFind1Response = zPageOfDtoThemeDto;
 
+export const zGetById2Headers = z.object({
+    'X-Participant-Token': z.string().nullish()
+});
+
 export const zGetById2Path = z.object({
     id: z.uuid()
 });
@@ -826,6 +840,10 @@ export const zGetById2Path = z.object({
  * OK
  */
 export const zGetById2Response = zSessionDetailDto;
+
+export const zGetScoresHeaders = z.object({
+    'X-Participant-Token': z.string().nullish()
+});
 
 export const zGetScoresPath = z.object({
     id: z.uuid()
@@ -862,6 +880,10 @@ export const zStreamEventsPath = z.object({
     id: z.uuid()
 });
 
+export const zStreamEventsQuery = z.object({
+    ticket: z.string().nullish()
+});
+
 /**
  * OK
  */
@@ -895,10 +917,6 @@ export const zFind3Query = z.object({
  * OK
  */
 export const zFind3Response = zPageOfDtoQuestionShortInfoDto;
-
-export const zVerifyResetTokenQuery = z.object({
-    token: z.string()
-});
 
 /**
  * OK

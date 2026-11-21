@@ -9,6 +9,34 @@ import { isFailure } from '@quezap/core/types'
 import { AuthenticatedUser, AuthTokens } from '@quezap/domain/models'
 import { AUTHENTICATION_SERVICE, TokenPersitance } from '@quezap/features/auth/services'
 
+const SESSION_HINT_KEY = 'quezap_has_session'
+
+function hasSessionHint(): boolean {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage.getItem(SESSION_HINT_KEY) === '1'
+  }
+  catch {
+    return false
+  }
+}
+
+function setSessionHint(active: boolean): void {
+  try {
+    if (typeof localStorage === 'undefined') {
+      return
+    }
+    if (active) {
+      localStorage.setItem(SESSION_HINT_KEY, '1')
+    }
+    else {
+      localStorage.removeItem(SESSION_HINT_KEY)
+    }
+  }
+  catch {
+    // Ignore storage errors (e.g. private browsing restrictions)
+  }
+}
+
 interface AuthenticatedUserState {
   _temporaryTokens?: AuthTokens
   _authenticated?: {
@@ -48,40 +76,88 @@ export const AuthenticatedUserStore = signalStore(
   ) => ({
 
     loadInitialState: () => {
-      const tokens = tokenPersistance.getTokens()
+      const existingTokens = tokenPersistance.getTokens()
 
-      if (tokens === undefined) {
-        return of(void 0)
-      }
+      if (existingTokens !== undefined) {
+        patchState(store, {
+          _temporaryTokens: existingTokens,
+          authenticating: true,
+        })
 
-      patchState(store, {
-        _temporaryTokens: tokens,
-        authenticating: true,
-      })
+        return authService.me().pipe(
+          concatMap((maybeUser) => {
+            if (isFailure(maybeUser)) {
+              tokenPersistance.removeTokens()
+              patchState(store, { ...initialState, sessionExpired: true })
+              return of(void 0)
+            }
 
-      return authService.me().pipe(
-        concatMap((maybeUser) => {
-          if (isFailure(maybeUser)) {
+            const user = maybeUser.result
+            const latestTokens = store.currentTokens() ?? tokenPersistance.getTokens() ?? existingTokens
+
+            patchState(store, {
+              _authenticated: { user, tokens: latestTokens },
+              _temporaryTokens: undefined,
+              authenticating: false,
+              sessionExpired: false,
+            })
+
+            return of(void 0)
+          }),
+          catchError(() => {
             tokenPersistance.removeTokens()
             patchState(store, { ...initialState, sessionExpired: true })
             return of(void 0)
+          }),
+        )
+      }
+
+      if (!hasSessionHint()) {
+        return of(void 0)
+      }
+
+      patchState(store, { authenticating: true })
+
+      return authService.refresh().pipe(
+        concatMap((maybeTokens) => {
+          if (isFailure(maybeTokens)) {
+            tokenPersistance.removeTokens()
+            setSessionHint(false)
+            patchState(store, initialState)
+            return of(void 0)
           }
 
-          const user = maybeUser.result
-          const latestTokens = store.currentTokens() ?? tokenPersistance.getTokens() ?? tokens
+          const refreshedTokens = maybeTokens.result
+          tokenPersistance.saveTokens(refreshedTokens)
+          patchState(store, { _temporaryTokens: refreshedTokens })
 
-          patchState(store, {
-            _authenticated: { user, tokens: latestTokens },
-            _temporaryTokens: undefined,
-            authenticating: false,
-            sessionExpired: false,
-          })
+          return authService.me().pipe(
+            concatMap((maybeUser) => {
+              if (isFailure(maybeUser)) {
+                tokenPersistance.removeTokens()
+                setSessionHint(false)
+                patchState(store, initialState)
+                return of(void 0)
+              }
 
-          return of(void 0)
+              const user = maybeUser.result
+              const latestTokens = store.currentTokens() ?? tokenPersistance.getTokens() ?? refreshedTokens
+
+              patchState(store, {
+                _authenticated: { user, tokens: latestTokens },
+                _temporaryTokens: undefined,
+                authenticating: false,
+                sessionExpired: false,
+              })
+
+              return of(void 0)
+            }),
+          )
         }),
         catchError(() => {
           tokenPersistance.removeTokens()
-          patchState(store, { ...initialState, sessionExpired: true })
+          setSessionHint(false)
+          patchState(store, initialState)
           return of(void 0)
         }),
       )
@@ -114,6 +190,7 @@ export const AuthenticatedUserStore = signalStore(
         }),
 
         tap(({ tokens, user }) => {
+          setSessionHint(true)
           patchState(store, {
             _authenticated: {
               user,
@@ -127,6 +204,7 @@ export const AuthenticatedUserStore = signalStore(
         map(() => { return }),
         catchError((err) => {
           tokenPersistance.removeTokens()
+          setSessionHint(false)
           patchState(store, initialState)
           return throwError(() => err)
         }),
@@ -134,8 +212,7 @@ export const AuthenticatedUserStore = signalStore(
     },
 
     logout: () => {
-      const refreshToken = store.currentTokens()?.refreshToken ?? tokenPersistance.getTokens()?.refreshToken
-      return authService.logout(refreshToken).pipe(
+      return authService.logout().pipe(
         concatMap((maybeVoid) => {
           if (isFailure(maybeVoid)) {
             return throwError(() => maybeVoid.error)
@@ -143,12 +220,14 @@ export const AuthenticatedUserStore = signalStore(
 
           console.log('Logout successful.')
           tokenPersistance.removeTokens()
+          setSessionHint(false)
           patchState(store, initialState)
           return of(undefined)
         }),
         catchError((err) => {
           console.error('Logout service failed, but forcing local state reset.', err)
           tokenPersistance.removeTokens()
+          setSessionHint(false)
           patchState(store, initialState)
           return throwError(() => err)
         }),
@@ -167,7 +246,7 @@ export const AuthenticatedUserStore = signalStore(
       }
 
       return authService
-        .refresh(tokensToRefresh)
+        .refresh()
         .pipe(
           concatMap((maybeTokens) => {
             if (isFailure(maybeTokens)) {
@@ -198,6 +277,7 @@ export const AuthenticatedUserStore = signalStore(
           catchError((err) => {
             console.error('Token refresh failed:', err)
             tokenPersistance.removeTokens()
+            setSessionHint(false)
             patchState(store, { ...initialState, sessionExpired: true })
             return throwError(() => err)
           }),

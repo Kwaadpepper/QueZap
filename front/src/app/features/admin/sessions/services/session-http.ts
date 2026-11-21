@@ -4,6 +4,7 @@ import { catchError, from, map, of } from 'rxjs'
 
 import {
   create1,
+  createEventsTicket as sdkCreateEventsTicket,
   ExportCsvData,
   exportCsv as sdkExportCsv,
   getByCode,
@@ -23,10 +24,11 @@ import {
   SessionReportDto,
   SessionSettingsRequestDto,
   SessionSettingsResponseDto,
+  SseTicketResponseDto,
   start,
   updateSettings as sdkUpdateSettings,
 } from '@quezap/core/api-client'
-import { NotFoundError } from '@quezap/core/errors'
+import { ForbidenError, NotFoundError, ServiceError, UnauthorizedError } from '@quezap/core/errors'
 import { PageOf, Pagination, ServiceOutput, toPageBasedPagination } from '@quezap/core/types'
 import { Session, SessionCode, SessionId } from '@quezap/domain/models'
 
@@ -139,6 +141,50 @@ export class SessionHttpService implements SessionService {
         of({
           kind: 'failure' as const,
           error: new NotFoundError('Erreur de création de session'),
+        }),
+      ),
+    )
+  }
+
+  createEventsTicket(id: string): ServiceOutput<SseTicketResponseDto> {
+    return from(
+      sdkCreateEventsTicket({ path: { id } }),
+    ).pipe(
+      map(({ data, error, response }) => {
+        const status = response?.status
+        if (error || !data?.ticket) {
+          if (status === 401) {
+            return {
+              kind: 'failure' as const,
+              error: new UnauthorizedError('Authentification requise pour le flux en direct'),
+            }
+          }
+          if (status === 403) {
+            return {
+              kind: 'failure' as const,
+              error: new ForbidenError('Accès refusé au flux de cette session'),
+            }
+          }
+          if (status === 404) {
+            return {
+              kind: 'failure' as const,
+              error: new NotFoundError('Session introuvable'),
+            }
+          }
+          return {
+            kind: 'failure' as const,
+            error: new ServiceError('Erreur de connexion au flux en direct'),
+          }
+        }
+        return {
+          kind: 'success' as const,
+          result: data,
+        }
+      }),
+      catchError(() =>
+        of({
+          kind: 'failure' as const,
+          error: new ServiceError('Erreur de connexion au flux en direct'),
         }),
       ),
     )

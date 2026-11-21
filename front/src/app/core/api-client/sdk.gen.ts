@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type ServerSentEventsResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActivateData, ActivateResponses, AddAffirmationData, AddAffirmationResponses, AddBinaryData, AddBinaryResponses, AddData, AddQuestionData, AddQuestionResponses, AddQuizzData, AddQuizzResponses, AddResponses, BadPaginationData, BadPaginationResponses, CloneData, CloneResponses, Create1Data, Create1Responses, Create2Data, Create2Responses, CreateData, CreateResponses, Delete1Data, Delete1Responses, Delete2Data, Delete2Responses, Delete3Data, Delete3Responses, DeleteData, DeleteResponses, DuplicateData, DuplicateResponses, ExportCsvData, ExportCsvResponses, Find1Data, Find1Responses, Find2Data, Find2Responses, Find3Data, Find3Responses, FindData, FindResponses, ForgottenPasswordData, ForgottenPasswordResponses, GetByCodeData, GetByCodeResponses, GetById1Data, GetById1Responses, GetById2Data, GetById2Responses, GetByIdData, GetByIdResponses, GetReportData, GetReportResponses, GetScoresData, GetScoresResponses, InvalidFileData, InvalidFileResponses, JoinData, JoinResponses, KickParticipantData, KickParticipantResponses, LeaveSessionData, LeaveSessionResponses, List1Data, List1Responses, List2Data, List2Responses, ListData, ListResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, MeData, MeResponses, NextQuestionData, NextQuestionResponses, PauseSessionData, PauseSessionResponses, RefreshData, RefreshResponses, RemoveQuestionData, RemoveQuestionResponses, Rename1Data, Rename1Responses, RenameData, RenameResponses, ResetPasswordData, ResetPasswordResponses, RevealData, RevealResponses, SseAsyncNotUsableData, SseAsyncNotUsableResponses, SseBrokenPipeData, SseBrokenPipeResponses, StartData, StartResponses, StreamEventsData, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerResponses, UpdateData, UpdatePasswordData, UpdatePasswordResponses, UpdateResponses, UpdateSettingsData, UpdateSettingsResponses, UploadData, UploadResponses, VerifyResetTokenData, VerifyResetTokenResponses } from './types.gen';
+import type { ActivateData, ActivateResponses, AddAffirmationData, AddAffirmationResponses, AddBinaryData, AddBinaryResponses, AddData, AddQuestionData, AddQuestionResponses, AddQuizzData, AddQuizzResponses, AddResponses, BadPaginationData, BadPaginationResponses, CloneData, CloneResponses, Create1Data, Create1Responses, Create2Data, Create2Responses, CreateData, CreateEventsTicketData, CreateEventsTicketResponses, CreateResponses, Delete1Data, Delete1Responses, Delete2Data, Delete2Responses, Delete3Data, Delete3Responses, DeleteData, DeleteResponses, DuplicateData, DuplicateResponses, ExportCsvData, ExportCsvResponses, Find1Data, Find1Responses, Find2Data, Find2Responses, Find3Data, Find3Responses, FindData, FindResponses, ForgottenPasswordData, ForgottenPasswordResponses, GetByCodeData, GetByCodeResponses, GetById1Data, GetById1Responses, GetById2Data, GetById2Responses, GetByIdData, GetByIdResponses, GetReportData, GetReportResponses, GetScoresData, GetScoresResponses, InvalidFileData, InvalidFileResponses, JoinData, JoinResponses, KickParticipantData, KickParticipantResponses, LeaveSessionData, LeaveSessionResponses, List1Data, List1Responses, List2Data, List2Responses, ListData, ListResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, MeData, MeResponses, NextQuestionData, NextQuestionResponses, PauseSessionData, PauseSessionResponses, RefreshData, RefreshResponses, RemoveQuestionData, RemoveQuestionResponses, Rename1Data, Rename1Responses, RenameData, RenameResponses, ResetPasswordData, ResetPasswordResponses, RevealData, RevealResponses, SseAsyncNotUsableData, SseAsyncNotUsableResponses, SseBrokenPipeData, SseBrokenPipeResponses, StartData, StartResponses, StreamEventsData, StreamEventsResponse, StreamEventsResponses, SubmitAnswerData, SubmitAnswerResponses, UpdateData, UpdatePasswordData, UpdatePasswordResponses, UpdateResponses, UpdateSettingsData, UpdateSettingsResponses, UploadData, UploadResponses, VerifyResetTokenData, VerifyResetTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -148,6 +148,12 @@ export const leaveSession = <ThrowOnError extends boolean = false>(options: Opti
     ...options
 });
 
+export const createEventsTicket = <ThrowOnError extends boolean = false>(options: Options<CreateEventsTicketData, ThrowOnError>): RequestResult<CreateEventsTicketResponses, unknown, ThrowOnError> => (options.client ?? client).post<CreateEventsTicketResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/apiv1/sessions/{id}/events/ticket',
+    ...options
+});
+
 export const submitAnswer = <ThrowOnError extends boolean = false>(options: Options<SubmitAnswerData, ThrowOnError>): RequestResult<SubmitAnswerResponses, unknown, ThrowOnError> => (options.client ?? client).post<SubmitAnswerResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/sessions/{id}/answers',
@@ -235,6 +241,16 @@ export const upload = <ThrowOnError extends boolean = false>(options?: Options<U
     }
 });
 
+export const verifyResetToken = <ThrowOnError extends boolean = false>(options: Options<VerifyResetTokenData, ThrowOnError>): RequestResult<VerifyResetTokenResponses, unknown, ThrowOnError> => (options.client ?? client).post<VerifyResetTokenResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/apiv1/auth/verify-reset-token',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
 export const resetPassword = <ThrowOnError extends boolean = false>(options: Options<ResetPasswordData, ThrowOnError>): RequestResult<ResetPasswordResponses, unknown, ThrowOnError> => (options.client ?? client).post<ResetPasswordResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/reset-password',
@@ -245,24 +261,16 @@ export const resetPassword = <ThrowOnError extends boolean = false>(options: Opt
     }
 });
 
-export const refresh = <ThrowOnError extends boolean = false>(options: Options<RefreshData, ThrowOnError>): RequestResult<RefreshResponses, unknown, ThrowOnError> => (options.client ?? client).post<RefreshResponses, unknown, ThrowOnError>({
+export const refresh = <ThrowOnError extends boolean = false>(options?: Options<RefreshData, ThrowOnError>): RequestResult<RefreshResponses, unknown, ThrowOnError> => (options?.client ?? client).post<RefreshResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/refresh',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+    ...options
 });
 
-export const logout = <ThrowOnError extends boolean = false>(options: Options<LogoutData, ThrowOnError>): RequestResult<LogoutResponses, unknown, ThrowOnError> => (options.client ?? client).post<LogoutResponses, unknown, ThrowOnError>({
+export const logout = <ThrowOnError extends boolean = false>(options?: Options<LogoutData, ThrowOnError>): RequestResult<LogoutResponses, unknown, ThrowOnError> => (options?.client ?? client).post<LogoutResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/auth/logout',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+    ...options
 });
 
 export const login = <ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>): RequestResult<LoginResponses, unknown, ThrowOnError> => (options.client ?? client).post<LoginResponses, unknown, ThrowOnError>({
@@ -408,12 +416,6 @@ export const find2 = <ThrowOnError extends boolean = false>(options: Options<Fin
 export const find3 = <ThrowOnError extends boolean = false>(options: Options<Find3Data, ThrowOnError>): RequestResult<Find3Responses, unknown, ThrowOnError> => (options.client ?? client).get<Find3Responses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/apiv1/questions',
-    ...options
-});
-
-export const verifyResetToken = <ThrowOnError extends boolean = false>(options: Options<VerifyResetTokenData, ThrowOnError>): RequestResult<VerifyResetTokenResponses, unknown, ThrowOnError> => (options.client ?? client).get<VerifyResetTokenResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/apiv1/auth/verify-reset-token',
     ...options
 });
 

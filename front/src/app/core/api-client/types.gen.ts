@@ -112,6 +112,11 @@ export type NextQuestionResponseDto = {
     totalSlides?: number;
 };
 
+export type SseTicketResponseDto = {
+    ticket?: string;
+    expiresInSeconds?: number;
+};
+
 export type SubmitAnswerRequest = {
     slideIndex?: number;
     answerIndex?: number;
@@ -188,6 +193,10 @@ export type PictureUploadResponseDto = {
     expiresAt?: string;
 };
 
+export type VerifyResetTokenRequest = {
+    token: string;
+};
+
 export type ResetPasswordRequest = {
     token: string;
     newPassword: string;
@@ -197,19 +206,10 @@ export type MessageResponseDto = {
     message?: string;
 };
 
-export type RefreshTokenRequest = {
-    refreshToken: string;
-};
-
 export type RefreshTokenResponseDto = {
     accessToken?: string;
-    refreshToken?: string;
     tokenType?: string;
     expiresIn?: number;
-};
-
-export type LogoutRequest = {
-    refreshToken: string;
 };
 
 export type LoginRequest = {
@@ -219,7 +219,6 @@ export type LoginRequest = {
 
 export type LoginResponseDto = {
     accessToken?: string;
-    refreshToken?: string;
     tokenType?: string;
     expiresIn?: number;
     user?: UserSummaryDto;
@@ -786,6 +785,27 @@ export type LeaveSessionResponses = {
 
 export type LeaveSessionResponse = LeaveSessionResponses[keyof LeaveSessionResponses];
 
+export type CreateEventsTicketData = {
+    body?: never;
+    headers?: {
+        'X-Participant-Token'?: string | null;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/apiv1/sessions/{id}/events/ticket';
+};
+
+export type CreateEventsTicketResponses = {
+    /**
+     * OK
+     */
+    200: SseTicketResponseDto;
+};
+
+export type CreateEventsTicketResponse = CreateEventsTicketResponses[keyof CreateEventsTicketResponses];
+
 export type SubmitAnswerData = {
     body: SubmitAnswerRequest;
     headers?: {
@@ -983,6 +1003,20 @@ export type UploadResponses = {
 
 export type UploadResponse = UploadResponses[keyof UploadResponses];
 
+export type VerifyResetTokenData = {
+    body: VerifyResetTokenRequest;
+    path?: never;
+    query?: never;
+    url: '/apiv1/auth/verify-reset-token';
+};
+
+export type VerifyResetTokenResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type ResetPasswordData = {
     body: ResetPasswordRequest;
     path?: never;
@@ -1000,7 +1034,7 @@ export type ResetPasswordResponses = {
 export type ResetPasswordResponse = ResetPasswordResponses[keyof ResetPasswordResponses];
 
 export type RefreshData = {
-    body: RefreshTokenRequest;
+    body?: never;
     path?: never;
     query?: never;
     url: '/apiv1/auth/refresh';
@@ -1016,7 +1050,7 @@ export type RefreshResponses = {
 export type RefreshResponse = RefreshResponses[keyof RefreshResponses];
 
 export type LogoutData = {
-    body: LogoutRequest;
+    body?: never;
     path?: never;
     query?: never;
     url: '/apiv1/auth/logout';
@@ -1238,6 +1272,9 @@ export type Find1Response = Find1Responses[keyof Find1Responses];
 
 export type GetById2Data = {
     body?: never;
+    headers?: {
+        'X-Participant-Token'?: string | null;
+    };
     path: {
         id: string;
     };
@@ -1256,6 +1293,9 @@ export type GetById2Response = GetById2Responses[keyof GetById2Responses];
 
 export type GetScoresData = {
     body?: never;
+    headers?: {
+        'X-Participant-Token'?: string | null;
+    };
     path: {
         id: string;
     };
@@ -1316,7 +1356,9 @@ export type StreamEventsData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        ticket?: string | null;
+    };
     url: '/apiv1/sessions/{id}/events';
 };
 
@@ -1384,22 +1426,6 @@ export type Find3Responses = {
 };
 
 export type Find3Response = Find3Responses[keyof Find3Responses];
-
-export type VerifyResetTokenData = {
-    body?: never;
-    path?: never;
-    query: {
-        token: string;
-    };
-    url: '/apiv1/auth/verify-reset-token';
-};
-
-export type VerifyResetTokenResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
 
 export type MeData = {
     body?: never;

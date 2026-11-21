@@ -27,6 +27,9 @@ describe('SessionPresenter', () => {
         result: { id: 'test-session-id', code: 'ABCDEF', name: 'Test Session', status: 'WAITING' },
       }),
     ),
+    createEventsTicket: jest.fn().mockReturnValue(
+      of({ kind: 'success', result: { ticket: 'sset_test', expiresInSeconds: 60 } }),
+    ),
     getScores: jest.fn().mockReturnValue(of({ kind: 'success', result: { leaderboard: [] } })),
     startSession: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),
     nextQuestion: jest.fn().mockReturnValue(of({ kind: 'success', result: undefined })),

@@ -323,9 +323,12 @@ export class SessionApiHttpService implements SessionApiService {
       })
     }
 
+    const token = this.currentParticipationToken || this.sessionPersistence.getParticipationToken()
+
     return from(
       getScores({
         path: { id: sessionId },
+        ...(token ? { headers: { 'X-Participant-Token': token } } : {}),
         httpClient: this.httpClient,
       }),
     ).pipe(

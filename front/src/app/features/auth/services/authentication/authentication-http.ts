@@ -16,13 +16,10 @@ import { AuthenticatedUser, UserId } from '@quezap/domain/models'
 import { AuthTokens } from '@quezap/domain/models/auth-tokens'
 import { JWT } from '@quezap/domain/types'
 
-import { TokenPersitance } from '../token-persistance/token-persitance'
-
 import { AuthenticationService } from './authentication'
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticationHttpService implements AuthenticationService {
-  private readonly tokenPersitance = inject(TokenPersitance)
   private readonly httpClient = inject(HttpClient, { optional: true })
   private refreshInFlight$: ServiceOutput<AuthTokens> | null = null
 
@@ -36,7 +33,7 @@ export class AuthenticationHttpService implements AuthenticationService {
       ),
     ).pipe(
       map(({ data, error }) => {
-        if (error || !data?.accessToken || !data?.refreshToken) {
+        if (error || !data?.accessToken) {
           return {
             kind: 'failure' as const,
             error: new UnauthorizedError('Identifiants invalides'),
@@ -45,10 +42,7 @@ export class AuthenticationHttpService implements AuthenticationService {
 
         return {
           kind: 'success' as const,
-          result: {
-            accessToken: data.accessToken as JWT,
-            refreshToken: data.refreshToken as JWT,
-          },
+          result: { accessToken: data.accessToken as JWT },
         }
       }),
       catchError((error: unknown) =>
@@ -62,20 +56,19 @@ export class AuthenticationHttpService implements AuthenticationService {
     )
   }
 
-  refresh(tokens: AuthTokens): ServiceOutput<AuthTokens> {
+  refresh(): ServiceOutput<AuthTokens> {
     if (this.refreshInFlight$) {
       return this.refreshInFlight$
     }
 
     const refreshOptions: Options<RefreshData, false> & { context: HttpContext } = {
-      body: { refreshToken: tokens.refreshToken },
       context: new HttpContext().set(IS_REFRESHING_ACCESS_TOKEN, true),
       ...(this.httpClient ? { httpClient: this.httpClient } : {}),
     }
 
     this.refreshInFlight$ = defer(() => from(refresh(refreshOptions))).pipe(
       map(({ data, error }) => {
-        if (error || !data?.accessToken || !data?.refreshToken) {
+        if (error || !data?.accessToken) {
           return {
             kind: 'failure' as const,
             error: new UnauthorizedError('Session expirée'),
@@ -84,10 +77,7 @@ export class AuthenticationHttpService implements AuthenticationService {
 
         return {
           kind: 'success' as const,
-          result: {
-            accessToken: data.accessToken as JWT,
-            refreshToken: data.refreshToken as JWT,
-          },
+          result: { accessToken: data.accessToken as JWT },
         }
       }),
       catchError((error: unknown) =>
@@ -107,18 +97,10 @@ export class AuthenticationHttpService implements AuthenticationService {
     return this.refreshInFlight$
   }
 
-  logout(refreshToken?: JWT): ServiceOutput<void> {
-    const token = refreshToken ?? this.tokenPersitance.getTokens()?.refreshToken
-    if (!token) {
-      return of({ kind: 'success' as const, result: undefined })
-    }
-
+  logout(): ServiceOutput<void> {
     return defer(() =>
       from(
-        logout({
-          body: { refreshToken: token },
-          ...(this.httpClient ? { httpClient: this.httpClient } : {}),
-        }),
+        logout(this.httpClient ? { httpClient: this.httpClient } : undefined),
       ),
     ).pipe(
       map(() => ({ kind: 'success' as const, result: undefined })),
@@ -195,7 +177,7 @@ export class AuthenticationHttpService implements AuthenticationService {
     return defer(() =>
       from(
         verifyResetToken({
-          query: { token },
+          body: { token },
           ...(this.httpClient ? { httpClient: this.httpClient } : {}),
         }),
       ),

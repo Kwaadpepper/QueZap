@@ -192,8 +192,9 @@ describe('SessionApiHttpService', () => {
   })
 
   describe('getSessionScores', () => {
-    it('should return validated LeaderboardResponseDto on success', async () => {
-      jest.spyOn(sdk, 'getScores').mockResolvedValue({
+    it('should return validated LeaderboardResponseDto and include X-Participant-Token when available', async () => {
+      persistence.saveParticipationData('018e3a2b-8888-7def-8123-000000000001', 'ptk_123', 'Léa')
+      const spy = jest.spyOn(sdk, 'getScores').mockResolvedValue({
         data: {
           sessionId: '018e3a2b-8888-7def-8123-000000000001',
           slideIndex: 3,
@@ -208,6 +209,10 @@ describe('SessionApiHttpService', () => {
       })
 
       const result = await firstValueFrom(service.getSessionScores('018e3a2b-8888-7def-8123-000000000001'))
+      expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+        path: { id: '018e3a2b-8888-7def-8123-000000000001' },
+        headers: { 'X-Participant-Token': 'ptk_123' },
+      }))
       expect(isSuccess(result)).toBe(true)
       if (isSuccess(result)) {
         expect(result.result.leaderboard).toHaveLength(2)

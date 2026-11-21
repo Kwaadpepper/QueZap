@@ -1,17 +1,14 @@
 import { TestBed } from '@angular/core/testing'
 
 import { AuthTokens } from '@quezap/domain/models'
+import { JWT } from '@quezap/domain/types'
 
 import { TokenPersitance } from './token-persitance'
 
 describe('TokenPersitance', () => {
   let service: TokenPersitance
 
-  const mockTokens: AuthTokens = {
-    accessToken: 'access-123',
-    refreshToken: 'refresh-456',
-    tokenType: 'Bearer',
-  }
+  const mockTokens: AuthTokens = { accessToken: 'access-123' as JWT }
 
   beforeEach(() => {
     localStorage.clear()

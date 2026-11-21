@@ -117,4 +117,19 @@ describe('SessionHttpService', () => {
       expect.objectContaining({ query: { paginationDto: { page: 1, perPage: 50 } } }),
     )
   })
+
+  it('should acquire SSE ticket via sdk createEventsTicket', async () => {
+    const ticketSpy = jest.spyOn(sdk, 'createEventsTicket').mockResolvedValueOnce({
+      data: { ticket: 'sset_abc', expiresInSeconds: 60 },
+      error: undefined,
+    } as never)
+
+    const result = await firstValueFrom(service.createEventsTicket('sess-1'))
+
+    expect(ticketSpy).toHaveBeenCalledWith({ path: { id: 'sess-1' } })
+    expect(isSuccess(result)).toBe(true)
+    if (isSuccess(result)) {
+      expect(result.result.ticket).toBe('sset_abc')
+    }
+  })
 })

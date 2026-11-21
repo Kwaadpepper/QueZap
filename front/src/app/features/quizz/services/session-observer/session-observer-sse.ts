@@ -3,7 +3,7 @@ import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular
 
 import { Observable, Subject } from 'rxjs'
 
-import { getById2 } from '@quezap/core/api-client/sdk.gen'
+import { createEventsTicket, getById2 } from '@quezap/core/api-client/sdk.gen'
 import { ServiceError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'
 import { ServiceObservable, ServiceState, Tried } from '@quezap/core/types'
@@ -109,6 +109,7 @@ export class SessionObserverSseService implements SessionObserverService {
   public readonly leaderboard: ServiceState<IntermediateLeaderboardData | undefined> = this._leaderboard.asReadonly()
 
   private currentConnectedSessionId: string | null = null
+  private connectingSessionId: string | null = null
   private lastEventId: string | null = null
   private reconnectAttempts = 0
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
@@ -147,6 +148,9 @@ export class SessionObserverSseService implements SessionObserverService {
       if (this.eventSource && this.eventSource.readyState !== EventSource.CLOSED) {
         return
       }
+      if (this.connectingSessionId === sessionId) {
+        return
+      }
       if (this.reconnectTimeout !== null) {
         return
       }
@@ -157,10 +161,10 @@ export class SessionObserverSseService implements SessionObserverService {
 
     this.currentConnectedSessionId = sessionId
     this.isSessionTerminated = false
-    this.openEventSource(sessionId)
+    void this.openEventSource(sessionId)
   }
 
-  private openEventSource(sessionId: string): void {
+  private async openEventSource(sessionId: string): Promise<void> {
     if (typeof EventSource === 'undefined') {
       return
     }
@@ -172,8 +176,53 @@ export class SessionObserverSseService implements SessionObserverService {
       this.eventSource = null
     }
 
+    this.connectingSessionId = sessionId
+    let ticket: string
+
     try {
-      const params = new URLSearchParams({ 'ngsw-bypass': 'true' })
+      const token = this.sessionPersistence.getParticipationToken()
+      const { data, error, response } = await createEventsTicket({
+        path: { id: sessionId },
+        ...(token ? { headers: { 'X-Participant-Token': token } } : {}),
+        ...(this.httpClient ? { httpClient: this.httpClient } : {}),
+      })
+
+      if (this.isSessionTerminated || this.currentConnectedSessionId !== sessionId) {
+        return
+      }
+
+      const status = response?.status
+      if (status === 404 || status === 403 || status === 401 || status === 410) {
+        this.isSessionTerminated = true
+        return
+      }
+
+      if (error || !data?.ticket) {
+        this.scheduleReconnect(sessionId)
+        return
+      }
+
+      ticket = data.ticket
+    }
+    catch (e) {
+      console.debug('Could not acquire SSE ticket', e)
+      if (this.isSessionTerminated || this.currentConnectedSessionId !== sessionId) {
+        return
+      }
+      this.scheduleReconnect(sessionId)
+      return
+    }
+    finally {
+      if (this.connectingSessionId === sessionId) {
+        this.connectingSessionId = null
+      }
+    }
+
+    try {
+      const params = new URLSearchParams({
+        ticket,
+        'ngsw-bypass': 'true',
+      })
       if (this.lastEventId) {
         params.set('lastEventId', this.lastEventId)
       }
@@ -273,8 +322,10 @@ export class SessionObserverSseService implements SessionObserverService {
 
     if (this.httpClient) {
       try {
+        const token = this.sessionPersistence.getParticipationToken()
         const { data, error, response } = await getById2({
           path: { id: sessionId },
+          ...(token ? { headers: { 'X-Participant-Token': token } } : {}),
           httpClient: this.httpClient,
         })
 
@@ -307,7 +358,7 @@ export class SessionObserverSseService implements SessionObserverService {
       }
     }
 
-    this.openEventSource(sessionId)
+    await this.openEventSource(sessionId)
   }
 
   private clearReconnectTimer(): void {
@@ -540,6 +591,7 @@ export class SessionObserverSseService implements SessionObserverService {
       this.eventSource = null
     }
     this.currentConnectedSessionId = null
+    this.connectingSessionId = null
     this.lastEventId = null
     this.reconnectAttempts = 0
     this.isSessionTerminated = false

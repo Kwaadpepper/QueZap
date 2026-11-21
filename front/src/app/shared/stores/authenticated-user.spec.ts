@@ -14,14 +14,8 @@ import {
 import { AuthenticatedUserStore } from './authenticated-user'
 
 describe('AuthenticatedUserStore', () => {
-  const initialTokens: AuthTokens = {
-    accessToken: 'access-token-1' as JWT,
-    refreshToken: 'refresh-token-1' as JWT,
-  }
-  const refreshedTokens: AuthTokens = {
-    accessToken: 'access-token-2' as JWT,
-    refreshToken: 'refresh-token-2' as JWT,
-  }
+  const initialTokens: AuthTokens = { accessToken: 'access-token-1' as JWT }
+  const refreshedTokens: AuthTokens = { accessToken: 'access-token-2' as JWT }
   const mockUser: AuthenticatedUser = {
     id: '123e4567-e89b-12d3-a456-426614174000' as UserId,
     pseudo: 'Alice',
@@ -31,6 +25,7 @@ describe('AuthenticatedUserStore', () => {
   let authServiceMock: jest.Mocked<AuthenticationService>
 
   const setupStore = () => {
+    localStorage.clear()
     tokenPersistanceMock = {
       getTokens: jest.fn(),
       saveTokens: jest.fn(),
@@ -69,15 +64,57 @@ describe('AuthenticatedUserStore', () => {
   })
 
   describe('loadInitialState', () => {
-    it('should complete immediately when no tokens are persisted', async () => {
+    it('should skip refresh when no session hint is present and remain guest silently', async () => {
       const store = setupStore()
       tokenPersistanceMock.getTokens.mockReturnValue(undefined)
 
-      await firstValueFrom(store.loadInitialState())
+      await expect(firstValueFrom(store.loadInitialState())).resolves.toBeUndefined()
 
+      expect(authServiceMock.refresh).not.toHaveBeenCalled()
       expect(authServiceMock.me).not.toHaveBeenCalled()
       expect(store.isLoggedIn()).toBe(false)
       expect(store.currentTokens()).toBeUndefined()
+      expect(store.sessionExpired()).toBe(false)
+    })
+
+    it('should attempt silent refresh when session hint is present and clear hint silently on failure', async () => {
+      const store = setupStore()
+      localStorage.setItem('quezap_has_session', '1')
+      tokenPersistanceMock.getTokens.mockReturnValue(undefined)
+      authServiceMock.refresh.mockReturnValue(
+        of({ kind: 'failure', error: new UnauthorizedError('No cookie') }),
+      )
+
+      await expect(firstValueFrom(store.loadInitialState())).resolves.toBeUndefined()
+
+      expect(authServiceMock.refresh).toHaveBeenCalledTimes(1)
+      expect(authServiceMock.me).not.toHaveBeenCalled()
+      expect(tokenPersistanceMock.removeTokens).toHaveBeenCalledTimes(1)
+      expect(localStorage.getItem('quezap_has_session')).toBeNull()
+      expect(store.isLoggedIn()).toBe(false)
+      expect(store.currentTokens()).toBeUndefined()
+      expect(store.sessionExpired()).toBe(false)
+    })
+
+    it('should restore session silently on startup when session hint, refresh cookie, and me() succeed', async () => {
+      const store = setupStore()
+      localStorage.setItem('quezap_has_session', '1')
+      tokenPersistanceMock.getTokens
+        .mockReturnValueOnce(undefined)
+        .mockReturnValue(refreshedTokens)
+      authServiceMock.refresh.mockReturnValue(of({ kind: 'success', result: refreshedTokens }))
+      authServiceMock.me.mockReturnValue(of({ kind: 'success', result: mockUser }))
+
+      await firstValueFrom(store.loadInitialState())
+
+      expect(authServiceMock.refresh).toHaveBeenCalledTimes(1)
+      expect(tokenPersistanceMock.saveTokens).toHaveBeenCalledWith(refreshedTokens)
+      expect(authServiceMock.me).toHaveBeenCalledTimes(1)
+      expect(store.isLoggedIn()).toBe(true)
+      expect(store.currentUser()).toEqual(mockUser)
+      expect(store.currentTokens()).toEqual(refreshedTokens)
+      expect(store.authenticating()).toBe(false)
+      expect(store.sessionExpired()).toBe(false)
     })
 
     it('should authenticate user when persisted tokens and me() succeed', async () => {
@@ -188,7 +225,7 @@ describe('AuthenticatedUserStore', () => {
   })
 
   describe('logout', () => {
-    it('should call logout with current refreshToken and clear state on success', async () => {
+    it('should call logout and clear state on success', async () => {
       const store = setupStore()
       authServiceMock.login.mockReturnValue(of({ kind: 'success', result: initialTokens }))
       authServiceMock.me.mockReturnValue(of({ kind: 'success', result: mockUser }))
@@ -198,23 +235,22 @@ describe('AuthenticatedUserStore', () => {
       await firstValueFrom(store.login('alice@example.net', 'secret'))
       await firstValueFrom(store.logout())
 
-      expect(authServiceMock.logout).toHaveBeenCalledWith(initialTokens.refreshToken)
+      expect(authServiceMock.logout).toHaveBeenCalledWith()
       expect(tokenPersistanceMock.removeTokens).toHaveBeenCalled()
       expect(store.isLoggedIn()).toBe(false)
       expect(store.currentUser()).toBeUndefined()
       logSpy.mockRestore()
     })
 
-    it('should fallback to persisted refreshToken and force local reset on failure', async () => {
+    it('should force local reset on logout failure', async () => {
       const store = setupStore()
       const serviceError = new ServiceError('Logout error')
-      tokenPersistanceMock.getTokens.mockReturnValue(initialTokens)
       authServiceMock.logout.mockReturnValue(of({ kind: 'failure', error: serviceError }))
       const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
 
       await expect(firstValueFrom(store.logout())).rejects.toThrow(serviceError)
 
-      expect(authServiceMock.logout).toHaveBeenCalledWith(initialTokens.refreshToken)
+      expect(authServiceMock.logout).toHaveBeenCalledWith()
       expect(tokenPersistanceMock.removeTokens).toHaveBeenCalledTimes(1)
       expect(store.isLoggedIn()).toBe(false)
       errorSpy.mockRestore()
@@ -240,7 +276,7 @@ describe('AuthenticatedUserStore', () => {
       await firstValueFrom(store.login('alice@example.net', 'secret'))
       await firstValueFrom(store.refresh())
 
-      expect(authServiceMock.refresh).toHaveBeenCalledWith(initialTokens)
+      expect(authServiceMock.refresh).toHaveBeenCalledWith()
       expect(tokenPersistanceMock.saveTokens).toHaveBeenCalledWith(refreshedTokens)
       expect(store.currentTokens()).toEqual(refreshedTokens)
       expect(store.isLoggedIn()).toBe(true)
@@ -261,7 +297,7 @@ describe('AuthenticatedUserStore', () => {
 
       await firstValueFrom(store.loadInitialState())
 
-      expect(authServiceMock.refresh).toHaveBeenCalledWith(initialTokens)
+      expect(authServiceMock.refresh).toHaveBeenCalledWith()
       expect(tokensDuringMeAfterRefresh).toEqual(refreshedTokens)
       expect(store.currentTokens()).toEqual(refreshedTokens)
       expect(store.isLoggedIn()).toBe(true)

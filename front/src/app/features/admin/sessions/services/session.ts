@@ -8,6 +8,7 @@ import {
   SessionReportDto,
   SessionSettingsRequestDto,
   SessionSettingsResponseDto,
+  SseTicketResponseDto,
 } from '@quezap/core/api-client'
 import { PageOf, Pagination, ServiceOutput } from '@quezap/core/types'
 import { Session } from '@quezap/domain/models'
@@ -22,6 +23,7 @@ export interface SessionService {
   getSessionPage(page: Pagination): ServiceOutput<PageOf<Session>>
   getSession(id: string): ServiceOutput<SessionDetailDto>
   createSession(quezapId: string, name: string): ServiceOutput<SessionCreatedDto>
+  createEventsTicket(id: string): ServiceOutput<SseTicketResponseDto>
   startSession(id: string): ServiceOutput<void>
   nextQuestion(id: string): ServiceOutput<void>
   revealAnswers(id: string): ServiceOutput<void>

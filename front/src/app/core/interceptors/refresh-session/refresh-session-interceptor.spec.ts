@@ -26,14 +26,8 @@ describe('refreshSessionInterceptor', () => {
     refresh: jest.Mock
   }
 
-  const oldTokens: AuthTokens = {
-    accessToken: 'expired-access' as JWT,
-    refreshToken: 'valid-refresh' as JWT,
-  }
-  const newTokens: AuthTokens = {
-    accessToken: 'fresh-access' as JWT,
-    refreshToken: 'fresh-refresh' as JWT,
-  }
+  const oldTokens: AuthTokens = { accessToken: 'expired-access' as JWT }
+  const newTokens: AuthTokens = { accessToken: 'fresh-access' as JWT }
 
   beforeEach(() => {
     currentTokensSignal = signal<AuthTokens | undefined>(undefined)
@@ -126,7 +120,7 @@ describe('refreshSessionInterceptor', () => {
     const context = new HttpContext().set(IS_REFRESHING_ACCESS_TOKEN, true)
     let caughtStatus: number | undefined
 
-    http.post('/apiv1/auth/refresh', { refreshToken: oldTokens.refreshToken }, { context }).subscribe({
+    http.post('/apiv1/auth/refresh', null, { context }).subscribe({
       error: (err) => {
         caughtStatus = err.status
       },
