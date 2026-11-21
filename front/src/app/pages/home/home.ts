@@ -4,8 +4,8 @@ import {
 } from '@angular/core'
 import { RouterLink } from '@angular/router'
 
-import { ButtonModule } from 'primeng/button'
-import { Divider } from 'primeng/divider'
+import { ButtonModule } from '@openng/optimus-ui/button'
+import { Divider } from '@openng/optimus-ui/divider'
 
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, ViewEncapsulation } from '@angular/core'
 
-import { Button, ButtonIcon } from 'primeng/button'
-import { ButtonGroup } from 'primeng/buttongroup'
+import { Button, ButtonIcon } from '@openng/optimus-ui/button'
+import { ButtonGroup } from '@openng/optimus-ui/buttongroup'
 
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 

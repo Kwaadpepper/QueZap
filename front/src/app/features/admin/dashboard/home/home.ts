@@ -4,10 +4,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router, RouterLink } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
-import { ButtonModule } from 'primeng/button'
-import { CardModule } from 'primeng/card'
-import { ChipModule } from 'primeng/chip'
+import { MessageService } from '@openng/optimus-ui/api'
+import { ButtonModule } from '@openng/optimus-ui/button'
+import { CardModule } from '@openng/optimus-ui/card'
+import { ChipModule } from '@openng/optimus-ui/chip'
 
 import { QuezapWithTheme, Session } from '@quezap/domain/models'
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'

@@ -4,8 +4,8 @@ import {
   output,
 } from '@angular/core'
 
-import { BadgeModule } from 'primeng/badge'
-import { TagModule } from 'primeng/tag'
+import { BadgeModule } from '@openng/optimus-ui/badge'
+import { TagModule } from '@openng/optimus-ui/tag'
 
 import { QuestionType, QuestionTypeFrom, QuestionWithAnswersAndResponses } from '@quezap/domain/models'
 import { MinutesPipe } from '@quezap/shared/pipes/minutes'

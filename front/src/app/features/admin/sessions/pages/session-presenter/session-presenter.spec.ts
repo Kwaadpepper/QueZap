@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { provideRouter, Router } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
+import { MessageService } from '@openng/optimus-ui/api'
+
 import { of } from 'rxjs'
 
 import { NotFoundError, UnauthorizedError } from '@quezap/core/errors'

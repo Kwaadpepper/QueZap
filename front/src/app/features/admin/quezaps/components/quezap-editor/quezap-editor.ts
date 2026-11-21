@@ -11,9 +11,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
-import { ConfirmationService, MessageService } from 'primeng/api'
-import { ButtonModule } from 'primeng/button'
-import { ConfirmDialogModule } from 'primeng/confirmdialog'
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api'
+import { ButtonModule } from '@openng/optimus-ui/button'
+import { ConfirmDialogModule } from '@openng/optimus-ui/confirmdialog'
 
 import { ValidationError } from '@quezap/core/errors'
 import { QuestionType, QuestionTypeFrom, QuezapId, QuezapWithQuestionsAndAnswers } from '@quezap/domain/models'

@@ -3,9 +3,9 @@ import {
 } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
-import { Message } from 'primeng/message'
+import { MessageService } from '@openng/optimus-ui/api'
+import { Button } from '@openng/optimus-ui/button'
+import { Message } from '@openng/optimus-ui/message'
 
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'

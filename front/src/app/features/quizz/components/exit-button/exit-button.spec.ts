@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { Router } from '@angular/router'
 
-import { Confirmation, ConfirmationService } from 'primeng/api'
+import { Confirmation, ConfirmationService } from '@openng/optimus-ui/api'
 
 import { ActiveSessionStore } from '../../stores'
 

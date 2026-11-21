@@ -4,9 +4,9 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 
-import { AutoFocusModule } from 'primeng/autofocus'
-import { Inplace, InplaceModule } from 'primeng/inplace'
-import { InputTextModule } from 'primeng/inputtext'
+import { AutoFocusModule } from '@openng/optimus-ui/autofocus'
+import { Inplace, InplaceModule } from '@openng/optimus-ui/inplace'
+import { InputTextModule } from '@openng/optimus-ui/inputtext'
 
 import { Question } from '@quezap/domain/models'
 

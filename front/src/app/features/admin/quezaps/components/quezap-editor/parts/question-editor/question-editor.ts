@@ -4,10 +4,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { FormsModule } from '@angular/forms'
 
-import { MessageService } from 'primeng/api'
-import { DividerModule } from 'primeng/divider'
-import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload'
-import { Select } from 'primeng/select'
+import { MessageService } from '@openng/optimus-ui/api'
+import { DividerModule } from '@openng/optimus-ui/divider'
+import { FileSelectEvent, FileUploadModule } from '@openng/optimus-ui/fileupload'
+import { Select } from '@openng/optimus-ui/select'
 
 import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
 import { isSuccess } from '@quezap/core/types'

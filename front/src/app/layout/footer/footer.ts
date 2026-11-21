@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core'
 import { RouterModule } from '@angular/router'
 
-import { Image } from 'primeng/image'
+import { Image } from '@openng/optimus-ui/image'
 
 import { Config } from '@quezap/core/services/config/config'
 

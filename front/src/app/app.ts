@@ -9,12 +9,12 @@ import {
   NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterModule, RouterOutlet,
 } from '@angular/router'
 
-import { ButtonModule } from 'primeng/button'
-import { DividerModule } from 'primeng/divider'
-import { DrawerModule } from 'primeng/drawer'
-import { FocusTrapModule } from 'primeng/focustrap'
-import { ImageModule } from 'primeng/image'
-import { Toast } from 'primeng/toast'
+import { ButtonModule } from '@openng/optimus-ui/button'
+import { DividerModule } from '@openng/optimus-ui/divider'
+import { DrawerModule } from '@openng/optimus-ui/drawer'
+import { FocusTrapModule } from '@openng/optimus-ui/focustrap'
+import { ImageModule } from '@openng/optimus-ui/image'
+import { Toast } from '@openng/optimus-ui/toast'
 
 import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 

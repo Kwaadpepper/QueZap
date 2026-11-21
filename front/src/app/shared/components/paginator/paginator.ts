@@ -1,6 +1,6 @@
 import { Component, computed, input, output } from '@angular/core'
 
-import { Paginator as PaginatorComponent, PaginatorState } from 'primeng/paginator'
+import { Paginator as PaginatorComponent, PaginatorState } from '@openng/optimus-ui/paginator'
 
 export interface PaginatorPageInfo {
   page: number

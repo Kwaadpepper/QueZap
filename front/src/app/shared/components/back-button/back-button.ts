@@ -1,7 +1,7 @@
 import { Component, inject, input } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { Button } from 'primeng/button'
+import { Button } from '@openng/optimus-ui/button'
 
 import { IconFacade } from '../icon/icon-facade'
 

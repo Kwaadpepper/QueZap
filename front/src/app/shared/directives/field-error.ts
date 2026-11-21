@@ -3,7 +3,7 @@ import {
 } from '@angular/core'
 import { FieldState, StandardSchemaValidationError, ValidationError } from '@angular/forms/signals'
 
-import { Message, MessageModule } from 'primeng/message'
+import { Message, MessageModule } from '@openng/optimus-ui/message'
 
 type InputFieldState = FieldState<string, string | number>
 

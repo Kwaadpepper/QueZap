@@ -7,11 +7,11 @@ import {
   viewChild,
 } from '@angular/core'
 
-import { ConfirmationService } from 'primeng/api'
-import { BadgeModule } from 'primeng/badge'
-import { ButtonModule } from 'primeng/button'
-import { ConfirmPopupModule } from 'primeng/confirmpopup'
-import { FocusTrapModule } from 'primeng/focustrap'
+import { ConfirmationService } from '@openng/optimus-ui/api'
+import { BadgeModule } from '@openng/optimus-ui/badge'
+import { ButtonModule } from '@openng/optimus-ui/button'
+import { ConfirmPopupModule } from '@openng/optimus-ui/confirmpopup'
+import { FocusTrapModule } from '@openng/optimus-ui/focustrap'
 
 import { scrollToElementInContainer } from '@quezap/core/tools/scroll-to'
 import { QuestionTypeFrom, QuestionWithAnswersAndResponses } from '@quezap/domain/models'

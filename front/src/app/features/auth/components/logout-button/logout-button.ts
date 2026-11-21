@@ -2,8 +2,9 @@ import { Component, DestroyRef, ErrorHandler, inject, signal } from '@angular/co
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
-import { ButtonModule } from 'primeng/button'
+import { MessageService } from '@openng/optimus-ui/api'
+import { ButtonModule } from '@openng/optimus-ui/button'
+
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError } from '@quezap/core/errors'

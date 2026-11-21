@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
-import { Image } from 'primeng/image'
+import { Image } from '@openng/optimus-ui/image'
 
 import { PictureUrl } from '@quezap/domain/models'
 

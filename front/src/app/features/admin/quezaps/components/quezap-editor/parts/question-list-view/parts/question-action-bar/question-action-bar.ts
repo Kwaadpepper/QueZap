@@ -1,7 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core'
 
-import { ConfirmationService } from 'primeng/api'
-import { ButtonModule } from 'primeng/button'
+import { ConfirmationService } from '@openng/optimus-ui/api'
+import { ButtonModule } from '@openng/optimus-ui/button'
 
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 

@@ -5,10 +5,11 @@ import {
   form, FormField, maxLength, minLength, pattern, required, submit,
 } from '@angular/forms/signals'
 
-import { MessageService } from 'primeng/api'
-import { Button, ButtonIcon } from 'primeng/button'
-import { CheckboxModule } from 'primeng/checkbox'
-import { InputText } from 'primeng/inputtext'
+import { MessageService } from '@openng/optimus-ui/api'
+import { Button, ButtonIcon } from '@openng/optimus-ui/button'
+import { CheckboxModule } from '@openng/optimus-ui/checkbox'
+import { InputText } from '@openng/optimus-ui/inputtext'
+
 import { catchError, exhaustMap, finalize, firstValueFrom, of } from 'rxjs'
 
 import { ForbidenError, HandledFrontError, ValidationError } from '@quezap/core/errors'

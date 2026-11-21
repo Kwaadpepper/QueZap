@@ -8,8 +8,8 @@ import {
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
-import { MessageService } from 'primeng/api'
-import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload'
+import { MessageService } from '@openng/optimus-ui/api'
+import { FileSelectEvent, FileUploadModule } from '@openng/optimus-ui/fileupload'
 
 import { PictureUploadService } from '@quezap/core/services/picture-upload/picture-upload'
 import { isSuccess } from '@quezap/core/types'

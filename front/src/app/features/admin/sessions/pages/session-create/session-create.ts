@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms'
 import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 import { Router, RouterLink } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
-import { InputText } from 'primeng/inputtext'
-import { Select } from 'primeng/select'
+import { MessageService } from '@openng/optimus-ui/api'
+import { Button } from '@openng/optimus-ui/button'
+import { InputText } from '@openng/optimus-ui/inputtext'
+import { Select } from '@openng/optimus-ui/select'
+
 import { firstValueFrom } from 'rxjs'
 import * as zod from 'zod/v4'
 

@@ -5,10 +5,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute, RouterLink } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
-import { Message } from 'primeng/message'
-import { TableModule } from 'primeng/table'
+import { MessageService } from '@openng/optimus-ui/api'
+import { Button } from '@openng/optimus-ui/button'
+import { Message } from '@openng/optimus-ui/message'
+import { TableModule } from '@openng/optimus-ui/table'
 
 import { SessionReportDto } from '@quezap/core/api-client'
 import { Spinner } from '@quezap/shared/components/spinner/spinner'

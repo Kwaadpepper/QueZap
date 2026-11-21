@@ -3,10 +3,10 @@ import {
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
-import { ConfirmationService, MessageService } from 'primeng/api'
-import { Button } from 'primeng/button'
-import { Card } from 'primeng/card'
-import { ConfirmPopupModule } from 'primeng/confirmpopup'
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api'
+import { Button } from '@openng/optimus-ui/button'
+import { Card } from '@openng/optimus-ui/card'
+import { ConfirmPopupModule } from '@openng/optimus-ui/confirmpopup'
 
 import { Theme } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'

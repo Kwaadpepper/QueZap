@@ -4,8 +4,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute } from '@angular/router'
 
-import { MessageModule } from 'primeng/message'
-import { ProgressSpinner } from 'primeng/progressspinner'
+import { MessageModule } from '@openng/optimus-ui/message'
+import { ProgressSpinner } from '@openng/optimus-ui/progressspinner'
+
 import {
   catchError, finalize, firstValueFrom, of, retry, tap,
 } from 'rxjs'

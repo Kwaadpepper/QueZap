@@ -4,9 +4,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute, Router } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
-import { Message } from 'primeng/message'
-import { ProgressSpinnerModule } from 'primeng/progressspinner'
+import { MessageService } from '@openng/optimus-ui/api'
+import { Message } from '@openng/optimus-ui/message'
+import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner'
+
 import { catchError, firstValueFrom, of, tap } from 'rxjs'
 
 import { HandledFrontError, ValidationError } from '@quezap/core/errors'

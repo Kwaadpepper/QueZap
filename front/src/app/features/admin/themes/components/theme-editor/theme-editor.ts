@@ -4,11 +4,12 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { form, FormField, submit, validateStandardSchema } from '@angular/forms/signals'
 
-import { MessageService } from 'primeng/api'
-import { Button, ButtonIcon } from 'primeng/button'
-import { Dialog } from 'primeng/dialog'
-import { InputText } from 'primeng/inputtext'
-import { Message } from 'primeng/message'
+import { MessageService } from '@openng/optimus-ui/api'
+import { Button, ButtonIcon } from '@openng/optimus-ui/button'
+import { Dialog } from '@openng/optimus-ui/dialog'
+import { InputText } from '@openng/optimus-ui/inputtext'
+import { Message } from '@openng/optimus-ui/message'
+
 import { catchError, concatMap, firstValueFrom, of, throwError } from 'rxjs'
 import * as zod from 'zod/v4'
 

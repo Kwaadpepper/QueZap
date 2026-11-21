@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { Button } from 'primeng/button'
-import { CardModule } from 'primeng/card'
+import { Button } from '@openng/optimus-ui/button'
+import { CardModule } from '@openng/optimus-ui/card'
 
 import { Session } from '@quezap/domain/models'
 

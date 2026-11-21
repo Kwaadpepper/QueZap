@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core'
 
-import { ProgressBar } from 'primeng/progressbar'
+import { ProgressBar } from '@openng/optimus-ui/progressbar'
 
 import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 

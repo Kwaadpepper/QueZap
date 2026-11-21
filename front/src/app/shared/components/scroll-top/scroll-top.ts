@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core'
 
-import { ButtonModule } from 'primeng/button'
+import { ButtonModule } from '@openng/optimus-ui/button'
 
 import { IconFacade } from '../icon/icon-facade'
 

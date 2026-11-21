@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
 
-import { ProgressSpinner } from 'primeng/progressspinner'
+import { ProgressSpinner } from '@openng/optimus-ui/progressspinner'
 
 @Component({
   selector: 'quizz-spinner',

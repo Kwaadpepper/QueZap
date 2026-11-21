@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { form, FormField, validate } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 
-import { Button, ButtonIcon } from 'primeng/button'
-import { InputText } from 'primeng/inputtext'
+import { Button, ButtonIcon } from '@openng/optimus-ui/button'
+import { InputText } from '@openng/optimus-ui/inputtext'
 
 import { Config } from '@quezap/core/services/config/config'
 import { isValidSessionCode } from '@quezap/domain/models'

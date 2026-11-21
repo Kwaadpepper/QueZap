@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
-import { ButtonModule } from 'primeng/button'
+import { ButtonModule } from '@openng/optimus-ui/button'
 
 import { Paginator } from '@quezap/shared/components/paginator/paginator'
 

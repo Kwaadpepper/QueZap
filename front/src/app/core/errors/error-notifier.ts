@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core'
 
-import { MessageService } from 'primeng/api'
+import { MessageService } from '@openng/optimus-ui/api'
 
 export interface ErrorNotifier {
   notify(summary: string, detail: string): void

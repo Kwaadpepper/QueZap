@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 import { RouterModule } from '@angular/router'
 
-import { ButtonIcon, ButtonModule } from 'primeng/button'
+import { ButtonIcon, ButtonModule } from '@openng/optimus-ui/button'
 
 import { Config } from '@quezap/core/services/config/config'
 import { LayoutSettings } from '@quezap/core/services/layout/layout-settings'

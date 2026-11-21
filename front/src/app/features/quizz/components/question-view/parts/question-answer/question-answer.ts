@@ -4,7 +4,7 @@ import {
 } from '@angular/core'
 import { FieldTree } from '@angular/forms/signals'
 
-import { CheckboxModule } from 'primeng/checkbox'
+import { CheckboxModule } from '@openng/optimus-ui/checkbox'
 
 import { PictureUrl, QuestionId } from '@quezap/domain/models'
 

@@ -4,7 +4,7 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 
-import { SelectChangeEvent, SelectModule } from 'primeng/select'
+import { SelectChangeEvent, SelectModule } from '@openng/optimus-ui/select'
 
 import { getNewAnswerWithResponse, Question, QuestionType, QuestionTypeFrom } from '@quezap/domain/models'
 

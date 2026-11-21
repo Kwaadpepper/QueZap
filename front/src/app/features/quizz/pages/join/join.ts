@@ -4,7 +4,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
-import { Message } from 'primeng/message'
+import { Message } from '@openng/optimus-ui/message'
+
 import {
   catchError, filter, finalize, of, switchMap, tap,
 } from 'rxjs'

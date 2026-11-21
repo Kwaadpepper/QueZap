@@ -1,7 +1,7 @@
 import { Component, effect, input, model, output } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 
-import { CheckboxModule } from 'primeng/checkbox'
+import { CheckboxModule } from '@openng/optimus-ui/checkbox'
 
 @Component({
   selector: 'quizz-answer-correctness',

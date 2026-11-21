@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 
-import { Button } from 'primeng/button'
+import { Button } from '@openng/optimus-ui/button'
 
 @Component({
   selector: 'quizz-session-edit',

@@ -7,7 +7,7 @@ import { provideRouter } from '@angular/router'
 
 import { setupZonelessTestEnv } from 'jest-preset-angular/setup-env/zoneless'
 import { provideMarkdown } from 'ngx-markdown'
-import { ConfirmationService, MessageService } from 'primeng/api'
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api'
 
 import { createErrorNotifier, ERROR_NOTIFIER, GlobalErrorHandler } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'

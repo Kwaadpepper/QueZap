@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { ConfirmationService } from 'primeng/api'
-import { Button, ButtonIcon } from 'primeng/button'
-import { ConfirmPopupModule } from 'primeng/confirmpopup'
+import { ConfirmationService } from '@openng/optimus-ui/api'
+import { Button, ButtonIcon } from '@openng/optimus-ui/button'
+import { ConfirmPopupModule } from '@openng/optimus-ui/confirmpopup'
 
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'
 

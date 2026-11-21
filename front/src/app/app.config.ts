@@ -6,8 +6,8 @@ import {
 import { provideRouter, TitleStrategy, withComponentInputBinding } from '@angular/router'
 import { provideServiceWorker } from '@angular/service-worker'
 
-import { MessageService } from 'primeng/api'
-import { providePrimeNG } from 'primeng/config'
+import { MessageService } from '@openng/optimus-ui/api'
+import { provideOptimus } from '@openng/optimus-ui/config'
 
 import { environment } from '@quezap/env/environment'
 import Quezap from '@quezap/themes/quezap'
@@ -88,15 +88,14 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([loadingProgressionInterceptor, refreshSessionInterceptor])),
     provideHeyApiClient(client),
-    providePrimeNG({
-      license: environment.primeUiLicense || undefined,
+    provideOptimus({
       overlayAppendTo: 'body',
       theme: {
         preset: Quezap,
         options: {
           cssLayer: {
-            name: 'primeng',
-            order: 'theme, base, primeng',
+            name: 'optimus',
+            order: 'theme, base, optimus',
           },
         },
       },

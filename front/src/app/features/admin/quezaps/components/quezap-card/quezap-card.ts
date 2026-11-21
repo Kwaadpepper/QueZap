@@ -4,11 +4,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 
-import { ConfirmationService, MessageService } from 'primeng/api'
-import { ButtonModule } from 'primeng/button'
-import { CardModule } from 'primeng/card'
-import { ChipModule } from 'primeng/chip'
-import { ConfirmPopupModule } from 'primeng/confirmpopup'
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api'
+import { ButtonModule } from '@openng/optimus-ui/button'
+import { CardModule } from '@openng/optimus-ui/card'
+import { ChipModule } from '@openng/optimus-ui/chip'
+import { ConfirmPopupModule } from '@openng/optimus-ui/confirmpopup'
 
 import { QuezapWithTheme } from '@quezap/domain/models'
 import { IconFacade } from '@quezap/shared/components/icon/icon-facade'

@@ -80,7 +80,7 @@ export default tseslint.config(
         "ExportDeclaration": { "multiline": true, "minProperties": 6 }
       }],
 
-      // Ordonne les imports: externals (avec @angular et primeng en tête), puis internes (~...), puis relatifs
+      // Ordonne les imports: externals (avec @angular et @openng en tête), puis internes (~...), puis relatifs
       "import/order": [
         "error",
         {
@@ -89,7 +89,7 @@ export default tseslint.config(
           alphabetize: { order: "asc", caseInsensitive: true },
           pathGroups: [
             { pattern: "@angular/**", group: "external", position: "before" },
-            { pattern: "primeng?(/**)", group: "external", position: "before" },
+            { pattern: "@openng/**", group: "external", position: "before" },
             { pattern: "@quezap/**", group: "internal", position: "after" },
           ],
           pathGroupsExcludedImportTypes: ["builtin"],
@@ -99,6 +99,12 @@ export default tseslint.config(
       "no-restricted-imports": [
         "error",
         {
+          "paths": [
+            {
+              "name": "@openng/optimus-ui",
+              "message": "You may do a deep import for Optimus UI (ex: @openng/optimus-ui/dialog, @openng/optimus-ui/button) to optimize bundle size (Tree-Shaking)."
+            }
+          ],
           "patterns": [
             {
               "regex": String.raw`^(?:(?!@angular).*\/(?:shared|core(?!\/(?:types|tokens|errors|api-client)))\/(.*)index(?:\.ts)?)$`,
@@ -111,10 +117,6 @@ export default tseslint.config(
             {
               "regex": String.raw`^(?:.*)(?:components)(?:\/(?:index(?:\.ts)?)?)?$`,
               "message": "You have to import component individually as they have to be standalones, for tree shaking"
-            },
-            {
-              "group": ["primeng/primeng"],
-              "message": "You may do a deep import for PrimeNG (ex: primeng/dialog, primeng/button) to optimize bundle size (Tree-Shaking)."
             }
           ]
         }

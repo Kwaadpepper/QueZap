@@ -6,9 +6,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 
+import { MessageService } from '@openng/optimus-ui/api'
+import { Image } from '@openng/optimus-ui/image'
+
 import { QRCodeComponent } from 'angularx-qrcode'
-import { MessageService } from 'primeng/api'
-import { Image } from 'primeng/image'
 
 import { ServiceError, UnauthorizedError } from '@quezap/core/errors'
 import { Config } from '@quezap/core/services/config/config'

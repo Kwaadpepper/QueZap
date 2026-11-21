@@ -1,5 +1,5 @@
-import { updatePreset } from '@primeuix/themes'
-import Aura from '@primeuix/themes/aura'
+import { updatePreset } from '@openng/optimus-ui-themes'
+import Aura from '@openng/optimus-ui-themes/aura'
 
 const Quezap = updatePreset(
   Aura,

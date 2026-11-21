@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 import { Router } from '@angular/router'
 
-import { ButtonModule } from 'primeng/button'
+import { ButtonModule } from '@openng/optimus-ui/button'
 
 import { QuezapWithTheme } from '@quezap/domain/models'
 import { Paginator } from '@quezap/shared/components/paginator/paginator'

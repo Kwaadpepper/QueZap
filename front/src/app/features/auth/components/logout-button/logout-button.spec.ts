@@ -2,7 +2,8 @@ import { ErrorHandler } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { Router } from '@angular/router'
 
-import { MessageService } from 'primeng/api'
+import { MessageService } from '@openng/optimus-ui/api'
+
 import { of, throwError } from 'rxjs'
 
 import { AuthenticatedUserStore } from '@quezap/shared/stores/authenticated-user'

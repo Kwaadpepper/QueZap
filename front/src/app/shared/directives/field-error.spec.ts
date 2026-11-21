@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { FieldState } from '@angular/forms/signals'
 
-import { MessageService } from 'primeng/api'
+import { MessageService } from '@openng/optimus-ui/api'
 
 import { FieldError } from './field-error'
 

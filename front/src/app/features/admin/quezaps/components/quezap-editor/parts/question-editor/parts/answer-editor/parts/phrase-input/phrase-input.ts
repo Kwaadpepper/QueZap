@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 
-import { TextareaModule } from 'primeng/textarea'
+import { TextareaModule } from '@openng/optimus-ui/textarea'
 
 @Component({
   selector: 'quizz-phrase-input',

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { Confirmation, ConfirmationService, MessageService } from 'primeng/api'
+import { Confirmation, ConfirmationService, MessageService } from '@openng/optimus-ui/api'
+
 import { of } from 'rxjs'
 
 import { ThemeId } from '@quezap/domain/models'
