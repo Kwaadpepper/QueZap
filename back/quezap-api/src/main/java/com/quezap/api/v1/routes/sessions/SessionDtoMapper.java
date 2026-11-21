@@ -52,4 +52,24 @@ final class SessionDtoMapper {
         view.explanationDurationSeconds(),
         view.mobileCorrectionEnabled());
   }
+
+  static SessionDetailDto toPublicDetailDto(SessionDetailView view) {
+    return new SessionDetailDto(
+        view.id(),
+        view.number(),
+        view.code(),
+        view.name(),
+        view.status(),
+        view.currentSlideIndex(),
+        view.totalSlides(),
+        view.participantsCount(),
+        List.of(),
+        view.authorId(),
+        view.startedAt(),
+        view.endedAt(),
+        view.progressionMode(),
+        view.isPaused(),
+        view.explanationDurationSeconds(),
+        view.mobileCorrectionEnabled());
+  }
 }

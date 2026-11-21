@@ -2,6 +2,7 @@ package com.quezap.api.v1.routes.sessions;
 
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,11 +33,13 @@ import com.quezap.api.v1.dto.response.sessions.SessionCreatedDto;
 import com.quezap.api.v1.dto.response.sessions.SessionDetailDto;
 import com.quezap.api.v1.dto.response.sessions.SessionReportDto;
 import com.quezap.api.v1.dto.response.sessions.SessionStatusDto;
+import com.quezap.api.v1.dto.response.sessions.SseTicketResponseDto;
 import com.quezap.api.v1.dto.sessions.SessionPauseRequestDto;
 import com.quezap.api.v1.dto.sessions.SessionPauseResponseDto;
 import com.quezap.api.v1.dto.sessions.SessionSettingsRequestDto;
 import com.quezap.api.v1.dto.sessions.SessionSettingsResponseDto;
 import com.quezap.api.v1.mappers.PaginationMapper;
+import com.quezap.api.v1.security.SessionEndpointRateLimiter;
 import com.quezap.api.v1.services.SessionReportService;
 import com.quezap.api.v1.services.SessionSseService;
 import com.quezap.application.ports.sessions.CreateSession;
@@ -51,6 +54,7 @@ import com.quezap.application.ports.sessions.ToggleSessionPause;
 import com.quezap.application.ports.sessions.UpdateSessionSettings;
 import com.quezap.application.usecases.sessions.SessionQueryService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.Nullable;
 
@@ -64,6 +68,7 @@ public class SessionController {
   private final SessionSseService sessionSseService;
   private final SessionSseRealtimePublisher realtimePublisher;
   private final PaginationMapper paginationMapper;
+  private final SessionEndpointRateLimiter rateLimiter;
 
   public SessionController(
       SessionCommandGateway commandGateway,
@@ -72,12 +77,32 @@ public class SessionController {
       SessionSseService sessionSseService,
       SessionSseRealtimePublisher realtimePublisher,
       PaginationMapper paginationMapper) {
+    this(
+        commandGateway,
+        sessionQueryService,
+        sessionReportService,
+        sessionSseService,
+        realtimePublisher,
+        paginationMapper,
+        null);
+  }
+
+  @Autowired
+  public SessionController(
+      SessionCommandGateway commandGateway,
+      SessionQueryService sessionQueryService,
+      SessionReportService sessionReportService,
+      SessionSseService sessionSseService,
+      SessionSseRealtimePublisher realtimePublisher,
+      PaginationMapper paginationMapper,
+      @Nullable SessionEndpointRateLimiter rateLimiter) {
     this.commandGateway = commandGateway;
     this.sessionQueryService = sessionQueryService;
     this.sessionReportService = sessionReportService;
     this.sessionSseService = sessionSseService;
     this.realtimePublisher = realtimePublisher;
     this.paginationMapper = paginationMapper;
+    this.rateLimiter = rateLimiter != null ? rateLimiter : new SessionEndpointRateLimiter();
   }
 
   @GetMapping
@@ -101,20 +126,41 @@ public class SessionController {
     return new SessionCreatedDto(out.id(), out.number(), out.code());
   }
 
-  @GetMapping("{id}")
   public SessionDetailDto getById(@PathVariable UUID id) {
+    return getById(id, null);
+  }
+
+  @GetMapping("{id}")
+  public SessionDetailDto getById(
+      @PathVariable UUID id,
+      @RequestHeader(value = "X-Participant-Token", required = false)
+          @Nullable String headerToken) {
+    assertHostOrParticipant(id, headerToken);
     final var view = commandGateway.translateDomainError(() -> sessionQueryService.getById(id));
     return SessionDtoMapper.toDetailDto(view);
   }
 
-  @GetMapping("by-code/{code}")
   public SessionDetailDto getByCode(@PathVariable String code) {
+    return getByCode(code, null);
+  }
+
+  @GetMapping("by-code/{code}")
+  public SessionDetailDto getByCode(
+      @PathVariable String code, @Nullable HttpServletRequest httpRequest) {
+    enforceRateLimit("by-code", httpRequest);
     final var view = commandGateway.translateDomainError(() -> sessionQueryService.getByCode(code));
-    return SessionDtoMapper.toDetailDto(view);
+    return SessionDtoMapper.toPublicDetailDto(view);
   }
 
   public JoinSessionResponseDto join(@Valid @RequestBody JoinSessionRequest request) {
-    return join(request, null);
+    return join(request, null, null);
+  }
+
+  public JoinSessionResponseDto join(
+      @Valid @RequestBody JoinSessionRequest request,
+      @RequestHeader(value = "X-Participant-Token", required = false)
+          @Nullable String headerToken) {
+    return join(request, headerToken, null);
   }
 
   @PostMapping("join")
@@ -122,7 +168,9 @@ public class SessionController {
       @Valid @RequestBody JoinSessionRequest request,
       @io.swagger.v3.oas.annotations.Parameter(hidden = true)
           @RequestHeader(value = "X-Participant-Token", required = false)
-          @Nullable String headerToken) {
+          @Nullable String headerToken,
+      @Nullable HttpServletRequest httpRequest) {
+    enforceRateLimit("join", httpRequest);
     final var out =
         commandGateway.join(
             new JoinSession.Input(request.code(), request.participantName(), headerToken));
@@ -203,8 +251,16 @@ public class SessionController {
     return SessionReportService.escapeCsvCell(value);
   }
 
-  @GetMapping("{id}/scores")
   public LeaderboardResponseDto getScores(@PathVariable UUID id) {
+    return getScores(id, null);
+  }
+
+  @GetMapping("{id}/scores")
+  public LeaderboardResponseDto getScores(
+      @PathVariable UUID id,
+      @RequestHeader(value = "X-Participant-Token", required = false)
+          @Nullable String headerToken) {
+    assertHostOrParticipant(id, headerToken);
     return commandGateway.translateDomainError(() -> sessionReportService.buildScores(id));
   }
 
@@ -231,13 +287,40 @@ public class SessionController {
     commandGateway.leaveSession(new LeaveSession.Input(id, headerToken));
   }
 
+  @PostMapping("{id}/events/ticket")
+  public SseTicketResponseDto createEventsTicket(
+      @PathVariable UUID id,
+      @RequestHeader(value = "X-Participant-Token", required = false)
+          @Nullable String headerToken) {
+    assertHostOrParticipant(id, headerToken);
+    final var ticket = sessionSseService.issueTicket(id);
+    return new SseTicketResponseDto(ticket, SessionSseService.SSE_TICKET_TTL.toSeconds());
+  }
+
+  public SseEmitter streamEvents(
+      @PathVariable UUID id,
+      @RequestParam(value = "ticket", required = false) @Nullable String ticket,
+      @RequestHeader(value = "Last-Event-ID", required = false) @Nullable String lastEventId) {
+    return streamEvents(id, ticket, lastEventId, null);
+  }
+
   @GetMapping(value = "{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter streamEvents(
       @PathVariable UUID id,
-      @RequestHeader(value = "Last-Event-ID", required = false) @Nullable String lastEventId) {
+      @RequestParam(value = "ticket", required = false) @Nullable String ticket,
+      @RequestHeader(value = "Last-Event-ID", required = false) @Nullable String lastEventId,
+      @Nullable HttpServletRequest httpRequest) {
+    if (!sessionSseService.consumeTicket(id, ticket)) {
+      throw new ResponseStatusException(
+          HttpStatus.UNAUTHORIZED, "Invalid, expired, or missing SSE ticket");
+    }
     final var initialData =
         commandGateway.translateDomainError(() -> sessionQueryService.getInitialStreamData(id));
-    final var emitter = sessionSseService.registerEmitter(id);
+    final var emitter =
+        httpRequest != null
+            ? sessionSseService.registerEmitter(
+                id, SessionEndpointRateLimiter.resolveClientIp(httpRequest))
+            : sessionSseService.registerEmitter(id);
 
     if (lastEventId != null && !lastEventId.isBlank()) {
       try {
@@ -256,6 +339,38 @@ public class SessionController {
 
     realtimePublisher.sendInitialState(emitter, id, initialData);
     return emitter;
+  }
+
+  private void enforceRateLimit(String endpointKey, @Nullable HttpServletRequest httpRequest) {
+    if (httpRequest == null) {
+      return;
+    }
+    final var clientIp = SessionEndpointRateLimiter.resolveClientIp(httpRequest);
+    if (!rateLimiter.tryAcquire(endpointKey + ":" + clientIp)) {
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS, "Trop de requêtes. Veuillez réessayer plus tard.");
+    }
+  }
+
+  private void assertHostOrParticipant(UUID sessionId, @Nullable String headerToken) {
+    final var authenticatedUserId = resolveAuthenticatedUserIdOrNull();
+    commandGateway.translateDomainError(
+        () -> {
+          sessionQueryService.assertHostOrParticipant(sessionId, authenticatedUserId, headerToken);
+          return Boolean.TRUE;
+        });
+  }
+
+  private @Nullable UUID resolveAuthenticatedUserIdOrNull() {
+    final var auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || auth.getPrincipal() == null) {
+      return null;
+    }
+    final var principal = auth.getPrincipal().toString();
+    if (principal.isBlank() || "anonymousUser".equals(principal)) {
+      return null;
+    }
+    return commandGateway.translateDomainError(() -> sessionQueryService.resolveUserId(principal));
   }
 
   private UUID requireAuthenticatedUserId() {

@@ -185,7 +185,7 @@ public class SessionReportApplicationService {
 
   public ScoresView buildScoresFromSession(Session session) {
     final var slideIndex = session.getCurrentSlideIndex();
-    final var entries = session.buildLeaderboardEntries(slideIndex);
+    final var entries = session.buildPublicLeaderboardEntries();
     return new ScoresView(session.getId().value(), slideIndex, entries);
   }
 

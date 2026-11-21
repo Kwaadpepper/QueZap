@@ -18,6 +18,8 @@ import org.jspecify.annotations.Nullable;
 
 @Service
 public class UserNameSanitizerImpl implements UserNameSanitizer {
+  private static final int MAX_PROFANITY_PASSES = 32;
+
   private final ProfanityFilter profanityFilter;
   private final Dictionary customDictionary;
   private final Dictionary frDictionary;
@@ -42,13 +44,19 @@ public class UserNameSanitizerImpl implements UserNameSanitizer {
     var normalized = normalizeWhitespace(stripped).toLowerCase(Locale.ROOT);
 
     @Nullable String profanity;
+    var passes = 0;
 
     do {
       profanity = findProfanity(normalized);
       if (profanity != null) {
-        normalized = stripWordFrom(normalized, profanity);
+        final var strippedProfanity = stripWordFrom(normalized, profanity);
+        if (strippedProfanity.equals(normalized)) {
+          break;
+        }
+        normalized = strippedProfanity;
       }
-    } while (profanity != null);
+      passes++;
+    } while (profanity != null && passes < MAX_PROFANITY_PASSES);
 
     return titleCase(normalized);
   }

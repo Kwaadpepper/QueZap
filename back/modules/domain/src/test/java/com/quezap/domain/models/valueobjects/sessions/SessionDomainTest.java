@@ -165,4 +165,69 @@ class SessionDomainTest {
     assertThat(leaderboard.get(2).delta()).isZero();
     assertThat(leaderboard.get(2).streak()).isZero();
   }
+
+  @Test
+  void shouldMaskUnrevealedSlidePointsInPublicLeaderboardUntilRevealedOrEnded() {
+    final var t0 = Instant.parse("2026-11-18T10:00:00Z");
+    final var alice =
+        new SessionParticipant(UUID.randomUUID(), "Alice", 1500, "t1", false, t0, 3000L, 2, 1000L);
+    final var bob =
+        new SessionParticipant(
+            UUID.randomUUID(), "Bob", 900, "t2", false, t0.plusSeconds(1), 4000L, 2, 2000L);
+
+    final var unrevealedSession =
+        Session.hydrateLive(
+            new SessionId(UuidV7.randomUuid()),
+            "Oracle Prevention",
+            new SessionNumber(3001L),
+            2,
+            new UserId(UuidV7.randomUuid()),
+            UuidV7.randomUuid(),
+            "Quiz",
+            ProgressionMode.MANUAL,
+            false,
+            15,
+            false,
+            TimelinePoint.at(t0),
+            TimelinePoint.at(t0),
+            null,
+            null,
+            1,
+            TimelinePoint.at(t0),
+            List.of(sampleQuizzSlide(1, 20, 1000), sampleQuizzSlide(2, 20, 1000)),
+            List.of(alice, bob),
+            List.of(
+                new SessionAnswerRecord(
+                    UUID.randomUUID(), "Alice", 1, 0, null, 600, true, t0.plusSeconds(1)),
+                new SessionAnswerRecord(
+                    UUID.randomUUID(), "Alice", 2, 0, null, 900, true, t0.plusSeconds(2)),
+                new SessionAnswerRecord(
+                    UUID.randomUUID(), "Bob", 1, 0, null, 900, true, t0.plusSeconds(1)),
+                new SessionAnswerRecord(
+                    UUID.randomUUID(), "Bob", 2, 1, null, 0, false, t0.plusSeconds(2))));
+
+    final var masked = unrevealedSession.buildPublicLeaderboardEntries();
+    assertThat(masked).hasSize(2);
+    // Bob had 900 on slide 1 vs Alice's 600 on slide 1 -> Bob ranks #1 before slide 2 is revealed
+    assertThat(masked.get(0).participantName()).isEqualTo("Bob");
+    assertThat(masked.get(0).score()).isEqualTo(900);
+    assertThat(masked.get(0).delta()).isZero();
+    assertThat(masked.get(0).streak()).isEqualTo(1);
+    assertThat(masked.get(0).correctCount()).isEqualTo(1);
+
+    assertThat(masked.get(1).participantName()).isEqualTo("Alice");
+    assertThat(masked.get(1).score()).isEqualTo(600);
+    assertThat(masked.get(1).delta()).isZero();
+    assertThat(masked.get(1).streak()).isEqualTo(1);
+    assertThat(masked.get(1).correctCount()).isEqualTo(1);
+
+    // Once slide 2 is revealed, Alice's slide 2 points and delta are visible
+    unrevealedSession.revealCurrentSlide();
+    final var revealed = unrevealedSession.buildPublicLeaderboardEntries();
+    assertThat(revealed.get(0).participantName()).isEqualTo("Alice");
+    assertThat(revealed.get(0).score()).isEqualTo(1500);
+    assertThat(revealed.get(0).delta()).isEqualTo(900);
+    assertThat(revealed.get(0).streak()).isEqualTo(2);
+    assertThat(revealed.get(0).correctCount()).isEqualTo(2);
+  }
 }

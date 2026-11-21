@@ -1,7 +1,7 @@
 package com.quezap.application.usecases.sessions;
 
+import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.quezap.application.annotations.Usecase;
 import com.quezap.application.ports.sessions.CreateSession.CreateSessionUsecase;
@@ -19,6 +19,8 @@ import com.quezap.lib.utils.UuidV7;
 
 @Usecase
 public final class CreateSessionHandler implements CreateSessionUsecase {
+
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   private final SessionStorePort sessionStore;
 
@@ -66,11 +68,11 @@ public final class CreateSessionHandler implements CreateSessionUsecase {
 
   private long generateUniqueSessionNumber() {
     for (var i = 0; i < 20; i++) {
-      final var number = ThreadLocalRandom.current().nextLong(10000, 99999);
+      final var number = SECURE_RANDOM.nextLong(10_000_000L, 100_000_000L);
       if (!sessionStore.existsSessionByNumber(number)) {
         return number;
       }
     }
-    return ThreadLocalRandom.current().nextLong(100000, 999999);
+    return SECURE_RANDOM.nextLong(100_000_000L, 1_000_000_000L);
   }
 }

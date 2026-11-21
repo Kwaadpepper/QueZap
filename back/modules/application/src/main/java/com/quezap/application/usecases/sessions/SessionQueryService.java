@@ -78,6 +78,35 @@ public class SessionQueryService {
   }
 
   @Transactional(readOnly = true)
+  public void assertHostOrParticipant(
+      UUID sessionId, @Nullable UUID requesterId, @Nullable String participationToken) {
+    final var session =
+        sessionStore
+            .findSessionById(sessionId)
+            .orElseThrow(() -> SessionDomainException.notFound("Session not found"));
+
+    if (requesterId != null && session.getAuthor().value().equals(requesterId)) {
+      return;
+    }
+
+    if (participationToken != null && !participationToken.isBlank()) {
+      final var isActiveParticipant =
+          session.getSessionParticipants().stream()
+              .anyMatch(p -> !p.isKicked() && participationToken.equals(p.participationToken()));
+      if (isActiveParticipant) {
+        return;
+      }
+      throw SessionDomainException.unauthorized("Jeton de participation invalide ou révoqué");
+    }
+
+    if (requesterId != null) {
+      throw SessionDomainException.forbidden(
+          "Seul le créateur ou un participant peut accéder à cette session");
+    }
+    throw SessionDomainException.unauthorized("Authentification requise");
+  }
+
+  @Transactional(readOnly = true)
   public SessionDetailView getById(UUID id) {
     final var session =
         sessionStore
