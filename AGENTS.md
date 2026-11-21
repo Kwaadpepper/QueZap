@@ -9,8 +9,8 @@ Ce document définit les règles d'architecture, les conventions de code, les co
 ## 🎯 Architecture Générale du Projet
 
 Le dépôt est un monorepo structuré en deux sous-projets principaux :
-- **`back/`** : Backend Spring Boot 3.5.7 (Java 25 / GraalVM 25) en Domain-Driven Design (DDD) et architecture hexagonale multi-modules Gradle.
-- **`front/`** : Frontend Angular 21 (Standalone Components, Signals, `@ngrx/signals`, Tailwind CSS v4, PrimeNG v21).
+- **`back/`** : Backend Spring Boot 3.5.16 (Java 25 >= 25.0.5.1 / GraalVM 25) en Domain-Driven Design (DDD) et architecture hexagonale multi-modules Gradle.
+- **`front/`** : Frontend Angular 22 (Standalone Components, Zoneless, Signals, `@ngrx/signals`, Tailwind CSS v4, OpenNG Optimus UI v2 MIT).
 
 ### Infrastructure locale (Docker / Podman Compose)
 - **PostgreSQL 17** (`localhost:5432`, base `quezap`, utilisateur `quezap`, mot de passe `quezap_password`)
@@ -202,3 +202,5 @@ Les commits sont contrôlés par Husky et Commitlint (`commitlint.config.cjs`) :
 - **Pagination** : `perPage <= 50` côté frontend, sinon `400`.
 - **`GlobalExceptionHandler`** : ignorer `AsyncRequestNotUsableException`/SSE `Broken pipe` ; mapper `BadPaginationException` et `InvalidFileException` en `400`.
 - **Nginx** : `docker-compose restart frontend` après recréation de `backend` (cache DNS Nginx).
+- **Angular 22 + OpenNG Optimus UI v2 (MIT)** : utiliser `@openng/optimus-ui/*` (jamais PrimeNG 22 commercial), sélecteurs kebab-case (`<p-fileupload>`, `<p-progress-spinner>`, `<p-toggleswitch>`), `inplaceRef.deactivate($event)` (sans `$event`, `onDeactivate` ne se déclenche pas), tests Jest zoneless (`setupZonelessTestEnv()`, `jest.useFakeTimers()` au lieu de `fakeAsync`, `setInput(...)` avant `whenStable()`), et `p-toast .p-toast-message` en E2E.
+- **Backend Java 25 & Sécurité** : conserver `googleJavaFormat` sur `1.34.1` avec JDK 25 (`1.35+` échoue en réflexion), utiliser `Objects.hashCode(singleArg)` (ErrorProne `2.53+`), et maintenir les overrides BOM sécurité dans `back/build.gradle` (`tomcat.version`, `jackson-bom.version`, `postgresql.version`, `netty.version`) + image `eclipse-temurin:25-jdk` >= `25.0.5.1` (`CVE-2026-114938`).
