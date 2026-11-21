@@ -65,6 +65,19 @@ PLAYWRIGHT_BASE_URL="http://localhost:4200" bun run test:e2e -- --workers=1
 
 ---
 
+## ⚙️ Runtime Configuration (Docker)
+
+When running inside the Docker Nginx image, container environment variables are rendered to `/config.json` at startup (`docker-entrypoint.d/40-generate-config.sh`) and loaded before application bootstrap (`AppInitializer` → `Config.load()`), without rebuilding the image:
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `APP_NAME` | `QueZap` | Application title, branding, and copyright label |
+| `APP_AUTHOR_NAME` | `Author User` | Author name displayed in the footer |
+| `APP_AUTHOR_EMAIL` | `author@example.net` | Contact email linked in the footer |
+| `APP_API_URL` | `/apiv1` | Backend API base path or URL |
+
+---
+
 ## 📦 Production Build
 
 Compile the AOT production bundle and generate the PWA service worker manifest (`dist/quezap/browser`):

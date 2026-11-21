@@ -4,6 +4,7 @@
   "navigationUrls": [
     "/**",
     "!/**/*.*",
+    "!/config.json",
     "!/apiv1/**",
     "!/quezap-public-images/**"
   ],
@@ -49,6 +50,18 @@
     }
   ],
   "dataGroups": [
+    {
+      "name": "runtime-config-freshness",
+      "urls": [
+        "/config.json"
+      ],
+      "cacheConfig": {
+        "maxSize": 1,
+        "maxAge": "7d",
+        "timeout": "2s",
+        "strategy": "freshness"
+      }
+    },
     {
       "name": "themes-freshness",
       "urls": [

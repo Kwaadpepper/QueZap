@@ -85,4 +85,32 @@ describe('AppInitializer', () => {
     expect(warnSpy).toHaveBeenCalled()
     expect(splash.style.opacity).toBe('0')
   })
+
+  it('should await config.load() before configuring the API client', async () => {
+    const setConfigSpy = jest.spyOn(client, 'setConfig')
+    const mockAuthStore = { loadInitialState: jest.fn(() => of(void 0)) }
+    let apiUrl = '/apiv1'
+    const loadMock = jest.fn(async () => {
+      apiUrl = 'https://runtime.example.com/apiv1'
+    })
+    const mockConfig = {
+      load: loadMock,
+      appConfig: { value: () => ({ apiUrl }) },
+      debug: signal(false),
+    }
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Config, useValue: mockConfig },
+        { provide: AuthenticatedUserStore, useValue: mockAuthStore },
+      ],
+    })
+
+    createSplashScreen(TestBed.inject(DOCUMENT))
+
+    await TestBed.runInInjectionContext(() => AppInitializer())
+
+    expect(loadMock).toHaveBeenCalledTimes(1)
+    expect(setConfigSpy).toHaveBeenCalledWith({ baseUrl: 'https://runtime.example.com' })
+  })
 })

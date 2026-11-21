@@ -16,6 +16,7 @@ import { FocusTrapModule } from '@openng/optimus-ui/focustrap'
 import { ImageModule } from '@openng/optimus-ui/image'
 import { Toast } from '@openng/optimus-ui/toast'
 
+import { Config } from '@quezap/core/services/config/config'
 import { LoadingStatus } from '@quezap/core/services/loading/loading-status'
 
 import { LayoutSettings } from './core/services/layout/layout-settings'
@@ -55,11 +56,13 @@ import { AuthenticatedUserStore } from './shared/stores/authenticated-user'
 })
 export class App {
   private readonly router = inject(Router)
+  private readonly config = inject(Config)
   private readonly LoadingStatus = inject(LoadingStatus)
   private readonly authenticatedUser = inject(AuthenticatedUserStore)
   private readonly destroyRef = inject(DestroyRef)
   protected readonly layout = inject(LayoutSettings)
 
+  protected readonly appName = computed(() => this.config.appConfig.value().appName)
   protected readonly drawerVisible = signal(false)
   protected readonly isLoggedIn = computed(() => this.authenticatedUser.isLoggedIn())
 

@@ -17,6 +17,7 @@ export class Footer {
   private readonly config = inject(Config)
   protected readonly footer = computed(() => {
     return {
+      appName: this.config.appConfig.value().appName,
       authorName: this.config.appConfig.value().authorName,
       authorEmail: this.config.appConfig.value().authorEmail,
     }

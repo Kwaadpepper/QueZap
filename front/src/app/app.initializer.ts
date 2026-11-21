@@ -15,6 +15,11 @@ export async function AppInitializer() {
   const authStore = inject(AuthenticatedUserStore)
   const document = inject(DOCUMENT)
 
+  // Load runtime overrides from /config.json before configuring API client
+  if (typeof config.load === 'function') {
+    await config.load()
+  }
+
   // Configure Hey API client
   const apiUrl = config.appConfig.value().apiUrl
   const baseHost = apiUrl.replace(/\/apiv1\/?$/, '')

@@ -11,8 +11,8 @@
     [class.admin-header]="onAdminPath()"
     [class.hide-header-on-scroll]="hideHeaderOnScroll()"
   >
-    <a pButton class="shrink-0" routerLink="/" title="Aller sur l'accueil" aria-label="Accueil QueZap" text outlined>
-      <p-image src="images/quezap.svg" class="min-w-20" width="100" alt="QueZap"></p-image>
+    <a pButton class="shrink-0" routerLink="/" title="Aller sur l'accueil" text outlined [attr.aria-label]="'Accueil ' + appName()">
+      <p-image src="images/quezap.svg" class="min-w-20" width="100" [alt]="appName()"></p-image>
     </a>
 
     <div class="hidden min-w-0 grow md:flex md:items-center md:justify-end">
