@@ -87,3 +87,8 @@ app:
   turnstile:
     secret-key: ${APP_TURNSTILE_SECRET_KEY:}
     verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+
+management:
+  health:
+    mail:
+      enabled: false

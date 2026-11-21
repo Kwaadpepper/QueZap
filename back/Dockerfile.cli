@@ -24,4 +24,4 @@ USER spring:spring
 
 COPY --from=builder /workspace/quezap-cli/build/libs/quezap-cli.jar app.jar
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "--enable-native-access=ALL-UNNAMED", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
